@@ -40,7 +40,7 @@ class TitleGenerator
             model: $this->models->model(LlmTask::Titles),
             messages: [
                 ChatMessageData::system(prompt('conversation/title')),
-                ChatMessageData::user('The text is: '.$messages),
+                ChatMessageData::user("The text is: {$messages}"),
             ],
             tag: AiCallTag::ConversationTitle,
             maxTokens: self::MAX_TOKENS,

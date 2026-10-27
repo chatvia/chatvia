@@ -41,7 +41,7 @@ final readonly class DocumentServiceCheck
             return new ConnectionCheckData(true);
         }
 
-        if (in_array($response->status(), [401, 403], true)) {
+        if (collect([401, 403])->containsStrict($response->status())) {
             return new ConnectionCheckData(false, keyRefused: true, message: 'Mistral refused the key. Check it in AI providers.');
         }
 

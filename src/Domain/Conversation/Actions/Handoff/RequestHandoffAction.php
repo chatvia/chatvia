@@ -26,7 +26,7 @@ class RequestHandoffAction
     {
         $this->ensureHandoffIsAvailable($conversation);
 
-        if (in_array($conversation->handoff_status, [HandoffStatus::Human, HandoffStatus::Pending], true)) {
+        if (collect([HandoffStatus::Human, HandoffStatus::Pending])->containsStrict($conversation->handoff_status)) {
             return $conversation->handoff_status;
         }
 

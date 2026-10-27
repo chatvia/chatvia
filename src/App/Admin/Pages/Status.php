@@ -173,7 +173,7 @@ class Status extends Page
         return [
             'overall' => $overall,
             'headline' => $headline,
-            'subline' => $this->aiServices === [] ? $checkedAt.' · '.__('Still checking the AI services…') : $checkedAt,
+            'subline' => $this->aiServices === [] ? "{$checkedAt} · ".__('Still checking the AI services…') : $checkedAt,
         ];
     }
 }

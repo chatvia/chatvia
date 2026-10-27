@@ -115,7 +115,7 @@ class FunctionSchemaValidator
 
                 continue;
             }
-            if ($propertyNames !== [] && ! in_array($req, $propertyNames, true)) {
+            if ($propertyNames !== [] && ! collect($propertyNames)->containsStrict($req)) {
                 $errors[] = "The required property \"{$req}\" is not declared in properties.";
             }
         }
@@ -161,13 +161,13 @@ class FunctionSchemaValidator
         $errors = [];
 
         foreach ($types as $t) {
-            if (! in_array($t, self::ALLOWED_PROPERTY_TYPES, true)) {
+            if (! collect(self::ALLOWED_PROPERTY_TYPES)->containsStrict($t)) {
                 $errors[] = "Property \"{$name}\" has unsupported type ".json_encode($t).'.';
             }
         }
 
         // Recurse into nested object properties.
-        if (in_array('object', $types, true) && isset($definition['properties']) && is_array($definition['properties'])) {
+        if (collect($types)->containsStrict('object') && isset($definition['properties']) && is_array($definition['properties'])) {
             foreach ($definition['properties'] as $childName => $childDef) {
                 $childErrors = $this->validatePropertyName((string) $childName);
                 if ($childErrors !== []) {
@@ -180,7 +180,7 @@ class FunctionSchemaValidator
         }
 
         // Recurse into array item definitions.
-        if (in_array('array', $types, true) && isset($definition['items']) && is_array($definition['items'])) {
+        if (collect($types)->containsStrict('array') && isset($definition['items']) && is_array($definition['items'])) {
             array_push($errors, ...$this->validatePropertyDefinition("{$name}[]", $definition['items'], $depth + 1));
         }
 

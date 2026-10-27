@@ -274,6 +274,6 @@ class WorkspaceResource extends Resource
     {
         $country = Country::query()->where('code', Str::lower($code))->first();
 
-        return $country instanceof Country ? $country->localizedName().' ('.Str::upper($code).')' : Str::upper($code);
+        return $country instanceof Country ? "{$country->localizedName()} (".Str::upper($code).')' : Str::upper($code);
     }
 }

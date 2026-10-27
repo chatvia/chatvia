@@ -89,6 +89,6 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
 
     public function uniqueId(): string
     {
-        return 'agents:'.$this->agent->id.':websites:url:'.$this->websiteUrl->url.':train:';
+        return "agents:{$this->agent->id}:websites:url:{$this->websiteUrl->url}:train:";
     }
 }

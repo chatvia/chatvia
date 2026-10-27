@@ -24,7 +24,7 @@ class ChooseCapabilityProviderAction
      */
     public function execute(Agent $agent, ConnectorData $capability, string $provider): void
     {
-        if (! in_array($provider, $this->providers->connected($agent, $capability), true)) {
+        if (! collect($this->providers->connected($agent, $capability))->containsStrict($provider)) {
             throw new CapabilityProviderUnavailableException;
         }
 

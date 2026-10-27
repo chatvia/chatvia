@@ -52,7 +52,7 @@ class RequestDedupeStore
 
     private function key(string $requestId): string
     {
-        return 'chat:req:'.$requestId;
+        return "chat:req:{$requestId}";
     }
 
     private function cache(): Repository

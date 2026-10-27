@@ -62,7 +62,7 @@ class CitationMarkers
             return false;
         }
 
-        return in_array($request->source, [null, MessageOrigin::Playground->value, 'eval', ConversationSource::HostedChat->value, ConversationSource::Widget->value, ConversationSource::Bar->value, ConversationSource::Api->value], true);
+        return collect([null, MessageOrigin::Playground->value, 'eval', ConversationSource::HostedChat->value, ConversationSource::Widget->value, ConversationSource::Bar->value, ConversationSource::Api->value])->containsStrict($request->source);
     }
 
     /** Each marker as `[n]`, keeping only blocks 1 to $blocks. */
@@ -74,7 +74,7 @@ class CitationMarkers
                 ->map(static fn (string $number): int => (int) Str::trim($number))
                 ->filter(static fn (int $number): bool => $number >= 1 && $number <= $blocks)
                 ->unique()
-                ->map(static fn (int $number): string => '['.$number.']')
+                ->map(static fn (int $number): string => "[{$number}]")
                 ->implode(''), $part) ?? $part);
     }
 

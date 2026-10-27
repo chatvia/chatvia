@@ -46,7 +46,7 @@ final class PiiRedactionState
             }
             $hits++;
 
-            return $this->assigned[$type][$value] ??= '['.$label.'_'.(count($this->assigned[$type]) + 1).']';
+            return $this->assigned[$type][$value] ??= "[{$label}_".(count($this->assigned[$type]) + 1).']';
         }, $this->text);
 
         // A pattern that fails (an owner's pattern that backtracks too much)

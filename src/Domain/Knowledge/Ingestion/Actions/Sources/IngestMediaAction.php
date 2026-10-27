@@ -80,7 +80,7 @@ class IngestMediaAction
 
         // Keyed by the model too: another speech-to-text model transcribes again.
         $transcript = Cache::remember(
-            'ingestion:media:transcription:'.md5($this->transcriber->name()).':file:'.$sourceFile->checksum,
+            'ingestion:media:transcription:'.md5($this->transcriber->name()).":file:{$sourceFile->checksum}",
             now()->addMonth(),
             fn (): string => $sourceFile->withLocalFile(
                 fn (File $file): string => $this->audio->withPrepared($file->getPathname(), $this->transcriber->transcribe(...)),

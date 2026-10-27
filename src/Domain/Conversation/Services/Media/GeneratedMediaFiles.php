@@ -25,7 +25,7 @@ final class GeneratedMediaFiles
     /** The file of one generated item. */
     public function pathFor(Agent $agent, string $conversationId, GeneratedMedia $media, string $extension): string
     {
-        return ChatStoragePath::forConversation($agent, $conversationId, ChatStoragePath::kindFolder($media->kind->value)).'/'.$media->external_id.'.'.$extension;
+        return ChatStoragePath::forConversation($agent, $conversationId, ChatStoragePath::kindFolder($media->kind->value))."/{$media->external_id}.{$extension}";
     }
 
     /**
@@ -92,7 +92,7 @@ final class GeneratedMediaFiles
 
         return collect($artifacts)
             ->filter(static fn (mixed $artifact): bool => is_array($artifact)
-                && in_array($artifact['kind'] ?? null, $kinds, true)
+                && collect($kinds)->containsStrict($artifact['kind'] ?? null)
                 && filled($artifact['data']['id'] ?? null))
             ->map(static fn (array $artifact): string => (string) $artifact['data']['id'])
             ->values()

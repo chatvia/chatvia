@@ -32,7 +32,7 @@ enum ServerProgram: string
     /** The {@see PlatformSettings} property that holds its path. */
     public function property(): string
     {
-        return $this->value.'_path';
+        return "{$this->value}_path";
     }
 
     /**
@@ -102,6 +102,6 @@ enum ServerProgram: string
     public function acceptsPath(string $path): bool
     {
         return $path === $this->value
-            || (Str::startsWith($path, '/') && Str::endsWith($path, '/'.$this->value) && ! Str::isMatch('/[\x00-\x1F\x7F]/', $path));
+            || (Str::startsWith($path, '/') && Str::endsWith($path, "/{$this->value}") && ! Str::isMatch('/[\x00-\x1F\x7F]/', $path));
     }
 }

@@ -59,7 +59,7 @@ final class AnthropicAdapter extends OpenAiCompatibleAdapter
         $response = $this->client($provider)
             ->client()
             ->timeout(20)
-            ->get($this->baseUrl($provider).'/models', ['limit' => self::MODEL_PAGE_SIZE])
+            ->get("{$this->baseUrl($provider)}/models", ['limit' => self::MODEL_PAGE_SIZE])
             ->throw();
 
         return collect((array) $response->json('data', []))

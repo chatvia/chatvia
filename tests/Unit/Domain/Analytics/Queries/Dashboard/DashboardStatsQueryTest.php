@@ -32,7 +32,7 @@ function gdsEvent(Agent $agent, string $sessionExternalId, Carbon $occurredAt): 
             'agent_id' => $agent->id,
             'workspace_id' => $agent->workspace_id,
             'session_external_id' => $sessionExternalId,
-            'message_external_id' => (string) Str::uuid(),
+            'message_external_id' => (string) Str::uuid7(),
             'occurred_at' => $occurredAt,
         ]);
 }
@@ -59,12 +59,12 @@ function gdsWorkspaceStats(): DashboardStatsData
     $foreignAgent = Agent::factory()->create();
     analyticsRollup($foreignAgent, '2026-06-15 10:00:00+00', ['conversations_started' => 7, 'assistant_messages' => 9]);
 
-    $sessionA = (string) Str::uuid();
+    $sessionA = (string) Str::uuid7();
     gdsEvent($agentA, $sessionA, now()->subHours(2));
     gdsEvent($agentA, $sessionA, now()->subHours(1));
-    gdsEvent($agentB, (string) Str::uuid(), now()->subHours(3));
-    gdsEvent($agentA, (string) Str::uuid(), now()->subDays(2));
-    gdsEvent($foreignAgent, (string) Str::uuid(), now()->subHours(1));
+    gdsEvent($agentB, (string) Str::uuid7(), now()->subHours(3));
+    gdsEvent($agentA, (string) Str::uuid7(), now()->subDays(2));
+    gdsEvent($foreignAgent, (string) Str::uuid7(), now()->subHours(1));
 
     return app(DashboardStatsQuery::class)->get($owner, $team);
 }
@@ -154,10 +154,10 @@ it('counts only the sessions that sent a message as active', function (): void {
     $owner = User::factory()->create();
     $agent = createAgent($owner);
 
-    gdsEvent($agent, (string) Str::uuid(), now()->subHour());
+    gdsEvent($agent, (string) Str::uuid7(), now()->subHour());
     // A thumbs reaction in the last day is no visit of its own.
     DB::connection(config('chatvia.analytics.connection'))->table('analytics_message_feedback')->insert([
-        'message_external_id' => (string) Str::uuid(),
+        'message_external_id' => (string) Str::uuid7(),
         'agent_id' => $agent->id,
         'workspace_id' => $agent->workspace_id,
         'feedback' => 'positive',

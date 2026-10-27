@@ -7,6 +7,7 @@ namespace Domain\Knowledge\Document\Conversion;
 use Domain\Knowledge\Document\Conversion\Markdown\MarkdownReaders;
 use DOMDocument;
 use DOMElement;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
@@ -128,7 +129,7 @@ class OfficeText
      */
     private function documentText(string $path, string $extension): string
     {
-        if (in_array($extension, self::PROGRAM_FIRST, true) && $this->installed($extension)) {
+        if (collect(self::PROGRAM_FIRST)->containsStrict($extension) && $this->installed($extension)) {
             return $this->programText($path, $extension);
         }
 
@@ -167,7 +168,7 @@ class OfficeText
      */
     private function backup(Throwable $error, string $extension, callable $read): mixed
     {
-        if (in_array($extension, self::PROGRAM_FIRST, true) || ! $this->installed($extension)) {
+        if (collect(self::PROGRAM_FIRST)->containsStrict($extension) || ! $this->installed($extension)) {
             throw $error;
         }
 
@@ -211,14 +212,14 @@ class OfficeText
             $length += Str::length($paragraph);
 
             if ($length >= self::CHARS_PER_PAGE) {
-                $pages[] = implode("\n\n", $current);
+                $pages[] = Arr::join($current, "\n\n");
                 $current = [];
                 $length = 0;
             }
         }
 
         if ($current !== []) {
-            $pages[] = implode("\n\n", $current);
+            $pages[] = Arr::join($current, "\n\n");
         }
 
         return $pages;
@@ -297,7 +298,7 @@ class OfficeText
             }
         }
 
-        return implode("\n", $lines);
+        return Arr::join($lines, "\n");
     }
 
     private function runsText(DOMElement $paragraph): string
@@ -353,23 +354,23 @@ class OfficeText
     {
         $cells = array_values(array_filter(
             array_map(fn (array $row): array => array_map($this->cell(...), $row), $rows),
-            fn (array $row): bool => implode('', $row) !== '',
+            fn (array $row): bool => Arr::join($row, '') !== '',
         ));
 
         if ($cells === []) {
-            return [filled($title) ? '## '.$title : ''];
+            return [filled($title) ? "## {$title}" : ''];
         }
 
         $lead = [];
 
         while ($cells !== [] && $this->filled(reset($cells)) < 2) {
-            $lead[] = implode(' ', array_filter(array_shift($cells), static fn (string $cell): bool => $cell !== ''));
+            $lead[] = Arr::join(array_filter(array_shift($cells), static fn (string $cell): bool => $cell !== ''), ' ');
         }
 
         $header = array_shift($cells);
         $lines = match (true) {
             $header === null => [],
-            $cells === [] => [implode(' · ', array_filter($header, static fn (string $cell): bool => $cell !== ''))],
+            $cells === [] => [Arr::join(array_filter($header, static fn (string $cell): bool => $cell !== ''), ' · ')],
             default => array_map(fn (array $row): string => $this->record($header, $row), $cells),
         };
 
@@ -393,10 +394,10 @@ class OfficeText
             }
 
             $name = ($header[$index] ?? '') !== '' ? $header[$index] : 'Column '.($index + 1);
-            $pairs[] = $name.': '.$value;
+            $pairs[] = "{$name}: {$value}";
         }
 
-        return implode(' · ', $pairs);
+        return Arr::join($pairs, ' · ');
     }
 
     /**
@@ -430,14 +431,14 @@ class OfficeText
         $pages = [];
 
         foreach ($chunks as $index => [$from, $to, $rows]) {
-            $heading = filled($title) ? '## '.$title : '';
+            $heading = filled($title) ? "## {$title}" : '';
 
             if (count($chunks) > 1) {
-                $heading = Str::trim($heading.' (rows '.$from.'–'.$to.')');
+                $heading = Str::trim("{$heading} (rows {$from}–{$to})");
             }
 
             $body = [...($index === 0 ? $lead : []), ...$rows];
-            $pages[] = Str::trim($heading."\n\n".implode("\n", $body));
+            $pages[] = Str::trim("{$heading}\n\n".Arr::join($body, "\n"));
         }
 
         return $pages;

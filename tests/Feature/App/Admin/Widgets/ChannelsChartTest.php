@@ -26,7 +26,7 @@ it('charts the conversations of the period by channel, busiest first', function 
 
     foreach ([ConversationSource::Widget, ConversationSource::Widget, ConversationSource::Telegram] as $source) {
         app(AnalyticsDatabase::class)->table('analytics_conversation_metrics')->insert([
-            'conversation_external_id' => (string) Str::uuid(),
+            'conversation_external_id' => (string) Str::uuid7(),
             'agent_id' => $agent->id,
             'workspace_id' => $agent->workspace_id,
             'started_at' => now(),

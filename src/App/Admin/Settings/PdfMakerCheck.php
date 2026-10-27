@@ -40,7 +40,7 @@ final readonly class PdfMakerCheck
             return new ConnectionCheckData(false, message: 'Cloudflare could not be reached.');
         }
 
-        if (in_array($response->status(), [401, 403], true)) {
+        if (collect([401, 403])->containsStrict($response->status())) {
             return new ConnectionCheckData(false, keyRefused: true, message: 'Cloudflare refused this token. It needs the "Browser Rendering: Edit" permission, for this account.');
         }
 

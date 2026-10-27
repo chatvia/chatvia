@@ -56,7 +56,7 @@ final readonly class PendingChatSignIn
             'kind' => $account instanceof Chatter ? ChatViewerKind::Chatter->value : ChatViewerKind::Staff->value,
             'id' => $account->id,
             'agent_id' => $agent->id,
-            'return_to' => '/'.$request->path().(filled($query) ? '?'.Arr::query($query) : ''),
+            'return_to' => "/{$request->path()}".(filled($query) ? '?'.Arr::query($query) : ''),
             'expires_at' => now()->addMinutes(self::LIFETIME_MINUTES)->getTimestamp(),
         ]);
 

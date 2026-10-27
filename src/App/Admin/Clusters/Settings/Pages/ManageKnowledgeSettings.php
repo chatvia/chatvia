@@ -17,6 +17,7 @@ use Domain\Llm\Enums\AiProvider;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
@@ -141,7 +142,7 @@ class ManageKnowledgeSettings extends AdminSettingsPage
         $descriptions = [];
 
         foreach (KnowledgeFileType::cases() as $type) {
-            $descriptions[$type->value] = new HtmlString(e('.'.implode(', .', $type->extensions())).'<br>'.e($this->readBy($type)));
+            $descriptions[$type->value] = new HtmlString(e('.'.Arr::join($type->extensions(), ', .')).'<br>'.e($this->readBy($type)));
         }
 
         return $descriptions;
@@ -171,8 +172,8 @@ class ManageKnowledgeSettings extends AdminSettingsPage
             : 'the app');
 
         $readBy = $groups->count() === 1
-            ? 'Read by '.$groups->keys()->first()
-            : $groups->map(fn (Collection $extensions, string $reader): string => '.'.implode(', .', $extensions->all()).' by '.$reader)->join(' · ');
+            ? "Read by {$groups->keys()->first()}"
+            : $groups->map(fn (Collection $extensions, string $reader): string => '.'.Arr::join($extensions->all(), ', .')." by {$reader}")->join(' · ');
 
         return $readBy.$this->missingPrograms($type);
     }
@@ -189,7 +190,7 @@ class ManageKnowledgeSettings extends AdminSettingsPage
         return collect($type->extensions())
             ->groupBy(fn (string $extension): string => (string) $programs->missingFor($extension))
             ->except('')
-            ->map(fn (Collection $extensions, string $program): string => ' · .'.implode(', .', $extensions->all())." needs {$program}, which is not found")
+            ->map(fn (Collection $extensions, string $program): string => ' · .'.Arr::join($extensions->all(), ', .')." needs {$program}, which is not found")
             ->join('');
     }
 
@@ -213,7 +214,7 @@ class ManageKnowledgeSettings extends AdminSettingsPage
         $summary = match (true) {
             count($readable) === count(self::FILE_TYPES) => 'All file types',
             $readable === [] => 'None can be read now',
-            default => implode(', ', $readable),
+            default => Arr::join($readable, ', '),
         };
         $waiting = count($chosen) - count($readable);
 

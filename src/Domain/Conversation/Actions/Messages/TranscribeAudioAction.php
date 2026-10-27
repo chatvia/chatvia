@@ -38,7 +38,7 @@ class TranscribeAudioAction
             throw new TranscriptionNotConfiguredException;
         }
 
-        $workingCopy = create_temp_dir('/transcription').'/'.Str::uuid().'.'.$format->extension();
+        $workingCopy = create_temp_dir('/transcription').'/'.Str::uuid7().".{$format->extension()}";
 
         File::copy($audioPath, $workingCopy);
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Document\Conversion\Markdown;
 
+use Illuminate\Support\Arr;
 use RuntimeException;
 
 /**
@@ -404,7 +405,7 @@ final class DocReader
                 }
 
                 foreach ($this->sprms(substr($page, $offset + 1, ord($page[$offset]))) as [$sprm, $operand]) {
-                    if ($sprm === 0x0800 && in_array(ord($operand), [1, 0x81], true)) {
+                    if ($sprm === 0x0800 && collect([1, 0x81])->containsStrict(ord($operand))) {
                         $this->deletions[] = [$this->uint32($page, $index * 4), $this->uint32($page, ($index + 1) * 4)];
                     }
                 }
@@ -545,7 +546,7 @@ final class DocReader
         $position += 28 + ord(($this->table[$position + 24] ?? "\0")[0]) + ord(($this->table[$position + 25] ?? "\0")[0]);
         $position += 2 + $this->uint16($this->table, $position) * 2;
 
-        return [['bullet' => in_array($format, [self::BULLET, self::NO_NUMBER], true), 'start' => $start], $position];
+        return [['bullet' => collect([self::BULLET, self::NO_NUMBER])->containsStrict($format), 'start' => $start], $position];
     }
 
     /** The footnotes or endnotes, keyed by where they are referenced in the body. */
@@ -560,7 +561,7 @@ final class DocReader
             }
 
             $paragraphs = $this->paragraphs($storyStart + $textPositions[$index], $storyStart + $textPositions[$index + 1]);
-            $this->noteTexts[$position] = implode(' ', array_column($paragraphs, 'text'));
+            $this->noteTexts[$position] = Arr::join(array_column($paragraphs, 'text'), ' ');
         }
     }
 
@@ -705,7 +706,7 @@ final class DocReader
                     $cell[] = $text;
 
                     if ($paragraph['end'] === self::CELL_END) {
-                        $row[] = MarkdownText::inline(implode("\n", $cell));
+                        $row[] = MarkdownText::inline(Arr::join($cell, "\n"));
                         $cell = [];
                     }
                 }
@@ -770,7 +771,7 @@ final class DocReader
                 return $definition['id'];
             }
 
-            if ($definition['id'] === self::TITLE_STYLE || in_array(strtolower($definition['name']), ['title', 'toc heading'], true)) {
+            if ($definition['id'] === self::TITLE_STYLE || collect(['title', 'toc heading'])->containsStrict(strtolower($definition['name']))) {
                 return 1;
             }
 
@@ -816,10 +817,10 @@ final class DocReader
         $list = $this->overrides[$override]['list'];
         $format = $this->overrides[$override]['formats'][$level] ?? $this->lists[$list][$level] ?? ['bullet' => true, 'start' => 1];
         $counters = array_filter($this->counters[$list] ?? [], static fn (int $deeper): bool => $deeper <= $level, ARRAY_FILTER_USE_KEY);
-        $restart = isset($this->overrides[$override]['starts'][$level]) && ! isset($this->restarted[$override.':'.$level]);
+        $restart = isset($this->overrides[$override]['starts'][$level]) && ! isset($this->restarted["{$override}:{$level}"]);
 
         if ($restart) {
-            $this->restarted[$override.':'.$level] = true;
+            $this->restarted["{$override}:{$level}"] = true;
             $counters[$level] = $this->overrides[$override]['starts'][$level];
         } else {
             $counters[$level] = isset($counters[$level]) ? $counters[$level] + 1 : $format['start'];
@@ -830,7 +831,7 @@ final class DocReader
         $this->lastList = $level === 0 ? $list : $this->lastList;
         $this->counters[$list] = $counters;
 
-        return $format['bullet'] ? '-' : $counters[$level].'.';
+        return $format['bullet'] ? '-' : "{$counters[$level]}.";
     }
 
     /**

@@ -56,7 +56,7 @@ final readonly class CompatibleReranker implements Reranker
             $request = $request->withToken($this->apiKey);
         }
 
-        $results = $this->tags->during(AiCallTag::Rerank, fn () => $request->post($this->baseUrl.'/rerank', [
+        $results = $this->tags->during(AiCallTag::Rerank, fn () => $request->post("{$this->baseUrl}/rerank", [
             'model' => $this->model,
             'query' => $query,
             'documents' => array_values($documents),

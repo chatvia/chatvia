@@ -44,6 +44,6 @@ class ChatViewerData extends Data
     /** `chatter:{id}` or `user:{id}`. */
     public function key(): string
     {
-        return $this->kind->value.':'.$this->id;
+        return "{$this->kind->value}:{$this->id}";
     }
 }

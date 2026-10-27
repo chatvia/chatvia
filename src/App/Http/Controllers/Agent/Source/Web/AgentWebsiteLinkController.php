@@ -36,7 +36,7 @@ class AgentWebsiteLinkController
         if ($request->filled('q')) {
             // ilike: case-insensitive matches user expectation for URLs. A
             // website has at most a few thousand URLs, so scanning them is cheap.
-            $query->where('url', 'ilike', '%'.$request->input('q').'%');
+            $query->where('url', 'ilike', "%{$request->input('q')}%");
         }
 
         return $query->latest('crawled_at')->simplePaginate(50);

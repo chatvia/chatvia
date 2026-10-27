@@ -120,7 +120,7 @@ class Anthropic extends AbstractLlmProvider
 
     public function getCompletionEndpoint(): string
     {
-        return $this->getBaseUrl().'/messages';
+        return "{$this->getBaseUrl()}/messages";
     }
 
     /**
@@ -211,6 +211,6 @@ class Anthropic extends AbstractLlmProvider
      */
     private function budgetKey(array $body): string
     {
-        return 'llm:anthropic:thinking-budget:'.$this->connection->getKey().':'.($body['model'] ?? '');
+        return "llm:anthropic:thinking-budget:{$this->connection->getKey()}:".($body['model'] ?? '');
     }
 }

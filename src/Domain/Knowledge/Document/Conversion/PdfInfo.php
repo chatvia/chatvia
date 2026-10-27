@@ -105,10 +105,8 @@ final readonly class PdfInfo implements PdfInspector
             }
 
             if (Str::contains($line, ':')) {
-                [$key, $value] = explode(':', $line, 2);
-                $key = Str::lower(Str::trim($key));
-                $key = Str::replace(' ', '_', $key);
-                $value = Str::trim($value);
+                $key = Str::of($line)->before(':')->trim()->lower()->replace(' ', '_')->toString();
+                $value = Str::trim(Str::after($line, ':'));
 
                 // Parse page size
                 if ($key === 'page_size' && preg_match('/(\d+(?:\.\d+)?)\s*x\s*(\d+(?:\.\d+)?)\s*pts/', $value, $matches)) {

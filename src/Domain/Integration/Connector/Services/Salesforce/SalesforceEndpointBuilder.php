@@ -48,8 +48,8 @@ class SalesforceEndpointBuilder
             clientSecret: filled($org->clientSecret) ? Str::trim($org->clientSecret) : null,
             mcpUrl: "https://api.salesforce.com/platform/mcp/v1/{$segment}/{$org->server}",
             authServerUrl: $loginHost,
-            authorizationEndpoint: $loginHost.'/services/oauth2/authorize',
-            tokenEndpoint: $loginHost.'/services/oauth2/token',
+            authorizationEndpoint: "{$loginHost}/services/oauth2/authorize",
+            tokenEndpoint: "{$loginHost}/services/oauth2/token",
         );
     }
 }

@@ -8,6 +8,7 @@ use Domain\Conversation\Services\Streaming\Exceptions\UpstreamStreamClosed;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Turn\TurnStops;
 use Generator;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use JsonException;
@@ -182,10 +183,10 @@ class OpenAiCompatibleTransformer implements StreamTransformer
 
         $parts = is_array($delta['reasoning_details'] ?? null) ? $delta['reasoning_details'] : [];
 
-        return implode('', array_map(
+        return Arr::join(array_map(
             fn (mixed $part): string => is_array($part) ? (string) ($part['text'] ?? $part['summary'] ?? '') : '',
             $parts,
-        ));
+        ), '');
     }
 
     /**
@@ -301,7 +302,7 @@ class OpenAiCompatibleTransformer implements StreamTransformer
             return;
         }
 
-        if ($state->toolsOffered && in_array($leading[0], ['{', '[', '`'], true)) {
+        if ($state->toolsOffered && collect(['{', '[', '`'])->containsStrict($leading[0])) {
             $state->mode = ContentMode::HeldAsJson;
 
             return;
@@ -393,6 +394,6 @@ class OpenAiCompatibleTransformer implements StreamTransformer
      */
     private function namesAnOfferedTool(array $calls, array $offeredToolNames): bool
     {
-        return array_any($calls, static fn (array $call): bool => in_array($call['name'], $offeredToolNames, true));
+        return array_any($calls, static fn (array $call): bool => collect($offeredToolNames)->containsStrict($call['name']));
     }
 }

@@ -56,8 +56,8 @@ final class ModelFactsData extends Data
             maxOutputTokens: is_int($output) && $output > 0 ? $output : null,
             callsTools: is_bool($entry['tool_call'] ?? null) ? $entry['tool_call'] : null,
             takesResponseSchema: is_bool($entry['structured_output'] ?? null) ? $entry['structured_output'] : null,
-            readsImages: is_array($inputs) ? in_array('image', $inputs, true) : null,
-            readsFiles: is_array($inputs) ? in_array('pdf', $inputs, true) : null,
+            readsImages: is_array($inputs) ? collect($inputs)->containsStrict('image') : null,
+            readsFiles: is_array($inputs) ? collect($inputs)->containsStrict('pdf') : null,
         );
     }
 }

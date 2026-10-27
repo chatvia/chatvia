@@ -45,7 +45,7 @@ enum KnowledgeFileType: string
 
         return array_values(array_filter(
             self::cases(),
-            fn (self $type): bool => in_array($type->value, $values, true) && $type->isReadable(),
+            fn (self $type): bool => collect($values)->containsStrict($type->value) && $type->isReadable(),
         ));
     }
 
@@ -66,12 +66,12 @@ enum KnowledgeFileType: string
     /** PDF, Word, slides and images: only a document reader reads them well. */
     public function needsDocumentReader(): bool
     {
-        return in_array($this, [self::Pdf, self::Word, self::Presentation, self::Image], true);
+        return collect([self::Pdf, self::Word, self::Presentation, self::Image])->containsStrict($this);
     }
 
     public function isEnabled(): bool
     {
-        return in_array($this, self::enabled(), true);
+        return collect(self::enabled())->containsStrict($this);
     }
 
     /** Audio and video: recognised by their content and measured in minutes. */

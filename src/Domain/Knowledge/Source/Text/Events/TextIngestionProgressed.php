@@ -32,7 +32,7 @@ class TextIngestionProgressed implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('agents.'.$this->agentExternalId.'.texts.progress'),
+            new PrivateChannel("agents.{$this->agentExternalId}.texts.progress"),
         ];
     }
 

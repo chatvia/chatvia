@@ -61,7 +61,7 @@ class PageVisualsDescriber
                 continue;
             }
 
-            $path = Str::rtrim($imageDirectory, '/').'/'.Str::uuid()->toString().'.jpg';
+            $path = Str::rtrim($imageDirectory, '/').'/'.Str::uuid7()->toString().'.jpg';
             Storage::put($path, $jpeg);
 
             $described[$path] = $description;

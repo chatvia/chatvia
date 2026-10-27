@@ -51,7 +51,7 @@ final class IconTone
         $name = Str::replaceMatches('/^(Outlined|Mini|Micro)/', '', $icon->name) ?? '';
 
         foreach (self::TONES as $tone => $names) {
-            if (in_array($name, $names, true)) {
+            if (collect($names)->containsStrict($name)) {
                 return $tone;
             }
         }

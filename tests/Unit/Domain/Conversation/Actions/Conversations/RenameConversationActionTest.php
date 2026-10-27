@@ -15,7 +15,7 @@ use Illuminate\Support\Str;
  */
 function rcaScope(): ChatScopeData
 {
-    $scope = new ChatScopeData(Agent::factory()->create(), (string) Str::uuid());
+    $scope = new ChatScopeData(Agent::factory()->create(), (string) Str::uuid7());
 
     return $scope->forConversation(app(StartConversationAction::class)->execute($scope, ConversationSource::HostedChat)->external_id);
 }

@@ -33,7 +33,7 @@ it('caps the number of attachments bound to a new conversation at config(chatvia
     // Only the claim is exercised here; the other collaborators are tested
     // elsewhere.
     $data = new CreateConversationData(
-        scope: new ChatScopeData($agent, (string) Str::uuid()),
+        scope: new ChatScopeData($agent, (string) Str::uuid7()),
         message: 'Hello',
         ipAddress: '127.0.0.1',
         userAgent: 'Mozilla/5.0',
@@ -58,7 +58,7 @@ it('moves the claimed files from the pending folder into the conversation\'s', f
     $pendingPath = $orphan->filepath;
 
     $conversationId = app(CreateConversationAction::class)->execute(new CreateConversationData(
-        scope: new ChatScopeData($agent, (string) Str::uuid()),
+        scope: new ChatScopeData($agent, (string) Str::uuid7()),
         message: 'Hello',
         attachmentIds: [$orphan->external_id],
     ));
@@ -76,7 +76,7 @@ it('does not claim another agent\'s upload in the same workspace', function (): 
     $orphan = Attachment::factory()->pending($sibling)->create();
 
     app(CreateConversationAction::class)->execute(new CreateConversationData(
-        scope: new ChatScopeData($agent, (string) Str::uuid()),
+        scope: new ChatScopeData($agent, (string) Str::uuid7()),
         message: 'Hello',
         attachmentIds: [$orphan->external_id],
     ));
@@ -93,7 +93,7 @@ it('does NOT re-bind attachments that already belong to a different conversation
     $alreadyBound = Attachment::factory()->forConversation($otherConversation)->create();
 
     $data = new CreateConversationData(
-        scope: new ChatScopeData($agent, (string) Str::uuid()),
+        scope: new ChatScopeData($agent, (string) Str::uuid7()),
         message: 'Hello',
         ipAddress: '127.0.0.1',
         userAgent: 'Mozilla/5.0',
@@ -111,7 +111,7 @@ it('records the first message masked and starts a hosted-chat conversation in th
 
     $agent = Agent::factory()->create();
     $agent->setSetting('filters', PiiFilterType::defaults(), 'guardrails');
-    $sessionId = (string) Str::uuid();
+    $sessionId = (string) Str::uuid7();
 
     $conversationId = app(CreateConversationAction::class)->execute(new CreateConversationData(
         scope: new ChatScopeData($agent, $sessionId),

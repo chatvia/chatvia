@@ -60,7 +60,7 @@ final readonly class AiProviderCheck
             return $this->checkElevenLabs((string) $key, (string) (filled($baseUrl) ? $baseUrl : config('services.elevenlabs.endpoint')));
         }
 
-        if (in_array($provider, [AiProvider::Kling, AiProvider::BytePlus, AiProvider::Runway, AiProvider::Fal], true)) {
+        if (collect([AiProvider::Kling, AiProvider::BytePlus, AiProvider::Runway, AiProvider::Fal])->containsStrict($provider)) {
             return $this->checkMediaService($provider, (string) $key, (string) (filled($baseUrl) ? $baseUrl : config($provider->baseUrlConfig() ?? '')));
         }
 
@@ -129,7 +129,7 @@ final readonly class AiProviderCheck
 
         return match (true) {
             $response->successful() => new ConnectionCheckData(true),
-            in_array($response->status(), [401, 403], true) => new ConnectionCheckData(false, true, 'ElevenLabs refused the key. Check that you copied all of it.'),
+            collect([401, 403])->containsStrict($response->status()) => new ConnectionCheckData(false, true, 'ElevenLabs refused the key. Check that you copied all of it.'),
             default => new ConnectionCheckData(false, message: "ElevenLabs answered with an error ({$response->status()})."),
         };
     }
@@ -146,17 +146,17 @@ final readonly class AiProviderCheck
 
         try {
             $response = match ($provider) {
-                AiProvider::Kling => Http::withToken($key)->acceptJson()->timeout(15)->post($address.'/account/billing/balance', []),
-                AiProvider::BytePlus => Http::withToken($key)->acceptJson()->timeout(15)->get($address.'/contents/generations/tasks', ['page_size' => 1]),
+                AiProvider::Kling => Http::withToken($key)->acceptJson()->timeout(15)->post("{$address}/account/billing/balance", []),
+                AiProvider::BytePlus => Http::withToken($key)->acceptJson()->timeout(15)->get("{$address}/contents/generations/tasks", ['page_size' => 1]),
                 AiProvider::Runway => Http::withToken($key)->withHeaders(['X-Runway-Version' => RunwayVideoGenerator::API_VERSION])->acceptJson()->timeout(15)->get(RunwayVideoGenerator::ENDPOINT.'/organization'),
-                default => Http::withHeaders(['Authorization' => 'Key '.$key])->acceptJson()->timeout(15)->get(FalQueue::ENDPOINT.'/fal-ai/flux-2/requests/'.Str::uuid7()->toString().'/status'),
+                default => Http::withHeaders(['Authorization' => "Key {$key}"])->acceptJson()->timeout(15)->get(FalQueue::ENDPOINT.'/fal-ai/flux-2/requests/'.Str::uuid7()->toString().'/status'),
             };
         } catch (ConnectionException) {
             return new ConnectionCheckData(false, message: "{$provider->label()} could not be reached.");
         }
 
         return match (true) {
-            in_array($response->status(), [401, 403], true) => new ConnectionCheckData(false, true, "{$provider->label()} refused the key. Check that you copied all of it."),
+            collect([401, 403])->containsStrict($response->status()) => new ConnectionCheckData(false, true, "{$provider->label()} refused the key. Check that you copied all of it."),
             $response->status() < 500 => new ConnectionCheckData(true),
             default => new ConnectionCheckData(false, message: "{$provider->label()} answered with an error ({$response->status()})."),
         };
@@ -177,7 +177,7 @@ final readonly class AiProviderCheck
 
         return match (true) {
             $response->successful() => new ConnectionCheckData(true, warning: $this->azureFreeTier($response) ? self::AZURE_FREE_TIER : null),
-            in_array($response->status(), [401, 403], true) => new ConnectionCheckData(false, true, 'Azure refused the key. Check that you copied all of it.'),
+            collect([401, 403])->containsStrict($response->status()) => new ConnectionCheckData(false, true, 'Azure refused the key. Check that you copied all of it.'),
             default => new ConnectionCheckData(false, message: "Azure answered with an error ({$response->status()}). Check the endpoint."),
         };
     }

@@ -34,7 +34,7 @@ class ToolRateLimiter
         }
 
         $window = (int) config('chatvia.governance.tool_rate_window_seconds', 60);
-        $key = 'tool-rate:'.$agent->id.':'.sha1($tool->value);
+        $key = "tool-rate:{$agent->id}:".sha1($tool->value);
 
         // A single atomic increment, so parallel tool calls can't both pass a
         // separate "check" before either "hit" lands.

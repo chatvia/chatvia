@@ -84,7 +84,7 @@ final class ChatRequestData extends Data
 
         // Some chat templates take a single system message, and only first.
         if (($messages[0]['role'] ?? null) === ChatRole::System->value && filled($messages[0]['content'] ?? null) && ! is_array($messages[0]['content'])) {
-            $messages[0]['content'] = Str::trim($messages[0]['content'])."\n\n".$instruction;
+            $messages[0]['content'] = Str::trim($messages[0]['content'])."\n\n{$instruction}";
 
             return $messages;
         }

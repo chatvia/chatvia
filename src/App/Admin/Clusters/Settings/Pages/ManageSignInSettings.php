@@ -72,7 +72,7 @@ class ManageSignInSettings extends AdminSettingsPage
                 $redirectLabel => "auth.{$service}.callback",
                 // A chatter accepting a chat invitation with Google or Slack
                 // signs in through the same app, back to its own URL.
-                ...(in_array($service, ['google', 'slack'], true)
+                ...(collect(['google', 'slack'])->containsStrict($service)
                     ? ['Chat invitation '.Str::lcfirst($redirectLabel) => ['agents.invitation.social.callback', ['provider' => $service]]]
                     : []),
             ]);

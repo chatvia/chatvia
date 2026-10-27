@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Source\Qa\Data;
 
+use Illuminate\Support\Arr;
 use Spatie\LaravelData\Data;
 
 /**
@@ -27,6 +28,6 @@ final class QaEntryData extends Data
      */
     public function questionLines(): string
     {
-        return implode("\n", array_filter($this->questions));
+        return Arr::join(array_filter($this->questions), "\n");
     }
 }

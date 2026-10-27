@@ -6,6 +6,7 @@ namespace Domain\Llm\Providers\Messages;
 
 use Domain\Llm\AbstractLlmProvider;
 use Domain\Llm\Providers\Anthropic;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use stdClass;
 
@@ -72,7 +73,7 @@ final class MessagesPayload
             $body['output_config']['effort'] = $effort;
 
             // Thinking takes no sampling changes, and no forced tool call.
-            if (! in_array($body['tool_choice']['type'] ?? null, ['any', 'tool'], true)) {
+            if (! collect(['any', 'tool'])->containsStrict($body['tool_choice']['type'] ?? null)) {
                 $body['thinking'] = ['type' => 'adaptive', 'display' => $showsReasoning ? 'summarized' : 'omitted'];
                 unset($body['temperature'], $body['top_p'], $body['top_k']);
             }
@@ -133,12 +134,12 @@ final class MessagesPayload
         $texts = [];
 
         foreach ($messages as $message) {
-            if (is_array($message) && in_array($message['role'] ?? null, ['system', 'developer'], true)) {
+            if (is_array($message) && collect(['system', 'developer'])->containsStrict($message['role'] ?? null)) {
                 $texts[] = self::text($message['content'] ?? '');
             }
         }
 
-        return implode("\n\n", array_filter($texts, static fn (string $text): bool => $text !== ''));
+        return Arr::join(array_filter($texts, static fn (string $text): bool => $text !== ''), "\n\n");
     }
 
     /**
@@ -154,11 +155,11 @@ final class MessagesPayload
         $turns = [];
 
         foreach ($messages as $message) {
-            if (! is_array($message) || in_array($message['role'] ?? null, ['system', 'developer'], true)) {
+            if (! is_array($message) || collect(['system', 'developer'])->containsStrict($message['role'] ?? null)) {
                 continue;
             }
 
-            $role = in_array($message['role'] ?? null, ['assistant', 'agent'], true) ? 'assistant' : 'user';
+            $role = collect(['assistant', 'agent'])->containsStrict($message['role'] ?? null) ? 'assistant' : 'user';
             $blocks = match (true) {
                 ($message['role'] ?? null) === 'tool' => [self::toolResult($message)],
                 $role === 'assistant' => self::assistantBlocks($message),
@@ -268,7 +269,7 @@ final class MessagesPayload
             return ['type' => 'url', 'url' => $url];
         }
 
-        [$meta, $data] = array_pad(explode(',', Str::chopStart($url, 'data:'), 2), 2, '');
+        [$meta, $data] = Str::of($url)->chopStart('data:')->explode(',', 2)->pad(2, '')->all();
 
         return ['type' => 'base64', 'media_type' => Str::before($meta, ';'), 'data' => $data];
     }
@@ -319,6 +320,6 @@ final class MessagesPayload
             return (string) $content;
         }
 
-        return implode('', array_map(static fn (mixed $part): string => is_array($part) ? (string) ($part['text'] ?? '') : (string) $part, $content));
+        return Arr::join(array_map(static fn (mixed $part): string => is_array($part) ? (string) ($part['text'] ?? '') : (string) $part, $content), '');
     }
 }

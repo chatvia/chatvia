@@ -92,7 +92,7 @@ class ManageAiProviderSettings extends AdminSettingsPage implements HasTable
         $servers = $this->servers()->where('is_enabled', true)->count();
 
         if ($servers > 0) {
-            $connected[] = $servers.' '.Str::plural('server', $servers).' of your own';
+            $connected[] = "{$servers} ".Str::plural('server', $servers).' of your own';
         }
 
         return $connected === []
@@ -181,7 +181,7 @@ class ManageAiProviderSettings extends AdminSettingsPage implements HasTable
             ])->properties()->summary(function (): string {
                 $count = $this->servers()->where('is_enabled', true)->count();
 
-                return $count === 0 ? 'None yet' : $count.' '.Str::plural('server', $count);
+                return $count === 0 ? 'None yet' : "{$count} ".Str::plural('server', $count);
             }),
         ];
     }
@@ -273,7 +273,7 @@ class ManageAiProviderSettings extends AdminSettingsPage implements HasTable
         $used = app(AiProviderUsage::class)->usedFor($provider);
 
         return collect($provider->capabilities())
-            ->mapWithKeys(fn (AiCapability $capability): array => [$capability->label() => in_array($capability, $used, true)])
+            ->mapWithKeys(fn (AiCapability $capability): array => [$capability->label() => collect($used)->containsStrict($capability)])
             ->all();
     }
 
@@ -406,7 +406,7 @@ class ManageAiProviderSettings extends AdminSettingsPage implements HasTable
         ]);
         $list = app(ModelListing::class)->list($draft);
 
-        if (in_array($list->status, [ModelListStatus::KeyRefused, ModelListStatus::Unreachable], true)) {
+        if (collect([ModelListStatus::KeyRefused, ModelListStatus::Unreachable])->containsStrict($list->status)) {
             Notification::make()->danger()->title('The server was not saved')->body($list->message((string) $data['name'], (string) $draft->base_url))->send();
             $action->halt();
         }

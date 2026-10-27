@@ -18,6 +18,7 @@ use Domain\Knowledge\Retrieval\Services\KnowledgeSearchSwitch;
 use Domain\Llm\Contracts\RealtimeCallHandler;
 use Domain\Llm\Contracts\RealtimeCalls;
 use Domain\Llm\Contracts\RealtimeConnection;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -334,7 +335,7 @@ final class VoiceCallSession implements RealtimeCallHandler
     private function responseDone(array $response): void
     {
         $id = (string) ($response['id'] ?? '');
-        $turn = array_key_exists($id, $this->responses) ? $this->responses[$id] : $this->latestTurn();
+        $turn = Arr::get($this->responses, $id, fn (): ?VoiceTurn => $this->latestTurn());
         unset($this->responses[$id]);
 
         $spoken = $this->spokenText($response);
@@ -414,7 +415,7 @@ final class VoiceCallSession implements RealtimeCallHandler
             }
 
             // Done turns are no longer needed.
-            if ($turn->userStored && ($turn->replyStored || $turn->refused) && ! in_array($turn, $this->responses, true)) {
+            if ($turn->userStored && ($turn->replyStored || $turn->refused) && ! collect($this->responses)->containsStrict($turn)) {
                 unset($this->turns[$itemId]);
             }
         }

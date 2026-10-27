@@ -24,7 +24,7 @@ function rmsaEvent(int $agentId, string $role = 'assistant', ?bool $found = null
         workspaceId: 720000,
         chatterId: $chatterId,
         conversationExternalId: $conversationId,
-        messageExternalId: $messageId ?? (string) Str::uuid(),
+        messageExternalId: $messageId ?? (string) Str::uuid7(),
         sessionExternalId: '00000000-0000-4000-9000-000000000720',
         role: $role,
         llmId: 7,
@@ -75,8 +75,8 @@ it('takes no answer figures from a visitor message', function (): void {
 
 it('records a redelivered message exactly once across events, metrics and rollups', function (): void {
     $agentId = 970003;
-    $conversationId = (string) Str::uuid();
-    $event = rmsaEvent($agentId, messageId: (string) Str::uuid(), conversationId: $conversationId);
+    $conversationId = (string) Str::uuid7();
+    $event = rmsaEvent($agentId, messageId: (string) Str::uuid7(), conversationId: $conversationId);
 
     rmsaRecord($event);
     rmsaRecord($event); // queue redelivery
@@ -109,7 +109,7 @@ it('stores the chatter a message was sent by, and none for an anonymous one', fu
 
 it('adds every message to its day in the daily rollup, the same as the hourly one', function (): void {
     $agentId = 970005;
-    $conversation = (string) Str::uuid();
+    $conversation = (string) Str::uuid7();
 
     rmsaRecord(rmsaEvent($agentId, 'user', conversationId: $conversation));
     rmsaRecord(rmsaEvent($agentId, 'assistant', true, 0.8, conversationId: $conversation));
@@ -137,9 +137,9 @@ it('keeps each reply time in the histogram and the slowest one', function (): vo
             agentId: $agentId,
             workspaceId: 720000,
             chatterId: null,
-            conversationExternalId: (string) Str::uuid(),
-            messageExternalId: (string) Str::uuid(),
-            sessionExternalId: (string) Str::uuid(),
+            conversationExternalId: (string) Str::uuid7(),
+            messageExternalId: (string) Str::uuid7(),
+            sessionExternalId: (string) Str::uuid7(),
             role: 'assistant',
             llmId: null,
             countryCode: null,
@@ -169,7 +169,7 @@ it('keeps each reply time in the histogram and the slowest one', function (): vo
 
 it('counts a conversation once under its country, and none without one', function (): void {
     $agentId = 970007;
-    $conversation = (string) Str::uuid();
+    $conversation = (string) Str::uuid7();
 
     rmsaRecord(rmsaEvent($agentId, 'user', conversationId: $conversation));
     rmsaRecord(rmsaEvent($agentId, 'assistant', conversationId: $conversation));
@@ -178,9 +178,9 @@ it('counts a conversation once under its country, and none without one', functio
         agentId: $agentId,
         workspaceId: 720000,
         chatterId: null,
-        conversationExternalId: (string) Str::uuid(),
-        messageExternalId: (string) Str::uuid(),
-        sessionExternalId: (string) Str::uuid(),
+        conversationExternalId: (string) Str::uuid7(),
+        messageExternalId: (string) Str::uuid7(),
+        sessionExternalId: (string) Str::uuid7(),
         role: 'user',
         llmId: null,
         countryCode: null,
@@ -203,9 +203,9 @@ it('stores the channel on the conversation and the device on the first-seen sess
         agentId: 970008,
         workspaceId: 720000,
         chatterId: null,
-        conversationExternalId: (string) Str::uuid(),
-        messageExternalId: (string) Str::uuid(),
-        sessionExternalId: (string) Str::uuid(),
+        conversationExternalId: (string) Str::uuid7(),
+        messageExternalId: (string) Str::uuid7(),
+        sessionExternalId: (string) Str::uuid7(),
         role: 'user',
         llmId: null,
         countryCode: null,

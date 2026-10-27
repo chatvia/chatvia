@@ -43,7 +43,7 @@ class SetAgentStartersAction
                 continue;
             }
 
-            $id = filled($starter->id) ? $starter->id : (string) Str::uuid();
+            $id = filled($starter->id) ? $starter->id : (string) Str::uuid7();
             $copy = new TranslatableText($text, [], TranslatableText::onlyLanguages($starter->overrides, $languages));
 
             // Keep the stored translations while the base text is unchanged and
@@ -102,7 +102,7 @@ class SetAgentStartersAction
 
         foreach (array_keys($items) as $index => $id) {
             if (! $items[$id]['copy']->isTranslatedInto($locales)) {
-                $pending['k'.$index] = $id;
+                $pending["k{$index}"] = $id;
             }
         }
 

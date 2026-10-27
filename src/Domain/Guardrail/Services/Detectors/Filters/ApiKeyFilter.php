@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Domain\Guardrail\Services\Detectors\Filters;
 
+use Illuminate\Support\Arr;
+
 /**
  * Masks API keys and private keys ([API_KEY_n]) a visitor pastes or an
  * answer repeats. Only formats with a fixed provider prefix (or a PEM
@@ -33,7 +35,9 @@ final class ApiKeyFilter extends PiiFilter
 
     protected function pattern(): string
     {
-        return '/'.implode('|', self::PATTERNS).'/';
+        $alternatives = Arr::join(self::PATTERNS, '|');
+
+        return "/{$alternatives}/";
     }
 
     protected function label(): string

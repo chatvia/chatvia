@@ -25,11 +25,11 @@ it('lists the meeting types with their ids, in the text the model reads too', fu
     expect($result['content'][0]['text'])->toContain('"id":"'.FakeScheduler::INTRO_CALL.'"')
         ->toContain('"name":"Intro call"')
         ->and($result['structuredContent']['meeting_types'])->toBe([[
-        'id' => FakeScheduler::INTRO_CALL,
-        'name' => 'Intro call',
-        'duration_minutes' => 30,
-        'description' => 'A first chat about your needs.',
-    ]]);
+            'id' => FakeScheduler::INTRO_CALL,
+            'name' => 'Intro call',
+            'duration_minutes' => 30,
+            'description' => 'A first chat about your needs.',
+        ]]);
 });
 
 it('says there is nothing to book when there are no types', function (): void {

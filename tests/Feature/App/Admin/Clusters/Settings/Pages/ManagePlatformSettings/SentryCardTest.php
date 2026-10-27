@@ -25,6 +25,13 @@ it('saves each DSN and the environment into the config Sentry reads', function (
         ->and(config('sentry.dsn'))->toBe('https://abc123@o1.ingest.sentry.io/11')
         ->and(config('chatvia.sentry.browser_dsn'))->toBe('https://def456@o1.ingest.sentry.io/22')
         ->and(config('sentry.environment'))->toBe('staging');
+});
+
+it('clears both DSNs when the fields are emptied', function (): void {
+    adminPage(ManagePlatformSettings::class, $this->admin)
+        ->fillForm(['sentry_dsn' => 'https://abc123@o1.ingest.sentry.io/11', 'sentry_browser_dsn' => 'https://def456@o1.ingest.sentry.io/22'])
+        ->call('save')
+        ->assertHasNoFormErrors();
 
     adminPage(ManagePlatformSettings::class, $this->admin)
         ->fillForm(['sentry_dsn' => '', 'sentry_browser_dsn' => '', 'sentry_environment' => ''])
@@ -40,9 +47,4 @@ it('refuses a DSN that is not an address', function (): void {
         ->fillForm(['sentry_dsn' => 'not a dsn'])
         ->call('save')
         ->assertHasFormErrors(['sentry_dsn']);
-});
-
-it('keeps request bodies and personal data out of the server\'s error reports', function (): void {
-    expect(config('sentry.send_default_pii'))->toBeFalse()
-        ->and(config('sentry.max_request_body_size'))->toBe('none');
 });

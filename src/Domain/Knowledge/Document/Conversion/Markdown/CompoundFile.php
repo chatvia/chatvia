@@ -139,7 +139,7 @@ final class CompoundFile
         $sectorShift = $this->uint16($header, 0x1E);
         $miniShift = $this->uint16($header, 0x20);
 
-        if (! in_array($sectorShift, [9, 12], true) || $miniShift !== 6) {
+        if (! collect([9, 12])->containsStrict($sectorShift) || $miniShift !== 6) {
             throw new RuntimeException('The compound file has an unknown sector size.');
         }
 

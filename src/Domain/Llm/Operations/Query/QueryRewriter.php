@@ -12,6 +12,7 @@ use Domain\Llm\Services\LlmChat;
 use Domain\Llm\Services\TaskModels;
 use GuzzleHttp\Promise\Create;
 use GuzzleHttp\Promise\PromiseInterface;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -113,14 +114,14 @@ class QueryRewriter
         foreach (array_slice($history, -self::HISTORY_MESSAGES) as $entry) {
             $content = filled($entry['content'] ?? null) ? Str::squish($entry['content']) : '';
 
-            if ($content === '' || ! in_array($entry['role'] ?? null, ['user', 'assistant', 'agent'], true)) {
+            if ($content === '' || ! collect(['user', 'assistant', 'agent'])->containsStrict($entry['role'] ?? null)) {
                 continue;
             }
 
             $lines[] = ($entry['role'] === 'user' ? 'Visitor: ' : 'Agent: ').mb_strimwidth($content, 0, self::MESSAGE_CHARS, '…');
         }
 
-        return implode("\n", $lines);
+        return Arr::join($lines, "\n");
     }
 
     /**
@@ -137,7 +138,7 @@ class QueryRewriter
             return RewrittenQueryData::unchanged($reply !== '' ? $reply : $message);
         }
 
-        [$language, $query] = array_map(Str::trim(...), explode('|', $reply, 2));
+        [$language, $query] = Str::of($reply)->explode('|', 2)->map(fn (string $part): string => Str::trim($part))->all();
         $language = Str::isMatch('/^[a-z]{2,3}(-[A-Za-z]{2,4})?$/', $language) ? $language : 'en';
 
         if (Str::startsWith($query, '?|')) {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Knowledge\Ingestion\Services\Chunking\Splitting;
 
 use Domain\Knowledge\Ingestion\Contracts\ChunkMeasure;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 /**
@@ -39,7 +40,7 @@ final readonly class CharacterMeasure implements ChunkMeasure
         $windows = [];
 
         for ($start = 0; ; $start += $step) {
-            $windows[] = implode('', array_slice($characters, $start, $size));
+            $windows[] = Arr::join(array_slice($characters, $start, $size), '');
 
             if ($start + $size >= $count) {
                 break;

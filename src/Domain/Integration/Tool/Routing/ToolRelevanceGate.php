@@ -177,6 +177,6 @@ class ToolRelevanceGate
      */
     private function document(ToolEntryData $entry): string
     {
-        return Str::trim($entry->name."\n".$entry->description);
+        return Str::trim("{$entry->name}\n{$entry->description}");
     }
 }

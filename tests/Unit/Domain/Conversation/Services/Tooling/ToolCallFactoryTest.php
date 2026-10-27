@@ -41,9 +41,9 @@ it('leaves out a conversation of another session or another agent, or one that d
 
     expect(new ToolCallFactory()->make($request($agent, $conversation), 'lookup', '{}')->conversationExternalId)->toBeNull();
 })->with([
-    'another visitor\'s conversation' => [fn (Agent $agent, Conversation $conversation): StreamRequestData => tcfyRequest($agent, (string) Str::uuid(), $conversation->external_id)],
+    'another visitor\'s conversation' => [fn (Agent $agent, Conversation $conversation): StreamRequestData => tcfyRequest($agent, (string) Str::uuid7(), $conversation->external_id)],
     'another agent' => [fn (Agent $agent, Conversation $conversation): StreamRequestData => tcfyRequest(Agent::factory()->create(), $conversation->session->external_id, $conversation->external_id)],
-    'an invented id' => [fn (Agent $agent, Conversation $conversation): StreamRequestData => tcfyRequest($agent, $conversation->session->external_id, (string) Str::uuid())],
+    'an invented id' => [fn (Agent $agent, Conversation $conversation): StreamRequestData => tcfyRequest($agent, $conversation->session->external_id, (string) Str::uuid7())],
     'not an id at all' => [fn (Agent $agent, Conversation $conversation): StreamRequestData => tcfyRequest($agent, $conversation->session->external_id, 'x\' OR 1=1')],
 ]);
 
@@ -51,6 +51,6 @@ it('passes on the signed-in chatter\'s id', function (): void {
     $agent = Agent::factory()->create();
     $chatter = Chatter::factory()->ofWorkspace($agent->workspace)->create();
 
-    expect(new ToolCallFactory()->make(tcfyRequest($agent, 's', (string) Str::uuid(), $chatter->external_id), 'lookup', '{}')->chatterExternalId)
+    expect(new ToolCallFactory()->make(tcfyRequest($agent, 's', (string) Str::uuid7(), $chatter->external_id), 'lookup', '{}')->chatterExternalId)
         ->toBe($chatter->external_id);
 });

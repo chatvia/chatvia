@@ -105,7 +105,7 @@ class VerifyInternalMcpRequest
             ->where('workspace_id', $agent->workspace_id)
             ->where('is_enabled', true)
             ->where('connector_slug', Str::after($path, 'mcp/'))
-            ->where('url', 'like', '%/'.$path)
+            ->where('url', 'like', "%/{$path}")
             ->whereExists(function ($q) use ($agent): void {
                 $q->from('agent_mcp_server')
                     ->whereColumn('agent_mcp_server.mcp_server_id', 'mcp_servers.id')

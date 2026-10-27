@@ -33,7 +33,7 @@ abstract class PreRegisteredOAuthConnector extends Connector
     /** The config key of one field (`client_id`, `client_secret`) of the admin's OAuth app. */
     public function oauthAppConfigKey(string $field): string
     {
-        return 'connectors.oauth_apps.'.$this->slug.'.'.$field;
+        return "connectors.oauth_apps.{$this->slug}.{$field}";
     }
 
     #[\Override]

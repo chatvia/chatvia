@@ -52,7 +52,7 @@ class SetWidgetBubblesAction
                 $copy = $copy->withTranslations($before->translations);
             }
 
-            $copies['k'.$index] = $copy;
+            $copies["k{$index}"] = $copy;
         }
 
         $pending = array_filter($copies, static fn (TranslatableText $copy): bool => ! $copy->isTranslatedInto($locales));

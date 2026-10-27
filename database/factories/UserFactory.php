@@ -37,7 +37,7 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'external_id' => (string) Str::uuid(),
+            'external_id' => (string) Str::uuid7(),
             'name' => fake()->name(),
             // Random prefix: the test suite runs on a persistent, seeded database,
             // so a plain Faker address can collide with a row left by seeding.

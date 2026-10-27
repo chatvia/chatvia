@@ -48,7 +48,7 @@ final class RequestMacros
             if ($cloudflareTrusted) {
                 $cf = Str::upper(Str::trim((string) $this->header('CF-IPCountry')));
 
-                if ($cf !== '' && ! in_array($cf, RequestMacros::CLOUDFLARE_NON_COUNTRIES, true)) {
+                if ($cf !== '' && ! collect(RequestMacros::CLOUDFLARE_NON_COUNTRIES)->containsStrict($cf)) {
                     return Str::lower($cf);
                 }
             }

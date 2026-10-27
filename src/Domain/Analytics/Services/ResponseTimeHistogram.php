@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Domain\Analytics\Services;
 
+use Illuminate\Support\Arr;
+
 /**
  * The reply-time histogram each analytics rollup row keeps
  * (`response_ms_hist`), so the median and the 95th percentile of any range
@@ -60,7 +62,7 @@ final class ResponseTimeHistogram
      */
     public static function literal(array $counts): string
     {
-        return '{'.implode(',', $counts).'}';
+        return '{'.Arr::join($counts, ',').'}';
     }
 
     /**

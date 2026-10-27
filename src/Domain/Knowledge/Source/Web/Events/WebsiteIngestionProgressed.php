@@ -32,7 +32,7 @@ class WebsiteIngestionProgressed implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('agents.'.$this->agentExternalId.'.crawler.progress'),
+            new PrivateChannel("agents.{$this->agentExternalId}.crawler.progress"),
         ];
     }
 

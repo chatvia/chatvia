@@ -72,7 +72,7 @@ class SystemPromptBuilder
 
         return $this->withCallerAndBusiness(
             ($marker !== null ? Str::trim(prompt('guardrails/leak-marker', ['marker' => $marker]))."\n\n" : '')
-                .Str::rtrim($agent->resolveSystemInstructions())."\n\n".$this->answeringRules($data, $language),
+                .Str::rtrim($agent->resolveSystemInstructions())."\n\n{$this->answeringRules($data, $language)}",
             $agent,
             $data->chatterName,
         );

@@ -75,7 +75,7 @@ final class MessagesSchema
     private static function describe(mixed $description, array $limits): string
     {
         $note = collect($limits)
-            ->map(static fn (mixed $value, string $key): string => $key.': '.json_encode($value))
+            ->map(static fn (mixed $value, string $key): string => "{$key}: ".json_encode($value))
             ->implode(', ');
 
         return filled($description) ? "{$description} ({$note})" : "({$note})";

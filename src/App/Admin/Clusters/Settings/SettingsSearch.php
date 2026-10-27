@@ -9,6 +9,7 @@ use App\Admin\Clusters\Settings\Data\SettingsSearchEntryData;
 use App\Admin\Clusters\Settings\Data\SettingsSearchHitData;
 use App\Admin\Clusters\Settings\Pages\SettingsOverview;
 use App\Admin\Pages\License;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
@@ -77,7 +78,7 @@ final class SettingsSearch
             return new HtmlString(e($text));
         }
 
-        $pattern = '/('.implode('|', array_map(fn (string $term): string => preg_quote($term, '/'), $terms)).')/iu';
+        $pattern = '/('.Arr::join(array_map(fn (string $term): string => preg_quote($term, '/'), $terms), '|').')/iu';
         $parts = Str::of($text)
             ->split($pattern, flags: PREG_SPLIT_DELIM_CAPTURE)
             ->whenEmpty(fn (Collection $parts): Collection => $parts->push($text));

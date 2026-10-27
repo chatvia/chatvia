@@ -2,6 +2,7 @@
 
 namespace Domain\Knowledge\Embedding;
 
+use Illuminate\Support\Arr;
 use Support\Http\ProviderRetry;
 
 /**
@@ -13,7 +14,7 @@ class Mistral extends AbstractEmbeddingsProvider
     {
         $response = ProviderRetry::request()->withHeaders([
             'Content-Type' => 'application/json',
-            'Authorization' => 'Bearer '.$this->getApiKey(),
+            'Authorization' => "Bearer {$this->getApiKey()}",
         ])
             ->throw()
             ->post($this->endpoint('/embeddings'), [
@@ -24,7 +25,7 @@ class Mistral extends AbstractEmbeddingsProvider
         $embedding = $response->json('data.0.embedding');
 
         if ($returnAsText) {
-            return '['.implode(',', $embedding).']';
+            return '['.Arr::join($embedding, ',').']';
         }
 
         return $embedding;

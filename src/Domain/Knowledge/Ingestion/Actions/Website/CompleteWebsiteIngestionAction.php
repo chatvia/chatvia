@@ -52,7 +52,7 @@ class CompleteWebsiteIngestionAction
         $website->refresh();
 
         $previousPath = $website->filepath;
-        $filePath = KnowledgeStoragePath::forSource($website).'/'.Str::uuid()->toString().'.txt';
+        $filePath = KnowledgeStoragePath::forSource($website).'/'.Str::uuid7()->toString().'.txt';
 
         $this->writeDocument($website, $filePath);
 

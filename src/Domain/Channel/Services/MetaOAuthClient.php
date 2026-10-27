@@ -289,7 +289,7 @@ class MetaOAuthClient
         $out = [];
 
         foreach ($this->pages($userToken) as $page) {
-            $linked = $this->get('/'.$page->id, $page->access_token, [
+            $linked = $this->get("/{$page->id}", $page->access_token, [
                 'fields' => 'instagram_business_account{id,username}',
             ]);
 
@@ -356,7 +356,7 @@ class MetaOAuthClient
      */
     private function request(string $method, string $path, array $params, ?string $token = null): ?array
     {
-        $url = 'https://graph.facebook.com/'.$this->version().$path;
+        $url = "https://graph.facebook.com/{$this->version()}{$path}";
 
         try {
             $response = $method === 'post'

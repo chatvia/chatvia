@@ -7,6 +7,7 @@ namespace Domain\Knowledge\Embedding\Actions\Reindex;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Ingestion\Models\Chunk;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -58,7 +59,7 @@ class ReembedChunksAction
 
         DB::update(
             "UPDATE {$table} AS t SET embedding = v.embedding, questions_embedding = v.questions_embedding
-             FROM (VALUES ".implode(', ', $rows).') AS v(id, embedding, questions_embedding)
+             FROM (VALUES ".Arr::join($rows, ', ').') AS v(id, embedding, questions_embedding)
              WHERE t.id = v.id',
             $bindings,
         );
@@ -91,6 +92,6 @@ class ReembedChunksAction
      */
     private function literal(array $vector): string
     {
-        return '['.implode(',', $vector).']';
+        return '['.Arr::join($vector, ',').']';
     }
 }

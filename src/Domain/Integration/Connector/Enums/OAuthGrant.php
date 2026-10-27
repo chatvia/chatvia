@@ -24,16 +24,16 @@ enum OAuthGrant: string
     public function failedMessage(string $reason): string
     {
         return match ($this) {
-            self::AuthorizationCode => 'Token exchange failed: '.$reason,
-            self::RefreshToken => 'Token refresh failed: '.$reason,
+            self::AuthorizationCode => "Token exchange failed: {$reason}",
+            self::RefreshToken => "Token refresh failed: {$reason}",
         };
     }
 
     public function rejectedMessage(int $status, string $body): string
     {
         return match ($this) {
-            self::AuthorizationCode => 'The authorization server rejected the token exchange ('.$status.'): '.$body,
-            self::RefreshToken => 'Token refresh was rejected ('.$status.'): '.$body,
+            self::AuthorizationCode => "The authorization server rejected the token exchange ({$status}): {$body}",
+            self::RefreshToken => "Token refresh was rejected ({$status}): {$body}",
         };
     }
 

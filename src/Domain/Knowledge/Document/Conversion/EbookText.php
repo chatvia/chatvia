@@ -31,7 +31,7 @@ class EbookText
 
     public function supports(string $extension): bool
     {
-        return in_array(Str::lower($extension), self::EXTENSIONS, true);
+        return collect(self::EXTENSIONS)->containsStrict(Str::lower($extension));
     }
 
     public function toMarkdown(string $path, string $extension): string

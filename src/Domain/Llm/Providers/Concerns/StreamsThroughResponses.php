@@ -78,7 +78,7 @@ trait StreamsThroughResponses
      */
     private function streamResponses(array $body): ResponseInterface
     {
-        $response = app(GuzzleClient::class)->post($this->getBaseUrl().'/responses', [
+        $response = app(GuzzleClient::class)->post("{$this->getBaseUrl()}/responses", [
             'headers' => $this->headers(),
             'json' => $body,
             'stream' => true,
@@ -97,6 +97,6 @@ trait StreamsThroughResponses
 
     private function noSummaryKey(): string
     {
-        return 'llm:responses:no-reasoning-summary:'.$this->connection->getKey();
+        return "llm:responses:no-reasoning-summary:{$this->connection->getKey()}";
     }
 }

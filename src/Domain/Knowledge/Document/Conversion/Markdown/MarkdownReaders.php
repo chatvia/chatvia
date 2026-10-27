@@ -22,7 +22,7 @@ final class MarkdownReaders
 
     public function supports(string $extension): bool
     {
-        return in_array(Str::lower($extension), self::EXTENSIONS, true);
+        return collect(self::EXTENSIONS)->containsStrict(Str::lower($extension));
     }
 
     /** The file's text as GitHub Markdown, read by the reader for its extension. */

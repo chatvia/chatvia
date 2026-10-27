@@ -49,6 +49,6 @@ class StoreMessageJob implements ShouldBeUnique, ShouldQueue
 
     public function uniqueId(): string
     {
-        return 'messages:store:id:'.$this->payload->external_message_id;
+        return "messages:store:id:{$this->payload->external_message_id}";
     }
 }

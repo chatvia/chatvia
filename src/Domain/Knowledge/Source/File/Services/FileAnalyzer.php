@@ -54,9 +54,9 @@ class FileAnalyzer
         return match (true) {
             is_audio_file($path), is_video_file($path) => new FileAnalysisData(length: $this->audioDuration->getDurationInMinutes($path)),
             $extension === 'pdf', is_pdf_file($path) => $this->analyzePdf($path),
-            in_array($extension, config('mimes.ocr.image'), true) => new FileAnalysisData(length: 1),
-            in_array($extension, config('mimes.ocr.office'), true) => $this->analyzeOfficeFile($path, $extension),
-            in_array($extension, config('mimes.ocr.ebook'), true) => new FileAnalysisData(length: $this->estimateEbookPages($path, $extension)),
+            collect(config()->array('mimes.ocr.image'))->containsStrict($extension) => new FileAnalysisData(length: 1),
+            collect(config()->array('mimes.ocr.office'))->containsStrict($extension) => $this->analyzeOfficeFile($path, $extension),
+            collect(config()->array('mimes.ocr.ebook'))->containsStrict($extension) => new FileAnalysisData(length: $this->estimateEbookPages($path, $extension)),
             default => throw new LogicException('Invalid file type!'),
         };
     }

@@ -32,7 +32,7 @@ class FileIngestionProgressed implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('agents.'.$this->agentExternalId.'.files.progress'),
+            new PrivateChannel("agents.{$this->agentExternalId}.files.progress"),
         ];
     }
 

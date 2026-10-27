@@ -26,9 +26,9 @@ final class MessageSpeechFiles
     /** The file of a message read with this service and voice. */
     public function pathFor(Agent $agent, string $conversationId, string $messageId, string $speaker, string $voice, SpeechFormat $format): string
     {
-        $variant = Str::substr(hash('sha256', $speaker."\n".$voice), 0, 16);
+        $variant = Str::substr(hash('sha256', "{$speaker}\n{$voice}"), 0, 16);
 
-        return $this->folder($agent, $conversationId).'/'.$messageId.'-'.$variant.'.'.$format->extension();
+        return "{$this->folder($agent, $conversationId)}/{$messageId}-{$variant}.{$format->extension()}";
     }
 
     /** Every recording of one message, in any voice. */
@@ -36,7 +36,7 @@ final class MessageSpeechFiles
     {
         $disk = Storage::disk(self::DISK);
         $files = collect($disk->files($this->folder($agent, $conversationId)))
-            ->filter(fn (string $path): bool => Str::startsWith(Str::afterLast($path, '/'), $messageId.'-'))
+            ->filter(fn (string $path): bool => Str::startsWith(Str::afterLast($path, '/'), "{$messageId}-"))
             ->all();
 
         if ($files !== []) {

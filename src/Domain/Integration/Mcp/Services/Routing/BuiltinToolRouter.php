@@ -7,6 +7,7 @@ use Domain\Integration\Tool\Search\ToolHybridSearch;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Retrieval\Services\LexicalSearch;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -105,7 +106,7 @@ class BuiltinToolRouter
      */
     private function search(string $question, array $categories, ?array $vector, int $limit): array
     {
-        $placeholders = implode(',', array_fill(0, count($categories), '?'));
+        $placeholders = Arr::join(array_fill(0, count($categories), '?'), ',');
 
         if ($vector === null) {
             $sql = <<<SQL
@@ -122,7 +123,7 @@ SQL;
             return DB::select($sql, [...$categories, $this->lexical->queryText($question), $limit]);
         }
 
-        $vectorString = '['.implode(',', $vector).']';
+        $vectorString = '['.Arr::join($vector, ',').']';
         $candidate = max($limit * 3, $limit);
         // The query vector takes the stored embeddings' type and size.
         $cast = $this->storage->columnType();
@@ -186,7 +187,7 @@ SQL;
      */
     private function unranked(array $categories, int $limit): array
     {
-        $placeholders = implode(',', array_fill(0, count($categories), '?'));
+        $placeholders = Arr::join(array_fill(0, count($categories), '?'), ',');
 
         return DB::select(<<<SQL
 SELECT ct.name, ct.description, ct.input_schema, s.url

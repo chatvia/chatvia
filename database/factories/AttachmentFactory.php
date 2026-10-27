@@ -60,7 +60,7 @@ class AttachmentFactory extends Factory
             'chat_message_id' => null,
             'workspace_id' => $agent->workspace_id ?? Workspace::factory(),
         ])->state(fn (array $attributes): array => $agent instanceof Agent
-            ? ['filepath' => ChatStoragePath::pending($agent).'/files/'.Str::uuid().'.pdf']
+            ? ['filepath' => ChatStoragePath::pending($agent).'/files/'.Str::uuid7().'.pdf']
             : []);
     }
 
@@ -85,10 +85,10 @@ class AttachmentFactory extends Factory
         $agent = $conversation instanceof Conversation ? Agent::withTrashed()->find($conversation->agent_id) : null;
 
         if ($conversation instanceof Conversation && $agent instanceof Agent) {
-            return ChatStoragePath::forConversation($agent, $conversation->external_id, 'files').'/'.Str::uuid().'.pdf';
+            return ChatStoragePath::forConversation($agent, $conversation->external_id, 'files').'/'.Str::uuid7().'.pdf';
         }
 
-        return 'workspaces/'.Workspace::query()->whereKey($attributes['workspace_id'])->value('external_id').'/'.Str::uuid().'.pdf';
+        return 'workspaces/'.Workspace::query()->whereKey($attributes['workspace_id'])->value('external_id').'/'.Str::uuid7().'.pdf';
     }
 
     /** With its file written to the attachments disk (fake it first). */

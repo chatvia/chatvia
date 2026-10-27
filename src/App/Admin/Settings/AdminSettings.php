@@ -79,7 +79,7 @@ abstract class AdminSettings extends Settings
 
     public static function isSecret(string $property): bool
     {
-        return in_array($property, static::secrets(), true);
+        return collect(static::secrets())->containsStrict($property);
     }
 
     /**

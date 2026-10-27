@@ -39,7 +39,7 @@ class GetActivityPatternsTool extends AnalyticsTool
                 'Busiest %s around %02d:00 UTC%s.',
                 $period->label,
                 $data->peakHour,
-                $data->busiestWeekday !== null ? ', most on '.$data->busiestWeekday : '',
+                $data->busiestWeekday !== null ? ", most on {$data->busiestWeekday}" : '',
             );
 
         $hours = array_map(static fn (HourCountData $hour): array => ['hour' => $hour->hour, 'conversations' => $hour->count], $data->byHour);
@@ -56,7 +56,7 @@ class GetActivityPatternsTool extends AnalyticsTool
             $structured['echarts_option'] = AnalyticsChart::bar(
                 array_map(static fn (array $hour): string => sprintf('%02d:00', $hour['hour']), $hours),
                 [['name' => 'Conversations', 'data' => array_column($hours, 'conversations')]],
-                'Activity by hour (UTC) — '.$period->label,
+                "Activity by hour (UTC) — {$period->label}",
             );
         }
 

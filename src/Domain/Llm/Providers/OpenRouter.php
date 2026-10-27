@@ -58,10 +58,10 @@ class OpenRouter extends AbstractLlmProvider
     {
         try {
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer '.$this->getApiKey(),
+                'Authorization' => "Bearer {$this->getApiKey()}",
             ])
                 ->timeout(10)
-                ->get($this->getBaseUrl().'/generation', [
+                ->get("{$this->getBaseUrl()}/generation", [
                     'id' => $generationId,
                 ]);
 
@@ -69,7 +69,7 @@ class OpenRouter extends AbstractLlmProvider
                 return $response->json('data');
             }
         } catch (\Exception $e) {
-            Log::warning('Failed to fetch OpenRouter generation data: '.$e->getMessage());
+            Log::warning("Failed to fetch OpenRouter generation data: {$e->getMessage()}");
         }
 
         return null;

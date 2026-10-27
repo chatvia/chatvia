@@ -90,8 +90,8 @@ class BuildDataExportArchiveAction
         $export->update(['status' => DataExportStatus::Processing]);
 
         $user = $export->user;
-        $tempDir = self::TEMP_PREFIX.'/'.$export->id;
-        $zipRelativePath = $user->storageRoot().'/data-exports/'.Str::uuid()->toString().'.zip';
+        $tempDir = self::TEMP_PREFIX."/{$export->id}";
+        $zipRelativePath = "{$user->storageRoot()}/data-exports/".Str::uuid()->toString().'.zip';
 
         $localDisk = Storage::disk(self::ARCHIVE_DISK);
         $localDisk->makeDirectory($tempDir);
@@ -268,7 +268,7 @@ TXT;
         $this->writeRows($zip, $tempPath, 'agent-prompts.json',
             AgentPrompt::query()->where('workspace_id', $workspace->id), self::PROMPT_COLUMNS);
 
-        $path = $tempPath.'/agent-llm-settings.json';
+        $path = "{$tempPath}/agent-llm-settings.json";
         $file = JsonArrayFile::open($path);
 
         ModelSetting::query()
@@ -296,7 +296,7 @@ TXT;
      */
     private function writeKnowledge(ZipArchive $zip, Workspace $workspace, string $tempPath): void
     {
-        $path = $tempPath.'/knowledge-sources.json';
+        $path = "{$tempPath}/knowledge-sources.json";
         $handle = fopen($path, 'wb');
 
         if ($handle === false) {
@@ -336,8 +336,8 @@ TXT;
      */
     private function writeConversations(ZipArchive $zip, Workspace $workspace, string $tempPath): void
     {
-        $conversationsPath = $tempPath.'/conversations.json';
-        $messagesPath = $tempPath.'/messages.json';
+        $conversationsPath = "{$tempPath}/conversations.json";
+        $messagesPath = "{$tempPath}/messages.json";
 
         $conversations = JsonArrayFile::open($conversationsPath);
         $messages = JsonArrayFile::open($messagesPath);
@@ -362,7 +362,7 @@ TXT;
                         $zip,
                         $disk,
                         $attachment->filepath,
-                        "attachments/conversations/{$attachment->chat_conversation_id}/{$attachment->id}-".$this->safeName($attachment->filename),
+                        "attachments/conversations/{$attachment->chat_conversation_id}/{$attachment->id}-{$this->safeName($attachment->filename)}",
                         $tempPath,
                     ));
 
@@ -399,7 +399,7 @@ TXT;
                 $zip,
                 $disk,
                 $file->filepath,
-                "attachments/knowledge/{$file->id}-".$this->safeName($file->filename),
+                "attachments/knowledge/{$file->id}-{$this->safeName($file->filename)}",
                 $tempPath,
             ));
     }
@@ -412,7 +412,7 @@ TXT;
      */
     private function writeRows(ZipArchive $zip, string $tempPath, string $entry, Builder $query, array $columns): void
     {
-        $path = $tempPath.'/'.$entry;
+        $path = "{$tempPath}/{$entry}";
         $file = JsonArrayFile::open($path);
 
         $this->streamRows($file, $query, $columns);
@@ -487,7 +487,7 @@ TXT;
     {
         $name = basename(Str::replace('\\', '/', $filename));
 
-        return in_array($name, ['', '.', '..'], true) ? 'file' : $name;
+        return collect(['', '.', '..'])->containsStrict($name) ? 'file' : $name;
     }
 
     /**

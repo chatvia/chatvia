@@ -9,6 +9,7 @@ use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
 use Domain\Knowledge\Retrieval\Enums\ChunkSearchScope;
 use Domain\Knowledge\Retrieval\Services\ChunkVectorIndex;
 use Domain\Knowledge\Retrieval\Services\LexicalSearch;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -167,7 +168,7 @@ SQL : '';
             $channels[] = ['name' => 'bm25_ranked', 'type' => 'bm25', 'column' => 'bm25_dist'];
         }
 
-        $definitions = implode(",\n", array_map(static fn (array $channel): string => <<<SQL
+        $definitions = Arr::join(array_map(static fn (array $channel): string => <<<SQL
 {$channel['name']} AS (
     SELECT t.id, ROW_NUMBER() OVER (ORDER BY t.dist, t.id) AS rank, '{$channel['type']}' AS search_type
     FROM (
@@ -178,7 +179,7 @@ SQL : '';
         LIMIT ?
     ) t
 )
-SQL, $channels));
+SQL, $channels), ",\n");
 
         $sql = <<<SQL
 WITH search AS MATERIALIZED (
@@ -236,7 +237,7 @@ SQL;
         ];
 
         $cast = $this->storage->columnType();
-        $sql = 'WITH '.implode(",\n", array_column($channels, 'sql')).",\n".$this->fusion(array_column($channels, 'name'), "?::{$cast}");
+        $sql = 'WITH '.Arr::join(array_column($channels, 'sql'), ",\n").",\n".$this->fusion(array_column($channels, 'name'), "?::{$cast}");
 
         return array_map(RetrievedChunkData::fromRow(...), DB::select($sql, $bindings));
     }
@@ -358,10 +359,10 @@ SQL;
      */
     private function fusion(array $channelNames, string $vector, string $join = ''): string
     {
-        $combined = implode("\n    UNION ALL\n", array_map(
+        $combined = Arr::join(array_map(
             static fn (string $name): string => "    SELECT id, rank, search_type FROM {$name}",
             $channelNames,
-        ));
+        ), "\n    UNION ALL\n");
 
         return <<<SQL
 combined_results AS (

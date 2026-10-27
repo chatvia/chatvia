@@ -56,6 +56,6 @@ class PrepareDataExportJob implements ShouldBeUnique, ShouldQueue
 
     public function uniqueId(): string
     {
-        return 'data-export:'.$this->dataExportId;
+        return "data-export:{$this->dataExportId}";
     }
 }

@@ -66,7 +66,7 @@ class GetGeographyStatsTool extends AnalyticsTool
             $structured['echarts_option'] = AnalyticsChart::bar(
                 array_column($countries, 'name'),
                 [['name' => 'Conversations', 'data' => array_column($countries, 'conversations')]],
-                'Conversations by country — '.$period->label,
+                "Conversations by country — {$period->label}",
                 horizontal: true,
             );
         }

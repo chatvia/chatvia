@@ -7,6 +7,7 @@ namespace App\Admin\Settings\Actions;
 use App\Admin\Settings\AdminSettings;
 use App\Admin\Settings\SettingsConfig;
 use Illuminate\Contracts\Container\Container;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 
 /**
@@ -46,7 +47,7 @@ final readonly class SetSettingAction
      */
     private function resolve(string $key): array
     {
-        [$group, $property] = array_pad(explode('.', $key, 2), 2, '');
+        [$group, $property] = Str::of($key)->explode('.', 2)->pad(2, '')->all();
 
         foreach ($this->settingsConfig->classes() as $class) {
             if ($class::group() === $group && array_key_exists($property, $class::configKeys())) {

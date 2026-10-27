@@ -82,7 +82,7 @@ final class AnalyticsWorkspace
             'role' => null,
             'response_time_ms' => null,
             'conversation_external_id' => $conversations[$conversation],
-            'message_external_id' => (string) Str::uuid(),
+            'message_external_id' => (string) Str::uuid7(),
             'session_external_id' => '00000000-0000-4000-9000-000000000001',
             'occurred_at' => $at,
             'inserted_at' => $at,
@@ -109,7 +109,7 @@ final class AnalyticsWorkspace
 
         // Each rated message's current reaction.
         $feedback = fn (int $workspaceId, Agent $agent, string $conversation, string $value, string $at): array => [
-            'message_external_id' => (string) Str::uuid(),
+            'message_external_id' => (string) Str::uuid7(),
             'agent_id' => $agent->id,
             'workspace_id' => $workspaceId,
             'conversation_external_id' => $conversations[$conversation],

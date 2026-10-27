@@ -2,6 +2,8 @@
 
 namespace Domain\Analytics\Queries\Agent;
 
+use Illuminate\Support\Arr;
+
 /**
  * All-time message counts (visitor messages + AI replies) for a set of a
  * workspace's agents, in one grouped query over the daily rollup — so the
@@ -22,7 +24,7 @@ class AgentMessageTotalsQuery extends AgentAnalyticsQuery
 
         sort($agentIds);
 
-        return $this->cachedForWorkspace($workspaceId, 'agent-messages:'.md5(implode(',', $agentIds)), 'lifetime', fn (): array => $this->compute($agentIds));
+        return $this->cachedForWorkspace($workspaceId, 'agent-messages:'.md5(Arr::join($agentIds, ',')), 'lifetime', fn (): array => $this->compute($agentIds));
     }
 
     /**

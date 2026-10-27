@@ -187,7 +187,7 @@ class Workspace extends Model
      */
     public function storageRoot(): string
     {
-        return 'workspaces/'.$this->external_id;
+        return "workspaces/{$this->external_id}";
     }
 
     /**

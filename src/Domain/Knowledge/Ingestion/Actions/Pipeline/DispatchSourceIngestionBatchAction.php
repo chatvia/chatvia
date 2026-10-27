@@ -68,7 +68,7 @@ class DispatchSourceIngestionBatchAction
         // Without it the jobs land on `default`, whose chat workers hand a
         // long job that is still running to a second worker.
         $batch = Bus::batch($jobs->all())
-            ->name('Ingestion '.$sourceType.' ID: '.$sourceId)
+            ->name("Ingestion {$sourceType} ID: {$sourceId}")
             ->onQueue('ingestion.chunks')
             ->allowFailures()
             ->finally(static function () use ($sourceType, $sourceId, $agentExternalId): void {

@@ -45,7 +45,7 @@ class SendGuardrailAlert implements ShouldQueue
         }
 
         // Cache::add is atomic: only the first trigger in the hour sends.
-        if (! Cache::add('guardrail-alert-email:'.$agent->id.':'.$alert->value, true, now()->addHour())) {
+        if (! Cache::add("guardrail-alert-email:{$agent->id}:{$alert->value}", true, now()->addHour())) {
             return;
         }
 

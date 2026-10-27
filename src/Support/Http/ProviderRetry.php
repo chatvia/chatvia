@@ -39,7 +39,7 @@ final class ProviderRetry
         return $request->retry(
             self::TRIES,
             static fn (int $attempt, Throwable $exception): int => self::delay($attempt, $exception),
-            static fn (Throwable $exception): bool => $exception instanceof RequestException && in_array($exception->response->status(), self::STATUSES, true),
+            static fn (Throwable $exception): bool => $exception instanceof RequestException && collect(self::STATUSES)->containsStrict($exception->response->status()),
             throw: false,
         );
     }

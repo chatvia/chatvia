@@ -36,7 +36,7 @@ class TextIngestionStarted implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('agents.'.$this->agentExternalId.'.ingestion.text'),
+            new PrivateChannel("agents.{$this->agentExternalId}.ingestion.text"),
         ];
     }
 

@@ -2,6 +2,7 @@
 
 use App\Http\Rules\WorkspaceRule;
 use Domain\Widget\Services\WidgetVerification;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 /*
@@ -720,10 +721,10 @@ it('local files, programs, waits, clocks and numbers go through Laravel, not pla
  * file the rule covers. Listed: byte-level files, which must work on raw
  * bytes where Str counts characters, with how many calls each may keep.
  *
- * Not checked here: strlen(), substr(), explode() and preg_*(). They stay
- * native in many places on purpose (byte caps, offsets from
- * PREG_OFFSET_CAPTURE, several capture groups), so a count would only pin
- * noise.
+ * Not checked here: strlen(), substr() and preg_*(). They stay native in many
+ * places on purpose (byte caps, offsets from PREG_OFFSET_CAPTURE, several
+ * capture groups), so a count would only pin noise. explode() is checked
+ * below with in_array() and implode().
  */
 const NATIVE_STRING_CALL_ALLOWLIST = [
     // Binary Office, RTF and PDF readers: names, keywords and padding in raw bytes.
@@ -808,6 +809,257 @@ it('strings and URLs go through Str and Uri, not plain PHP functions', function 
         '',
         'Allowlisted file has fewer plain string/URL calls — lower or remove its NATIVE_STRING_CALL_ALLOWLIST entry:',
         ...array_map(fn (string $f): string => "  - {$f}", $nowClean),
+    ]));
+});
+
+/**
+ * Lists and joins go through collections, Arr and Str in src
+ * (.ai/rules/laravel-first.md): collect($list)->containsStrict($value),
+ * Arr::join($list, ', ') and Str::of($text)->explode(','). Listed: loops over
+ * every byte or character of a document, where a collection per call would
+ * cost, with how many calls each may keep.
+ */
+const NATIVE_COLLECTION_CALL_ALLOWLIST = [
+    'src/Domain/Knowledge/Document/Conversion/Markdown/DocReader.php' => 2,
+    'src/Domain/Knowledge/Document/Conversion/Markdown/RtfReader.php' => 3,
+    'src/Domain/Knowledge/Document/Conversion/PdfSyntax.php' => 1,
+];
+
+it('checks, joins and splits lists with collections, Arr and Str, not in_array/implode/explode', function (): void {
+    $root = realpath(__DIR__.'/../../').DIRECTORY_SEPARATOR;
+    $found = [];
+
+    foreach (conventionPhpFiles('src') as $path) {
+        $lines = conventionNativeCalls((string) file_get_contents($path), ['in_array', 'implode', 'join', 'explode']);
+
+        if ($lines !== []) {
+            $found[Str::replace($root, '', $path)] = $lines;
+        }
+    }
+
+    ksort($found);
+
+    // Drift up: a new call, or one more in an allowlisted file.
+    $newOffenders = [];
+
+    foreach ($found as $file => $lines) {
+        if (count($lines) > (NATIVE_COLLECTION_CALL_ALLOWLIST[$file] ?? 0)) {
+            $newOffenders[] = $file.':'.implode(',', $lines);
+        }
+    }
+
+    expect($newOffenders)->toBe([], implode("\n", [
+        '',
+        'Plain in_array()/implode()/explode() call(s) — use collect()->containsStrict(), Arr::join() or Str::of()->explode() (.ai/rules/laravel-first.md):',
+        ...Arr::map($newOffenders, fn (string $o): string => "  - {$o}"),
+        '',
+        'Or, in a loop over every byte or character, add the file to NATIVE_COLLECTION_CALL_ALLOWLIST in this file.',
+    ]));
+
+    // Drift down: an allowlisted call is gone, so the list must shrink too.
+    $nowClean = [];
+
+    foreach (NATIVE_COLLECTION_CALL_ALLOWLIST as $file => $allowed) {
+        if (count($found[$file] ?? []) < $allowed) {
+            $nowClean[] = $file;
+        }
+    }
+
+    expect($nowClean)->toBe([], implode("\n", [
+        '',
+        'Allowlisted file has fewer in_array()/implode()/explode() calls — lower or remove its NATIVE_COLLECTION_CALL_ALLOWLIST entry:',
+        ...Arr::map($nowClean, fn (string $f): string => "  - {$f}"),
+    ]));
+});
+
+/**
+ * $code's tokens without whitespace, with each "…" string and heredoc joined
+ * into one entry, since a `.` or bracket inside one is text, not code.
+ *
+ * @return list<array{text: string, id: int|string, line: int, endLine: int}>
+ */
+function conventionStringAtoms(string $code): array
+{
+    $atoms = [];
+    $string = null;
+
+    foreach (PhpToken::tokenize($code) as $token) {
+        $endLine = $token->line + Str::substrCount($token->text, "\n");
+
+        if ($string !== null) {
+            $string['text'] .= $token->text;
+            $string['endLine'] = $endLine;
+
+            if ($token->text === '"' || $token->is(T_END_HEREDOC)) {
+                $atoms[] = $string;
+                $string = null;
+            }
+
+            continue;
+        }
+
+        if ($token->text === '"' || $token->is(T_START_HEREDOC)) {
+            $string = ['text' => $token->text, 'id' => $token->text === '"' ? 'string' : 'heredoc', 'line' => $token->line, 'endLine' => $endLine];
+        } elseif (! $token->is(T_WHITESPACE)) {
+            $atoms[] = ['text' => $token->text, 'id' => $token->id, 'line' => $token->line, 'endLine' => $endLine];
+        }
+    }
+
+    return $atoms;
+}
+
+/**
+ * The operand next to the `.` at $dot, walking $step (-1 left, 1 right) to
+ * the next `.` or to an operator that binds looser than `.`. Only operands
+ * that fit in an interpolated string are returned: a string literal with
+ * nothing to escape, or a variable with property, method and index access
+ * whose arguments make no further call.
+ *
+ * @param  list<array{text: string, id: int|string, line: int, endLine: int}>  $atoms
+ * @return array{literal: bool, line: int}|null
+ */
+function conventionInterpolatable(array $atoms, int $dot, int $step): ?array
+{
+    $looser = [',', ';', '=', '?', ':', '<', '>', '|', '&', '^', '.'];
+    $looserIds = [T_PLUS_EQUAL, T_MINUS_EQUAL, T_MUL_EQUAL, T_DIV_EQUAL, T_CONCAT_EQUAL, T_MOD_EQUAL, T_AND_EQUAL,
+        T_OR_EQUAL, T_XOR_EQUAL, T_SL_EQUAL, T_SR_EQUAL, T_POW_EQUAL, T_COALESCE_EQUAL, T_IS_EQUAL, T_IS_NOT_EQUAL,
+        T_IS_IDENTICAL, T_IS_NOT_IDENTICAL, T_IS_SMALLER_OR_EQUAL, T_IS_GREATER_OR_EQUAL, T_SPACESHIP, T_BOOLEAN_AND,
+        T_BOOLEAN_OR, T_LOGICAL_AND, T_LOGICAL_OR, T_LOGICAL_XOR, T_COALESCE, T_DOUBLE_ARROW, T_RETURN, T_ECHO,
+        T_PRINT, T_THROW, T_YIELD, T_YIELD_FROM, T_INCLUDE, T_INCLUDE_ONCE, T_REQUIRE, T_REQUIRE_ONCE, T_CASE,
+        T_OPEN_TAG, T_ELLIPSIS, T_AMPERSAND_FOLLOWED_BY_VAR_OR_VARARG, T_AMPERSAND_NOT_FOLLOWED_BY_VAR_OR_VARARG];
+    [$opening, $closing] = $step > 0 ? [['(', '[', '{', '#['], [')', ']', '}']] : [[')', ']', '}'], ['(', '[', '{', '#[']];
+    $operand = [];
+    $depth = 0;
+
+    for ($i = $dot + $step; isset($atoms[$i]); $i += $step) {
+        $atom = $atoms[$i];
+
+        if (in_array($atom['text'], $opening, true)) {
+            $depth++;
+        } elseif (in_array($atom['text'], $closing, true) && $depth-- === 0) {
+            break;
+        } elseif ($depth === 0 && (in_array($atom['text'], $looser, true) || in_array($atom['id'], $looserIds, true))) {
+            break;
+        }
+
+        $operand[] = $atom;
+    }
+
+    $operand = $step > 0 ? $operand : array_reverse($operand);
+
+    if ($operand === [] || $operand[0]['line'] !== end($operand)['endLine']) {
+        return null;
+    }
+
+    $first = $operand[0];
+
+    if (count($operand) === 1 && ($first['id'] === T_CONSTANT_ENCAPSED_STRING || $first['id'] === 'string')) {
+        $inner = Str::substr($first['text'], 1, -1);
+        $clean = Str::startsWith($first['text'], "'")
+            ? ! Str::isMatch('/["\\\\${}]/', Str::replace(['\\\\', "\\'"], ['\\', "'"], $inner))
+            : Str::startsWith($first['text'], '"') && ! Str::isMatch('/(?<![\\\\{])\$/', $inner);
+
+        return $clean ? ['literal' => true, 'line' => $first['line']] : null;
+    }
+
+    if ($first['id'] !== T_VARIABLE) {
+        return null;
+    }
+
+    $argument = [T_VARIABLE, T_STRING, T_LNUMBER, T_DNUMBER, T_OBJECT_OPERATOR, T_NULLSAFE_OBJECT_OPERATOR,
+        T_DOUBLE_COLON, T_CLASS, T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED];
+
+    for ($i = 1; isset($operand[$i]);) {
+        if (in_array($operand[$i]['id'], [T_OBJECT_OPERATOR, T_NULLSAFE_OBJECT_OPERATOR], true)) {
+            if (($operand[$i + 1]['id'] ?? null) !== T_STRING) {
+                return null;
+            }
+
+            $i += 2;
+
+            if (($operand[$i]['text'] ?? null) !== '(') {
+                continue;
+            }
+        } elseif ($operand[$i]['text'] !== '[') {
+            return null;
+        }
+
+        // A call's arguments or an index: names, numbers and plain strings, no further call.
+        $depth = 1;
+
+        for ($i++; isset($operand[$i]); $i++) {
+            $text = $operand[$i]['text'];
+
+            if ($text === ')' || $text === ']') {
+                if (--$depth === 0) {
+                    break;
+                }
+            } elseif ($text === '[') {
+                $depth++;
+            } elseif (! in_array($operand[$i]['id'], $argument, true) && ! in_array($text, [',', ':'], true)
+                && ! ($operand[$i]['id'] === T_CONSTANT_ENCAPSED_STRING && Str::startsWith($text, "'"))) {
+                return null;
+            }
+        }
+
+        if (! isset($operand[$i])) {
+            return null;
+        }
+
+        $i++;
+    }
+
+    return ['literal' => false, 'line' => $first['line']];
+}
+
+/**
+ * Line numbers in $code where a `.` joins a string literal to another
+ * literal, a variable, a property or a method call on the same line: one
+ * interpolated string reads better (.ai/rules/src.md). Left alone: literals
+ * holding `"`, `\`, `$`, `{` or `}` (escaping them reads worse), function and
+ * static calls, constants and other expressions, which a string cannot hold,
+ * and joins across lines, which wrap long text.
+ *
+ * @return list<int>
+ */
+function conventionConcatenations(string $code): array
+{
+    $atoms = conventionStringAtoms($code);
+    $lines = [];
+
+    foreach ($atoms as $i => $atom) {
+        if ($atom['text'] !== '.') {
+            continue;
+        }
+
+        $left = conventionInterpolatable($atoms, $i, -1);
+        $right = conventionInterpolatable($atoms, $i, 1);
+
+        if ($left !== null && $right !== null && ($left['literal'] || $right['literal'])
+            && $left['line'] === $atom['line'] && $right['line'] === $atom['line']) {
+            $lines[] = $atom['line'];
+        }
+    }
+
+    return array_values(array_unique($lines));
+}
+
+it('builds strings with interpolation, not concatenation', function (): void {
+    $root = realpath(__DIR__.'/../../').DIRECTORY_SEPARATOR;
+    $offenders = [];
+
+    foreach (conventionPhpFiles('src') as $path) {
+        foreach (conventionConcatenations((string) file_get_contents($path)) as $line) {
+            $offenders[] = Str::replace($root, '', $path).':'.$line;
+        }
+    }
+
+    sort($offenders);
+
+    expect($offenders)->toBe([], implode("\n", [
+        '',
+        'Concatenation that reads better as one string: write "{$agent->name} ({$count})", not $agent->name.\' (\'.$count.\')\' (.ai/rules/src.md):',
+        ...Arr::map($offenders, fn (string $o): string => "  - {$o}"),
     ]));
 });
 

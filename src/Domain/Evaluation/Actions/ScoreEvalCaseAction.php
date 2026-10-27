@@ -41,7 +41,7 @@ class ScoreEvalCaseAction
                 $run,
                 $case,
                 ScoreResultData::fail(0.0, 'Agent no longer exists.'),
-                new AgentRunResultData('', [], [], null, 0, (string) Str::uuid(), 'Agent no longer exists.'),
+                new AgentRunResultData('', [], [], null, 0, (string) Str::uuid7(), 'Agent no longer exists.'),
             );
         }
 
@@ -61,7 +61,7 @@ class ScoreEvalCaseAction
         }
 
         $score = $result->failed()
-            ? ScoreResultData::fail(0.0, 'Agent run failed: '.$result->error)
+            ? ScoreResultData::fail(0.0, "Agent run failed: {$result->error}")
             : $this->scorers->for($case->scorer_type)->score($case, $result);
 
         return $this->record($run, $case, $score, $result);
@@ -78,8 +78,8 @@ class ScoreEvalCaseAction
         return $this->record(
             $run,
             $case,
-            ScoreResultData::fail(0.0, $reason.' — the case was skipped without running the agent.'),
-            new AgentRunResultData('', [], [], null, 0, (string) Str::uuid(), $reason.'.'),
+            ScoreResultData::fail(0.0, "{$reason} — the case was skipped without running the agent."),
+            new AgentRunResultData('', [], [], null, 0, (string) Str::uuid7(), "{$reason}."),
         );
     }
 

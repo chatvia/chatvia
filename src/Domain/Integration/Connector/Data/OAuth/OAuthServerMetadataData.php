@@ -42,7 +42,7 @@ final readonly class OAuthServerMetadataData
 
     public function supportsPkce(): bool
     {
-        return in_array('S256', $this->codeChallengeMethodsSupported, true);
+        return collect($this->codeChallengeMethodsSupported)->containsStrict('S256');
     }
 
     public function supportsDynamicRegistration(): bool

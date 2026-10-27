@@ -16,6 +16,7 @@ use Domain\Llm\Models\Llm;
 use Domain\Llm\Operations\Documents\Summarizer;
 use Domain\Llm\Services\SourceSummaryModel;
 use Domain\Llm\Services\TikToken;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
@@ -47,7 +48,7 @@ class CreateSourceSummaryAction
 
         $summaryText = $summary->content;
         $plainSummary = ChunkEmbeddingText::forSummary($summaryText);
-        $questions = implode("\n", $analysis->questions);
+        $questions = Arr::join($analysis->questions, "\n");
 
         return Chunk::query()->create([
             'workspace_id' => $source->workspace_id,

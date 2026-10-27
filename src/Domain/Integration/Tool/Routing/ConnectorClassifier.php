@@ -10,6 +10,7 @@ use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\StructuredCompletion;
 use Domain\Llm\Services\TaskModels;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
@@ -143,7 +144,7 @@ class ConnectorClassifier
             $lines[] = "- {$slug} — {$text}";
         }
 
-        return "CONNECTORS:\n".implode("\n", $lines)."\n\nMESSAGE:\n".$userMessage;
+        return "CONNECTORS:\n".Arr::join($lines, "\n")."\n\nMESSAGE:\n{$userMessage}";
     }
 
     /**
@@ -187,7 +188,7 @@ class ConnectorClassifier
         $connectors = [];
         foreach ($servers as $server) {
             $description = Str::trim((string) $server->description);
-            $connectors[$server->slug] = $description !== '' ? $server->name.': '.$description : $server->name;
+            $connectors[$server->slug] = $description !== '' ? "{$server->name}: {$description}" : $server->name;
         }
 
         return $connectors;

@@ -64,7 +64,7 @@ it('drops tools that need approval where no one can approve them', function (Con
 
 it('keeps every tool when the turn has no conversation, or an unknown one', function (): void {
     expect(approvalFilterNames($this->filter->apply(new Agent, $this->entries, null)))->toHaveCount(3)
-        ->and(approvalFilterNames($this->filter->apply(new Agent, $this->entries, (string) Str::uuid())))->toHaveCount(3);
+        ->and(approvalFilterNames($this->filter->apply(new Agent, $this->entries, (string) Str::uuid7())))->toHaveCount(3);
 });
 
 it('drops tools that need approval for an anonymous visitor on any surface', function (): void {

@@ -37,7 +37,7 @@ class RateLimitExceededNotification extends InboxNotification
                 agent: NotificationAgentData::fromAgent($this->agent),
                 detail: (string) $this->limitPerMinute,
             ),
-            'rate-limit:'.$this->agent->external_id,
+            "rate-limit:{$this->agent->external_id}",
         );
     }
 }

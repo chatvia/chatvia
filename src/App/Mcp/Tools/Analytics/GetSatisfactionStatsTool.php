@@ -67,7 +67,7 @@ class GetSatisfactionStatsTool extends AnalyticsTool
                 ['name' => 'Positive', 'value' => $sentiment->positive],
                 ['name' => 'Neutral', 'value' => $sentiment->neutral],
                 ['name' => 'Negative', 'value' => $sentiment->negative],
-            ], 'Sentiment — '.$period->label, donut: true);
+            ], "Sentiment — {$period->label}", donut: true);
         }
 
         return Response::make(Response::text($summary))->withStructuredContent($structured);

@@ -28,7 +28,7 @@ final readonly class MaxConversationAttachments implements ValidationRule
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (in_array($this->conversationExternalId, [null, '', 'pending'], true)) {
+        if (collect([null, '', 'pending'])->containsStrict($this->conversationExternalId)) {
             return;
         }
 

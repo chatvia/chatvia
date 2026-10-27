@@ -51,9 +51,9 @@ final class KnowledgeStoragePath
             throw new LogicException('A knowledge source needs a workspace and an external id before it has a storage folder.');
         }
 
-        $path = 'workspaces/'.self::workspaceExternalId($workspaceId).'/sources/'.$source->getMorphClass().'/'.$externalId;
+        $path = 'workspaces/'.self::workspaceExternalId($workspaceId)."/sources/{$source->getMorphClass()}/{$externalId}";
 
-        return $subfolder === '' ? $path : $path.'/'.Str::trim($subfolder, '/');
+        return $subfolder === '' ? $path : "{$path}/".Str::trim($subfolder, '/');
     }
 
     private static function workspaceExternalId(int $workspaceId): string

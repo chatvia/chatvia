@@ -61,7 +61,7 @@ class UpdateAgentSourceTextAction
         // Write the new file first and remove the old one only after the row
         // points at the new file, so a failure never leaves the text without
         // its content.
-        $filepath = KnowledgeStoragePath::forSource($sourceText).'/'.Str::uuid()->toString().'.txt';
+        $filepath = KnowledgeStoragePath::forSource($sourceText).'/'.Str::uuid7()->toString().'.txt';
         Storage::put($filepath, $newContent);
 
         try {

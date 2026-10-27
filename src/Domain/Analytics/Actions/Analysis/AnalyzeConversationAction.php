@@ -98,7 +98,7 @@ class AnalyzeConversationAction
     private function transcript(Collection $messages): string
     {
         return $messages
-            ->map(fn (Message $message): string => Str::ucfirst($message->role->value).': '.$message->content)
+            ->map(fn (Message $message): string => Str::ucfirst($message->role->value).": {$message->content}")
             ->implode("\n");
     }
 

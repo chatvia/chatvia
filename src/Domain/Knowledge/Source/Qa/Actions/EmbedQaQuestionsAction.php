@@ -7,6 +7,7 @@ namespace Domain\Knowledge\Source\Qa\Actions;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswerQuestion;
+use Illuminate\Support\Arr;
 
 /**
  * Embeds the questions of a curated Q&A entry that have no embedding yet, so
@@ -34,7 +35,7 @@ class EmbedQaQuestionsAction
 
         foreach ($rows->values() as $index => $row) {
             if (isset($vectors[$index])) {
-                $row->update(['embedding' => '['.implode(',', $vectors[$index]).']']);
+                $row->update(['embedding' => '['.Arr::join($vectors[$index], ',').']']);
             }
         }
     }

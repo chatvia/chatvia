@@ -10,6 +10,7 @@ use Domain\Form\Enums\FormType;
 use Domain\Form\Enums\LeadField;
 use Domain\Form\Models\FormDefinition;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
 
 /**
@@ -59,7 +60,7 @@ class UpdateApiFormRequest extends FormRequest
     public function toData(FormDefinition $form): FormDefinitionData
     {
         $validated = $this->validated();
-        $keep = fn (string $key, mixed $current): mixed => array_key_exists($key, $validated) ? $validated[$key] : $current;
+        $keep = fn (string $key, mixed $current): mixed => Arr::get($validated, $key, $current);
 
         return new FormDefinitionData(
             external_id: null,

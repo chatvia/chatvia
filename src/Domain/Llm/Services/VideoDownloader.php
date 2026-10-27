@@ -35,7 +35,7 @@ final readonly class VideoDownloader
         } catch (Throwable $e) {
             File::delete($path);
 
-            throw new VideoGenerationFailedException("The video {$service} made could not be fetched: ".$e->getMessage(), previous: $e);
+            throw new VideoGenerationFailedException("The video {$service} made could not be fetched: {$e->getMessage()}", previous: $e);
         }
 
         return new GeneratedVideoData($path, $this->mimeType($response->header('Content-Type')));

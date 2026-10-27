@@ -67,7 +67,7 @@ it('leaves both stamps alone within a minute and reads the conversation once', f
 it('creates the conversation when it does not exist yet', function (): void {
     $agent = Agent::factory()->create();
     $session = Session::factory()->create(['agent_id' => $agent->id]);
-    $id = (string) Str::uuid();
+    $id = (string) Str::uuid7();
 
     $conversation = app(ChatLogWriter::class)->conversation($session, $id, 'widget');
 

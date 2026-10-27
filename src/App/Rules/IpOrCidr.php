@@ -29,7 +29,7 @@ final readonly class IpOrCidr implements ValidationRule
             return false;
         }
 
-        [$ip, $prefix] = explode('/', $value, 2);
+        [$ip, $prefix] = Str::of($value)->explode('/', 2)->all();
 
         if (filter_var($ip, FILTER_VALIDATE_IP) === false || ! ctype_digit($prefix)) {
             return false;

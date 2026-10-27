@@ -202,7 +202,7 @@ abstract class AbstractLlmProvider implements ChatCompletionProvider
         $key = $this->getApiKey();
 
         return array_merge(
-            array_filter(['Authorization' => $key !== '' ? 'Bearer '.$key : null]),
+            array_filter(['Authorization' => $key !== '' ? "Bearer {$key}" : null]),
             ['Content-Type' => 'application/json'],
             $this->connection->headers ?? [],
         );
@@ -210,7 +210,7 @@ abstract class AbstractLlmProvider implements ChatCompletionProvider
 
     public function getCompletionEndpoint(): string
     {
-        return $this->getBaseUrl().'/chat/completions';
+        return "{$this->getBaseUrl()}/chat/completions";
     }
 
     /**

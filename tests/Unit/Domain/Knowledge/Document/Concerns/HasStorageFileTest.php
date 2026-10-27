@@ -97,7 +97,7 @@ it('hands a stored PDF to withPdf as-is and never deletes it', function (): void
 });
 
 it('converts other files to a temporary PDF under the file\'s own root and cleans up every copy afterwards', function (): void {
-    $root = 'workspaces/'.Str::uuid()->toString();
+    $root = 'workspaces/'.Str::uuid7()->toString();
     Storage::put($root.'/agents/a/files/notes.docx', 'docx-bytes');
     $model = hsfModel(['id' => 1, 'filepath' => $root.'/agents/a/files/notes.docx']);
 

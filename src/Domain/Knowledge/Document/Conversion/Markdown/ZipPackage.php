@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Knowledge\Document\Conversion\Markdown;
 
 use DOMDocument;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use RuntimeException;
 use ZipArchive;
@@ -99,7 +100,7 @@ final class ZipPackage
         $path = Str::startsWith($target, '/') ? $target : $folder.$target;
         $parts = [];
 
-        foreach (explode('/', $path) as $segment) {
+        foreach (Str::of($path)->explode('/') as $segment) {
             if ($segment === '..') {
                 array_pop($parts);
             } elseif ($segment !== '' && $segment !== '.') {
@@ -107,6 +108,6 @@ final class ZipPackage
             }
         }
 
-        return implode('/', $parts);
+        return Arr::join($parts, '/');
     }
 }

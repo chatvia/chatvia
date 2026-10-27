@@ -104,7 +104,7 @@ class GuardrailInspector
             return null;
         }
 
-        return 'CV-'.substr(hash_hmac('sha256', 'guardrail-leak-marker:'.$agent->external_id, (string) config('app.key')), 0, 12);
+        return 'CV-'.substr(hash_hmac('sha256', "guardrail-leak-marker:{$agent->external_id}", (string) config('app.key')), 0, 12);
     }
 
     /**

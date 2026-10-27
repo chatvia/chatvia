@@ -85,7 +85,7 @@ class LocalDocumentParser implements DocumentParser
      */
     private function pages(string $text): Collection
     {
-        $pages = explode(self::PAGE_BREAK, $text);
+        $pages = Str::of($text)->explode(self::PAGE_BREAK)->all();
 
         // The form feed after the last page leaves one empty entry at the end.
         if (count($pages) > 1 && Str::trim(end($pages)) === '') {

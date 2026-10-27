@@ -27,7 +27,7 @@ beforeEach(function (): void {
 
 function pmtTurn(Agent $agent, ?int $modelId): void
 {
-    test()->post("/chat/{$agent->external_id}/stream/".Str::uuid(), ['message' => 'Hi', 'model_id' => $modelId], ['Accept' => 'text/event-stream'])
+    test()->post("/chat/{$agent->external_id}/stream/".Str::uuid7(), ['message' => 'Hi', 'model_id' => $modelId], ['Accept' => 'text/event-stream'])
         ->assertOk()
         ->streamedContent();
 }

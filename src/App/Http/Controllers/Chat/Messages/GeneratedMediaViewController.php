@@ -59,8 +59,8 @@ class GeneratedMediaViewController
         ]);
 
         $response->setContentDisposition(
-            in_array($mimeType, self::INLINE_TYPES, true) ? ResponseHeaderBag::DISPOSITION_INLINE : ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-            $generatedMedia->kind->value.'-'.$generatedMedia->external_id.'.'.Str::afterLast($path, '.'),
+            collect(self::INLINE_TYPES)->containsStrict($mimeType) ? ResponseHeaderBag::DISPOSITION_INLINE : ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+            "{$generatedMedia->kind->value}-{$generatedMedia->external_id}.".Str::afterLast($path, '.'),
         );
 
         return $isLocal ? $response : $response->deleteFileAfterSend();

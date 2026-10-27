@@ -81,7 +81,7 @@ class TrainWebsiteUrlAction
 
         /** @var list<string> $parts */
         $parts = Cache::remember(
-            'ingestion:website:chunks:'.$websiteUrl->id.':'.$checksum,
+            "ingestion:website:chunks:{$websiteUrl->id}:{$checksum}",
             now()->addDay(),
             fn (): array => $this->splitter->split($markdown, ContentKind::Markdown),
         );

@@ -86,11 +86,11 @@ final class McpCallerResolver
     private function acceptsWorkspaceCaller(Request $request): bool
     {
         $paths = array_map(
-            static fn (string $slug): string => 'mcp/'.$slug,
+            static fn (string $slug): string => "mcp/{$slug}",
             array_column((array) config('mcp.builtin', []), 'slug'),
         );
 
-        return in_array($request->path(), $paths, true);
+        return collect($paths)->containsStrict($request->path());
     }
 
     private function header(Request $request, string $name): ?string

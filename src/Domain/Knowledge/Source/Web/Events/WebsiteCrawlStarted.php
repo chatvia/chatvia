@@ -40,7 +40,7 @@ class WebsiteCrawlStarted implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('agents.'.$this->agentExternalId.'.crawler'),
+            new PrivateChannel("agents.{$this->agentExternalId}.crawler"),
         ];
     }
 

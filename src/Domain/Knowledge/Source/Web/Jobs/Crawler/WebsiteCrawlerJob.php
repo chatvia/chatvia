@@ -65,7 +65,7 @@ class WebsiteCrawlerJob implements ShouldBeUnique, ShouldQueue
 
     public function uniqueId(): string
     {
-        return 'agents:'.$this->agent->external_id.':website:'.$this->website->id.':crawler';
+        return "agents:{$this->agent->external_id}:website:{$this->website->id}:crawler";
     }
 
     public function failed(?Throwable $exception): void

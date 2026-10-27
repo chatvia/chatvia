@@ -14,6 +14,7 @@ use Domain\Knowledge\Retrieval\Enums\ChunkSearchScope;
 use Domain\Knowledge\Retrieval\Queries\HybridChunkSearch;
 use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Services\AiCallTags;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
@@ -76,7 +77,7 @@ class KnowledgeBase
         // example Qwen3's instruction prefix), unlike document embeddings, and
         // are cached for 24h: a sub-millisecond embed_ms means a cache hit.
         $embedStarted = CarbonImmutable::now();
-        $queryVector = '['.implode(',', $this->embeddings->embedQuery($query)).']';
+        $queryVector = '['.Arr::join($this->embeddings->embedQuery($query), ',').']';
         $embedMs = $embedStarted->diffInMilliseconds(absolute: true);
 
         $sqlStarted = CarbonImmutable::now();

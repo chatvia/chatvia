@@ -39,7 +39,7 @@ class SourceTextFactory extends Factory
             ])).'/source.txt',
             'excerpt' => 'Our refund policy',
             'length' => 1,
-            'checksum' => fn (): string => md5(Str::uuid()->toString()),
+            'checksum' => fn (): string => md5(Str::uuid7()->toString()),
             'status' => SourceStatus::Pending,
         ];
     }

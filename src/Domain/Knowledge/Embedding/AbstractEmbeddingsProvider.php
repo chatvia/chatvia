@@ -4,6 +4,7 @@ namespace Domain\Knowledge\Embedding;
 
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
@@ -55,12 +56,12 @@ abstract class AbstractEmbeddingsProvider implements EmbeddingsProvider
     final public function embedQuery(string $text, bool $returnAsText = false): string|array
     {
         $vector = Cache::remember(
-            'embed:query:'.$this->getModel().':'.sha1($text),
+            "embed:query:{$this->getModel()}:".sha1($text),
             now()->addDay(),
             fn (): array => $this->doEmbedQuery($text),
         );
 
-        return $returnAsText ? '['.implode(',', $vector).']' : $vector;
+        return $returnAsText ? '['.Arr::join($vector, ',').']' : $vector;
     }
 
     /**

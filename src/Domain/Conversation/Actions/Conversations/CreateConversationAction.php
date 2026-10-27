@@ -101,7 +101,7 @@ class CreateConversationAction
             ->whereNull('chat_conversation_id')
             // Only this agent's orphans: a guessed external id can never pull
             // another agent's upload into this conversation.
-            ->whereLike('filepath', $pending.'%', caseSensitive: true)
+            ->whereLike('filepath', "{$pending}%", caseSensitive: true)
             ->get()
             ->each(function (Attachment $attachment) use ($conversation, $pending, $folder, $disk): void {
                 $path = $folder.Str::after($attachment->filepath, $pending);

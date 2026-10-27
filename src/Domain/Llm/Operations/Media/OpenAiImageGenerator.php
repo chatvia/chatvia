@@ -63,13 +63,13 @@ class OpenAiImageGenerator implements ImageGenerator
                     'tool_choice' => ['type' => 'image_generation'],
                 ]));
         } catch (Throwable $e) {
-            throw new ImageGenerationFailedException('OpenAI could not be reached: '.$e->getMessage(), previous: $e);
+            throw new ImageGenerationFailedException("OpenAI could not be reached: {$e->getMessage()}", previous: $e);
         }
 
         if ($response->failed()) {
             $reason = $this->errors->of($response) ?? "HTTP {$response->status()}";
 
-            throw in_array($response->json('error.code'), self::REFUSAL_CODES, true)
+            throw collect(self::REFUSAL_CODES)->containsStrict($response->json('error.code'))
                 ? ImageGenerationFailedException::refused('OpenAI', $reason)
                 : new ImageGenerationFailedException("OpenAI could not make the image: {$reason}");
         }
@@ -100,7 +100,7 @@ class OpenAiImageGenerator implements ImageGenerator
 
     public function name(?string $model = null): string
     {
-        return 'openai '.$this->model($model);
+        return "openai {$this->model($model)}";
     }
 
     private function model(?string $picked = null): string

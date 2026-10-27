@@ -35,7 +35,7 @@ class LlmUnavailableInboxNotification extends InboxNotification
                 subject: $this->llm->name,
                 detail: $this->llm->provider->name,
             ),
-            'llm-unavailable:'.$this->llm->id,
+            "llm-unavailable:{$this->llm->id}",
         );
     }
 }

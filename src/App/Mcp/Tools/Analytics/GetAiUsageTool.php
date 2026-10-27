@@ -7,6 +7,7 @@ use Domain\Analytics\Data\Account\LabelCountData;
 use Domain\Analytics\Data\Account\Usage\McpToolUsageData;
 use Domain\Analytics\Queries\Account\Usage\AiUsageQuery;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 use Laravel\Mcp\Response;
@@ -54,7 +55,7 @@ class GetAiUsageTool extends AnalyticsTool
 
         $summary = $parts === []
             ? sprintf('No AI usage data %s yet.', $period->label)
-            : Str::ucfirst($period->label).': '.implode('; ', $parts).'.';
+            : Str::ucfirst($period->label).': '.Arr::join($parts, '; ').'.';
 
         return Response::make(Response::text($summary))->withStructuredContent([
             'period' => $this->periodPayload($period),

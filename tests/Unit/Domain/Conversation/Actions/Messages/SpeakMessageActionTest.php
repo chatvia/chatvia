@@ -57,7 +57,7 @@ it('reads a stored reply once and saves it', function (): void {
 
 it('reads a reply that is only in the live history', function (): void {
     $scope = smaScope();
-    $id = (string) Str::uuid();
+    $id = (string) Str::uuid7();
     app(ChatMemory::class)->withScope($scope)->appendMessage(new MessageData(
         id: $id,
         role: MessageRole::Assistant,
@@ -86,5 +86,5 @@ it('finds no reply of another conversation, no visitor message, and nothing to s
 it('fails at once without a text-to-speech service', function (): void {
     app()->instance(Speaker::class, new NullSpeaker);
 
-    app(SpeakMessageAction::class)->execute(smaScope(), (string) Str::uuid());
+    app(SpeakMessageAction::class)->execute(smaScope(), (string) Str::uuid7());
 })->throws(SpeechNotConfiguredException::class);

@@ -30,7 +30,7 @@ class AgentActivityFactory extends Factory
             'agent_id' => Agent::factory(),
             'agent_name' => fn (array $attributes): string => (string) Agent::query()->whereKey($attributes['agent_id'])->value('name'),
             'workspace_id' => fn (array $attributes): int => (int) Agent::query()->whereKey($attributes['agent_id'])->value('workspace_id'),
-            'trace_id' => fn (): string => (string) Str::uuid(),
+            'trace_id' => fn (): string => (string) Str::uuid7(),
             'tool_call_id' => fn (): string => 'call_'.Str::random(6),
             'tool_name' => 'get_weather',
             'tool_kind' => 'function',

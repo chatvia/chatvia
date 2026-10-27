@@ -58,7 +58,7 @@ function cssgOwnerOfWorkspaceWithChatterFreeId(): User
 describe('a deactivated workspace', function (): void {
     it('refuses the turn with one non-retryable error and stores nothing', function (): void {
         deactivateWorkspaceOf($this->agent);
-        $scope = new ChatScopeData($this->agent, (string) Str::uuid(), (string) Str::uuid());
+        $scope = new ChatScopeData($this->agent, (string) Str::uuid7(), (string) Str::uuid7());
 
         $errors = StreamTurn::ofType(StreamTurn::run($this->agent, request: [
             'externalSessionId' => $scope->sessionId,

@@ -48,7 +48,7 @@ final readonly class RerankerCheck
         } catch (RequestException $exception) {
             $status = $exception->response->status();
 
-            if (in_array($status, [401, 403], true)) {
+            if (collect([401, 403])->containsStrict($status)) {
                 return new ConnectionCheckData(false, keyRefused: true, message: "{$name} refused this key. Check that you copied all of it.");
             }
 

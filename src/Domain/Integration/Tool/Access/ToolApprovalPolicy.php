@@ -46,7 +46,7 @@ class ToolApprovalPolicy
 
     public function requiresApproval(Agent $agent, ToolName $tool): bool
     {
-        return $this->memo[$agent->id.'|'.$tool->value] ??= $this->evaluate($agent, $tool);
+        return $this->memo["{$agent->id}|{$tool->value}"] ??= $this->evaluate($agent, $tool);
     }
 
     private function evaluate(Agent $agent, ToolName $tool): bool

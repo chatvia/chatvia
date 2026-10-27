@@ -37,7 +37,7 @@ class AgentBreakdownQuery extends AccountAnalyticsQuery
 
         return $rows->map(static fn (object $row): AgentActivityData => new AgentActivityData(
             agentId: (int) $row->agent_id,
-            name: $names[$row->agent_id] ?? 'Agent #'.$row->agent_id,
+            name: $names[$row->agent_id] ?? "Agent #{$row->agent_id}",
             messages: (int) $row->messages,
             conversations: (int) $row->conversations,
         ))->all();

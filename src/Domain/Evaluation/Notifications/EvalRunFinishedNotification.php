@@ -34,7 +34,7 @@ class EvalRunFinishedNotification extends InboxNotification
         return $this->message(new NotificationContentData(
             url: route('agents.evals.runs.show', ['agent' => $this->agent, 'run' => $this->run], absolute: false),
             agent: NotificationAgentData::fromAgent($this->agent),
-            subject: $this->run->passed_count.'/'.($this->run->passed_count + $this->run->failed_count),
+            subject: "{$this->run->passed_count}/".($this->run->passed_count + $this->run->failed_count),
             detail: $this->run->status->value,
         ));
     }

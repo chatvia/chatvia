@@ -3,6 +3,7 @@
 namespace Domain\Knowledge\Ingestion\Services\Media;
 
 use getID3;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
@@ -59,9 +60,9 @@ class AudioDurationExtractor
 
         $supportedMimeTypes = $this->getSupportedMimeTypes();
 
-        if (! in_array($mimeType, $supportedMimeTypes, true)) {
+        if (! collect($supportedMimeTypes)->containsStrict($mimeType)) {
             throw new RuntimeException(
-                "Unsupported file MIME type '{$mimeType}'. Supported types: ".implode(', ', $supportedMimeTypes)
+                "Unsupported file MIME type '{$mimeType}'. Supported types: ".Arr::join($supportedMimeTypes, ', ')
             );
         }
 
@@ -96,7 +97,7 @@ class AudioDurationExtractor
 
         if ($result->failed()) {
             throw new RuntimeException(
-                "Failed to extract audio duration:\n".$result->errorOutput()
+                "Failed to extract audio duration:\n{$result->errorOutput()}"
             );
         }
 

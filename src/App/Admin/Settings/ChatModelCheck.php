@@ -126,7 +126,7 @@ final readonly class ChatModelCheck
         $reason = $this->reasons->of($response);
 
         return match (true) {
-            in_array($status, [401, 403], true) => ModelCheckData::failed("{$provider->name} refused this key for this model".($reason !== null ? ": {$reason}" : '.')),
+            collect([401, 403])->containsStrict($status) => ModelCheckData::failed("{$provider->name} refused this key for this model".($reason !== null ? ": {$reason}" : '.')),
             $status === 429 => ModelCheckData::busy('Busy right now (error 429): the provider is limiting requests. Test again in a minute.'.($reason !== null ? " {$reason}" : '')),
             default => ModelCheckData::failed("The model did not answer (error {$status})".($reason !== null ? ": {$reason}" : '.')),
         };

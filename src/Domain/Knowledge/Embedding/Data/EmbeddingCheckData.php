@@ -27,7 +27,7 @@ final class EmbeddingCheckData extends Data
     /** Whether the service accepted the key, whatever the model did. */
     public function keyAccepted(): bool
     {
-        return ! in_array($this->status, [EmbeddingCheckStatus::KeyRefused, EmbeddingCheckStatus::Unreachable], true);
+        return ! collect([EmbeddingCheckStatus::KeyRefused, EmbeddingCheckStatus::Unreachable])->containsStrict($this->status);
     }
 
     /** What went wrong, in plain words, or null when it worked. */

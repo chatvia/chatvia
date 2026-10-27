@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Ingestion\Data\Chunking;
 
+use Illuminate\Support\Arr;
 use Spatie\LaravelData\Data;
 
 /**
@@ -55,7 +56,7 @@ final class PageVisualsData extends Data
             $parts[] = $this->tableDescription;
         }
 
-        return implode("\n\n", $parts);
+        return Arr::join($parts, "\n\n");
     }
 
     /**

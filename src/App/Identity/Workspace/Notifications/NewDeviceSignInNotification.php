@@ -11,6 +11,7 @@ use Domain\Notification\Notifications\InboxNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 
 /**
@@ -45,7 +46,7 @@ class NewDeviceSignInNotification extends InboxNotification implements ShouldQue
     public function toInbox(User $notifiable): NotificationMessageData
     {
         $device = app(UserAgentParser::class)->detect($this->userAgent);
-        $name = implode(' · ', array_filter([$device->browser, $device->os]));
+        $name = Arr::join(array_filter([$device->browser, $device->os]), ' · ');
 
         return $this->message(new NotificationContentData(
             url: route('account.password.edit', absolute: false),

@@ -31,7 +31,7 @@ class HandedOff implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new PresenceChannel('chat.'.$this->conversationId),
+            new PresenceChannel("chat.{$this->conversationId}"),
         ];
     }
 

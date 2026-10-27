@@ -145,7 +145,7 @@ class StoreAssistantMessageAction
 
         $job = GenerateConversationTitleJob::dispatch($agent, $turn->external_session_id, $turn->external_conversation_id);
 
-        if (in_array($conversation->source, [ConversationSource::Widget, ConversationSource::Bar], true)) {
+        if (collect([ConversationSource::Widget, ConversationSource::Bar])->containsStrict($conversation->source)) {
             $job->delay(now()->addMinute());
         }
     }

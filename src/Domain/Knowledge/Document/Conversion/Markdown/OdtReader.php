@@ -8,6 +8,7 @@ use DOMDocument;
 use DOMElement;
 use DOMNode;
 use DOMText;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use RuntimeException;
 
@@ -122,7 +123,7 @@ final class OdtReader
                 continue;
             }
 
-            $name = $child->namespaceURI.' '.$child->localName;
+            $name = "{$child->namespaceURI} {$child->localName}";
 
             $more = match ($name) {
                 self::TEXT.' h' => $this->heading($child),
@@ -131,7 +132,7 @@ final class OdtReader
                 self::TEXT.' numbered-paragraph' => $this->numberedParagraph($child),
                 self::TABLE.' table' => $this->table($child),
                 default => match (true) {
-                    $child->namespaceURI === self::TEXT && in_array($child->localName, [...self::INDEXES, ...self::HIDDEN], true),
+                    $child->namespaceURI === self::TEXT && collect([...self::INDEXES, ...self::HIDDEN])->containsStrict($child->localName),
                     $child->namespaceURI === self::OFFICE => [],
                     // Sections, text boxes and other wrappers: read what they hold.
                     $depth < 30 => $this->blocks($child, $depth + 1),
@@ -187,7 +188,7 @@ final class OdtReader
         $blocks = [];
 
         foreach ($list->childNodes as $item) {
-            if (! $item instanceof DOMElement || $item->namespaceURI !== self::TEXT || ! in_array($item->localName, ['list-item', 'list-header'], true)) {
+            if (! $item instanceof DOMElement || $item->namespaceURI !== self::TEXT || ! collect(['list-item', 'list-header'])->containsStrict($item->localName)) {
                 continue;
             }
 
@@ -279,7 +280,7 @@ final class OdtReader
 
                     // A cell under a merged cell is covered: it stays empty.
                     $text = match ($cell->localName) {
-                        'table-cell' => implode("\n", array_column($this->blocks($cell, 0), 1)),
+                        'table-cell' => Arr::join(array_column($this->blocks($cell, 0), 1), "\n"),
                         'covered-table-cell' => '',
                         default => null,
                     };
@@ -303,7 +304,7 @@ final class OdtReader
         }
 
         if ($this->tableDepth > 0) {
-            return [[MarkdownText::BLOCK, implode(' ', array_filter(array_merge(...$rows), static fn (string $cell): bool => $cell !== ''))]];
+            return [[MarkdownText::BLOCK, Arr::join(array_filter(array_merge(...$rows), static fn (string $cell): bool => $cell !== ''), ' ')]];
         }
 
         return [[MarkdownText::BLOCK, MarkdownText::table($rows)]];
@@ -325,7 +326,7 @@ final class OdtReader
 
             if ($child->localName === 'table-row') {
                 $rows[] = $child;
-            } elseif (in_array($child->localName, ['table-header-rows', 'table-rows', 'table-row-group'], true)) {
+            } elseif (collect(['table-header-rows', 'table-rows', 'table-row-group'])->containsStrict($child->localName)) {
                 array_push($rows, ...$this->rows($child));
             }
         }
@@ -356,14 +357,14 @@ final class OdtReader
             }
 
             if ($child->namespaceURI === self::DRAW && $child->localName === 'text-box') {
-                $text .= "\n".implode("\n", array_column($this->blocks($child, 0), 1))."\n";
+                $text .= "\n".Arr::join(array_column($this->blocks($child, 0), 1), "\n")."\n";
 
                 continue;
             }
 
             if ($child->namespaceURI !== self::TEXT) {
                 // Frames and links around text; images and their titles give nothing.
-                $text .= in_array($child->localName, ['title', 'desc', 'image'], true) ? '' : $this->inline($child);
+                $text .= collect(['title', 'desc', 'image'])->containsStrict($child->localName) ? '' : $this->inline($child);
 
                 continue;
             }
@@ -374,7 +375,7 @@ final class OdtReader
                 'line-break' => "\n",
                 'note' => $this->note($child),
                 'a' => $this->link($child),
-                default => in_array($child->localName, self::HIDDEN, true) ? '' : $this->inline($child),
+                default => collect(self::HIDDEN)->containsStrict($child->localName) ? '' : $this->inline($child),
             };
         }
 
@@ -385,7 +386,7 @@ final class OdtReader
     {
         $body = $this->first($note, self::TEXT, 'note-body');
 
-        return $body instanceof DOMElement ? $this->notes->add(implode(' ', array_column($this->blocks($body, 0), 1))) : '';
+        return $body instanceof DOMElement ? $this->notes->add(Arr::join(array_column($this->blocks($body, 0), 1), ' ')) : '';
     }
 
     private function link(DOMElement $link): string
@@ -397,7 +398,7 @@ final class OdtReader
             return $text;
         }
 
-        return $parts[1].'['.Str::replace(']', '\\]', $parts[2]).']('.Str::replace([' ', '(', ')'], ['%20', '%28', '%29'], $url).')'.$parts[3];
+        return "{$parts[1]}[".Str::replace(']', '\\]', $parts[2]).']('.Str::replace([' ', '(', ')'], ['%20', '%28', '%29'], $url)."){$parts[3]}";
     }
 
     private function first(?DOMElement $parent, string $namespace, string $name): ?DOMElement

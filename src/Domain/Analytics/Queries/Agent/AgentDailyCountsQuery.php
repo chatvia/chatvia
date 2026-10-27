@@ -37,11 +37,11 @@ class AgentDailyCountsQuery extends AgentAnalyticsQuery
      */
     private function perDay(Agent $agent, string $column, Carbon $start, Carbon $end): array
     {
-        $range = $start->format('Y-m-d').'..'.$end->format('Y-m-d');
+        $range = "{$start->format('Y-m-d')}..{$end->format('Y-m-d')}";
         $period = new Period($start->toImmutable()->startOfDay(), $end->toImmutable()->endOfDay(), $range);
         $grain = RollupGrain::for($period);
 
-        return $this->cached($agent, $column.'-per-day', $range, fn (): array => $grain->within($this->rollupOf($agent, $grain), $period)
+        return $this->cached($agent, "{$column}-per-day", $range, fn (): array => $grain->within($this->rollupOf($agent, $grain), $period)
             ->selectRaw("{$grain->day()}::text as date, SUM({$column}) as count")
             ->groupBy('date')
             ->orderBy('date')

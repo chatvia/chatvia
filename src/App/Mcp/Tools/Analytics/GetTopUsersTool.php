@@ -65,7 +65,7 @@ class GetTopUsersTool extends AnalyticsTool
             $structured['echarts_option'] = AnalyticsChart::bar(
                 array_column($top, 'name'),
                 [['name' => 'Messages', 'data' => array_column($top, 'messages')]],
-                'Most active users — '.$period->label,
+                "Most active users — {$period->label}",
                 horizontal: true,
             );
         }

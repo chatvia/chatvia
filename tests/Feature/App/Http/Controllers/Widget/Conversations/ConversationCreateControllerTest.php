@@ -34,7 +34,7 @@ it('starts a widget conversation in the visitor’s own session', function (): v
 });
 
 it('starts a conversation in a session id that is new', function (): void {
-    $sessionId = (string) Str::uuid();
+    $sessionId = (string) Str::uuid7();
 
     $id = $this->withHeaders(EmbeddedWidget::headers($this->agent, [WidgetHeaders::SESSION_ID => $sessionId]))
         ->postJson('/widget/conversations')

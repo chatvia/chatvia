@@ -88,7 +88,7 @@ class FalVideoGenerator implements VideoGenerator
 
     public function name(?string $model = null): string
     {
-        return 'fal '.$this->model($model);
+        return "fal {$this->model($model)}";
     }
 
     /**
@@ -129,7 +129,7 @@ class FalVideoGenerator implements VideoGenerator
         try {
             $response = $this->tags->during(AiCallTag::VideoGeneration, $request);
         } catch (Throwable $e) {
-            throw new VideoGenerationFailedException('fal.ai could not be reached: '.$e->getMessage(), previous: $e);
+            throw new VideoGenerationFailedException("fal.ai could not be reached: {$e->getMessage()}", previous: $e);
         }
 
         if ($response->failed()) {

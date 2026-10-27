@@ -2,6 +2,7 @@
 
 namespace Domain\Knowledge\Embedding;
 
+use Illuminate\Support\Arr;
 use Support\Http\ProviderRetry;
 
 /**
@@ -22,7 +23,7 @@ class Cohere extends AbstractEmbeddingsProvider
             ])->json('embeddings.float.0');
 
         if ($returnAsText) {
-            return '['.implode(',', $embedding).']';
+            return '['.Arr::join($embedding, ',').']';
         }
 
         return $embedding;
@@ -31,7 +32,7 @@ class Cohere extends AbstractEmbeddingsProvider
     /** embed-v4.0 returns one of these sizes (`output_dimension`). */
     protected function supportsDimensions(int $dimensions): bool
     {
-        return in_array($dimensions, [256, 512, 1024, 1536], true);
+        return collect([256, 512, 1024, 1536])->containsStrict($dimensions);
     }
 
     protected function getApiKey(): string

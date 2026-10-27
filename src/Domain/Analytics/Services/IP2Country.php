@@ -73,6 +73,6 @@ class IP2Country
     {
         $message = $key === '' ? $e->getMessage() : Str::replace($key, '[redacted]', $e->getMessage());
 
-        return new RuntimeException('IP2Location lookup failed ('.$e::class.'): '.$message);
+        return new RuntimeException('IP2Location lookup failed ('.$e::class."): {$message}");
     }
 }

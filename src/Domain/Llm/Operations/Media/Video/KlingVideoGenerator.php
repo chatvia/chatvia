@@ -46,7 +46,7 @@ class KlingVideoGenerator implements VideoGenerator
     {
         $model = $this->model($prompt->model);
 
-        $response = $this->call(fn (PendingRequest $kling): Response => $kling->post($this->endpoint().'/text-to-video/'.$model, [
+        $response = $this->call(fn (PendingRequest $kling): Response => $kling->post("{$this->endpoint()}/text-to-video/{$model}", [
             'prompt' => $prompt->prompt,
             'settings' => [
                 'aspect_ratio' => $prompt->shape->aspectRatio(),
@@ -60,7 +60,7 @@ class KlingVideoGenerator implements VideoGenerator
 
     public function check(string $taskId): ?GeneratedVideoData
     {
-        $response = $this->call(fn (PendingRequest $kling): Response => $kling->get($this->endpoint().'/tasks', ['task_ids' => $taskId]));
+        $response = $this->call(fn (PendingRequest $kling): Response => $kling->get("{$this->endpoint()}/tasks", ['task_ids' => $taskId]));
         $task = collect((array) $response->json('data'))->first(fn (mixed $task): bool => is_array($task) && (string) ($task['id'] ?? '') === $taskId);
 
         if (! is_array($task)) {
@@ -95,7 +95,7 @@ class KlingVideoGenerator implements VideoGenerator
 
     public function name(?string $model = null): string
     {
-        return 'kling '.$this->model($model);
+        return "kling {$this->model($model)}";
     }
 
     /**
@@ -111,7 +111,7 @@ class KlingVideoGenerator implements VideoGenerator
                 ProviderRetry::on(Http::withToken((string) config('services.kling.api_key'))->acceptJson()->timeout(60)),
             ));
         } catch (Throwable $e) {
-            throw new VideoGenerationFailedException('Kling could not be reached: '.$e->getMessage(), previous: $e);
+            throw new VideoGenerationFailedException("Kling could not be reached: {$e->getMessage()}", previous: $e);
         }
 
         $code = (int) $response->json('code', 0);
@@ -119,7 +119,7 @@ class KlingVideoGenerator implements VideoGenerator
         if ($response->failed() || $code !== 0) {
             $reason = (string) ($response->json('message') ?? "HTTP {$response->status()}");
 
-            throw in_array($code, self::REFUSAL_CODES, true)
+            throw collect(self::REFUSAL_CODES)->containsStrict($code)
                 ? VideoGenerationFailedException::refused('Kling', $reason)
                 : new VideoGenerationFailedException("Kling could not make the video: {$reason}");
         }

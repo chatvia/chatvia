@@ -28,7 +28,7 @@ class NotifyRateLimitExceeded implements ShouldQueue
 
     public function shouldQueue(AgentRateLimitExceeded $event): bool
     {
-        return Cache::add('agent-rate-limit-inbox:'.$event->agent->id, true, now()->addMinutes(10));
+        return Cache::add("agent-rate-limit-inbox:{$event->agent->id}", true, now()->addMinutes(10));
     }
 
     public function handle(AgentRateLimitExceeded $event): void

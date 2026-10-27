@@ -30,7 +30,7 @@ class TopTopicsQuery extends AccountAnalyticsQuery
         $names = DB::table('topics')->whereIn('id', $rows->pluck('topic_id')->all())->pluck('topic', 'id');
 
         return $rows->map(static fn (object $row): LabelCountData => new LabelCountData(
-            label: $names[$row->topic_id] ?? 'Topic #'.$row->topic_id,
+            label: $names[$row->topic_id] ?? "Topic #{$row->topic_id}",
             count: (int) $row->conversations,
         ))->all();
     }

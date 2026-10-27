@@ -30,7 +30,7 @@ class GeneratedMediaUpdated implements ShouldBroadcastNow
     /** The channel name without Echo's `private-` prefix. */
     public static function channelName(string $conversationId): string
     {
-        return 'chat-media.'.$conversationId;
+        return "chat-media.{$conversationId}";
     }
 
     public function broadcastOn(): array

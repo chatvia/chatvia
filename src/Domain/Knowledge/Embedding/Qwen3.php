@@ -3,6 +3,7 @@
 namespace Domain\Knowledge\Embedding;
 
 use Domain\Llm\Providers\Scaleway;
+use Illuminate\Support\Arr;
 use Support\Http\ProviderRetry;
 
 /**
@@ -23,7 +24,7 @@ class Qwen3 extends AbstractEmbeddingsProvider
     {
         $response = ProviderRetry::request()->withHeaders([
             'Content-Type' => 'application/json',
-            'Authorization' => 'Bearer '.$this->getApiKey(),
+            'Authorization' => "Bearer {$this->getApiKey()}",
         ])
             ->throw()
             ->post($this->endpoint('/embeddings'), [
@@ -35,7 +36,7 @@ class Qwen3 extends AbstractEmbeddingsProvider
         $embedding = $response->json('data.0.embedding');
 
         if ($returnAsText) {
-            return '['.implode(',', $embedding).']';
+            return '['.Arr::join($embedding, ',').']';
         }
 
         return $embedding;
@@ -56,7 +57,7 @@ class Qwen3 extends AbstractEmbeddingsProvider
 
         $response = ProviderRetry::request()->withHeaders([
             'Content-Type' => 'application/json',
-            'Authorization' => 'Bearer '.$this->getApiKey(),
+            'Authorization' => "Bearer {$this->getApiKey()}",
         ])
             ->throw()
             ->post($this->endpoint('/embeddings'), [
@@ -77,7 +78,7 @@ class Qwen3 extends AbstractEmbeddingsProvider
     protected function doEmbedQuery(string $text): array
     {
         /** @var array<int, float> $vector */
-        $vector = $this->embed('Instruct: '.self::QUERY_INSTRUCTION."\nQuery: ".$text);
+        $vector = $this->embed('Instruct: '.self::QUERY_INSTRUCTION."\nQuery: {$text}");
 
         return $vector;
     }

@@ -45,7 +45,7 @@ class AttachableTextsQuery
      */
     private function wordCount(SourceText $text): int
     {
-        return Cache::rememberForever('knowledge:text:word-count:'.$text->checksum, function () use ($text): int {
+        return Cache::rememberForever("knowledge:text:word-count:{$text->checksum}", function () use ($text): int {
             try {
                 $content = (string) Storage::get($text->filepath);
             } catch (Throwable $e) {

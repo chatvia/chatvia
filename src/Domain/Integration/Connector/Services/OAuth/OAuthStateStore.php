@@ -43,7 +43,7 @@ class OAuthStateStore
 
     private function key(string $state): string
     {
-        return 'oauth:mcp:state:'.$state;
+        return "oauth:mcp:state:{$state}";
     }
 
     private function store(): Repository

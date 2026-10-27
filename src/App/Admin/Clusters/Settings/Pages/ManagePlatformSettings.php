@@ -134,7 +134,7 @@ class ManagePlatformSettings extends AdminSettingsPage
             SettingsCard::make('alerts', 'Alerts', 'Where the queue sends its alerts.', Heroicon::OutlinedBellAlert, fn (): array => [
                 $this->email('horizon_notify_email', 'Alert email',
                     help: 'Gets an email when background jobs wait too long to start. A change applies after the queue restarts.'),
-            ])->summary(fn (): string => filled($this->valueInUse('horizon_notify_email')) ? 'To '.$this->valueInUse('horizon_notify_email') : 'No alerts'),
+            ])->summary(fn (): string => filled($this->valueInUse('horizon_notify_email')) ? "To {$this->valueInUse('horizon_notify_email')}" : 'No alerts'),
             SettingsCard::make('sentry', 'Sentry', 'Sends errors to Sentry, so you see what went wrong on the server and in people\'s browsers.', Heroicon::OutlinedBugAnt, fn (): array => [
                 $this->url('sentry_dsn', 'Server DSN',
                     help: 'For errors on the server, in the queue and in scheduled tasks. Use the DSN of a Laravel project in Sentry. A change applies to the queue after it restarts.'),
@@ -170,7 +170,7 @@ class ManagePlatformSettings extends AdminSettingsPage
                 $this->integer('generation_workers', 'Pictures, audio and video', help: 'For the pictures, audio files and videos agents make in chats. Each one can take up to a few minutes.', min: 1, max: 100),
                 Actions::make([$this->restartQueueAction()])->key('restart-queue'),
             ])->summary(fn (): string => sprintf('Up to %d workers', array_sum($this->savedWorkers())).(($state = $this->horizonState()) !== null ? " · {$state}" : ''))
-                ->tone(fn (): string => in_array($this->horizonState(), [self::NOT_RUNNING, self::RESTART_NEEDED], true) ? 'warning' : 'gray')
+                ->tone(fn (): string => collect([self::NOT_RUNNING, self::RESTART_NEEDED])->containsStrict($this->horizonState()) ? 'warning' : 'gray')
                 ->advanced(),
             SettingsCard::make('programs', 'Programs', 'The programs on this server that read files and make PDFs. Without some of them the app does the work itself. Enter a full path for a program that is not found.', Heroicon::OutlinedCommandLine, fn (): array => array_map(
                 $this->programField(...),
@@ -304,7 +304,7 @@ class ManagePlatformSettings extends AdminSettingsPage
     /** Runs `which` for the program and puts the path it finds in the field, to save. */
     private function detectAction(ServerProgram $program): Action
     {
-        return Action::make('detect_'.$program->value)
+        return Action::make("detect_{$program->value}")
             ->label('Detect')
             ->icon(Heroicon::OutlinedMagnifyingGlass)
             ->tooltip("Runs \"which {$program->value}\" on the server and puts the path it finds here")
@@ -329,12 +329,12 @@ class ManagePlatformSettings extends AdminSettingsPage
         $found = $this->programPath($program);
 
         if ($found !== null) {
-            return $program->purpose()." Uses {$found}.";
+            return "{$program->purpose()} Uses {$found}.";
         }
 
         $loss = $program->lossWhenMissing();
 
-        return $program->purpose().' '.($loss !== null ? "Without it: {$loss} " : '').'Click Detect or enter its full path.';
+        return "{$program->purpose()} ".($loss !== null ? "Without it: {$loss} " : '').'Click Detect or enter its full path.';
     }
 
     /**
@@ -368,7 +368,7 @@ class ManagePlatformSettings extends AdminSettingsPage
 
     private function programsSummary(): string
     {
-        $names = fn (array $programs): string => implode(', ', array_map(fn (ServerProgram $program): string => $program->value, $programs));
+        $names = fn (array $programs): string => Arr::join(array_map(fn (ServerProgram $program): string => $program->value, $programs), ', ');
         $missing = $this->programsLosingWork();
         $notNeeded = array_values(array_filter(ServerProgram::cases(), fn (ServerProgram $program): bool => $this->programState($program) === 'not_needed'));
 
@@ -497,8 +497,8 @@ class ManagePlatformSettings extends AdminSettingsPage
 
         return match (true) {
             $maker === PdfMaker::Weasyprint => $missing === [] ? 'WeasyPrint on this server' : 'WeasyPrint · not found on this server',
-            $missing !== [] => $maker->label().' · missing: '.implode(', ', $missing),
-            $maker === PdfMaker::Gotenberg => 'Gotenberg at '.$this->valueInUse('pdf_gotenberg_url'),
+            $missing !== [] => "{$maker->label()} · missing: ".Arr::join($missing, ', '),
+            $maker === PdfMaker::Gotenberg => "Gotenberg at {$this->valueInUse('pdf_gotenberg_url')}",
             default => $maker->label(),
         };
     }

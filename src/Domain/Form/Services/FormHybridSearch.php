@@ -8,6 +8,7 @@ use Domain\Integration\Tool\Search\ToolHybridSearch;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Retrieval\Services\LexicalSearch;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -101,7 +102,7 @@ class FormHybridSearch
             return collect();
         }
 
-        $vectorString = '['.implode(',', $queryVector).']';
+        $vectorString = '['.Arr::join($queryVector, ',').']';
         $candidateLimit = max($limit * 3, $limit);
         // The install's column type (e.g. halfvec(1024)), so the query vector
         // compares with the stored ones whatever size the install chose.

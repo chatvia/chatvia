@@ -36,7 +36,7 @@ function dmpaConversation(array $history = ['q1' => MessageRole::User, 'a1' => M
     $ids = [];
 
     foreach ($history as $name => $role) {
-        $ids[$name] = (string) Str::uuid();
+        $ids[$name] = (string) Str::uuid7();
         $memory->appendMessage(new MessageData(id: $ids[$name], role: $role, content: "text {$name}", type: MessageData::TYPE_TEXT, timestamp: now()->timestamp));
     }
 

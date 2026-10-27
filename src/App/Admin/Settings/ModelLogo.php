@@ -55,7 +55,7 @@ final class ModelLogo
     {
         $image = 'url('.e($url).')';
 
-        return '<span class="cv-model-logo" style="-webkit-mask-image: '.$image.'; mask-image: '.$image.'" aria-hidden="true"></span>';
+        return '<span class="cv-model-logo" style="-webkit-mask-image: '."{$image}; mask-image: {$image}".'" aria-hidden="true"></span>';
     }
 
     /**

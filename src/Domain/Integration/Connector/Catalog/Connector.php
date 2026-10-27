@@ -44,7 +44,7 @@ abstract class Connector
 
     /** The logo, `public/images/logos/connectors/{slug}.svg` unless a connector says otherwise. */
     public string $logoUrl {
-        get => '/images/logos/connectors/'.$this->slug.'.svg';
+        get => "/images/logos/connectors/{$this->slug}.svg";
     }
 
     /**

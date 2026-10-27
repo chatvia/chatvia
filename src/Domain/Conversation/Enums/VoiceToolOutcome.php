@@ -26,6 +26,6 @@ enum VoiceToolOutcome: string
     /** A fresh id for the output item that carries this outcome (the provider allows 32 characters). */
     public function itemId(): string
     {
-        return 'tool_'.$this->value.'_'.Str::lower(Str::random(12));
+        return "tool_{$this->value}_".Str::lower(Str::random(12));
     }
 }

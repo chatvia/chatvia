@@ -2,6 +2,8 @@
 
 namespace Domain\Form\Services;
 
+use Illuminate\Support\Arr;
+
 /**
  * Turns our normalized field array (the FormDefinition `schema`, the single
  * source of truth) into the two things both sides need:
@@ -54,7 +56,7 @@ class FormSchemaBuilder
             if (! empty($field['help'])) {
                 $node['help'] = (string) $field['help'];
             }
-            if (in_array($type, ['select', 'radio', 'multicheckbox'], true)) {
+            if (collect(['select', 'radio', 'multicheckbox'])->containsStrict($type)) {
                 $node['options'] = $this->options($field);
             }
             if ($type === 'multicheckbox') {
@@ -114,11 +116,11 @@ class FormSchemaBuilder
                 case 'select':
                 case 'radio':
                     $rule[] = 'string';
-                    $rule[] = 'in:'.implode(',', $this->optionValues($field));
+                    $rule[] = 'in:'.Arr::join($this->optionValues($field), ',');
                     break;
                 case 'multicheckbox':
                     $rules[$key] = $required ? ['required', 'array'] : ['nullable', 'array'];
-                    $rules[$key.'.*'] = ['string', 'in:'.implode(',', $this->optionValues($field))];
+                    $rules["{$key}.*"] = ['string', 'in:'.Arr::join($this->optionValues($field), ',')];
 
                     continue 2;
                 case 'checkbox':
@@ -171,6 +173,6 @@ class FormSchemaBuilder
             $rules[] = 'email';
         }
 
-        return implode('|', $rules);
+        return Arr::join($rules, '|');
     }
 }

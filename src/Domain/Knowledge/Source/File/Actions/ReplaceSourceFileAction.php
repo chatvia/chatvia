@@ -53,7 +53,7 @@ class ReplaceSourceFileAction
         $path = Storage::putFileAs(
             KnowledgeStoragePath::forSource($sourceFile),
             new File($upload->path),
-            Str::random(40).'.'.$upload->storedExtension(),
+            Str::random(40).".{$upload->storedExtension()}",
         );
 
         try {

@@ -30,7 +30,7 @@ class UpdateNotificationPreferencesRequest extends FormRequest
             $rules[$category->value] = ['required', 'array'];
 
             foreach (['bell', 'desktop', 'sound'] as $switch) {
-                $rules[$category->value.'.'.$switch] = ['required', 'boolean'];
+                $rules["{$category->value}.{$switch}"] = ['required', 'boolean'];
             }
         }
 

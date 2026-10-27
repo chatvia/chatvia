@@ -8,6 +8,7 @@ use Domain\Knowledge\Document\Conversion\EbookText;
 use DOMElement;
 use DOMNode;
 use DOMText;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -56,7 +57,7 @@ final class Fb2Reader
         $bodies = [];
 
         foreach ($this->children($book, 'body') as $body) {
-            if (in_array($body->getAttribute('name'), ['notes', 'comments', 'footnotes'], true)) {
+            if (collect(['notes', 'comments', 'footnotes'])->containsStrict($body->getAttribute('name'))) {
                 foreach ($this->children($body, 'section') as $section) {
                     $this->noteSections[$section->getAttribute('id')] = $section;
                 }
@@ -121,10 +122,10 @@ final class Fb2Reader
 
             array_push($blocks, ...match ($child->localName) {
                 'title' => [[MarkdownText::BLOCK, MarkdownText::heading($level + 2, $this->lines($child, ' '))]],
-                'stanza' => $this->paragraph(implode("\n", array_map(
+                'stanza' => $this->paragraph(Arr::join(array_map(
                     fn (DOMElement $line): string => Str::trim($this->inline($line)),
-                    array_filter($this->children($child, '*'), static fn (DOMElement $line): bool => in_array($line->localName, ['title', 'subtitle', 'v'], true)),
-                ))),
+                    array_filter($this->children($child, '*'), static fn (DOMElement $line): bool => collect(['title', 'subtitle', 'v'])->containsStrict($line->localName)),
+                ), "\n")),
                 'epigraph' => $this->section($child, $level + 1),
                 'text-author', 'date' => $this->paragraph($this->inline($child)),
                 default => [],
@@ -144,7 +145,7 @@ final class Fb2Reader
         $lines = [];
 
         foreach ($cite->childNodes as $child) {
-            if ($child instanceof DOMElement && $child->namespaceURI === self::FB && in_array($child->localName, ['p', 'subtitle', 'text-author', 'v'], true)) {
+            if ($child instanceof DOMElement && $child->namespaceURI === self::FB && collect(['p', 'subtitle', 'text-author', 'v'])->containsStrict($child->localName)) {
                 $text = MarkdownText::inline($this->inline($child));
 
                 if ($text !== '') {
@@ -153,7 +154,7 @@ final class Fb2Reader
             }
         }
 
-        return $lines === [] ? [] : [[MarkdownText::BLOCK, implode("\n>\n", $lines)]];
+        return $lines === [] ? [] : [[MarkdownText::BLOCK, Arr::join($lines, "\n>\n")]];
     }
 
     private function table(DOMElement $table): string
@@ -164,7 +165,7 @@ final class Fb2Reader
             $cells = [];
 
             foreach ($row->childNodes as $cell) {
-                if ($cell instanceof DOMElement && in_array($cell->localName, ['th', 'td'], true)) {
+                if ($cell instanceof DOMElement && collect(['th', 'td'])->containsStrict($cell->localName)) {
                     $cells[] = MarkdownText::inline($this->inline($cell));
                     array_push($cells, ...array_fill(0, max(0, (int) $cell->getAttribute('colspan') - 1), ''));
                 }
@@ -189,7 +190,7 @@ final class Fb2Reader
     /** The paragraphs of a title, joined. */
     private function lines(DOMElement $title, string $glue): string
     {
-        return implode($glue, array_map(fn (DOMElement $line): string => Str::trim($this->inline($line)), $this->children($title, 'p')));
+        return Arr::join(array_map(fn (DOMElement $line): string => Str::trim($this->inline($line)), $this->children($title, 'p')), $glue);
     }
 
     /** The text of a paragraph, with note links made into `[^1]` marks. */
@@ -232,7 +233,7 @@ final class Fb2Reader
             }
         }
 
-        return $this->notes->add(implode(' ', array_filter($paragraphs)));
+        return $this->notes->add(Arr::join(array_filter($paragraphs), ' '));
     }
 
     private function href(DOMElement $link): string

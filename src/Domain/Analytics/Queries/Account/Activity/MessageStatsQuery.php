@@ -54,7 +54,7 @@ class MessageStatsQuery extends AccountAnalyticsQuery
     private function daily(AnalyticsScopeData $scope): array
     {
         return $this->rollup($scope)
-            ->selectRaw($this->grain($scope)->day().' date, SUM(user_messages + assistant_messages) messages')
+            ->selectRaw("{$this->grain($scope)->day()} date, SUM(user_messages + assistant_messages) messages")
             ->groupBy('date')
             ->orderBy('date')
             ->get()

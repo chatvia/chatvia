@@ -64,7 +64,7 @@ class WorkspaceSecurityPolicy extends Model
 
     public static function networkRulesCacheKey(int $workspaceId): string
     {
-        return 'security:network-rules:'.$workspaceId;
+        return "security:network-rules:{$workspaceId}";
     }
 
     protected function casts(): array

@@ -54,7 +54,7 @@ class OpenRouterImageGenerator implements ImageGenerator
                     'image_config' => ['aspect_ratio' => $prompt->shape->aspectRatio()],
                 ]));
         } catch (Throwable $e) {
-            throw new ImageGenerationFailedException('OpenRouter could not be reached: '.$e->getMessage(), previous: $e);
+            throw new ImageGenerationFailedException("OpenRouter could not be reached: {$e->getMessage()}", previous: $e);
         }
 
         if ($response->failed()) {
@@ -89,7 +89,7 @@ class OpenRouterImageGenerator implements ImageGenerator
 
     public function name(?string $model = null): string
     {
-        return 'openrouter '.$this->model($model);
+        return "openrouter {$this->model($model)}";
     }
 
     /** A picture from a `data:image/…;base64,…` URL; null for anything else. */

@@ -50,6 +50,6 @@ enum SocialProvider: string
     {
         $provider = self::tryFrom($value);
 
-        return in_array($provider, self::linkable(), strict: true) ? $provider : null;
+        return collect(self::linkable())->containsStrict($provider) ? $provider : null;
     }
 }

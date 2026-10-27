@@ -38,13 +38,13 @@ function pwaSeed(int $workspaceId, int $daysAgo, int $agentId = 920001): void
     $base = ['agent_id' => $agentId, 'workspace_id' => $workspaceId];
     $unique = random_int(1, PHP_INT_MAX);
 
-    $db->table('analytics_events')->insert([...$base, 'message_external_id' => (string) Str::uuid(), 'occurred_at' => $at]);
+    $db->table('analytics_events')->insert([...$base, 'message_external_id' => (string) Str::uuid7(), 'occurred_at' => $at]);
     $db->table('analytics_agent_hourly_rollups')->insert([...$base, 'bucket_hour' => $at]);
     $db->table('analytics_agent_daily')->insert([...$base, 'bucket_day' => $day]);
     $db->table('analytics_agent_country_daily')->insert([...$base, 'bucket_day' => $day, 'country_code' => 'de']);
-    $db->table('analytics_message_feedback')->insert([...$base, 'message_external_id' => (string) Str::uuid(), 'feedback' => 'positive', 'occurred_at' => $at]);
-    $db->table('analytics_conversation_metrics')->insert([...$base, 'conversation_external_id' => (string) Str::uuid(), 'started_at' => $at]);
-    $db->table('analytics_session_firsts')->insert([...$base, 'session_external_id' => (string) Str::uuid(), 'first_seen_at' => $at]);
+    $db->table('analytics_message_feedback')->insert([...$base, 'message_external_id' => (string) Str::uuid7(), 'feedback' => 'positive', 'occurred_at' => $at]);
+    $db->table('analytics_conversation_metrics')->insert([...$base, 'conversation_external_id' => (string) Str::uuid7(), 'started_at' => $at]);
+    $db->table('analytics_session_firsts')->insert([...$base, 'session_external_id' => (string) Str::uuid7(), 'first_seen_at' => $at]);
     $db->table('analytics_agent_sentiment_daily')->insert([...$base, 'bucket_day' => $day, 'sentiment' => 'positive']);
     $db->table('analytics_agent_tone_daily')->insert([...$base, 'bucket_day' => $day, 'tone' => 'friendly']);
     $db->table('analytics_agent_topic_daily')->insert([...$base, 'bucket_day' => $day, 'topic_id' => $unique]);

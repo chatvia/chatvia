@@ -46,7 +46,7 @@ class SeedanceVideoGenerator implements VideoGenerator
         $model = $this->model($prompt->model);
         $hd = (self::MODELS[$model] ?? false) && $prompt->resolution === VideoResolution::Hd1080;
 
-        $response = $this->call(fn (PendingRequest $ark): Response => $ark->post($this->endpoint().'/contents/generations/tasks', [
+        $response = $this->call(fn (PendingRequest $ark): Response => $ark->post("{$this->endpoint()}/contents/generations/tasks", [
             'model' => $model,
             'content' => [['type' => 'text', 'text' => $prompt->prompt]],
             'ratio' => $prompt->shape->aspectRatio(),
@@ -61,7 +61,7 @@ class SeedanceVideoGenerator implements VideoGenerator
 
     public function check(string $taskId): ?GeneratedVideoData
     {
-        $response = $this->call(fn (PendingRequest $ark): Response => $ark->get($this->endpoint().'/contents/generations/tasks/'.rawurlencode($taskId)));
+        $response = $this->call(fn (PendingRequest $ark): Response => $ark->get("{$this->endpoint()}/contents/generations/tasks/".rawurlencode($taskId)));
 
         return match ((string) $response->json('status')) {
             'succeeded' => filled($response->json('content.video_url'))
@@ -74,7 +74,7 @@ class SeedanceVideoGenerator implements VideoGenerator
 
     public function forget(string $taskId): void
     {
-        rescue(fn () => Http::withToken((string) config('services.byteplus.api_key'))->timeout(15)->delete($this->endpoint().'/contents/generations/tasks/'.rawurlencode($taskId)), report: false);
+        rescue(fn () => Http::withToken((string) config('services.byteplus.api_key'))->timeout(15)->delete("{$this->endpoint()}/contents/generations/tasks/".rawurlencode($taskId)), report: false);
     }
 
     public function isEnabled(): bool
@@ -84,7 +84,7 @@ class SeedanceVideoGenerator implements VideoGenerator
 
     public function name(?string $model = null): string
     {
-        return 'byteplus '.$this->model($model);
+        return "byteplus {$this->model($model)}";
     }
 
     /** @param callable(PendingRequest): Response $request */
@@ -95,7 +95,7 @@ class SeedanceVideoGenerator implements VideoGenerator
                 ProviderRetry::on(Http::withToken((string) config('services.byteplus.api_key'))->acceptJson()->timeout(60)),
             ));
         } catch (Throwable $e) {
-            throw new VideoGenerationFailedException('BytePlus could not be reached: '.$e->getMessage(), previous: $e);
+            throw new VideoGenerationFailedException("BytePlus could not be reached: {$e->getMessage()}", previous: $e);
         }
 
         if ($response->failed()) {

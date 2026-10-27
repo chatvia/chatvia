@@ -8,6 +8,7 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Form\Actions\RenderInlineFormAction;
 use Domain\Form\Data\InlineFormData;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
@@ -69,7 +70,7 @@ class RenderFormTool extends Tool
         // none, steer it back to conversational help.
         $hint = $outcome->activeSlugs === []
             ? 'This agent has no active form — keep helping the visitor conversationally and do not render a form.'
-            : 'Call render-form again with one of this agent\'s exact active slugs: '.implode(', ', $outcome->activeSlugs).'.';
+            : 'Call render-form again with one of this agent\'s exact active slugs: '.Arr::join($outcome->activeSlugs, ', ').'.';
 
         return Response::error("No active form matches \"{$requested}\". {$hint}");
     }

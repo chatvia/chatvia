@@ -29,17 +29,17 @@ class StoreAttachmentAction
         // Generate the storage filename from a fresh UUID. The model's
         // external_id is auto-filled by HasExternalId on `creating`,
         // and it's intentionally not on Fillable — we want callers using
-        // ::create() to never overwrite it.
+        // create() to never overwrite it.
         $extension = Str::lower($data->file->getClientOriginalExtension() ?: 'pdf');
         $mimeType = $data->file->getMimeType() ?? 'application/octet-stream';
         $directory = Str::trim($data->directory, '/').'/'.ChatStoragePath::kindFolder(MimeType::category($mimeType));
-        $filename = Str::uuid().'.'.$extension;
-        $filepath = $directory.'/'.$filename;
+        $filename = Str::uuid7().".{$extension}";
+        $filepath = "{$directory}/{$filename}";
 
         Storage::disk(Attachment::DISK)
             ->putFileAs($directory, $data->file, $filename);
 
-        return Attachment::create([
+        return Attachment::query()->create([
             'workspace_id' => $data->workspaceId,
             'chat_conversation_id' => $data->conversationId,
             'filepath' => $filepath,

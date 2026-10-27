@@ -10,6 +10,7 @@ use Domain\Analytics\Enums\AnalyticsPeriod;
 use Domain\Analytics\Services\AnalyticsScopeResolver;
 use Domain\Analytics\Services\Period;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Arr;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
@@ -65,7 +66,7 @@ abstract class AnalyticsTool extends Tool
     protected function rules(): array
     {
         return [
-            'period' => ['nullable', 'string', 'in:'.implode(',', AnalyticsPeriod::values())],
+            'period' => ['nullable', 'string', 'in:'.Arr::join(AnalyticsPeriod::values(), ',')],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date'],
             'agent' => ['nullable', 'string', 'max:20'],

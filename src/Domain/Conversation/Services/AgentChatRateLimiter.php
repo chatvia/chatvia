@@ -44,7 +44,7 @@ class AgentChatRateLimiter
             return false;
         }
 
-        return RateLimiter::increment('agent-visitor-chat-rate:'.$agent->id.':'.sha1($visitorKey), self::WINDOW_SECONDS) > $limit;
+        return RateLimiter::increment("agent-visitor-chat-rate:{$agent->id}:".sha1($visitorKey), self::WINDOW_SECONDS) > $limit;
     }
 
     /** How long the per-agent security config is cached (seconds). */
@@ -70,7 +70,7 @@ class AgentChatRateLimiter
         // count, so a burst can't slip past the cap between a separate
         // "check" and "hit". Refused turns count too, but the window is fixed,
         // so that never extends it.
-        $hits = RateLimiter::increment('agent-chat-rate:'.$agent->id, self::WINDOW_SECONDS);
+        $hits = RateLimiter::increment("agent-chat-rate:{$agent->id}", self::WINDOW_SECONDS);
 
         if ($hits <= $limit) {
             return false;
@@ -113,6 +113,6 @@ class AgentChatRateLimiter
 
     private function configKey(Agent $agent): string
     {
-        return 'agent-chat-rate-config:'.$agent->id;
+        return "agent-chat-rate-config:{$agent->id}";
     }
 }

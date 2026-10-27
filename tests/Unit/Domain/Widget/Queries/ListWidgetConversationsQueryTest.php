@@ -49,7 +49,7 @@ it('leaves out a conversation the visitor cleared', function (): void {
 });
 
 it('lists nothing for a session it has never seen', function (): void {
-    expect(app(ListWidgetConversationsQuery::class)->get(Agent::factory()->create(), (string) Str::uuid()))->toBe([]);
+    expect(app(ListWidgetConversationsQuery::class)->get(Agent::factory()->create(), (string) Str::uuid7()))->toBe([]);
 });
 
 it('lists nothing for a session of another agent', function (): void {

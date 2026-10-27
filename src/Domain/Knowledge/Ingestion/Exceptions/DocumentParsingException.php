@@ -27,6 +27,6 @@ class DocumentParsingException extends RuntimeException
 
     public static function failed(string $reason): self
     {
-        return new self('The document could not be read: '.$reason);
+        return new self("The document could not be read: {$reason}");
     }
 }

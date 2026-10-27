@@ -58,7 +58,7 @@ class CitationScorer implements Scorer
             try {
                 $verdicts = $this->judge($result, $checkable);
             } catch (Throwable $e) {
-                return ScoreResultData::fail(0.0, 'Judge call failed: '.$e->getMessage());
+                return ScoreResultData::fail(0.0, "Judge call failed: {$e->getMessage()}");
             }
 
             if ($verdicts === null) {

@@ -13,6 +13,7 @@ use Domain\Booking\Enums\BookingFailure;
 use Domain\Booking\Exceptions\BookingException;
 use Domain\Conversation\Models\Conversation;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
@@ -108,7 +109,7 @@ class RenderCalendarTool extends Tool
             ));
         }
 
-        return Response::error("No meeting type matches \"{$requested}\". Call find-meeting-types, then render-calendar with one of its exact ids (".implode(', ', $outcome->meetingTypeNames).').');
+        return Response::error("No meeting type matches \"{$requested}\". Call find-meeting-types, then render-calendar with one of its exact ids (".Arr::join($outcome->meetingTypeNames, ', ').').');
     }
 
     private function rendered(CalendarArtifactData $calendar): ResponseFactory

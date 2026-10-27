@@ -29,7 +29,7 @@ final class VisitorFingerprint
             return null;
         }
 
-        return hash_hmac('sha256', 'visitor|'.$workspaceId.'|'.$network.'|'.Str::trim($userAgent ?? ''), (string) config('app.key'));
+        return hash_hmac('sha256', "visitor|{$workspaceId}|{$network}|".Str::trim($userAgent ?? ''), (string) config('app.key'));
     }
 
     private function network(?string $ip): ?string

@@ -43,7 +43,7 @@ trait InteractsWithMetaOAuth
 
         $state = Str::random(48);
 
-        session()->put($channel->value.'_oauth', ['agent_id' => $agent->id, 'state' => $state]);
+        session()->put("{$channel->value}_oauth", ['agent_id' => $agent->id, 'state' => $state]);
 
         Log::info("{$channel->label()} OAuth: starting connect", [
             'agent_id' => $agent->id,
@@ -56,7 +56,7 @@ trait InteractsWithMetaOAuth
 
     private function completeMetaOAuth(Request $request, MetaOAuthChannel $channel, CompleteMetaOAuthAction $complete): RedirectResponse
     {
-        $pending = session()->pull($channel->value.'_oauth');
+        $pending = session()->pull("{$channel->value}_oauth");
         $returnedState = (string) $request->query('state');
 
         if (! is_array($pending) || ! hash_equals((string) ($pending['state'] ?? ''), $returnedState)) {
@@ -94,7 +94,7 @@ trait InteractsWithMetaOAuth
             return $this->backToChannels($agent, $channel, self::nothingGranted($channel));
         }
 
-        session()->put($channel->value.'_oauth_pages', [
+        session()->put("{$channel->value}_oauth_pages", [
             'agent_id' => $agent->id,
             'pages' => $accounts->map(static fn (MetaPageData|InstagramAccountData $account): array => $account->toArray())->all(),
         ]);
@@ -112,7 +112,7 @@ trait InteractsWithMetaOAuth
      */
     private static function pendingAccounts(Agent $agent, MetaOAuthChannel $channel): array
     {
-        $stash = session($channel->value.'_oauth_pages');
+        $stash = session("{$channel->value}_oauth_pages");
 
         if (! is_array($stash) || ($stash['agent_id'] ?? null) !== $agent->id || ! is_array($stash['pages'] ?? null)) {
             return [];
@@ -123,7 +123,7 @@ trait InteractsWithMetaOAuth
 
     private static function forgetPendingAccounts(MetaOAuthChannel $channel): void
     {
-        session()->forget($channel->value.'_oauth_pages');
+        session()->forget("{$channel->value}_oauth_pages");
     }
 
     private static function nothingGranted(MetaOAuthChannel $channel): string

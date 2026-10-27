@@ -18,7 +18,7 @@ beforeEach(function (): void {
 });
 
 it('validates the rating value', function (): void {
-    $this->patchJson($this->url, ['conversation_id' => (string) Str::uuid(), 'message_id' => (string) Str::uuid(), 'feedback' => 'great'])
+    $this->patchJson($this->url, ['conversation_id' => (string) Str::uuid7(), 'message_id' => (string) Str::uuid7(), 'feedback' => 'great'])
         ->assertStatus(422)
         ->assertJsonValidationErrors(['feedback']);
 });
@@ -56,7 +56,7 @@ it('keeps the thumbs-down but drops the note while the agent asks for none', fun
 });
 
 it('rejects a note longer than the limit', function (): void {
-    $this->patchJson($this->url, ['conversation_id' => (string) Str::uuid(), 'message_id' => (string) Str::uuid(), 'feedback' => 'negative', 'comment' => Str::repeat('a', 1001)])
+    $this->patchJson($this->url, ['conversation_id' => (string) Str::uuid7(), 'message_id' => (string) Str::uuid7(), 'feedback' => 'negative', 'comment' => Str::repeat('a', 1001)])
         ->assertStatus(422)
         ->assertJsonValidationErrors(['comment']);
 });

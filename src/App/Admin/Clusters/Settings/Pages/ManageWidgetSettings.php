@@ -61,7 +61,7 @@ class ManageWidgetSettings extends AdminSettingsPage
                     help: 'Where the widget\'s code loads from. Leave blank to use the copy on this server, or enter a full address to load it from elsewhere.'),
                 $this->integer('stream_per_minute', 'Replies per agent per minute', min: 1),
                 $this->integer('stream_per_hour', 'Replies per agent per hour', min: 1),
-            ])->summary(fn (): string => $this->valueInUse('stream_per_minute').' replies per agent per minute'),
+            ])->summary(fn (): string => "{$this->valueInUse('stream_per_minute')} replies per agent per minute"),
             SettingsCard::make('ai_disclosure', 'AI disclosure', 'Whether the widget tells visitors they are talking to an AI.', Heroicon::OutlinedSparkles, fn (): array => [
                 $this->toggle('ai_disclosure', 'Show "AI assistant" in the header',
                     help: 'The line under the chat title. The EU AI Act (Article 50) asks you to tell people they are talking to an AI, so turn it off only if you tell them another way. "Human agent" still shows while a person answers.'),

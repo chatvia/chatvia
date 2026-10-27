@@ -18,7 +18,7 @@ class DownloadDataExportController
         // Someone else's export is a 404; a not-ready one is a 403 (DataExportPolicy).
         Gate::authorize('download', $export);
 
-        $filename = 'chatvia-export-'.$export->user_id.'-'.$export->created_at->format('Ymd-His').'.zip';
+        $filename = "chatvia-export-{$export->user_id}-{$export->created_at->format('Ymd-His')}.zip";
 
         return Storage::disk('local')->download($export->file_path, $filename);
     }

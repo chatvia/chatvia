@@ -313,8 +313,8 @@ class AgentMcpServer extends Model implements AttachableToAgents
         $slug = $base;
         $reserved = app(ConnectorCatalog::class)->reservedServerSlugs();
 
-        for ($suffix = 2; in_array($slug, $reserved, true) || $owner->mcpServers()->where('slug', $slug)->exists(); $suffix++) {
-            $slug = Str::substr($base, 0, 38).'_'.$suffix;
+        for ($suffix = 2; collect($reserved)->containsStrict($slug) || $owner->mcpServers()->where('slug', $slug)->exists(); $suffix++) {
+            $slug = Str::substr($base, 0, 38)."_{$suffix}";
         }
 
         return $slug;

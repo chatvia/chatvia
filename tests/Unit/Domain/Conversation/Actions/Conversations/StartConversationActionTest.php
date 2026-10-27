@@ -16,7 +16,7 @@ it('starts a hidden conversation that expires after a day', function (): void {
     config(['chatvia.retention.conversations_days' => 90]);
     $agent = Agent::factory()->create();
 
-    $conversation = app(StartConversationAction::class)->execute(new ChatScopeData($agent, (string) Str::uuid()), ConversationSource::Widget);
+    $conversation = app(StartConversationAction::class)->execute(new ChatScopeData($agent, (string) Str::uuid7()), ConversationSource::Widget);
 
     expect($conversation->is_visible)->toBeFalse()
         ->and($conversation->source)->toBe(ConversationSource::Widget)

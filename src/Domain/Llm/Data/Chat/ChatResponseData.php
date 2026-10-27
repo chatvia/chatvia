@@ -2,6 +2,7 @@
 
 namespace Domain\Llm\Data\Chat;
 
+use Illuminate\Support\Arr;
 use Spatie\LaravelData\Data;
 
 /**
@@ -52,7 +53,7 @@ final class ChatResponseData extends Data
             $content,
         );
 
-        return implode('', $texts);
+        return Arr::join($texts, '');
     }
 
     /**

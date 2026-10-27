@@ -54,14 +54,14 @@ class CurrentWeatherTool extends Tool
         $summary = sprintf(
             'Weather in %s%s: %s%s (feels like %s%s), %s, humidity %d%%%s.',
             $report->city,
-            $report->country !== '' ? ', '.$report->country : '',
+            $report->country !== '' ? ", {$report->country}" : '',
             $report->temperature,
             $units->temperatureSymbol(),
             $report->feelsLike,
             $units->temperatureSymbol(),
             $report->conditions,
             $report->humidity,
-            $report->wind !== null ? ', wind '.$report->wind.' '.$units->windSpeedUnit() : '',
+            $report->wind !== null ? ", wind {$report->wind} {$units->windSpeedUnit()}" : '',
         );
 
         return Response::make(Response::text($summary))->withStructuredContent([

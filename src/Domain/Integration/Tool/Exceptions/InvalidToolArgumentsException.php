@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Integration\Tool\Exceptions;
 
 use Domain\Integration\Tool\Dispatch\ToolArgumentValidator;
+use Illuminate\Support\Arr;
 use RuntimeException;
 
 /**
@@ -19,6 +20,6 @@ final class InvalidToolArgumentsException extends RuntimeException
      */
     public static function because(array $problems): self
     {
-        return new self('the arguments do not match the tool\'s parameters: '.implode('; ', $problems).'. Fix the arguments and call the tool again.');
+        return new self('the arguments do not match the tool\'s parameters: '.Arr::join($problems, '; ').'. Fix the arguments and call the tool again.');
     }
 }

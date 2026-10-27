@@ -6,6 +6,7 @@ use Domain\Agent\Data\Resources\Sources\AgentSourcesStatsData;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Models\SourceFile;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -40,8 +41,8 @@ class AgentSourceCountsQuery
             ->where('agent_sources.sourceable_type', (new SourceFile)->getMorphClass())
             ->where('source_files.status', SourceStatus::Completed->value)
             ->selectRaw(
-                implode(', ', array_map(static fn (string $group): string => "COUNT(*) FILTER (WHERE mime_type = ANY(?)) AS {$group}", $groups)),
-                array_map(static fn (string $group): string => '{'.implode(',', (array) config("mimes.{$group}")).'}', $groups),
+                Arr::join(array_map(static fn (string $group): string => "COUNT(*) FILTER (WHERE mime_type = ANY(?)) AS {$group}", $groups), ', '),
+                array_map(static fn (string $group): string => '{'.Arr::join((array) config("mimes.{$group}"), ',').'}', $groups),
             )
             ->first();
     }

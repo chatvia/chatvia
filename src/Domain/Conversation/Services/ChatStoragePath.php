@@ -36,7 +36,7 @@ final class ChatStoragePath
     /** Every chat of the agent. */
     public static function root(Agent $agent): string
     {
-        return $agent->settingsStorageRoot().'/chat';
+        return "{$agent->settingsStorageRoot()}/chat";
     }
 
     /**
@@ -52,9 +52,9 @@ final class ChatStoragePath
             throw new LogicException('A conversation needs an external id before it has a storage folder.');
         }
 
-        $path = self::root($agent).'/'.$conversationId;
+        $path = self::root($agent)."/{$conversationId}";
 
-        return $subfolder === '' ? $path : $path.'/'.Str::trim($subfolder, '/');
+        return $subfolder === '' ? $path : "{$path}/".Str::trim($subfolder, '/');
     }
 
     /** Uploads made before their conversation exists. */

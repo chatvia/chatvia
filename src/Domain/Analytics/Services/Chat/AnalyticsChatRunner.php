@@ -57,7 +57,7 @@ class AnalyticsChatRunner
      */
     public function events(Workspace $workspace, AnalyticsChatRequestData $data): Generator
     {
-        $assistantId = (string) Str::uuid();
+        $assistantId = (string) Str::uuid7();
 
         yield StreamEvent::start($assistantId, [
             'assistant_message_id' => $assistantId,
@@ -294,7 +294,7 @@ class AnalyticsChatRunner
 
     private function isReplayable(AnalyticsChatTurnData $turn): bool
     {
-        return in_array($turn->role, ['user', 'assistant'], true) && $turn->content !== '';
+        return collect(['user', 'assistant'])->containsStrict($turn->role) && $turn->content !== '';
     }
 
     private function systemPrompt(Workspace $workspace): string

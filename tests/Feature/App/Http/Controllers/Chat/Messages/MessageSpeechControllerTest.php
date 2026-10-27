@@ -75,7 +75,7 @@ it('answers with a message when the speech service fails', function (): void {
 });
 
 it('only takes uuids', function (): void {
-    $this->get("/chat/{$this->agent->slug}/conversations/".Str::uuid().'/messages/not-a-uuid/speech')->assertNotFound();
+    $this->get("/chat/{$this->agent->slug}/conversations/".Str::uuid7().'/messages/not-a-uuid/speech')->assertNotFound();
 });
 
 it('tells the chat page to show the speaker button', function (): void {

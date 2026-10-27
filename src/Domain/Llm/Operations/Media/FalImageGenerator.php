@@ -58,7 +58,7 @@ class FalImageGenerator implements ImageGenerator
                 ...$this->shape($model, $prompt->shape),
             ], self::TIMEOUT_SECONDS));
         } catch (Throwable $e) {
-            throw new ImageGenerationFailedException('fal.ai could not be reached: '.$e->getMessage(), previous: $e);
+            throw new ImageGenerationFailedException("fal.ai could not be reached: {$e->getMessage()}", previous: $e);
         }
 
         if ($response->failed()) {
@@ -69,7 +69,7 @@ class FalImageGenerator implements ImageGenerator
                 : new ImageGenerationFailedException("fal.ai could not make the image: {$reason}");
         }
 
-        if (in_array(true, (array) $response->json('has_nsfw_concepts'), true)) {
+        if (collect((array) $response->json('has_nsfw_concepts'))->containsStrict(true)) {
             throw ImageGenerationFailedException::refused('fal.ai');
         }
 
@@ -82,7 +82,7 @@ class FalImageGenerator implements ImageGenerator
         try {
             $file = Http::timeout(60)->get($url)->throw();
         } catch (Throwable $e) {
-            throw new ImageGenerationFailedException('The image fal.ai made could not be fetched: '.$e->getMessage(), previous: $e);
+            throw new ImageGenerationFailedException("The image fal.ai made could not be fetched: {$e->getMessage()}", previous: $e);
         }
 
         $mimeType = Str::before((string) ($response->json('images.0.content_type') ?? $file->header('Content-Type')), ';');
@@ -97,7 +97,7 @@ class FalImageGenerator implements ImageGenerator
 
     public function name(?string $model = null): string
     {
-        return 'fal '.$this->model($model);
+        return "fal {$this->model($model)}";
     }
 
     /**

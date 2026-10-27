@@ -47,7 +47,7 @@ class ScalewayTranscriber implements Transcriber
 
     public function takesAsIs(string $extension, int $bytes): bool
     {
-        return in_array($extension, self::FORMATS, true) && $bytes > 0 && $bytes <= self::MAX_BYTES;
+        return collect(self::FORMATS)->containsStrict($extension) && $bytes > 0 && $bytes <= self::MAX_BYTES;
     }
 
     public function isEnabled(): bool

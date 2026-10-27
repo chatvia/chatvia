@@ -27,7 +27,7 @@ beforeEach(function (): void {
 function cscTurn(Agent $agent): TestResponse
 {
     return test()->post(
-        "/chat/{$agent->external_id}/stream/".Str::uuid(),
+        "/chat/{$agent->external_id}/stream/".Str::uuid7(),
         ['message' => 'Hi there'],
         ['Accept' => 'text/event-stream'],
     );
@@ -48,7 +48,7 @@ it('streams the model\'s answer for an authorized chat turn', function (): void 
 
 it('rejects a chat-stream request with no message (validation)', function (): void {
     $this->postJson(
-        "/chat/{$this->agent->external_id}/stream/".Str::uuid(),
+        "/chat/{$this->agent->external_id}/stream/".Str::uuid7(),
         [],
     )->assertStatus(422)->assertJsonValidationErrors(['message']);
 });
@@ -57,13 +57,13 @@ it('refuses a message longer than the admin\'s limit before any model runs', fun
     config(['chatvia.guardrails.max_message_chars' => 300]);
 
     $this->postJson(
-        "/chat/{$this->agent->external_id}/stream/".Str::uuid(),
+        "/chat/{$this->agent->external_id}/stream/".Str::uuid7(),
         ['message' => Str::repeat('a', 301)],
     )->assertStatus(422)->assertJsonValidationErrors(['message']);
 });
 
 it('stores the visitor message before the stream is read when the client asks it to', function (): void {
-    $conversationId = (string) Str::uuid();
+    $conversationId = (string) Str::uuid7();
 
     // The hosted chat sends this flag when the conversation was not created
     // with the message; the engine then stores it while preparing the turn.

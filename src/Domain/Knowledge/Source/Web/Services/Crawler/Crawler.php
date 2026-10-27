@@ -144,6 +144,6 @@ final class Crawler
         $regex = Str::replace('\*', '.*', $escaped);
 
         // Wrap in delimiters and anchors
-        return '#^'.$regex.'#';
+        return "#^{$regex}#";
     }
 }

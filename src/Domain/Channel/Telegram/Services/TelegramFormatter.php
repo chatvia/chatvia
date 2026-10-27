@@ -40,15 +40,15 @@ class TelegramFormatter extends MarkdownDomFormatter
     protected function mapNode(string $tag, DOMNode $node, string $renderedChildren): string
     {
         return match ($tag) {
-            'strong', 'b' => '<b>'.$renderedChildren.'</b>',
-            'em', 'i' => '<i>'.$renderedChildren.'</i>',
-            'del', 's', 'strike' => '<s>'.$renderedChildren.'</s>',
-            'code' => '<code>'.$this->renderText($node->textContent).'</code>',
-            'pre' => '<pre>'.$this->renderText($node->textContent)."</pre>\n",
+            'strong', 'b' => "<b>{$renderedChildren}</b>",
+            'em', 'i' => "<i>{$renderedChildren}</i>",
+            'del', 's', 'strike' => "<s>{$renderedChildren}</s>",
+            'code' => "<code>{$this->renderText($node->textContent)}</code>",
+            'pre' => "<pre>{$this->renderText($node->textContent)}</pre>\n",
             'a' => $this->renderLink($node),
             'br' => "\n",
             'hr' => "\n",
-            'p' => $renderedChildren."\n\n",
+            'p' => "{$renderedChildren}\n\n",
             'blockquote' => '<blockquote>'.Str::trim($renderedChildren)."</blockquote>\n",
             'h1', 'h2', 'h3', 'h4', 'h5', 'h6' => '<b>'.Str::trim($renderedChildren)."</b>\n\n",
             'ul', 'ol' => $this->renderList($node, $tag === 'ol'),
@@ -68,6 +68,6 @@ class TelegramFormatter extends MarkdownDomFormatter
 
     protected function formatLink(string $href, string $inner): string
     {
-        return '<a href="'.Str::replace(['&', '"'], ['&amp;', '&quot;'], $href).'">'.$inner.'</a>';
+        return '<a href="'.Str::replace(['&', '"'], ['&amp;', '&quot;'], $href).'">'."{$inner}</a>";
     }
 }

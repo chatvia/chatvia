@@ -23,10 +23,10 @@ final class ChunkEmbeddingText
     public static function forPage(string $summary, string $content, string $visuals = ''): string
     {
         if ($visuals !== '') {
-            $content .= "\n\n".$visuals;
+            $content .= "\n\n{$visuals}";
         }
 
-        return $summary !== '' ? $summary."\n\n".$content : $content;
+        return $summary !== '' ? "{$summary}\n\n{$content}" : $content;
     }
 
     public static function forSummary(string $summary): string

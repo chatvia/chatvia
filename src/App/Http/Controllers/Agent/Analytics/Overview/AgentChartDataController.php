@@ -16,7 +16,7 @@ class AgentChartDataController
     {
         $days = $request->integer('days', 7);
 
-        if (! in_array($days, [7, 14, 30], true)) {
+        if (! collect([7, 14, 30])->containsStrict($days)) {
             $days = 7;
         }
 

@@ -26,7 +26,7 @@ final class FirecrawlCheck
             return new ConnectionCheckData(false, message: "Firecrawl could not be reached at {$endpoint}.");
         }
 
-        return in_array($status, [401, 403], true)
+        return collect([401, 403])->containsStrict($status)
             ? new ConnectionCheckData(false, keyRefused: true, message: 'Firecrawl refused this key. Check that you copied all of it.')
             : new ConnectionCheckData(true);
     }

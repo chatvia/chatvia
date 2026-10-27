@@ -3,6 +3,7 @@
 namespace Support\Http;
 
 use Closure;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Illuminate\Support\Uri;
 use League\Uri\Contracts\UriException;
@@ -104,7 +105,7 @@ final class SafeUrl
             throw new UnsafeUrlException('The URL is malformed.');
         }
 
-        if (! in_array($scheme, ['http', 'https'], true)) {
+        if (! collect(['http', 'https'])->containsStrict($scheme)) {
             throw new UnsafeUrlException('Only http and https URLs are allowed.');
         }
 
@@ -156,9 +157,9 @@ final class SafeUrl
 
         usort($addresses, static fn (string $a, string $b): int => Str::contains($a, ':') <=> Str::contains($b, ':'));
 
-        $written = array_map(static fn (string $ip): string => Str::contains($ip, ':') ? '['.$ip.']' : $ip, $addresses);
+        $written = array_map(static fn (string $ip): string => Str::contains($ip, ':') ? "[{$ip}]" : $ip, $addresses);
 
-        return $host.':'.$port.':'.implode(',', $written);
+        return "{$host}:{$port}:".Arr::join($written, ',');
     }
 
     /**
@@ -186,7 +187,7 @@ final class SafeUrl
 
         $scheme = Str::lower((string) self::parse($url)?->scheme());
 
-        return in_array($scheme, ['http', 'https'], true) ? $url : null;
+        return collect(['http', 'https'])->containsStrict($scheme) ? $url : null;
     }
 
     /**

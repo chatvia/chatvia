@@ -17,7 +17,7 @@ use Illuminate\Support\Str;
 function gmaReply(string $kind, string $id, array $more = []): MessageData
 {
     return new MessageData(
-        id: (string) Str::uuid(),
+        id: (string) Str::uuid7(),
         role: MessageRole::Assistant,
         content: 'Here it is.',
         type: MessageData::TYPE_TEXT,

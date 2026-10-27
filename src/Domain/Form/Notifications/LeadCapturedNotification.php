@@ -38,7 +38,7 @@ class LeadCapturedNotification extends InboxNotification
                 agent: NotificationAgentData::fromAgent($this->agent),
                 subject: $this->form->name,
             ),
-            'leads:'.$this->form->external_id,
+            "leads:{$this->form->external_id}",
         );
     }
 }

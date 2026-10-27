@@ -150,7 +150,7 @@ class ToolRegistry
         return $tools
             ->map(fn (McpTool $tool): ToolEntryData => new ToolEntryData(
                 kind: ToolKind::Mcp,
-                sourceId: 'mcp_tool:'.$tool->id,
+                sourceId: "mcp_tool:{$tool->id}",
                 name: ToolName::forMcp((string) $tool->getAttribute('server_slug'), $tool->name)->value,
                 description: $tool->description,
                 parameters: $tool->input_schema ?? [],
@@ -189,7 +189,7 @@ class ToolRegistry
         return $rows
             ->map(fn (object $row): ToolEntryData => new ToolEntryData(
                 kind: ToolKind::Mcp,
-                sourceId: 'connector_tool:'.$row->connector_tool_id,
+                sourceId: "connector_tool:{$row->connector_tool_id}",
                 name: ToolName::forMcp((string) $row->server_slug, (string) $row->name)->value,
                 description: (string) $row->description,
                 parameters: ToolEntryData::decodeSchema($row->input_schema),
@@ -230,7 +230,7 @@ class ToolRegistry
 
             return new ToolEntryData(
                 kind: ToolKind::Function,
-                sourceId: 'function:'.$fn->id,
+                sourceId: "function:{$fn->id}",
                 name: $fn->internal_name,
                 description: $fn->description,
                 parameters: $parameters,

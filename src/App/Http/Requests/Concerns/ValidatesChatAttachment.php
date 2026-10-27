@@ -7,6 +7,7 @@ use App\Http\Rules\MaxConversationAttachments;
 use App\Http\Rules\MaxPdfPages;
 use App\Http\Rules\UnlockedPdf;
 use Domain\Llm\Services\ChatFileModel;
+use Illuminate\Support\Arr;
 
 /**
  * Shared attachment validation for the chat and widget upload requests: a
@@ -34,9 +35,9 @@ trait ValidatesChatAttachment
                 'required',
                 new ChatFilesAvailable($fileModel),
                 'file',
-                'mimes:'.implode(',', $fileModel->acceptedExtensions()),
-                'mimetypes:'.implode(',', $fileModel->acceptedMimeTypes()),
-                'max:'.$this->maxFileSizeInKb(),
+                'mimes:'.Arr::join($fileModel->acceptedExtensions(), ','),
+                'mimetypes:'.Arr::join($fileModel->acceptedMimeTypes(), ','),
+                "max:{$this->maxFileSizeInKb()}",
                 new MaxConversationAttachments(
                     conversationExternalId: $this->header('X-CONVERSATION-ID'),
                     max: (int) config('chatvia.agent.files.upload.max_files'),

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Ingestion\Services\Chunking\Splitting;
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 /**
@@ -47,7 +48,7 @@ final readonly class MarkdownSplitter
 
         foreach ($sections as $section) {
             $body = $this->sectionText($section);
-            $length = $this->length($body."\n\n");
+            $length = $this->length("{$body}\n\n");
 
             if ($group !== [] && $this->length($prefix) + $groupLength + $length <= $this->splitter->size) {
                 $group[] = $section;
@@ -92,7 +93,7 @@ final readonly class MarkdownSplitter
      */
     private function blocks(string $text): array
     {
-        $lines = explode("\n", $text);
+        $lines = Str::of($text)->explode("\n")->all();
         $count = count($lines);
         $blocks = [];
         $paragraph = [];
@@ -143,7 +144,7 @@ final readonly class MarkdownSplitter
                     'type' => 'heading',
                     'lines' => [...$paragraph, $line],
                     'level' => $underline[0] === '=' ? 1 : 2,
-                    'title' => implode(' ', array_map(Str::trim(...), $paragraph)),
+                    'title' => Arr::join(array_map(Str::trim(...), $paragraph), ' '),
                 ];
                 $paragraph = [];
 
@@ -206,7 +207,7 @@ final readonly class MarkdownSplitter
             $level = $block['level'] ?? 1;
             $path = array_filter($path, static fn (int $above): bool => $above < $level, ARRAY_FILTER_USE_KEY);
             $heading = Str::rtrim(Str::repeat('#', $level).' '.($block['title'] ?? ''));
-            $current = ['path' => array_values($path), 'heading' => $heading, 'source' => implode("\n", $block['lines']), 'blocks' => []];
+            $current = ['path' => array_values($path), 'heading' => $heading, 'source' => Arr::join($block['lines'], "\n"), 'blocks' => []];
             $path[$level] = $heading;
         }
 
@@ -238,7 +239,7 @@ final readonly class MarkdownSplitter
 
         foreach ($section['blocks'] as $block) {
             foreach ($this->blockParts($block, $splitter) as $part) {
-                $pieces[] = [$part."\n\n", $this->length($part."\n\n")];
+                $pieces[] = ["{$part}\n\n", $this->length("{$part}\n\n")];
             }
         }
 
@@ -263,7 +264,7 @@ final readonly class MarkdownSplitter
      */
     private function blockParts(array $block, RecursiveSplitter $splitter): array
     {
-        $text = implode("\n", $block['lines']);
+        $text = Arr::join($block['lines'], "\n");
         $length = $this->length($text);
 
         if ($length <= $splitter->size) {
@@ -287,18 +288,18 @@ final readonly class MarkdownSplitter
         $marker = Str::match(self::FENCE, $open) ?: '```';
         $closed = count($lines) > 1 && $this->closesFence($lines[count($lines) - 1], $marker);
         $close = $closed ? Str::trim($lines[count($lines) - 1]) : $marker;
-        $code = implode("\n", array_slice($lines, 1, $closed ? -1 : null));
-        $room = $splitter->size - $this->length($open."\n\n".$close);
+        $code = Arr::join(array_slice($lines, 1, $closed ? -1 : null), "\n");
+        $room = $splitter->size - $this->length("{$open}\n\n{$close}");
 
         if ($room < 1) {
-            return $splitter->split(implode("\n", $lines), [PatternSeparator::lines(), PatternSeparator::words()]);
+            return $splitter->split(Arr::join($lines, "\n"), [PatternSeparator::lines(), PatternSeparator::words()]);
         }
 
         $parts = [];
 
         foreach ($splitter->withSize($room)->chunks($code, [PatternSeparator::lines(), PatternSeparator::words()]) as $part) {
             if (filled($part)) {
-                $parts[] = $open."\n".Str::rtrim($part, "\n")."\n".$close;
+                $parts[] = "{$open}\n".Str::rtrim($part, "\n")."\n{$close}";
             }
         }
 
@@ -311,33 +312,33 @@ final readonly class MarkdownSplitter
      */
     private function tableParts(array $lines, RecursiveSplitter $splitter): array
     {
-        $header = $lines[0]."\n".$lines[1];
-        $room = $splitter->size - $this->length($header."\n");
+        $header = "{$lines[0]}\n{$lines[1]}";
+        $room = $splitter->size - $this->length("{$header}\n");
         $rows = array_slice($lines, 2);
 
         if ($room < 1 || $rows === []) {
-            return $splitter->split(implode("\n", $lines), [PatternSeparator::lines(), PatternSeparator::words()]);
+            return $splitter->split(Arr::join($lines, "\n"), [PatternSeparator::lines(), PatternSeparator::words()]);
         }
 
         $rowSplitter = $splitter->withSize($room);
         $pieces = [];
 
         foreach ($rows as $row) {
-            $length = $this->length($row."\n");
+            $length = $this->length("{$row}\n");
 
             if ($length <= $room) {
-                $pieces[] = [$row."\n", $length];
+                $pieces[] = ["{$row}\n", $length];
 
                 continue;
             }
 
             foreach ($rowSplitter->split($row, [PatternSeparator::words()]) as $part) {
-                $pieces[] = [$part."\n", $this->length($part."\n")];
+                $pieces[] = ["{$part}\n", $this->length("{$part}\n")];
             }
         }
 
         return array_map(
-            static fn (string $chunk): string => $header."\n".Str::rtrim($chunk, "\n"),
+            static fn (string $chunk): string => "{$header}\n".Str::rtrim($chunk, "\n"),
             $rowSplitter->pack($pieces),
         );
     }
@@ -358,7 +359,7 @@ final readonly class MarkdownSplitter
         }
 
         $half = intdiv($this->splitter->size, 2);
-        $prefix = implode("\n", $headings)."\n\n";
+        $prefix = Arr::join($headings, "\n")."\n\n";
 
         if ($this->length($prefix) <= $half) {
             return $prefix;
@@ -374,7 +375,7 @@ final readonly class MarkdownSplitter
      */
     private function groupChunk(string $prefix, array $group): string
     {
-        return $prefix.implode("\n\n", array_map($this->sectionText(...), $group));
+        return $prefix.Arr::join(array_map($this->sectionText(...), $group), "\n\n");
     }
 
     /**
@@ -382,13 +383,13 @@ final readonly class MarkdownSplitter
      */
     private function sectionText(array $section): string
     {
-        $parts = array_map(static fn (array $block): string => implode("\n", $block['lines']), $section['blocks']);
+        $parts = array_map(static fn (array $block): string => Arr::join($block['lines'], "\n"), $section['blocks']);
 
         if ($section['heading'] !== null) {
             array_unshift($parts, $section['source']);
         }
 
-        return implode("\n\n", $parts);
+        return Arr::join($parts, "\n\n");
     }
 
     /**

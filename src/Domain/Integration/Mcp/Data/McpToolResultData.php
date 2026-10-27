@@ -3,6 +3,7 @@
 namespace Domain\Integration\Mcp\Data;
 
 use Domain\Integration\Tool\Data\ToolDispatchResultData;
+use Illuminate\Support\Arr;
 
 /**
  * A `tools/call` result envelope (`{content, isError?, structuredContent?}`)
@@ -48,7 +49,7 @@ final readonly class McpToolResultData
         }
 
         return new self(
-            text: $texts === [] ? (string) json_encode($envelope) : implode("\n", $texts),
+            text: $texts === [] ? (string) json_encode($envelope) : Arr::join($texts, "\n"),
             isError: (bool) ($envelope['isError'] ?? false),
             structuredContent: is_array($envelope['structuredContent'] ?? null) ? $envelope['structuredContent'] : null,
         );

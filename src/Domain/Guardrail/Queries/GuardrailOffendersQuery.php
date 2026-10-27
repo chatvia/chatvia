@@ -80,9 +80,9 @@ class GuardrailOffendersQuery
     /** Whether the trigger is an abusive one that a chatter or visitor caused. */
     public function isBlamable(GuardrailEvent $event): bool
     {
-        return in_array($event->guard_type, GuardType::abusive(), true)
-            && in_array($event->stage, [GuardStage::Input, GuardStage::Output], true)
-            && in_array($event->outcome, [GuardOutcome::Blocked, GuardOutcome::Flagged], true)
+        return collect(GuardType::abusive())->containsStrict($event->guard_type)
+            && collect([GuardStage::Input, GuardStage::Output])->containsStrict($event->stage)
+            && collect([GuardOutcome::Blocked, GuardOutcome::Flagged])->containsStrict($event->outcome)
             && ($event->chatter_id !== null || $event->visitor_key !== null);
     }
 
@@ -106,7 +106,7 @@ class GuardrailOffendersQuery
             ->whereIn('guard_type', GuardType::abusive())
             ->whereIn('stage', [GuardStage::Input, GuardStage::Output])
             ->whereIn('outcome', [GuardOutcome::Blocked, GuardOutcome::Flagged])
-            ->selectRaw($column.', count(*) as attempts')
+            ->selectRaw("{$column}, count(*) as attempts")
             ->groupBy($column)
             ->pluck('attempts', $column)
             ->map(fn (mixed $count): int => (int) $count);

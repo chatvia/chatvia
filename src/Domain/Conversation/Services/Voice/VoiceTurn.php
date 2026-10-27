@@ -72,7 +72,7 @@ final class VoiceTurn
         $text = Str::trim($text);
 
         if ($text !== '') {
-            $this->spoken = Str::ltrim($this->spoken.' '.$text);
+            $this->spoken = Str::ltrim("{$this->spoken} {$text}");
         }
     }
 }

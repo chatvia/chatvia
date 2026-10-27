@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Channel\Teams\Services;
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 /**
@@ -28,7 +29,7 @@ class TeamsFormatter
         $out = [];
         $inFence = false;
 
-        foreach (explode("\n", $markdown) as $line) {
+        foreach (Str::of($markdown)->explode("\n") as $line) {
             if (Str::isMatch('/^\s*(```|~~~)/', $line)) {
                 $inFence = ! $inFence;
                 $out[] = $line;
@@ -45,7 +46,7 @@ class TeamsFormatter
             // `# Heading` (with optional closing hashes) → bold line.
             $heading = Str::match('/^#{1,6}\s+(.+?)\s*#*\s*$/', $line);
             if ($heading !== '') {
-                $out[] = '**'.$heading.'**';
+                $out[] = "**{$heading}**";
 
                 continue;
             }
@@ -58,6 +59,6 @@ class TeamsFormatter
             $out[] = $line;
         }
 
-        return Str::trim(implode("\n", $out));
+        return Str::trim(Arr::join($out, "\n"));
     }
 }

@@ -26,7 +26,7 @@ final class SpeechTextParts
         $current = '';
 
         foreach ($this->pieces($text, $max) as $piece) {
-            $joined = $current === '' ? $piece : $current.' '.$piece;
+            $joined = $current === '' ? $piece : "{$current} {$piece}";
 
             if (Str::length($joined) <= $max) {
                 $current = $joined;

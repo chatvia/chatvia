@@ -48,7 +48,7 @@ class GetResponseTimeStatsTool extends AnalyticsTool
                 Number::format(round((float) $data->avgMs)),
                 Number::format(round((float) $data->p95Ms)),
                 Number::format((int) $data->maxMs),
-                $data->avgFirstResponseSeconds !== null ? ', first reply ~'.$data->avgFirstResponseSeconds.'s' : '',
+                $data->avgFirstResponseSeconds !== null ? ", first reply ~{$data->avgFirstResponseSeconds}s" : '',
             ),
         };
 

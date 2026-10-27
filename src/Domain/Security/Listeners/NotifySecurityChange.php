@@ -39,7 +39,7 @@ class NotifySecurityChange implements ShouldQueue
     {
         $action = SecurityAuditAction::tryFrom($event->action);
 
-        if (! $action instanceof SecurityAuditAction || ! in_array($action, self::NOTIFIED, true)) {
+        if (! $action instanceof SecurityAuditAction || ! collect(self::NOTIFIED)->containsStrict($action)) {
             return;
         }
 

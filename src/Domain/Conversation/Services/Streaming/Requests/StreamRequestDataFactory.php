@@ -176,7 +176,7 @@ class StreamRequestDataFactory
             // Replay snapshots are keyed globally by request id, so scope the
             // client's value to this conversation before it reaches the store.
             requestId: filled($request->input('request_id'))
-                ? 'api.'.$conversationId.'.'.$request->input('request_id')
+                ? "api.{$conversationId}.{$request->input('request_id')}"
                 : null,
         );
     }

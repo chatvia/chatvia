@@ -49,9 +49,9 @@ class PerplexityFetchUrlTool extends PerplexityAgentTool
 
     protected function inputFor(array $validated): string
     {
-        $input = 'Fetch this page: '.$validated['url'];
+        $input = "Fetch this page: {$validated['url']}";
         if (! empty($validated['question'])) {
-            $input .= "\n\nThen answer: ".$validated['question'];
+            $input .= "\n\nThen answer: {$validated['question']}";
         }
 
         return $input;

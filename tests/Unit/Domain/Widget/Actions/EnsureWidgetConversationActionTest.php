@@ -14,7 +14,7 @@ use Illuminate\Support\Str;
  */
 it('starts one widget conversation for a session that has none', function (): void {
     $agent = Agent::factory()->create();
-    $sessionId = (string) Str::uuid();
+    $sessionId = (string) Str::uuid7();
 
     $started = app(EnsureWidgetConversationAction::class)->execute($agent, $sessionId);
 
@@ -29,7 +29,7 @@ it('starts one widget conversation for a session that has none', function (): vo
 
 it('leaves a session that already has a conversation alone', function (): void {
     $agent = Agent::factory()->create();
-    $sessionId = (string) Str::uuid();
+    $sessionId = (string) Str::uuid7();
     $ensure = app(EnsureWidgetConversationAction::class);
 
     $ensure->execute($agent, $sessionId);

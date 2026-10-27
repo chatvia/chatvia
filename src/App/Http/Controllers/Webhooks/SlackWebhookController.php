@@ -57,7 +57,7 @@ class SlackWebhookController
             return false;
         }
 
-        $expected = 'v0='.hash_hmac('sha256', "v0:{$timestamp}:".$request->getContent(), $app->signing_secret);
+        $expected = 'v0='.hash_hmac('sha256', "v0:{$timestamp}:{$request->getContent()}", $app->signing_secret);
 
         return hash_equals($expected, (string) $request->header('X-Slack-Signature'));
     }

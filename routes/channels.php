@@ -12,43 +12,43 @@ use Illuminate\Support\Facades\Gate;
 Broadcast::channel('App.Identity.Workspace.Models.User.{id}', fn (User $user, int $id): bool => $user->id === $id);
 
 Broadcast::channel('agents.{externalId}.crawler', function (User $user, string $externalId): bool {
-    $agent = Agent::where('external_id', $externalId)->first();
+    $agent = Agent::query()->where('external_id', $externalId)->first();
 
     return $agent && Gate::forUser($user)->allows('access-agent', $agent);
 });
 
 Broadcast::channel('agents.{externalId}.crawler.progress', function (User $user, string $externalId): bool {
-    $agent = Agent::where('external_id', $externalId)->first();
+    $agent = Agent::query()->where('external_id', $externalId)->first();
 
     return $agent && Gate::forUser($user)->allows('access-agent', $agent);
 });
 
 Broadcast::channel('agents.{externalId}.files.progress', function (User $user, string $externalId): bool {
-    $agent = Agent::where('external_id', $externalId)->first();
+    $agent = Agent::query()->where('external_id', $externalId)->first();
 
     return $agent && Gate::forUser($user)->allows('access-agent', $agent);
 });
 
 Broadcast::channel('agents.{externalId}.texts.progress', function (User $user, string $externalId): bool {
-    $agent = Agent::where('external_id', $externalId)->first();
+    $agent = Agent::query()->where('external_id', $externalId)->first();
 
     return $agent && Gate::forUser($user)->allows('access-agent', $agent);
 });
 
 Broadcast::channel('agents.{externalId}.ingestion.text', function (User $user, string $externalId): bool {
-    $agent = Agent::where('external_id', $externalId)->first();
+    $agent = Agent::query()->where('external_id', $externalId)->first();
 
     return $agent && Gate::forUser($user)->allows('access-agent', $agent);
 });
 
 Broadcast::channel('agents.{externalId}.web.ingestion.url', function (User $user, string $externalId): bool {
-    $agent = Agent::where('external_id', $externalId)->first();
+    $agent = Agent::query()->where('external_id', $externalId)->first();
 
     return $agent && Gate::forUser($user)->allows('access-agent', $agent);
 });
 
 Broadcast::channel('agents.{externalId}.evals', function (User $user, string $externalId): bool {
-    $agent = Agent::where('external_id', $externalId)->first();
+    $agent = Agent::query()->where('external_id', $externalId)->first();
 
     return $agent && Gate::forUser($user)->allows('access-agent', $agent);
 });
@@ -69,7 +69,7 @@ Broadcast::channel('chat.{conversationId}', function ($user, $conversationId): f
         return false;
     }
 
-    $conversation = Conversation::with('session.agent')
+    $conversation = Conversation::query()->with('session.agent')
         ->where('external_id', $conversationId)->first();
 
     if (! $conversation) {

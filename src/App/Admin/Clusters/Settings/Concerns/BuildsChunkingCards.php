@@ -178,7 +178,7 @@ trait BuildsChunkingCards
         $text = $this->normalized((string) $get('preview_text'));
         $samples = array_map(fn (ContentKind $kind): string => $this->normalized($this->sample($kind)), ContentKind::cases());
 
-        if ($text === '' || in_array($text, $samples, true)) {
+        if ($text === '' || collect($samples)->containsStrict($text)) {
             $set('preview_text', $this->sample(ContentKind::tryFrom($state ?? '') ?? ContentKind::Markdown));
         }
     }

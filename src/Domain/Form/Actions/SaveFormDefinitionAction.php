@@ -46,7 +46,7 @@ class SaveFormDefinitionAction
         $i = 1;
 
         while (FormDefinition::query()->where('agent_id', $agent->id)->where('slug', $slug)->exists()) {
-            $slug = $base.'-'.(++$i);
+            $slug = "{$base}-".(++$i);
         }
 
         return $slug;

@@ -52,12 +52,12 @@ class OpenAiRealtimeCalls implements RealtimeCalls
                 ->withHeaders(['OpenAI-Safety-Identifier' => $safetyId])
                 ->timeout(self::CREATE_TIMEOUT)
                 ->asMultipart()
-                ->post($this->endpoint().'/realtime/calls', [
+                ->post("{$this->endpoint()}/realtime/calls", [
                     'sdp' => $this->sdpLines($offerSdp),
                     'session' => json_encode($session, JSON_THROW_ON_ERROR),
                 ]);
         } catch (ConnectionException $e) {
-            throw new RealtimeCallFailedException('OpenAI did not answer the voice call: '.$e->getMessage(), $e->getCode(), previous: $e);
+            throw new RealtimeCallFailedException("OpenAI did not answer the voice call: {$e->getMessage()}", $e->getCode(), previous: $e);
         }
 
         if ($response->failed()) {
@@ -85,7 +85,7 @@ class OpenAiRealtimeCalls implements RealtimeCalls
         $failure = null;
 
         new Connector($loop)(
-            $this->socketUrl().'?call_id='.rawurlencode($callId),
+            "{$this->socketUrl()}?call_id=".rawurlencode($callId),
             [],
             ['Authorization' => 'Bearer '.config('services.openai.api_key')],
         )->then(
@@ -117,7 +117,7 @@ class OpenAiRealtimeCalls implements RealtimeCalls
         $loop->run();
 
         if ($failure instanceof Throwable) {
-            throw new RealtimeCallFailedException('Could not join the voice call: '.$failure->getMessage(), previous: $failure);
+            throw new RealtimeCallFailedException("Could not join the voice call: {$failure->getMessage()}", previous: $failure);
         }
     }
 
@@ -126,7 +126,7 @@ class OpenAiRealtimeCalls implements RealtimeCalls
         try {
             Http::withToken((string) config('services.openai.api_key'))
                 ->timeout(10)
-                ->post($this->endpoint().'/realtime/calls/'.rawurlencode($callId).'/hangup');
+                ->post("{$this->endpoint()}/realtime/calls/".rawurlencode($callId).'/hangup');
         } catch (Throwable $e) {
             // The call may be over already; nothing more can be done here.
             report($e);

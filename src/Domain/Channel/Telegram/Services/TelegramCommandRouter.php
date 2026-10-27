@@ -6,6 +6,7 @@ use Domain\Channel\Services\ChannelLocale;
 use Domain\Channel\Telegram\Data\TelegramSenderData;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Channel\Telegram\Models\TelegramChat;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 /**
@@ -114,7 +115,7 @@ class TelegramCommandRouter
     public function forEditing(AgentTelegramBot $bot): array
     {
         return array_map(
-            fn (array $e): array => [...$e, 'builtin' => in_array($e['command'], self::RESERVED, true)],
+            fn (array $e): array => [...$e, 'builtin' => collect(self::RESERVED)->containsStrict($e['command'])],
             array_values($this->effective($bot)),
         );
     }
@@ -231,6 +232,6 @@ class TelegramCommandRouter
         $lines[] = '';
         $lines[] = ChannelLocale::text($bot->agent, 'Or just send a message — you can ask me anything.');
 
-        return implode("\n", $lines);
+        return Arr::join($lines, "\n");
     }
 }

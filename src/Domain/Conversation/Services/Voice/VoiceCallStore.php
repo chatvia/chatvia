@@ -34,18 +34,18 @@ final class VoiceCallStore
     /** Ask the worker on the call to hang up. */
     public function end(VoiceCallData $call): void
     {
-        Cache::put(self::PREFIX.$call->call_id.':ended', true, $this->ttl($call));
+        Cache::put(self::PREFIX."{$call->call_id}:ended", true, $this->ttl($call));
     }
 
     public function isEnded(string $callId): bool
     {
-        return Cache::has(self::PREFIX.$callId.':ended');
+        return Cache::has(self::PREFIX."{$callId}:ended");
     }
 
     public function forget(string $callId): void
     {
         Cache::forget(self::PREFIX.$callId);
-        Cache::forget(self::PREFIX.$callId.':ended');
+        Cache::forget(self::PREFIX."{$callId}:ended");
     }
 
     private function ttl(VoiceCallData $call): int

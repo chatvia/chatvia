@@ -6,6 +6,7 @@ namespace App\Http\Requests\Agent\Source\File;
 
 use Domain\Knowledge\Source\File\Services\SourceFileTypes;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Arr;
 
 /**
  * Validates a file the owner wants measured (pages or minutes) before upload.
@@ -25,7 +26,7 @@ class AnalyzeKnowledgeFileRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'file' => ['required', 'file', 'extensions:'.implode(',', SourceFileTypes::supportedExtensions()), 'max:51200'],
+            'file' => ['required', 'file', 'extensions:'.Arr::join(SourceFileTypes::supportedExtensions(), ','), 'max:51200'],
         ];
     }
 }

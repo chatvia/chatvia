@@ -26,7 +26,7 @@ class SendAgentRateLimitNotification
 
         // Cache::add is atomic — it returns true only for the first hit in the
         // window, so concurrent blocked messages still send exactly one email.
-        if (! Cache::add('agent-rate-limit-email:'.$event->agent->id, true, now()->addHour())) {
+        if (! Cache::add("agent-rate-limit-email:{$event->agent->id}", true, now()->addHour())) {
             return;
         }
 

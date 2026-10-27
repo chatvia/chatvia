@@ -68,7 +68,7 @@ class EvalAgentRunner
         $started = CarbonImmutable::now();
 
         if (! $model instanceof Llm) {
-            return new AgentRunResultData('', [], [], null, 0, (string) Str::uuid(), 'Agent has no model, and no model can answer.');
+            return new AgentRunResultData('', [], [], null, 0, (string) Str::uuid7(), 'Agent has no model, and no model can answer.');
         }
 
         // external session + conversation ids map to Postgres `uuid` columns
@@ -81,10 +81,10 @@ class EvalAgentRunner
         $requestData = new StreamRequestData(
             agent: $agent,
             message: new StreamRequestMessageData(model: $model, message: $input),
-            externalSessionId: (string) Str::uuid(),
-            conversationId: (string) Str::uuid(),
+            externalSessionId: (string) Str::uuid7(),
+            conversationId: (string) Str::uuid7(),
             source: 'eval',
-            requestId: 'eval_'.Str::uuid(),
+            requestId: 'eval_'.Str::uuid7(),
             guardrailsEnabled: false,
         );
 
@@ -113,7 +113,7 @@ class EvalAgentRunner
                 toolsCalled: [],
                 tokens: null,
                 latencyMs: (int) round($started->diffInMilliseconds(absolute: true)),
-                traceId: $requestData->requestId ?? (string) Str::uuid(),
+                traceId: $requestData->requestId ?? (string) Str::uuid7(),
                 error: $e->getMessage(),
             );
         }
@@ -182,7 +182,7 @@ class EvalAgentRunner
     private function sourceRefs(Collection $sources): array
     {
         return $sources
-            ->map(static fn (RetrievedSourceData $source): string => $source->sourceable_type.':'.$source->sourceable_id)
+            ->map(static fn (RetrievedSourceData $source): string => "{$source->sourceable_type}:{$source->sourceable_id}")
             ->unique()
             ->values()
             ->all();

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Conversation\Data\Turn;
 
 use Domain\Knowledge\Retrieval\Enums\SourceKind;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Spatie\LaravelData\Data;
 use Support\Text\MarkdownText;
@@ -57,7 +58,7 @@ class RetrievedSourceData extends Data
 
         foreach ($sources as $source) {
             $block++;
-            $key = implode('|', [$source->sourceable_type, $source->sourceable_id, $source->url, $source->page]);
+            $key = Arr::join([$source->sourceable_type, $source->sourceable_id, $source->url, $source->page], '|');
 
             // The first (best) chunk names the entry; later chunks only count.
             $entries[$key] = isset($entries[$key])

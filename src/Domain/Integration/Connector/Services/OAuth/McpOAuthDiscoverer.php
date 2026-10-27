@@ -88,9 +88,9 @@ class McpOAuthDiscoverer
         $path = $this->pathOf(SafeUrl::parse($mcpUrl));
 
         if ($path !== '') {
-            $candidates[] = $origin.'/.well-known/oauth-protected-resource'.$path;
+            $candidates[] = "{$origin}/.well-known/oauth-protected-resource{$path}";
         }
-        $candidates[] = $origin.'/.well-known/oauth-protected-resource';
+        $candidates[] = "{$origin}/.well-known/oauth-protected-resource";
 
         return array_values(array_unique($candidates));
     }
@@ -112,7 +112,7 @@ class McpOAuthDiscoverer
             try {
                 $response = $this->safeGet($url);
             } catch (Throwable $e) {
-                $lastError = 'Could not fetch protected-resource metadata: '.$e->getMessage();
+                $lastError = "Could not fetch protected-resource metadata: {$e->getMessage()}";
                 $lastFailure = $e;
 
                 continue;
@@ -202,7 +202,7 @@ class McpOAuthDiscoverer
         }
 
         return $advertised['path'] === ''
-            || Str::startsWith($target['path'].'/', $advertised['path'].'/');
+            || Str::startsWith("{$target['path']}/", "{$advertised['path']}/");
     }
 
     /**
@@ -242,14 +242,14 @@ class McpOAuthDiscoverer
         $path = $this->pathOf($uri);
 
         if ($path === '') {
-            return [$origin.'/.well-known/oauth-authorization-server'];
+            return ["{$origin}/.well-known/oauth-authorization-server"];
         }
 
         return [
             // RFC 8414 form — preferred.
-            $origin.'/.well-known/oauth-authorization-server'.$path,
+            $origin."/.well-known/oauth-authorization-server{$path}",
             // OpenID-style append (some older deployments publish here).
-            $origin.$path.'/.well-known/oauth-authorization-server',
+            $origin."{$path}/.well-known/oauth-authorization-server",
             // Root form as a last resort.
             $origin.'/.well-known/oauth-authorization-server',
         ];

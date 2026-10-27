@@ -61,7 +61,7 @@ class ElevenLabsVideoGenerator implements VideoGenerator
             default => $prompt->secondsAmong($facts['choices']),
         };
 
-        $response = $this->call(fn (PendingRequest $elevenLabs): Response => $elevenLabs->post($this->endpoint().'/flows/video', [
+        $response = $this->call(fn (PendingRequest $elevenLabs): Response => $elevenLabs->post("{$this->endpoint()}/flows/video", [
             'model_id' => $model,
             'prompt' => $prompt->prompt,
             'aspect_ratio' => $prompt->shape->aspectRatio(),
@@ -75,7 +75,7 @@ class ElevenLabsVideoGenerator implements VideoGenerator
 
     public function check(string $taskId): ?GeneratedVideoData
     {
-        $response = $this->call(fn (PendingRequest $elevenLabs): Response => $elevenLabs->get($this->endpoint().'/flows/video/'.rawurlencode($taskId)));
+        $response = $this->call(fn (PendingRequest $elevenLabs): Response => $elevenLabs->get("{$this->endpoint()}/flows/video/".rawurlencode($taskId)));
 
         return match ((string) $response->json('status')) {
             'completed' => $this->downloads->fromUrl((string) $response->json('content_url'), 'ElevenLabs'),
@@ -95,7 +95,7 @@ class ElevenLabsVideoGenerator implements VideoGenerator
 
     public function name(?string $model = null): string
     {
-        return 'elevenlabs '.$this->model($model);
+        return "elevenlabs {$this->model($model)}";
     }
 
     /** @param callable(PendingRequest): Response $request */
@@ -106,7 +106,7 @@ class ElevenLabsVideoGenerator implements VideoGenerator
                 ProviderRetry::on(Http::withHeaders(['xi-api-key' => (string) config('services.elevenlabs.api_key')])->acceptJson()->timeout(60)),
             ));
         } catch (Throwable $e) {
-            throw new VideoGenerationFailedException('ElevenLabs could not be reached: '.$e->getMessage(), previous: $e);
+            throw new VideoGenerationFailedException("ElevenLabs could not be reached: {$e->getMessage()}", previous: $e);
         }
 
         if ($response->failed()) {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Embedding;
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Support\Http\ProviderRetry;
 
@@ -23,7 +24,7 @@ class Gemini extends AbstractEmbeddingsProvider
         $embedding = $this->request([$text], 'RETRIEVAL_DOCUMENT')[0] ?? [];
 
         if ($returnAsText) {
-            return '['.implode(',', $embedding).']';
+            return '['.Arr::join($embedding, ',').']';
         }
 
         return $embedding;
@@ -55,7 +56,7 @@ class Gemini extends AbstractEmbeddingsProvider
      */
     private function request(array $texts, string $taskType): array
     {
-        $model = Str::startsWith($this->getModel(), 'models/') ? $this->getModel() : 'models/'.$this->getModel();
+        $model = Str::startsWith($this->getModel(), 'models/') ? $this->getModel() : "models/{$this->getModel()}";
         $vectors = [];
 
         foreach (array_chunk($texts, self::BATCH_SIZE) as $batch) {

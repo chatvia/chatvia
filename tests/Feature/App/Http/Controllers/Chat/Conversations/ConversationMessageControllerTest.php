@@ -62,7 +62,7 @@ it('shows a generated image as it stands now, not as the reply stored it', funct
     $id = HostedChatVisitor::startConversation($agent, 'Draw a bicycle');
     $media = GeneratedMedia::factory()->forConversation(Conversation::query()->where('external_id', $id)->firstOrFail())->ready()->create();
     HostedChatVisitor::memory($agent, $id)->appendMessage(new MessageData(
-        id: (string) Str::uuid(),
+        id: (string) Str::uuid7(),
         role: MessageRole::Assistant,
         content: 'Here it is.',
         type: MessageData::TYPE_TEXT,

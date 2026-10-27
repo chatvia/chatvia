@@ -90,7 +90,7 @@ it('prunes the conversations of every agent of the workspace, and only of that w
 it('sweeps a hidden conversation of an overridden workspace by its own short horizon', function (): void {
     $agent = Agent::factory()->create();
     WorkspaceSecurityPolicy::forWorkspace($agent->workspace_id)->update(['retention_conversations_days' => 1]);
-    $id = app(StartConversationAction::class)->execute(new ChatScopeData($agent, (string) Str::uuid()), ConversationSource::Widget)->external_id;
+    $id = app(StartConversationAction::class)->execute(new ChatScopeData($agent, (string) Str::uuid7()), ConversationSource::Widget)->external_id;
 
     $this->travel(Conversation::HIDDEN_LIFETIME_DAYS)->days();
     $this->travel(1)->minutes();

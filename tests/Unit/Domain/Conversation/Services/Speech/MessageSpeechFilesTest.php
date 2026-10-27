@@ -14,7 +14,7 @@ beforeEach(function (): void {
     Storage::fake(MessageSpeechFiles::DISK);
     $this->agent = Agent::factory()->create();
     $this->files = app(MessageSpeechFiles::class);
-    $this->conversation = (string) Str::uuid();
+    $this->conversation = (string) Str::uuid7();
 });
 
 it('keeps one file per message, service and voice in the conversation\'s chat folder', function (): void {

@@ -85,6 +85,6 @@ class AgentInvitationSocialCallbackController
 
         $authToken = $authTokens->generateToken($agent, $chatter, 5);
 
-        return redirect()->away($agent->chat_url.'?auth_token='.$authToken);
+        return redirect()->away("{$agent->chat_url}?auth_token={$authToken}");
     }
 }

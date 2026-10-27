@@ -138,7 +138,7 @@ class Chatter extends Authenticatable implements HasLocalePreference
      */
     public function storageRoot(): string
     {
-        return $this->workspace->storageRoot().'/chatters/'.$this->external_id;
+        return "{$this->workspace->storageRoot()}/chatters/{$this->external_id}";
     }
 
     /**

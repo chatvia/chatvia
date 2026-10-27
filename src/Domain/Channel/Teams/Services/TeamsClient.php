@@ -76,7 +76,7 @@ class TeamsClient
             return false;
         }
 
-        return $this->call($bot, 'put', $this->activitiesUrl($serviceUrl, $conversationId).'/'.rawurlencode($activityId), [
+        return $this->call($bot, 'put', "{$this->activitiesUrl($serviceUrl, $conversationId)}/".rawurlencode($activityId), [
             'type' => 'message',
             'textFormat' => 'markdown',
             'text' => $text,

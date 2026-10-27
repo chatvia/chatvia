@@ -27,7 +27,7 @@ class HandoffRequestedNotification extends InboxNotification
 
     public static function groupKey(string $conversationExternalId): string
     {
-        return 'handoff:'.$conversationExternalId;
+        return "handoff:{$conversationExternalId}";
     }
 
     public function kind(): NotificationKind

@@ -54,10 +54,10 @@ class GoogleVideoGenerator implements VideoGenerator
         $interactions = (self::MODELS[$model] ?? 'veo') === 'interactions';
 
         $response = $this->call(fn (PendingRequest $google): Response => $interactions
-            ? $google->post($this->endpoint().'/interactions', [
+            ? $google->post("{$this->endpoint()}/interactions", [
                 'model' => $model,
                 // Omni takes no length: it follows the one the prompt asks for.
-                'input' => $prompt->prompt."\n\nLength: about {$prompt->secondsBetween(3, 10)} seconds.",
+                'input' => "{$prompt->prompt}\n\nLength: about {$prompt->secondsBetween(3, 10)} seconds.",
                 'background' => true,
                 'store' => true,
                 'response_format' => [
@@ -66,7 +66,7 @@ class GoogleVideoGenerator implements VideoGenerator
                     'resolution' => $prompt->resolution->value,
                 ],
             ])
-            : $google->post($this->endpoint().'/models/'.Str::chopStart($model, 'models/').':predictLongRunning', [
+            : $google->post("{$this->endpoint()}/models/".Str::chopStart($model, 'models/').':predictLongRunning', [
                 'instances' => [['prompt' => $prompt->prompt]],
                 'parameters' => [
                     'aspectRatio' => $prompt->shape->aspectRatio(),
@@ -82,12 +82,12 @@ class GoogleVideoGenerator implements VideoGenerator
             throw new VideoGenerationFailedException('Google did not start the video.');
         }
 
-        return $interactions ? 'interactions/'.$id : (string) $id;
+        return $interactions ? "interactions/{$id}" : (string) $id;
     }
 
     public function check(string $taskId): ?GeneratedVideoData
     {
-        $response = $this->call(fn (PendingRequest $google): Response => $google->get($this->endpoint().'/'.$taskId));
+        $response = $this->call(fn (PendingRequest $google): Response => $google->get("{$this->endpoint()}/{$taskId}"));
 
         return Str::startsWith($taskId, 'interactions/') ? $this->interaction($response) : $this->operation($response);
     }
@@ -98,7 +98,7 @@ class GoogleVideoGenerator implements VideoGenerator
             return;
         }
 
-        rescue(fn () => $this->client()->timeout(15)->delete($this->endpoint().'/'.$taskId), report: false);
+        rescue(fn () => $this->client()->timeout(15)->delete("{$this->endpoint()}/{$taskId}"), report: false);
     }
 
     public function isEnabled(): bool
@@ -108,7 +108,7 @@ class GoogleVideoGenerator implements VideoGenerator
 
     public function name(?string $model = null): string
     {
-        return 'google '.$this->model($model);
+        return "google {$this->model($model)}";
     }
 
     /** A background interaction: the video is a `video` part of its output once it is completed. */
@@ -116,7 +116,7 @@ class GoogleVideoGenerator implements VideoGenerator
     {
         $status = (string) $response->json('status');
 
-        if (in_array($status, ['failed', 'cancelled', 'incomplete'], true)) {
+        if (collect(['failed', 'cancelled', 'incomplete'])->containsStrict($status)) {
             throw $this->failure((string) ($response->json('error.message') ?? $status));
         }
 
@@ -172,7 +172,7 @@ class GoogleVideoGenerator implements VideoGenerator
         try {
             $response = $this->tags->during(AiCallTag::VideoGeneration, fn (): Response => $request(ProviderRetry::on($this->client())->timeout(60)));
         } catch (Throwable $e) {
-            throw new VideoGenerationFailedException('Google could not be reached: '.$e->getMessage(), previous: $e);
+            throw new VideoGenerationFailedException("Google could not be reached: {$e->getMessage()}", previous: $e);
         }
 
         if ($response->failed()) {

@@ -96,7 +96,7 @@ class ModelPresets
         foreach ($provider?->presetFileModels() ?? [] as $id) {
             $model = $byId[$id] ?? null;
 
-            if ($model !== null && ! in_array(false, array_intersect_key($model->features, array_flip(['vision', 'files', 'function_calling'])), true)) {
+            if ($model !== null && ! collect(array_intersect_key($model->features, array_flip(['vision', 'files', 'function_calling'])))->containsStrict(false)) {
                 return $model;
             }
         }

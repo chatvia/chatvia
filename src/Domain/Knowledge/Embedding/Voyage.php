@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Embedding;
 
+use Illuminate\Support\Arr;
 use Support\Http\ProviderRetry;
 
 /**
@@ -24,7 +25,7 @@ class Voyage extends AbstractEmbeddingsProvider
     {
         $embedding = $this->request([$text], 'document')[0];
 
-        return $returnAsText ? '['.implode(',', $embedding).']' : $embedding;
+        return $returnAsText ? '['.Arr::join($embedding, ',').']' : $embedding;
     }
 
     public function embedBatch(array $texts): array
@@ -67,7 +68,7 @@ class Voyage extends AbstractEmbeddingsProvider
     /** The voyage-4 models return one of these sizes (`output_dimension`). */
     protected function supportsDimensions(int $dimensions): bool
     {
-        return in_array($dimensions, [256, 512, 1024, 2048], true);
+        return collect([256, 512, 1024, 2048])->containsStrict($dimensions);
     }
 
     protected function getApiKey(): string

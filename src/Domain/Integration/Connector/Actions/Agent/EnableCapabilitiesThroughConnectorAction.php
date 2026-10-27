@@ -37,7 +37,7 @@ class EnableCapabilitiesThroughConnectorAction
         }
 
         $capabilities = $this->catalog->capabilities()
-            ->filter(fn (ConnectorData $capability): bool => in_array($server->connector_slug, $capability->worksThrough, true));
+            ->filter(fn (ConnectorData $capability): bool => collect($capability->worksThrough)->containsStrict($server->connector_slug));
 
         foreach ($capabilities as $capability) {
             try {

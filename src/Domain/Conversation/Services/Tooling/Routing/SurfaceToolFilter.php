@@ -58,7 +58,7 @@ class SurfaceToolFilter
         // server slug is derived the same way provisioning does
         // ({@see AgentMcpServer::makeSlug}), so it matches the compiled tool name.
         $prefixes = $restricted
-            ->reject(static fn (ConnectorData $c): bool => in_array($surface->value, $c->surfaces ?? [], true))
+            ->reject(static fn (ConnectorData $c): bool => collect($c->surfaces ?? [])->containsStrict($surface->value))
             ->map(static fn (ConnectorData $c): string => ToolName::mcpPrefix(AgentMcpServer::makeSlug($c->slug)))
             ->values()
             ->all();

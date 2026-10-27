@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
 trait HostsOnChatvia
 {
     public string $mcpUrl {
-        get => Str::rtrim((string) config('app.url'), '/').'/mcp/'.$this->slug;
+        get => Str::rtrim((string) config('app.url'), '/')."/mcp/{$this->slug}";
     }
 
     public string $provider {

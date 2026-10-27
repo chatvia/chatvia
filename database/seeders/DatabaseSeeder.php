@@ -43,7 +43,7 @@ class DatabaseSeeder extends Seeder
         // still opens on the first visit to the admin panel.
         $this->call(LlmSeeder::class);
 
-        $user = User::firstOrCreate(
+        $user = User::query()->firstOrCreate(
             ['email' => (string) config('chatvia.seed.admin_email')],
             [
                 'name' => 'Demo Admin',

@@ -79,7 +79,7 @@ enum VoiceNoteFormat: string
     {
         $mimeType = Str::lower($mimeType ?? '');
 
-        return Arr::first(self::cases(), fn (self $format): bool => in_array($mimeType, $format->mimeTypes(), true));
+        return Arr::first(self::cases(), fn (self $format): bool => collect($format->mimeTypes())->containsStrict($mimeType));
     }
 
     /**

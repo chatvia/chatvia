@@ -18,6 +18,7 @@ use Filament\Schemas\Components\Callout;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Arr;
 use Livewire\Attributes\Url;
 
 /**
@@ -91,7 +92,7 @@ class SettingsOverview extends Page
                 ->icon(Heroicon::OutlinedRocketLaunch)
                 ->color('warning')
                 ->visible(fn (): bool => SetupStatus::current() === SetupStatus::Skipped)
-                ->tooltip(fn (): ?string => ($missing = app(SetupRequirements::class)->missing()) === [] ? null : 'Still missing: '.implode(', ', $missing).'.')
+                ->tooltip(fn (): ?string => ($missing = app(SetupRequirements::class)->missing()) === [] ? null : 'Still missing: '.Arr::join($missing, ', ').'.')
                 ->url(route('filament.admin.setup')),
         ];
     }
@@ -128,7 +129,7 @@ class SettingsOverview extends Page
 
         if ($license->allowsHidingCredit($key)) {
             return Callout::make('Thank you for your support')
-                ->description('Your license is active, licensed to '.$license->read($key)?->licensee.'. It helps me keep ChatVia.ai free.')
+                ->description("Your license is active, licensed to {$license->read($key)?->licensee}. It helps me keep ChatVia.ai free.")
                 ->icon(Heroicon::OutlinedHeart)
                 ->success()
                 ->actions([$this->hireMeAction()]);

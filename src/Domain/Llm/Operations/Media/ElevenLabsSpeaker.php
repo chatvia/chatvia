@@ -48,7 +48,7 @@ class ElevenLabsSpeaker implements Speaker
                     ->body()))
                 ->implode('');
         } catch (Throwable $e) {
-            throw new SpeechFailedException('ElevenLabs could not read the text: '.$e->getMessage(), $e->getCode(), previous: $e);
+            throw new SpeechFailedException("ElevenLabs could not read the text: {$e->getMessage()}", $e->getCode(), previous: $e);
         }
     }
 
@@ -64,7 +64,7 @@ class ElevenLabsSpeaker implements Speaker
 
     public function name(): string
     {
-        return 'elevenlabs '.$this->model();
+        return "elevenlabs {$this->model()}";
     }
 
     public function defaultVoice(): string

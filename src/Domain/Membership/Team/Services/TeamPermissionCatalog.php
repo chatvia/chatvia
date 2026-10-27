@@ -78,7 +78,7 @@ class TeamPermissionCatalog
      */
     public function expand(array $permissions): array
     {
-        return in_array('*', $permissions, true) ? $this->codes() : array_values($permissions);
+        return collect($permissions)->containsStrict('*') ? $this->codes() : array_values($permissions);
     }
 
     /**

@@ -32,6 +32,7 @@ use Filament\Support\Enums\FontFamily;
 use Filament\Support\Enums\Size;
 use Filament\Support\Enums\TextSize;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
@@ -202,7 +203,7 @@ abstract class AdminSettingsPage extends Page
             $this->isSaved(...),
         ));
 
-        return $changed === 0 ? ['Using the defaults', 'gray'] : [$changed.' '.Str::plural('change', $changed).' from the defaults', 'primary'];
+        return $changed === 0 ? ['Using the defaults', 'gray'] : ["{$changed} ".Str::plural('change', $changed).' from the defaults', 'primary'];
     }
 
     /**
@@ -220,7 +221,7 @@ abstract class AdminSettingsPage extends Page
 
         return match (count($unfinished)) {
             0 => null,
-            1 => [$unfinished[0]->title.' is not finished', 'warning'],
+            1 => ["{$unfinished[0]->title} is not finished", 'warning'],
             default => [count($unfinished).' services are not finished', 'warning'],
         };
     }
@@ -377,7 +378,7 @@ abstract class AdminSettingsPage extends Page
 
     protected static function sectionIdFor(string $key): string
     {
-        return static::getSlug().'-'.$key;
+        return static::getSlug()."-{$key}";
     }
 
     /**
@@ -408,7 +409,7 @@ abstract class AdminSettingsPage extends Page
                     ->tooltip(fn (): ?string => Str::length($this->statusLine($card)[0]) > 60 ? $this->statusLine($card)[0] : null)
                     ->visible(fn (): bool => $card->required !== [] || $this->statusLine($card)[1] !== 'gray'),
                 ...($card->consoleUrl === null ? [] : [
-                    Action::make('console_'.$card->key)
+                    Action::make("console_{$card->key}")
                         ->label($card->consoleLabel ?? 'Open console')
                         ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
                         ->iconPosition('after')
@@ -418,7 +419,7 @@ abstract class AdminSettingsPage extends Page
                         ->tooltip($card->consoleLabel === null ? 'Open the provider console' : null)
                         ->url($card->consoleUrl, shouldOpenInNewTab: true),
                 ]),
-                Action::make('docs_'.$card->key)
+                Action::make("docs_{$card->key}")
                     ->label('Docs')
                     ->icon(Heroicon::OutlinedBookOpen)
                     ->link()
@@ -463,7 +464,7 @@ abstract class AdminSettingsPage extends Page
             ->map(fn (bool $used, string $label): string => '<span class="cv-chip'.($used ? ' cv-chip--used' : '').'"'.($used ? ' title="In use"' : '').'>'.e($label).'</span>')
             ->join('');
 
-        return new HtmlString(e($card->description).'<span class="cv-chips">'.$chips.'</span>');
+        return new HtmlString(e($card->description).'<span class="cv-chips">'."{$chips}</span>");
     }
 
     /**
@@ -865,7 +866,7 @@ abstract class AdminSettingsPage extends Page
     {
         return match (true) {
             is_bool($value) => $value ? 'on' : 'off',
-            is_array($value) => implode(', ', $value),
+            is_array($value) => Arr::join($value, ', '),
             blank($value) => 'none',
             default => (string) $value,
         };
@@ -882,7 +883,7 @@ abstract class AdminSettingsPage extends Page
 
     private function forgetAction(string $property, string $label): Action
     {
-        return Action::make('forget_'.$property)
+        return Action::make("forget_{$property}")
             ->icon(Heroicon::OutlinedTrash)
             ->color('danger')
             ->tooltip('Remove the saved value')

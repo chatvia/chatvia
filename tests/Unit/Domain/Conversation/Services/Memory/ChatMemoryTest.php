@@ -143,7 +143,7 @@ it('makes a conversation visible when its first message is added', function (): 
     expect($memory->visibleConversationsNewestFirst())->toBe([]);
 
     $memory->setConversationId($conversationId)->appendMessage(new MessageData(
-        id: (string) Str::uuid(),
+        id: (string) Str::uuid7(),
         role: MessageRole::User,
         content: 'Hello',
         type: MessageData::TYPE_TEXT,
@@ -157,7 +157,7 @@ it('makes a conversation visible when its first message is added', function (): 
 it('keeps the private LLM text out of the history but feeds it to the LLM', function (): void {
     $agent = Agent::factory()->create();
     $session = ChatSession::factory()->create(['agent_id' => $agent->id]);
-    $memory = chatMemoryFor($agent, $session)->setConversationId((string) Str::uuid());
+    $memory = chatMemoryFor($agent, $session)->setConversationId((string) Str::uuid7());
 
     $memory->appendMessage(new MessageData(
         id: 'm1',

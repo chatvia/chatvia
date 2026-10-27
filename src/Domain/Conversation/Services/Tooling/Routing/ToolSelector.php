@@ -190,7 +190,7 @@ class ToolSelector
 
         return array_values(array_filter(
             $this->registry->for($agent),
-            static fn (ToolEntryData $entry): bool => in_array($entry->name, $stickyNames, true),
+            static fn (ToolEntryData $entry): bool => collect($stickyNames)->containsStrict($entry->name),
         ));
     }
 

@@ -3,6 +3,7 @@
 namespace Domain\Integration\Mcp\Services;
 
 use Domain\Integration\Mcp\Exceptions\McpException;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\Support\Uri;
@@ -175,7 +176,7 @@ final class InternalMcpSignature
         foreach ($headers as $name => $value) {
             $name = Str::lower((string) $name);
 
-            if (! Str::startsWith($name, self::IDENTITY_HEADER_PREFIX) || in_array($name, $excluded, true)) {
+            if (! Str::startsWith($name, self::IDENTITY_HEADER_PREFIX) || collect($excluded)->containsStrict($name)) {
                 continue;
             }
 
@@ -195,16 +196,16 @@ final class InternalMcpSignature
 
         $lines = [];
         foreach ($identity as $name => $value) {
-            $lines[] = $name.':'.Str::trim($value);
+            $lines[] = "{$name}:".Str::trim($value);
         }
 
-        $canonical = implode("\n", [
+        $canonical = Arr::join([
             $timestamp,
             Str::upper($method),
             '/'.Str::trim($path, '/'),
             hash('sha256', $body),
-            implode("\n", $lines),
-        ]);
+            Arr::join($lines, "\n"),
+        ], "\n");
 
         return hash_hmac('sha256', $canonical, self::secret());
     }

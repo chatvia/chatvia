@@ -60,7 +60,7 @@ class EvalSourceCoverageQuery
      */
     private function sources(Agent $agent): Collection
     {
-        $named = static fn (Model $source, string $name): array => [$source->getMorphClass().':'.$source->getKey() => $name];
+        $named = static fn (Model $source, string $name): array => ["{$source->getMorphClass()}:{$source->getKey()}" => $name];
 
         return collect()
             ->merge($agent->files()->get(['source_files.id', 'filename'])->mapWithKeys(static fn ($file): array => $named($file, $file->filename)))

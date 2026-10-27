@@ -9,6 +9,7 @@ use Domain\Knowledge\Ingestion\Exceptions\DocumentParsingException;
 use GrahamCampbell\Markdown\Facades\Markdown;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
@@ -158,10 +159,10 @@ class AzureDocumentIntelligence
                 $rows[(int) ($cell['rowIndex'] ?? 0)][(int) ($cell['columnIndex'] ?? 0)] = Str::replace(['|', "\n"], ['\\|', ' '], Str::trim((string) ($cell['content'] ?? '')));
             }
 
-            $lines = array_map(fn (array $row): string => '| '.implode(' | ', $row).' |', $rows);
+            $lines = array_map(fn (array $row): string => '| '.Arr::join($row, ' | ').' |', $rows);
             array_splice($lines, 1, 0, ['|'.Str::repeat(' --- |', count($rows[0]))]);
 
-            $byPage[$page][] = implode("\n", $lines);
+            $byPage[$page][] = Arr::join($lines, "\n");
         }
 
         return $byPage;

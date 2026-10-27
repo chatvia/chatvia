@@ -17,7 +17,7 @@ function paeEvent(string $occurredAt): void
     app(AnalyticsDatabase::class)->table('analytics_events')->insert([
         'agent_id' => 910001,
         'workspace_id' => 910002,
-        'message_external_id' => (string) Str::uuid(),
+        'message_external_id' => (string) Str::uuid7(),
         'occurred_at' => $occurredAt,
     ]);
 }
@@ -25,7 +25,7 @@ function paeEvent(string $occurredAt): void
 function paeFeedback(string $occurredAt): void
 {
     app(AnalyticsDatabase::class)->table('analytics_message_feedback')->insert([
-        'message_external_id' => (string) Str::uuid(),
+        'message_external_id' => (string) Str::uuid7(),
         'agent_id' => 910001,
         'workspace_id' => 910002,
         'feedback' => 'positive',
@@ -35,7 +35,7 @@ function paeFeedback(string $occurredAt): void
 
 function paeMetrics(string $startedAt, string $endedAt): string
 {
-    $id = (string) Str::uuid();
+    $id = (string) Str::uuid7();
 
     app(AnalyticsDatabase::class)->table('analytics_conversation_metrics')->insert([
         'conversation_external_id' => $id,
@@ -51,7 +51,7 @@ function paeMetrics(string $startedAt, string $endedAt): string
 
 function paeSessionFirst(string $firstSeenAt): string
 {
-    $id = (string) Str::uuid();
+    $id = (string) Str::uuid7();
 
     app(AnalyticsDatabase::class)->table('analytics_session_firsts')->insert([
         'agent_id' => 910001,

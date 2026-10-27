@@ -31,7 +31,7 @@ class UserNotificationsRead implements ShouldBroadcastNow
     /** @return list<PrivateChannel> */
     public function broadcastOn(): array
     {
-        return [new PrivateChannel('App.Identity.Workspace.Models.User.'.$this->userId)];
+        return [new PrivateChannel("App.Identity.Workspace.Models.User.{$this->userId}")];
     }
 
     public function broadcastAs(): string

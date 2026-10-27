@@ -57,7 +57,7 @@ class AgentManagerController
         $granted = $team !== null ? $user->teamPermissions($team) : [];
 
         foreach (self::PAGE_BY_PERMISSION as $permission => $routeName) {
-            if (in_array($permission, $granted, true)) {
+            if (collect($granted)->containsStrict($permission)) {
                 return redirect()->route($routeName, ['agent' => $agent]);
             }
         }

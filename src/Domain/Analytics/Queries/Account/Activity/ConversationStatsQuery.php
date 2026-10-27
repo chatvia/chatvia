@@ -25,7 +25,7 @@ class ConversationStatsQuery extends AccountAnalyticsQuery
             ->first();
 
         $days = $this->rollup($scope)
-            ->selectRaw($this->grain($scope)->day().' date, SUM(conversations_started) c')
+            ->selectRaw("{$this->grain($scope)->day()} date, SUM(conversations_started) c")
             ->groupBy('date')
             ->get();
 

@@ -53,6 +53,6 @@ class WebsiteIngestionJob implements ShouldBeUnique, ShouldQueue
 
     public function uniqueId(): string
     {
-        return 'agents:'.$this->agent->id.':sources:websites:'.$this->website->id;
+        return "agents:{$this->agent->id}:sources:websites:{$this->website->id}";
     }
 }

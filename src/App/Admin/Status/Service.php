@@ -85,7 +85,7 @@ enum Service: string
 
         $site = e(Uri::of($url)->host());
 
-        return new HtmlString(Str::replace($site, '<a href="'.e($url).'" target="_blank" rel="noopener noreferrer" class="cv-service__link">'.$site.'</a>', $description));
+        return new HtmlString(Str::replace($site, '<a href="'.e($url).'" target="_blank" rel="noopener noreferrer" class="cv-service__link">'."{$site}</a>", $description));
     }
 
     /** The site of a service that comes from one (models.dev), which its description links to. */

@@ -98,7 +98,7 @@ class RunwayVideoGenerator implements VideoGenerator
 
     public function name(?string $model = null): string
     {
-        return 'runway '.$this->model($model);
+        return "runway {$this->model($model)}";
     }
 
     /**
@@ -123,7 +123,7 @@ class RunwayVideoGenerator implements VideoGenerator
         try {
             $response = $this->tags->during(AiCallTag::VideoGeneration, fn (): Response => $request(ProviderRetry::on($this->client())->timeout(60)));
         } catch (Throwable $e) {
-            throw new VideoGenerationFailedException('Runway could not be reached: '.$e->getMessage(), previous: $e);
+            throw new VideoGenerationFailedException("Runway could not be reached: {$e->getMessage()}", previous: $e);
         }
 
         if ($response->failed()) {

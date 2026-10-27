@@ -27,7 +27,7 @@ class UrlIngestionStarted implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('agents.'.$this->agentExternalId.'.web.ingestion.url'),
+            new PrivateChannel("agents.{$this->agentExternalId}.web.ingestion.url"),
         ];
     }
 

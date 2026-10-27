@@ -9,6 +9,7 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Str;
 use Support\Http\SafeUrl;
 
@@ -162,7 +163,7 @@ class WidgetVerification
             ->values()
             ->all();
 
-        if (app()->environment('local')) {
+        if (App::isLocal()) {
             $hosts[] = 'localhost';
         }
 
@@ -179,7 +180,7 @@ class WidgetVerification
      */
     private function isHostAllowed(string $host, array $allowedSites): bool
     {
-        if (in_array($host, $allowedSites, true)) {
+        if (collect($allowedSites)->containsStrict($host)) {
             return true;
         }
 
@@ -197,8 +198,8 @@ class WidgetVerification
                 $baseDomain = Str::substr($allowedSite, 2);
 
                 if ($hostWithoutWww === $baseDomain
-                    || Str::endsWith($hostWithoutWww, '.'.$baseDomain)
-                    || Str::endsWith($host, '.'.$baseDomain)) {
+                    || Str::endsWith($hostWithoutWww, ".{$baseDomain}")
+                    || Str::endsWith($host, ".{$baseDomain}")) {
                     return true;
                 }
             }
@@ -214,6 +215,6 @@ class WidgetVerification
 
     private function withWww(string $host): string
     {
-        return Str::startsWith($host, 'www.') ? $host : 'www.'.$host;
+        return Str::startsWith($host, 'www.') ? $host : "www.{$host}";
     }
 }

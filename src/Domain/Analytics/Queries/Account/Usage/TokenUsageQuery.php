@@ -28,7 +28,7 @@ class TokenUsageQuery extends AccountAnalyticsQuery
         $replies = (int) $totals->replies;
 
         $daily = $this->rollup($scope)
-            ->selectRaw($this->grain($scope)->day().' date, SUM(total_tokens) tokens')
+            ->selectRaw("{$this->grain($scope)->day()} date, SUM(total_tokens) tokens")
             ->groupBy('date')
             ->orderBy('date')
             ->get()

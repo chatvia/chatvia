@@ -8,6 +8,7 @@ use Domain\Evaluation\Contracts\Scorer;
 use Domain\Evaluation\Data\AgentRunResultData;
 use Domain\Evaluation\Data\ScoreResultData;
 use Domain\Evaluation\Models\EvalCase;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 /**
@@ -33,6 +34,6 @@ class JsonSchemaScorer implements Scorer
 
         return $missing === []
             ? ScoreResultData::pass(1.0, 'Valid JSON with all required keys.')
-            : ScoreResultData::fail(0.0, 'Missing required keys: '.implode(', ', $missing));
+            : ScoreResultData::fail(0.0, 'Missing required keys: '.Arr::join($missing, ', '));
     }
 }

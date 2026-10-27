@@ -12,6 +12,7 @@ use Domain\Llm\Enums\SpeechFormat;
 use Domain\Llm\Exceptions\SpeechFailedException;
 use Domain\Llm\Services\AiCallTags;
 use Domain\Llm\Services\SpeechTextParts;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Ratchet\Client\Connector;
 use Ratchet\Client\WebSocket;
@@ -72,7 +73,7 @@ class OpenAiSpeaker implements Speaker
 
         ksort($audio);
 
-        return $this->wav(implode('', $audio));
+        return $this->wav(Arr::join($audio, ''));
     }
 
     public function format(): SpeechFormat
@@ -87,7 +88,7 @@ class OpenAiSpeaker implements Speaker
 
     public function name(): string
     {
-        return 'openai '.$this->model();
+        return "openai {$this->model()}";
     }
 
     public function defaultVoice(): string
@@ -155,7 +156,7 @@ class OpenAiSpeaker implements Speaker
         $loop->run();
 
         if ($failure instanceof Throwable) {
-            throw $failure instanceof SpeechFailedException ? $failure : new SpeechFailedException('OpenAI could not read the text: '.$failure->getMessage(), previous: $failure);
+            throw $failure instanceof SpeechFailedException ? $failure : new SpeechFailedException("OpenAI could not read the text: {$failure->getMessage()}", previous: $failure);
         }
 
         return $results;
@@ -179,7 +180,7 @@ class OpenAiSpeaker implements Speaker
         };
 
         new Connector($loop)(
-            $this->socketUrl().'?model='.rawurlencode($this->model()),
+            "{$this->socketUrl()}?model=".rawurlencode($this->model()),
             [],
             ['Authorization' => 'Bearer '.config('services.openai.api_key')],
         )->then(

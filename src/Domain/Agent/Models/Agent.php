@@ -475,7 +475,7 @@ class Agent extends Model
 
         // Only a new attachment: what a capability does with it (Calendar turns
         // on for Calendly or Cal.com) must not repeat on every re-attach.
-        if (in_array($server->id, $changes['attached'], true)) {
+        if (collect($changes['attached'])->containsStrict($server->id)) {
             ConnectorAttachedToAgent::dispatch($this->id, $server->id);
         }
     }
@@ -700,13 +700,13 @@ class Agent extends Model
      */
     public function storageRoot(): string
     {
-        return 'workspaces/'.$this->workspaceExternalId();
+        return "workspaces/{$this->workspaceExternalId()}";
     }
 
     /** This agent's own files (its chats' files, setting images), wiped when it is purged. */
     public function settingsStorageRoot(): string
     {
-        return $this->storageRoot().'/agents/'.$this->external_id;
+        return "{$this->storageRoot()}/agents/{$this->external_id}";
     }
 
     /**

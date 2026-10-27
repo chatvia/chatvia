@@ -109,6 +109,6 @@ it('on a protected agent, finds a staff member\'s conversation for that staff me
 it('returns null for ids that are not UUIDs instead of querying', function (string $conversationId, string $sessionId): void {
     expect(app(FindWidgetConversationAction::class)->execute($conversationId, $sessionId, Agent::factory()->create()))->toBeNull();
 })->with([
-    'bad conversation id' => ['not-a-uuid', (string) Str::uuid()],
-    'bad session id' => [(string) Str::uuid(), "1' OR '1'='1"],
+    'bad conversation id' => ['not-a-uuid', (string) Str::uuid7()],
+    'bad session id' => [(string) Str::uuid7(), "1' OR '1'='1"],
 ]);

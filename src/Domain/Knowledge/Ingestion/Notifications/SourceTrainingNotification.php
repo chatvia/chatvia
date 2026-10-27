@@ -77,7 +77,7 @@ class SourceTrainingNotification extends InboxNotification
                 subject: $this->subject(),
                 detail: $sourceKind,
             ),
-            $this->kind === NotificationKind::SourceTrained ? 'training:'.$this->agent->external_id : null,
+            $this->kind === NotificationKind::SourceTrained ? "training:{$this->agent->external_id}" : null,
         );
     }
 

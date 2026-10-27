@@ -10,6 +10,7 @@ use App\Admin\Status\Data\EnvironmentGroupData;
 use Composer\InstalledVersions;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -120,7 +121,7 @@ final readonly class EnvironmentReport
         $prefix = filled(config('settings.cache.prefix')) ? config('settings.cache.prefix').'.' : '';
 
         return collect($this->app->make(SettingsConfig::class)->classes())
-            ->every(fn (string $class): bool => $store->has($prefix.'settings.'.$class::cacheKey()));
+            ->every(fn (string $class): bool => $store->has("{$prefix}settings.".$class::cacheKey()));
     }
 
     /**
@@ -154,7 +155,7 @@ final readonly class EnvironmentReport
             return $channel;
         }
 
-        return Str::of($channel)->append(' (', implode(', ', (array) config("logging.channels.{$channel}.channels")), ')')->toString();
+        return Str::of($channel)->append(' (', Arr::join((array) config("logging.channels.{$channel}.channels"), ', '), ')')->toString();
     }
 
     private function cache(string $label, bool $cached): EnvironmentFactData

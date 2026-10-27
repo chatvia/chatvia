@@ -44,6 +44,7 @@ function csScheduled(): array
         ['chatvia:agent:purge-deleted', '40 4 * * *'],
         ['chatvia:prune:analytics-events', '45 4 * * *'],
         ['chatvia:knowledge:refresh-websites', '20 * * * *'],
+        ['chatvia:llm:check-listing', '35 * * * *'],
         ['chatvia:privacy:anonymize-sessions', '50 3 * * *'],
         ['chatvia:prune:leads', '5 4 * * *'],
         ['chatvia:prune:workspace-analytics', '50 4 * * *'],

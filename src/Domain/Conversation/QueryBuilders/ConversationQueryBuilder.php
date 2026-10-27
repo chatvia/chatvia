@@ -162,7 +162,7 @@ class ConversationQueryBuilder extends Builder
     public function filterByDateRange(?string $startDate, ?string $endDate): self
     {
         return $this->when($startDate && $endDate, function ($query) use ($startDate, $endDate): void {
-            $query->whereBetween('created_at', [$startDate.' 00:00:00', $endDate.' 23:59:59']);
+            $query->whereBetween('created_at', ["{$startDate} 00:00:00", "{$endDate} 23:59:59"]);
         });
     }
 

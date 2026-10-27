@@ -10,6 +10,7 @@ use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\LlmChat;
 use Domain\Llm\Services\TaskModels;
+use Illuminate\Support\Arr;
 
 /**
  * Turns the Markdown tables found on a document page into plain prose, so the
@@ -38,7 +39,7 @@ class Tables
         return $this->chat->send(new ChatRequestData(
             model: $this->models->model(LlmTask::Tables),
             messages: [
-                ChatMessageData::user(prompt('tables/describe', ['tables' => implode("\n\n", $tables)])),
+                ChatMessageData::user(prompt('tables/describe', ['tables' => Arr::join($tables, "\n\n")])),
             ],
             tag: AiCallTag::TableDescription,
             temperature: 0.0,

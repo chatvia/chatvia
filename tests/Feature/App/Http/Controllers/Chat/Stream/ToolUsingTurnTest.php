@@ -95,7 +95,7 @@ it('runs an auto-approved webhook tool mid-stream and persists the assistant rep
     $agent = Agent::factory()->create(['is_public' => true]);
     $function = tutWebhookFunction($agent);
 
-    $conversationId = (string) Str::uuid();
+    $conversationId = (string) Str::uuid7();
     $response = $this->post(
         "/chat/{$agent->external_id}/stream/{$conversationId}",
         ['message' => 'What is the status of order 1234?'],

@@ -55,7 +55,7 @@ class AppearanceTextResolver
      */
     public function localize(Collection $appearance, ?string $configuredLanguage, ?string $acceptLanguage): Collection
     {
-        $locale = (! in_array($configuredLanguage, [null, '', 'auto'], true))
+        $locale = (! collect([null, '', 'auto'])->containsStrict($configuredLanguage))
             ? $configuredLanguage
             : $acceptLanguage;
 

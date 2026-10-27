@@ -138,8 +138,8 @@ class StartVoiceCallAction
      */
     private function safetyId(VoiceCallerData $caller): string
     {
-        $who = $caller->chatterId !== null ? 'chatter:'.$caller->chatterId : 'session:'.$caller->sessionId;
+        $who = $caller->chatterId !== null ? "chatter:{$caller->chatterId}" : "session:{$caller->sessionId}";
 
-        return hash_hmac('sha256', $caller->agent->workspace_id.':'.$who, (string) config('app.key'));
+        return hash_hmac('sha256', "{$caller->agent->workspace_id}:{$who}", (string) config('app.key'));
     }
 }

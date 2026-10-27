@@ -171,7 +171,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
 
         return $count === 0
             ? ['No models yet', 'warning']
-            : [$count.' '.Str::plural('model', $count).' for agents', 'success'];
+            : ["{$count} ".Str::plural('model', $count).' for agents', 'success'];
     }
 
     /**
@@ -530,7 +530,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->description('A video can cost from a few cents to a few dollars. Check the model\'s price before you pick it.')
                     ->icon(Heroicon::OutlinedInformationCircle)
                     ->info()
-                    ->visible(fn (Get $get): bool => in_array($get('video_generator'), ['kling', 'fal'], true)),
+                    ->visible(fn (Get $get): bool => collect(['kling', 'fal'])->containsStrict($get('video_generator'))),
                 $this->toggle('video_model_choice', 'Let workspaces offer a choice of models',
                     'Lets each agent show chatters a "Video model" menu in the hosted chat, with the models you tick here. The model above is always in it, as the default. Each agent turns this on under Capabilities → Video generation.')
                     ->live(),
@@ -581,7 +581,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                             ! $model->callsTools() => 'No tool calling: tools will not work',
                             default => null,
                         },
-                    ])) === [] ? null : new HtmlString(implode('<br>', array_map(e(...), $lines)))),
+                    ])) === [] ? null : new HtmlString(Arr::join(array_map(e(...), $lines), '<br>'))),
                 TextColumn::make('provider.name')
                     ->label('Provider')
                     ->description(fn (Llm $model): ?string => $model->provider->is_enabled && $model->provider->isConnected() ? null : 'Not connected')
@@ -663,7 +663,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                             ->all();
                     })
                     ->descriptions(fn (Get $get): array => $this->modelDescriptions($get('source')))
-                    ->disableOptionWhen(fn (string $value, Get $get): bool => in_array($value, $this->addedModels($get('source')), true))
+                    ->disableOptionWhen(fn (string $value, Get $get): bool => collect($this->addedModels($get('source')))->containsStrict($value))
                     ->required()
                     ->validationMessages(['required' => 'Tick at least one model.'])
                     ->live()
@@ -822,7 +822,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     /** Whether models can be added from a source: an account with its key, or a server of your own. */
     private function isConnected(string $source): bool
     {
-        [$type, $value] = array_pad(explode(':', $source, 2), 2, '');
+        [$type, $value] = Str::of($source)->explode(':', 2)->pad(2, '')->all();
 
         return match ($type) {
             'account' => AiProvider::tryFrom($value)?->isConnected() ?? false,
@@ -846,7 +846,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
         return collect($this->listOf($source)->models ?? [])
             ->mapWithKeys(fn (RemoteModelData $model): array => [$model->id => collect([
                 $model->name === $model->id ? null : $model->id,
-                in_array($model->id, $added, true) ? 'Agents can use it already' : null,
+                collect($added)->containsStrict($model->id) ? 'Agents can use it already' : null,
                 $draft instanceof LlmProvider && $catalog->facts($draft->kind, $model->id)?->callsTools === false ? 'No tool calling: tools will not work' : null,
             ])->filter()->implode(' · ')])
             ->filter()
@@ -870,7 +870,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     /** The provider row a source names: the account's (made when missing) or a server of your own. */
     private function providerOf(string $source): ?LlmProvider
     {
-        [$type, $value] = array_pad(explode(':', $source, 2), 2, '');
+        [$type, $value] = Str::of($source)->explode(':', 2)->pad(2, '')->all();
 
         return match ($type) {
             'account' => ($kind = AiProvider::tryFrom($value)?->chatKind()) instanceof LlmProviderKind && AiProvider::from($value)->isConnected()
@@ -884,7 +884,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     /** An unsaved row to read a source's list with, without making the account's row yet. */
     private function draftOf(mixed $source): ?LlmProvider
     {
-        [$type, $value] = array_pad(explode(':', (string) $source, 2), 2, '');
+        [$type, $value] = Str::of((string) $source)->explode(':', 2)->pad(2, '')->all();
 
         return match ($type) {
             'account' => ($kind = AiProvider::tryFrom($value)?->chatKind()) instanceof LlmProviderKind
@@ -905,7 +905,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
         }
 
         $adapters = app(ProviderAdapters::class);
-        $key = 'admin-ai-models:list:'.hash('sha256', implode("\n", [(string) $source, $adapters->for($draft->kind)->baseUrl($draft), (string) $adapters->for($draft->kind)->apiKey($draft)]));
+        $key = 'admin-ai-models:list:'.hash('sha256', Arr::join([(string) $source, $adapters->for($draft->kind)->baseUrl($draft), (string) $adapters->for($draft->kind)->apiKey($draft)], "\n"));
 
         return once(fn (): ModelListData => ModelListData::from(Cache::remember($key, now()->addMinutes(10), fn (): array => app(ModelListing::class)->list($draft)->toArray())));
     }
@@ -969,7 +969,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     {
         $unlisted = fn (): Collection => Llm::catalog()->filter(fn (Llm $llm): bool => $llm->is_enabled && $llm->unlisted_at !== null);
 
-        return Callout::make(fn (): string => Arr::join($unlisted()->map(fn (Llm $llm): string => $llm->displayName().' ('.$llm->provider->name.')')->all(), ', ', ' and ')
+        return Callout::make(fn (): string => Arr::join($unlisted()->map(fn (Llm $llm): string => "{$llm->displayName()} ({$llm->provider->name})")->all(), ', ', ' and ')
             .(count($unlisted()) === 1 ? ' is' : ' are').' no longer served')
             ->description('The provider refused calls to it and no longer lists it, so the pickers hide it, and the app\'s own tasks that used it now use another model. Agents that use it cannot answer. Pick another model where it is still set. It comes back on its own once the provider serves it again.')
             ->icon(Heroicon::OutlinedExclamationTriangle)
@@ -987,7 +987,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
 
         $default = $this->catalogName($this->valueInUse('default_agent_model')) ?? Llm::available()->first()?->displayName();
 
-        return $count.' '.Str::plural('model', $count).' · default: '.$default;
+        return "{$count} ".Str::plural('model', $count)." · default: {$default}";
     }
 
     /**
@@ -1251,7 +1251,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     private function catalogOptions(?array $ids = null): array
     {
         return Llm::available()
-            ->when($ids !== null, fn ($models) => $models->filter(fn (Llm $llm): bool => in_array($llm->id, $ids, true)))
+            ->when($ids !== null, fn ($models) => $models->filter(fn (Llm $llm): bool => collect($ids)->containsStrict($llm->id)))
             ->groupBy(fn (Llm $llm): string => $llm->provider->name)
             ->map(fn ($models): array => $models->mapWithKeys(fn (Llm $llm): array => [$llm->id => ModelLogo::forLlm($llm)])->all())
             ->all();
@@ -1454,7 +1454,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     {
         $provider = $this->providerInUse('voice');
 
-        return $provider === 'off' ? $provider : $provider.' · '.RealtimeVoice::configured()->label();
+        return $provider === 'off' ? $provider : "{$provider} · ".RealtimeVoice::configured()->label();
     }
 
     /** The service that reads replies aloud, with its default voice. */
@@ -1465,13 +1465,13 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
         $voice = $speaker->defaultVoice();
         $name = array_find($speaker->voices(), fn (SpeechVoiceData $choice): bool => $choice->id === $voice)?->label;
 
-        return $provider === 'off' || blank($name) ? $provider : $provider.' · '.$name;
+        return $provider === 'off' || blank($name) ? $provider : "{$provider} · {$name}";
     }
 
     /** Whether Read aloud or audio files use this speech service, as the form picks them now. */
     private function speechServiceUsed(Get $get, string $provider): bool
     {
-        return in_array($provider, [$get('speaker'), $get('audio_generator')], true);
+        return collect([$get('speaker'), $get('audio_generator')])->containsStrict($provider);
     }
 
     /** The image service in use, with its model, or "off". */
@@ -1486,7 +1486,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             default => null,
         };
 
-        return $provider === 'off' || blank($model) ? $provider : $provider.' · '.$model;
+        return $provider === 'off' || blank($model) ? $provider : "{$provider} · {$model}";
     }
 
     /** The video service in use, with its model and the length and resolution asked for, or "off". */
@@ -1506,18 +1506,18 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             return 'off';
         }
 
-        return $this->providerInUse('video_generator').' · '.$model.' · '.config('chatvia.ai.video_duration').' s, '.config('chatvia.ai.video_resolution');
+        return "{$this->providerInUse('video_generator')} · {$model} · ".config('chatvia.ai.video_duration').' s, '.config('chatvia.ai.video_resolution');
     }
 
     private function embeddingSummary(): string
     {
         $provider = EmbeddingProvider::tryFrom((string) $this->valueInUse('embedding_provider'));
         $summary = $provider instanceof EmbeddingProvider
-            ? $provider->label().' ('.config($provider->modelConfig()).')'
+            ? "{$provider->label()} (".config($provider->modelConfig()).')'
             : $this->shown($this->valueInUse('embedding_provider'));
         $reindex = $this->runningReindex();
 
-        return $reindex instanceof Batch ? $summary.' · re-indexing, '.$reindex->progress().'% done' : $summary;
+        return $reindex instanceof Batch ? "{$summary} · re-indexing, {$reindex->progress()}% done" : $summary;
     }
 
     /**
@@ -1527,7 +1527,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     private function reindexCallout(): Callout
     {
         return Callout::make(fn (): string => $this->runningReindex() instanceof Batch
-            ? 'Re-indexing: '.$this->latestReindex()?->progress().'% done'
+            ? "Re-indexing: {$this->latestReindex()?->progress()}% done"
             : 'The last re-index missed some documents')
             ->description(fn (): string => $this->runningReindex() instanceof Batch
                 ? 'It runs in the background queue. Until it ends, agents may miss some documents.'

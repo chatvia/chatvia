@@ -56,7 +56,7 @@ class PiiDetector
     {
         $filters = [];
         foreach (PiiFilterType::cases() as $type) {
-            if ($only === null || in_array($type->value, $only, true)) {
+            if ($only === null || collect($only)->containsStrict($type->value)) {
                 $filters[] = $this->filterClass($type);
             }
         }

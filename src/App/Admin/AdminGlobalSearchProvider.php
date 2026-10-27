@@ -9,6 +9,7 @@ use App\Admin\Clusters\Settings\SettingsSearch;
 use Filament\GlobalSearch\GlobalSearchResult;
 use Filament\GlobalSearch\GlobalSearchResults;
 use Filament\GlobalSearch\Providers\DefaultGlobalSearchProvider;
+use Illuminate\Support\Arr;
 
 /**
  * The search box of the panel's sidebar: what Filament finds in the
@@ -35,7 +36,7 @@ final class AdminGlobalSearchProvider extends DefaultGlobalSearchProvider
             url: $hit->entry->url,
             details: array_filter([
                 'Page' => $hit->entry->page,
-                'Options' => $hit->options === [] ? null : implode(', ', $hit->options),
+                'Options' => $hit->options === [] ? null : Arr::join($hit->options, ', '),
             ]),
         ), $hits));
     }

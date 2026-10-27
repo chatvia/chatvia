@@ -18,6 +18,7 @@ use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\StructuredCompletion;
 use Domain\Llm\Services\TaskModels;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -130,7 +131,7 @@ class ConversationAnalyzer
 
         return Str::trim(prompt('analytics/conversation-analysis', [
             'topicList' => $topicList,
-            'pendingLabels' => $pendingLabels === [] ? '(none)' : implode(', ', $pendingLabels),
+            'pendingLabels' => $pendingLabels === [] ? '(none)' : Arr::join($pendingLabels, ', '),
         ]));
     }
 
@@ -240,7 +241,7 @@ class ConversationAnalyzer
 
         return collect(is_array($ids) ? $ids : [])
             ->map(fn (mixed $id): int => (int) $id)
-            ->filter(fn (int $id): bool => in_array($id, $allowed, true))
+            ->filter(fn (int $id): bool => collect($allowed)->containsStrict($id))
             ->unique()
             ->values()
             ->all();
@@ -260,7 +261,7 @@ class ConversationAnalyzer
         return collect(is_array($labels) ? $labels : [])
             ->filter(fn (mixed $label): bool => filled($label))
             ->map(fn (string $label): string => Str::trim($label))
-            ->reject(fn (string $label): bool => in_array(Str::lower($label), $existingNames, true))
+            ->reject(fn (string $label): bool => collect($existingNames)->containsStrict(Str::lower($label)))
             ->unique(fn (string $label): string => Str::lower($label))
             ->values()
             ->all();

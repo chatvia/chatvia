@@ -7,6 +7,7 @@ namespace Domain\Knowledge\Embedding\Actions\Reindex;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswerQuestion;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -47,14 +48,14 @@ class ReembedQaQuestionsAction
         foreach ($questions as $position => $question) {
             $rows[] = "(?::bigint, ?::{$cast})";
             $bindings[] = $question->id;
-            $bindings[] = '['.implode(',', $vectors[$position]).']';
+            $bindings[] = '['.Arr::join($vectors[$position], ',').']';
         }
 
         $table = $questions->first()->getTable();
 
         DB::update(
             "UPDATE {$table} AS t SET embedding = v.embedding
-             FROM (VALUES ".implode(', ', $rows).') AS v(id, embedding)
+             FROM (VALUES ".Arr::join($rows, ', ').') AS v(id, embedding)
              WHERE t.id = v.id',
             $bindings,
         );

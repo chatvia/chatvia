@@ -7,6 +7,7 @@ namespace App\Http\Requests\Chat;
 use Domain\Conversation\Enums\VoiceNoteFormat;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Arr;
 
 /**
  * Validates a voice note sent from the hosted-chat or widget composer for
@@ -31,8 +32,8 @@ class TranscribeAudioRequest extends FormRequest
                 'required',
                 'file',
                 'max:25600',
-                'mimetypes:'.implode(',', VoiceNoteFormat::allMimeTypes()),
-                'extensions:'.implode(',', VoiceNoteFormat::allExtensions()),
+                'mimetypes:'.Arr::join(VoiceNoteFormat::allMimeTypes(), ','),
+                'extensions:'.Arr::join(VoiceNoteFormat::allExtensions(), ','),
             ],
         ];
     }

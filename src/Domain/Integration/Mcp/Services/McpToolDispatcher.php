@@ -180,7 +180,7 @@ class McpToolDispatcher implements ToolDispatcher
 
     private function error(string $message): ToolDispatchResultData
     {
-        return ToolDispatchResultData::error('Tool error: '.$message);
+        return ToolDispatchResultData::error("Tool error: {$message}");
     }
 
     /**

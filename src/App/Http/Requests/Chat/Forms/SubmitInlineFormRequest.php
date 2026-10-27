@@ -32,7 +32,7 @@ class SubmitInlineFormRequest extends FormRequest
         $submission = $this->route('formInstance');
         if ($submission instanceof FormSubmission && $submission->definition !== null) {
             foreach (app(FormSchemaBuilder::class)->validationRules($submission->definition->schema) as $key => $rule) {
-                $rules['fields.'.$key] = $rule;
+                $rules["fields.{$key}"] = $rule;
             }
         }
 

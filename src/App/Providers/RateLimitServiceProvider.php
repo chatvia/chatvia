@@ -44,16 +44,16 @@ class RateLimitServiceProvider extends ServiceProvider
             $sessionKey = $request->header(WidgetHeaders::SESSION_ID) ?: $request->ip();
 
             $limits = [
-                Limit::perMinute(20)->by('widget-stream|sess|'.$sessionKey),
+                Limit::perMinute(20)->by("widget-stream|sess|{$sessionKey}"),
             ];
 
             $agent = WidgetAgent::from($request);
 
             if ($agent instanceof Agent) {
                 $limits[] = Limit::perMinute((int) config('chatvia.widget.stream_per_agent_per_minute', 120))
-                    ->by('widget-stream|agent|'.$agent->id);
+                    ->by("widget-stream|agent|{$agent->id}");
                 $limits[] = Limit::perHour((int) config('chatvia.widget.stream_per_agent_per_hour', 1500))
-                    ->by('widget-stream|agent-hour|'.$agent->id);
+                    ->by("widget-stream|agent-hour|{$agent->id}");
             }
 
             return $limits;
@@ -64,11 +64,11 @@ class RateLimitServiceProvider extends ServiceProvider
         // agent only so many across all its visitors.
         RateLimiter::for('widget-voice', function (Request $request): array {
             $sessionKey = $request->header(WidgetHeaders::SESSION_ID) ?: $request->ip();
-            $limits = [Limit::perMinute(5)->by('widget-voice|sess|'.$sessionKey)];
+            $limits = [Limit::perMinute(5)->by("widget-voice|sess|{$sessionKey}")];
             $agent = WidgetAgent::from($request);
 
             if ($agent instanceof Agent) {
-                $limits[] = Limit::perMinute(30)->by('widget-voice|agent|'.$agent->id);
+                $limits[] = Limit::perMinute(30)->by("widget-voice|agent|{$agent->id}");
             }
 
             return $limits;
@@ -79,14 +79,14 @@ class RateLimitServiceProvider extends ServiceProvider
         // surface (defence in depth — verify() is already constant-time).
         RateLimiter::for(
             'widget-exchange',
-            fn (Request $request) => Limit::perMinute(10)->by('widget-exchange|'.$request->ip()),
+            fn (Request $request) => Limit::perMinute(10)->by("widget-exchange|{$request->ip()}"),
         );
     }
 
     private function configureApiLimiters(): void
     {
         RateLimiter::for('api', fn (Request $request) => $request->user()
-            ? Limit::perMinute(300)->by($request->user()->getAuthIdentifier().'|'.$request->user()::class)
+            ? Limit::perMinute(300)->by("{$request->user()->getAuthIdentifier()}|".$request->user()::class)
             : Limit::perMinute(60)->by($request->ip()));
 
         // The public API's message endpoint costs an LLM turn, so it gets the
@@ -113,9 +113,9 @@ class RateLimitServiceProvider extends ServiceProvider
             $agent = HostedChatAgent::from($request);
 
             return [
-                Limit::perMinute(15)->by('chat-login-ip|'.$request->ip()),
+                Limit::perMinute(15)->by("chat-login-ip|{$request->ip()}"),
                 Limit::perMinute(5)->by(Str::transliterate(
-                    'chat-login|'.($agent?->workspace_id ?? 'none').'|'.Str::lower($request->string('email')->toString()).'|'.$request->ip(),
+                    'chat-login|'.($agent?->workspace_id ?? 'none').'|'.Str::lower($request->string('email')->toString())."|{$request->ip()}",
                 )),
             ];
         });
@@ -123,7 +123,7 @@ class RateLimitServiceProvider extends ServiceProvider
         // Bulk gate for every /chat/{agentSlug}/* call, like `widgets` for the
         // widget: one per-IP ceiling, however many sessions an IP opens. A
         // little above the widget's, as the hosted chat is a whole app.
-        RateLimiter::for('chat', fn (Request $request) => Limit::perMinute(120)->by('chat|ip|'.$request->ip()));
+        RateLimiter::for('chat', fn (Request $request) => Limit::perMinute(120)->by("chat|ip|{$request->ip()}"));
 
         // Hosted-chat LLM-cost endpoints (stream, transcription, regenerate,
         // attachment upload). Keyed by the authenticated chatter, IP fallback.
@@ -131,14 +131,14 @@ class RateLimitServiceProvider extends ServiceProvider
         // ceiling per server-resolved agent is stacked on top, with the
         // widget's numbers (see `widget-stream`).
         RateLimiter::for('chat-stream', function (Request $request): array {
-            $limits = [Limit::perMinute(30)->by('chat-stream|account|'.$this->chatAccountKey($request))];
+            $limits = [Limit::perMinute(30)->by("chat-stream|account|{$this->chatAccountKey($request)}")];
             $agent = HostedChatAgent::from($request);
 
             if ($agent instanceof Agent) {
                 $limits[] = Limit::perMinute((int) config('chatvia.widget.stream_per_agent_per_minute', 120))
-                    ->by('chat-stream|agent|'.$agent->id);
+                    ->by("chat-stream|agent|{$agent->id}");
                 $limits[] = Limit::perHour((int) config('chatvia.widget.stream_per_agent_per_hour', 1500))
-                    ->by('chat-stream|agent-hour|'.$agent->id);
+                    ->by("chat-stream|agent-hour|{$agent->id}");
             }
 
             return $limits;
@@ -147,11 +147,11 @@ class RateLimitServiceProvider extends ServiceProvider
         // Reading a hosted-chat reply aloud; a saved reply costs nothing, a
         // new one is a paid call to the speech service.
         RateLimiter::for('chat-speech', function (Request $request): array {
-            $limits = [Limit::perMinute(20)->by('chat-speech|account|'.$this->chatAccountKey($request))];
+            $limits = [Limit::perMinute(20)->by("chat-speech|account|{$this->chatAccountKey($request)}")];
             $agent = HostedChatAgent::from($request);
 
             if ($agent instanceof Agent) {
-                $limits[] = Limit::perMinute(120)->by('chat-speech|agent|'.$agent->id);
+                $limits[] = Limit::perMinute(120)->by("chat-speech|agent|{$agent->id}");
             }
 
             return $limits;
@@ -159,11 +159,11 @@ class RateLimitServiceProvider extends ServiceProvider
 
         // Starting a hosted-chat voice call (see `widget-voice`).
         RateLimiter::for('chat-voice', function (Request $request): array {
-            $limits = [Limit::perMinute(5)->by('chat-voice|account|'.$this->chatAccountKey($request))];
+            $limits = [Limit::perMinute(5)->by("chat-voice|account|{$this->chatAccountKey($request)}")];
             $agent = HostedChatAgent::from($request);
 
             if ($agent instanceof Agent) {
-                $limits[] = Limit::perMinute(30)->by('chat-voice|agent|'.$agent->id);
+                $limits[] = Limit::perMinute(30)->by("chat-voice|agent|{$agent->id}");
             }
 
             return $limits;

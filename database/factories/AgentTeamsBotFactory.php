@@ -27,7 +27,7 @@ class AgentTeamsBotFactory extends Factory
     {
         return [
             'agent_id' => Agent::factory()->state(['is_public' => true]),
-            'app_id' => (string) Str::uuid(),
+            'app_id' => (string) Str::uuid7(),
             'app_secret' => Str::random(32),
             'tenant_id' => null,
             'webhook_secret' => Str::random(48),

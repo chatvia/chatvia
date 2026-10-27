@@ -9,6 +9,7 @@ use DOMDocument;
 use DOMElement;
 use DOMNode;
 use DOMXPath;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use League\HTMLToMarkdown\Converter\TableConverter;
 use League\HTMLToMarkdown\HtmlConverter;
@@ -87,7 +88,7 @@ final class EpubReader
         foreach ($opf->getElementsByTagName('itemref') as $reference) {
             $item = $items[$reference->getAttribute('idref')] ?? null;
 
-            if ($item === null || ! in_array($item->getAttribute('media-type'), ['application/xhtml+xml', 'text/html'], true)) {
+            if ($item === null || ! collect(['application/xhtml+xml', 'text/html'])->containsStrict($item->getAttribute('media-type'))) {
                 continue;
             }
 
@@ -143,7 +144,7 @@ final class EpubReader
     private function parse(string $html): ?DOMDocument
     {
         $xml = Str::replaceMatches('/&([a-zA-Z][a-zA-Z0-9]*);/', static function (array $match): string {
-            if (in_array($match[1], ['amp', 'lt', 'gt', 'quot', 'apos'], true)) {
+            if (collect(['amp', 'lt', 'gt', 'quot', 'apos'])->containsStrict($match[1])) {
                 return $match[0];
             }
 
@@ -257,7 +258,7 @@ final class EpubReader
     private function isNote(DOMElement $element): bool
     {
         return $this->hasType($element, ['footnote', 'endnote', 'rearnote', 'note', 'footnotes', 'endnotes', 'rearnotes'])
-            || in_array($element->getAttribute('role'), ['doc-footnote', 'doc-endnote', 'doc-endnotes'], true);
+            || collect(['doc-footnote', 'doc-endnote', 'doc-endnotes'])->containsStrict($element->getAttribute('role'));
     }
 
     /** A container of notes (pandoc's footnotes section), as opposed to one note. */
@@ -301,10 +302,10 @@ final class EpubReader
      */
     private function all(DOMXPath $xpath, DOMNode $context, array $names): array
     {
-        $tests = implode(' or ', array_map(static fn (string $name): string => 'local-name()="'.$name.'"', $names));
+        $tests = Arr::join(array_map(static fn (string $name): string => 'local-name()="'.$name.'"', $names), ' or ');
         $elements = [];
 
-        foreach ($xpath->query('.//*['.$tests.']', $context) ?: [] as $element) {
+        foreach ($xpath->query(".//*[{$tests}]", $context) ?: [] as $element) {
             if ($element instanceof DOMElement) {
                 $elements[] = $element;
             }

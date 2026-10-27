@@ -60,7 +60,7 @@ class SaveGuardrailSettingsAction
         foreach ($settings->blocked_topics as $index => $topic) {
             if ($topic->reply !== null) {
                 $before = array_find($previous->blocked_topics, static fn (BlockedTopicData $saved): bool => $saved->reply === $topic->reply);
-                $texts['topic_'.$index] = new TranslatableText($topic->reply, $before->reply_translations ?? []);
+                $texts["topic_{$index}"] = new TranslatableText($topic->reply, $before->reply_translations ?? []);
             }
         }
 
@@ -78,7 +78,7 @@ class SaveGuardrailSettingsAction
                     examples: $topic->examples,
                     action: $topic->action,
                     reply: $topic->reply,
-                    reply_translations: $texts['topic_'.$index]->translations ?? [],
+                    reply_translations: $texts["topic_{$index}"]->translations ?? [],
                 ),
                 $settings->blocked_topics,
                 array_keys($settings->blocked_topics),

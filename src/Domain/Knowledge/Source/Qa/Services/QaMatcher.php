@@ -10,6 +10,7 @@ use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Embedding\Services\RelevanceThresholds;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswerQuestion;
+use Illuminate\Support\Arr;
 
 /**
  * Finds the curated Q&A entry that answers a message, if any:
@@ -47,7 +48,7 @@ class QaMatcher
             return null;
         }
 
-        $vector = '['.implode(',', $this->embeddings->embedQuery($searchQuery)).']';
+        $vector = '['.Arr::join($this->embeddings->embedQuery($searchQuery), ',').']';
 
         return AgentQuestionAnswer::query()->closestInMeaning($agent->id, $vector, $this->storage->columnType(), $threshold);
     }

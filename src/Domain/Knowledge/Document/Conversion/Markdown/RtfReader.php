@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Document\Conversion\Markdown;
 
+use Illuminate\Support\Arr;
 use RuntimeException;
 
 /**
@@ -590,7 +591,7 @@ final class RtfReader
         $this->marker = '';
         $this->inList = false;
 
-        if (in_array($word, ['nestcell', 'nestrow'], true) || ($state['table'] && $state['depth'] > 1)) {
+        if (collect(['nestcell', 'nestrow'])->containsStrict($word) || ($state['table'] && $state['depth'] > 1)) {
             if ($word !== 'nestrow') {
                 $this->cell[] = $text;
             }
@@ -609,7 +610,7 @@ final class RtfReader
             $this->cell[] = $text;
 
             if ($word === 'cell') {
-                $this->row[] = MarkdownText::inline(implode("\n", $this->cell));
+                $this->row[] = MarkdownText::inline(Arr::join($this->cell, "\n"));
                 $this->cell = [];
             }
 
@@ -651,7 +652,7 @@ final class RtfReader
     {
         $last = end($this->blocks);
 
-        return $last !== false && in_array($last[0], [MarkdownText::ITEM, MarkdownText::LIST_START], true) || $level > 0 ? MarkdownText::ITEM : MarkdownText::LIST_START;
+        return $last !== false && collect([MarkdownText::ITEM, MarkdownText::LIST_START])->containsStrict($last[0]) || $level > 0 ? MarkdownText::ITEM : MarkdownText::LIST_START;
     }
 
     /** "-" for a bullet; the number the file shows (or the next one) for a numbered item. */
@@ -662,13 +663,13 @@ final class RtfReader
         if (preg_match('/(\d+)[.)]?\s*$/', $marker, $match) === 1) {
             $this->counters[$level] = (int) $match[1];
 
-            return $match[1].'.';
+            return "{$match[1]}.";
         }
 
         if (preg_match('/^\(?([a-zA-Z]{1,4})[.)]$/', $marker) === 1) {
             $this->counters[$level] = ($this->counters[$level] ?? 0) + 1;
 
-            return $this->counters[$level].'.';
+            return "{$this->counters[$level]}.";
         }
 
         return '-';
@@ -676,8 +677,8 @@ final class RtfReader
 
     private function flushTable(): void
     {
-        if ($this->cell !== [] && implode('', $this->cell) !== '') {
-            $this->row[] = MarkdownText::inline(implode("\n", $this->cell));
+        if ($this->cell !== [] && Arr::join($this->cell, '') !== '') {
+            $this->row[] = MarkdownText::inline(Arr::join($this->cell, "\n"));
         }
 
         if ($this->row !== []) {
@@ -703,7 +704,7 @@ final class RtfReader
                 return (int) $match[1];
             }
 
-            if (in_array(strtolower($definition['name']), ['title', 'toc heading'], true)) {
+            if (collect(['title', 'toc heading'])->containsStrict(strtolower($definition['name']))) {
                 return 1;
             }
 

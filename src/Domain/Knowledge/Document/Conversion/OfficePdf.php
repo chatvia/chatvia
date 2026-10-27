@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Document\Conversion;
 
+use Illuminate\Support\Arr;
 use Spatie\LaravelPdf\Facades\Pdf;
 
 /**
@@ -57,7 +58,7 @@ class OfficePdf
         $html = '<!doctype html><html><head><meta charset="utf-8">'
             .'<meta http-equiv="Content-Security-Policy" content="'.self::CONTENT_SECURITY_POLICY.'">'
             .'<style>'.self::STYLE.'</style></head><body>'
-            .implode('', $sections)
+            .Arr::join($sections, '')
             .'</body></html>';
 
         $pdfPath = create_temp_file('office.pdf', '');

@@ -52,7 +52,7 @@ class GoogleImageGenerator implements ImageGenerator
                     ],
                 ]));
         } catch (Throwable $e) {
-            throw new ImageGenerationFailedException('Google could not be reached: '.$e->getMessage(), previous: $e);
+            throw new ImageGenerationFailedException("Google could not be reached: {$e->getMessage()}", previous: $e);
         }
 
         if ($response->failed()) {
@@ -75,7 +75,7 @@ class GoogleImageGenerator implements ImageGenerator
 
         $blocked = $response->json('promptFeedback.blockReason') ?? $response->json('candidates.0.finishReason');
 
-        if (in_array($blocked, self::REFUSALS, true)) {
+        if (collect(self::REFUSALS)->containsStrict($blocked)) {
             throw ImageGenerationFailedException::refused('Google');
         }
 
@@ -89,7 +89,7 @@ class GoogleImageGenerator implements ImageGenerator
 
     public function name(?string $model = null): string
     {
-        return 'google '.$this->model($model);
+        return "google {$this->model($model)}";
     }
 
     private function model(?string $picked = null): string

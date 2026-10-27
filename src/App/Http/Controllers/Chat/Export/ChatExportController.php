@@ -44,9 +44,9 @@ readonly class ChatExportController
             // Content-Security-Policy for a browser), so a link in a message
             // cannot make the server fetch it.
             ChatExportFormat::Pdf => Pdf::view('chat.export.pdf', ['messages' => $this->renderer->toPdfMessages($messages)])
-                ->download($filename.'.pdf'),
-            ChatExportFormat::Markdown => $this->download($this->renderer->toMarkdown($messages), $filename.'.md'),
-            ChatExportFormat::Text => $this->download($this->renderer->toText($messages), $filename.'.txt'),
+                ->download("{$filename}.pdf"),
+            ChatExportFormat::Markdown => $this->download($this->renderer->toMarkdown($messages), "{$filename}.md"),
+            ChatExportFormat::Text => $this->download($this->renderer->toText($messages), "{$filename}.txt"),
         };
     }
 

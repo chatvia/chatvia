@@ -154,6 +154,7 @@ use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
@@ -255,7 +256,7 @@ class DomainServiceProvider extends ServiceProvider
             $factory = $app->make(RerankerFactory::class);
             $driver = $this->aiDriver('reranker', auto: $factory->autoDriver());
 
-            if (! in_array($driver, RerankerFactory::DRIVERS, true)) {
+            if (! collect(RerankerFactory::DRIVERS)->containsStrict($driver)) {
                 throw $this->unknownAiDriver('reranker', RerankerFactory::DRIVERS);
             }
 
@@ -351,7 +352,7 @@ class DomainServiceProvider extends ServiceProvider
             'Unsupported value "%s" for chatvia.ai.%s. Use auto, %s.',
             (string) config("chatvia.ai.{$key}"),
             $key,
-            implode(', ', $allowed),
+            Arr::join($allowed, ', '),
         ));
     }
 

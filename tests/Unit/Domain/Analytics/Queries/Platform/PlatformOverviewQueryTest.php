@@ -28,7 +28,7 @@ function poqSessionFirst(Agent $agent, string $firstSeenAt): void
         ->insert([
             'agent_id' => $agent->id,
             'workspace_id' => $agent->workspace_id,
-            'session_external_id' => (string) Str::uuid(),
+            'session_external_id' => (string) Str::uuid7(),
             'first_seen_at' => $firstSeenAt,
         ]);
 }

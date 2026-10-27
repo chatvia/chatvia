@@ -183,6 +183,6 @@ class CreateSourceChunksAction
      */
     private function vectorLiteral(array $vector): string
     {
-        return '['.implode(',', $vector).']';
+        return '['.Arr::join($vector, ',').']';
     }
 }

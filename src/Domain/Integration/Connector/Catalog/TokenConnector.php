@@ -27,7 +27,7 @@ abstract class TokenConnector extends Connector
     }
 
     public string $tokenPlaceholder {
-        get => 'Your '.$this->tokenLabel;
+        get => "Your {$this->tokenLabel}";
     }
 
     public McpAuthType $authType {

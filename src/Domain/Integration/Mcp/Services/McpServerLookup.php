@@ -31,7 +31,7 @@ class McpServerLookup
      */
     public function forWorkspace(int $workspaceId, string $slug): ?AgentMcpServer
     {
-        $key = $workspaceId.'|'.$slug;
+        $key = "{$workspaceId}|{$slug}";
 
         if (! array_key_exists($key, $this->byWorkspace)) {
             $this->byWorkspace[$key] = AgentMcpServer::query()
@@ -49,7 +49,7 @@ class McpServerLookup
      */
     public function attachedToAgent(Agent $agent, string $slug): ?AgentMcpServer
     {
-        $key = $agent->id.'|'.$slug;
+        $key = "{$agent->id}|{$slug}";
 
         if (! array_key_exists($key, $this->attached)) {
             $server = $this->forWorkspace((int) $agent->workspace_id, $slug);

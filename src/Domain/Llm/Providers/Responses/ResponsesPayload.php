@@ -6,6 +6,7 @@ namespace Domain\Llm\Providers\Responses;
 
 use Domain\Llm\AbstractLlmProvider;
 use Domain\Llm\Providers\Concerns\StreamsThroughResponses;
+use Illuminate\Support\Arr;
 use stdClass;
 
 /**
@@ -119,7 +120,7 @@ final class ResponsesPayload
     {
         $content = $message['content'] ?? '';
         $text = is_array($content)
-            ? implode('', array_map(static fn (mixed $part): string => is_array($part) ? (string) ($part['text'] ?? '') : '', $content))
+            ? Arr::join(array_map(static fn (mixed $part): string => is_array($part) ? (string) ($part['text'] ?? '') : '', $content), '')
             : (string) $content;
 
         $items = $text !== '' ? [['role' => 'assistant', 'content' => $text]] : [];

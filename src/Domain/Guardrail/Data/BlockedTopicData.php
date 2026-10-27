@@ -6,6 +6,7 @@ namespace Domain\Guardrail\Data;
 
 use Domain\Agent\ValueObjects\TranslatableText;
 use Domain\Guardrail\Enums\TopicResponse;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Spatie\LaravelData\Data;
 
@@ -69,11 +70,11 @@ class BlockedTopicData extends Data
         $line = $this->name;
 
         if ($this->description !== null) {
-            $line .= ' — '.$this->description;
+            $line .= " — {$this->description}";
         }
 
         if ($this->examples !== []) {
-            $line .= ' (for example: '.implode('; ', array_map(static fn (string $example): string => '"'.$example.'"', $this->examples)).')';
+            $line .= ' (for example: '.Arr::join(array_map(static fn (string $example): string => '"'.$example.'"', $this->examples), '; ').')';
         }
 
         return $line;

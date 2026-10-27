@@ -45,7 +45,7 @@ class GuardrailInboxNotification extends InboxNotification
                 agent: NotificationAgentData::fromAgent($this->agent),
                 detail: $this->alert === GuardAlert::Skipped ? $this->failure : $this->guardType,
             ),
-            'guardrail:'.$this->agent->external_id.':'.$this->alert->value,
+            "guardrail:{$this->agent->external_id}:{$this->alert->value}",
         );
     }
 }

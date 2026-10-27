@@ -7,6 +7,7 @@ namespace Domain\Knowledge\Document\Conversion\Markdown;
 use DOMDocument;
 use DOMElement;
 use DOMNode;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use RuntimeException;
 
@@ -307,7 +308,7 @@ final class DocxReader
             $text .= match ($child->localName) {
                 't' => $this->inFieldCode() ? '' : $child->textContent,
                 'tab', 'ptab' => "\t",
-                'br' => in_array($this->attribute($child, 'type'), ['page', 'column'], true) ? ' ' : "\n",
+                'br' => collect(['page', 'column'])->containsStrict($this->attribute($child, 'type')) ? ' ' : "\n",
                 'cr' => "\n",
                 'noBreakHyphen' => '-',
                 'softHyphen' => '',
@@ -316,8 +317,8 @@ final class DocxReader
                 'footnoteReference' => $this->note('footnote', $child),
                 'endnoteReference' => $this->note('endnote', $child),
                 'hyperlink' => $this->hyperlink($child),
-                'txbxContent' => "\n".implode("\n", array_column($this->blocks($child), 1))."\n",
-                default => in_array($child->localName, self::HIDDEN, true) ? '' : $this->inline($child),
+                'txbxContent' => "\n".Arr::join(array_column($this->blocks($child), 1), "\n")."\n",
+                default => collect(self::HIDDEN)->containsStrict($child->localName) ? '' : $this->inline($child),
             };
         }
 
@@ -363,7 +364,7 @@ final class DocxReader
 
         $fields = $this->fields;
         $this->fields = [];
-        $text = implode(' ', array_column($this->blocks($note), 1));
+        $text = Arr::join(array_column($this->blocks($note), 1), ' ');
         $this->fields = $fields;
 
         return $this->notes->add($text);
@@ -378,7 +379,7 @@ final class DocxReader
             return $text;
         }
 
-        return $parts[1].'['.Str::replace(']', '\\]', $parts[2]).']('.Str::replace([' ', '(', ')'], ['%20', '%28', '%29'], $url).')'.$parts[3];
+        return "{$parts[1]}[".Str::replace(']', '\\]', $parts[2]).']('.Str::replace([' ', '(', ')'], ['%20', '%28', '%29'], $url)."){$parts[3]}";
     }
 
     /**
@@ -420,7 +421,7 @@ final class DocxReader
                     $merge = $this->child($this->child($cell, 'tcPr'), 'vMerge');
                     $continued = $merge instanceof DOMElement && $this->attribute($merge, 'val') !== 'restart';
 
-                    $line[] = $continued ? '' : implode("\n", array_column($this->blocks($cell), 1));
+                    $line[] = $continued ? '' : Arr::join(array_column($this->blocks($cell), 1), "\n");
                     array_push($line, ...array_fill(0, $this->span($cell) - 1, ''));
                 }
 
@@ -431,7 +432,7 @@ final class DocxReader
         }
 
         if ($this->tableDepth > 0) {
-            return [[MarkdownText::BLOCK, implode(' ', array_filter(array_merge(...$cells), static fn (string $cell): bool => $cell !== ''))]];
+            return [[MarkdownText::BLOCK, Arr::join(array_filter(array_merge(...$cells), static fn (string $cell): bool => $cell !== ''), ' ')]];
         }
 
         return [[MarkdownText::BLOCK, MarkdownText::table($cells)]];
@@ -458,7 +459,7 @@ final class DocxReader
                 return (int) $level;
             }
 
-            if (in_array(Str::lower($definition['name']), ['title', 'toc heading'], true)) {
+            if (collect(['title', 'toc heading'])->containsStrict(Str::lower($definition['name']))) {
                 return 1;
             }
 
@@ -501,7 +502,7 @@ final class DocxReader
     /** The list marker of the next item: "-" for bullets, its number for numbered lists. */
     private function marker(string $numId, int $level): string
     {
-        $num = $this->nums[$numId] ?? ['abstract' => 'num:'.$numId, 'starts' => []];
+        $num = $this->nums[$numId] ?? ['abstract' => "num:{$numId}", 'starts' => []];
         $key = $num['abstract'];
         $abstract = $this->abstracts[$key] ?? ['link' => null, 'levels' => []];
 
@@ -514,10 +515,10 @@ final class DocxReader
         $format = $abstract['levels'][$level] ?? ['format' => 'bullet', 'start' => 1];
         $counters = array_filter($this->counters[$key] ?? [], static fn (int $deeper): bool => $deeper <= $level, ARRAY_FILTER_USE_KEY);
 
-        $restart = isset($num['starts'][$level]) && ! isset($this->restarted[$numId.':'.$level]);
+        $restart = isset($num['starts'][$level]) && ! isset($this->restarted["{$numId}:{$level}"]);
 
         if ($restart) {
-            $this->restarted[$numId.':'.$level] = true;
+            $this->restarted["{$numId}:{$level}"] = true;
             $counters[$level] = $num['starts'][$level];
         } else {
             $counters[$level] = isset($counters[$level]) ? $counters[$level] + 1 : $format['start'];
@@ -529,7 +530,7 @@ final class DocxReader
 
         $this->counters[$key] = $counters;
 
-        return in_array($format['format'], ['bullet', 'none'], true) ? '-' : $counters[$level].'.';
+        return collect(['bullet', 'none'])->containsStrict($format['format']) ? '-' : "{$counters[$level]}.";
     }
 
     /**
@@ -570,7 +571,7 @@ final class DocxReader
             } elseif ($child->namespaceURI === self::W && $child->localName === 'sdt') {
                 $inner = $this->child($child, 'sdtContent');
                 array_push($elements, ...($inner instanceof DOMElement ? $this->content($inner) : []));
-            } elseif ($child->namespaceURI === self::W && in_array($child->localName, self::WRAPPERS, true)) {
+            } elseif ($child->namespaceURI === self::W && collect(self::WRAPPERS)->containsStrict($child->localName)) {
                 array_push($elements, ...$this->content($child));
             } else {
                 $elements[] = $child;

@@ -52,7 +52,7 @@ final class VoiceToolApprovals
     /** Whether the visitor's speech answers a question about a held call. */
     public function isAnswer(string $itemId): bool
     {
-        return in_array($itemId, $this->holds, true);
+        return collect($this->holds)->containsStrict($itemId);
     }
 
     /** Whether the call repeats a held one, in the reply to the visitor's answer. */
@@ -72,7 +72,7 @@ final class VoiceToolApprovals
     {
         $decoded = json_decode($arguments, true);
 
-        return $name."\n".(is_array($decoded)
+        return "{$name}\n".(is_array($decoded)
             ? (string) json_encode(self::sorted($decoded), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
             : Str::trim($arguments));
     }

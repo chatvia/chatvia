@@ -22,7 +22,7 @@ class OpenRouter extends OpenAi
         }
 
         /** @var array<int, float> $vector */
-        $vector = $this->embed('Instruct: '.Qwen3::QUERY_INSTRUCTION."\nQuery: ".$text);
+        $vector = $this->embed('Instruct: '.Qwen3::QUERY_INSTRUCTION."\nQuery: {$text}");
 
         return $vector;
     }

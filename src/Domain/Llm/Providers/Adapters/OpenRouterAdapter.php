@@ -59,7 +59,7 @@ final class OpenRouterAdapter extends OpenAiCompatibleAdapter
         $this->client($provider)
             ->client()
             ->timeout(20)
-            ->get($this->baseUrl($provider).'/key')
+            ->get("{$this->baseUrl($provider)}/key")
             ->throw();
 
         return parent::models($provider);
@@ -67,14 +67,14 @@ final class OpenRouterAdapter extends OpenAiCompatibleAdapter
 
     protected function modelsUrl(LlmProvider $provider): string
     {
-        return $this->baseUrl($provider).'/models/user';
+        return "{$this->baseUrl($provider)}/models/user";
     }
 
     protected function isChatModel(array $row): bool
     {
         $outputs = $row['architecture']['output_modalities'] ?? null;
 
-        return is_array($outputs) ? in_array('text', $outputs, true) : parent::isChatModel($row);
+        return is_array($outputs) ? collect($outputs)->containsStrict('text') : parent::isChatModel($row);
     }
 
     protected function toModel(array $row): RemoteModelData
@@ -87,10 +87,10 @@ final class OpenRouterAdapter extends OpenAiCompatibleAdapter
             id: $model->id,
             name: $model->name,
             features: array_filter([
-                'vision' => is_array($inputs) ? in_array('image', $inputs, true) : null,
-                'files' => is_array($inputs) ? in_array('file', $inputs, true) : null,
-                'function_calling' => is_array($parameters) ? in_array('tools', $parameters, true) : null,
-                'reasoning' => is_array($parameters) ? in_array('reasoning', $parameters, true) : null,
+                'vision' => is_array($inputs) ? collect($inputs)->containsStrict('image') : null,
+                'files' => is_array($inputs) ? collect($inputs)->containsStrict('file') : null,
+                'function_calling' => is_array($parameters) ? collect($parameters)->containsStrict('tools') : null,
+                'reasoning' => is_array($parameters) ? collect($parameters)->containsStrict('reasoning') : null,
             ], is_bool(...)),
         );
     }

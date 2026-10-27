@@ -81,6 +81,6 @@ final class TurnStops
 
     private function key(string $requestId): string
     {
-        return 'turn-stop:'.$requestId;
+        return "turn-stop:{$requestId}";
     }
 }

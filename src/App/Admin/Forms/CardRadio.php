@@ -94,7 +94,7 @@ class CardRadio extends Radio
                         ->merge([
                             'autofocus' => $first && $isAutofocused,
                             'disabled' => $isDisabled || $this->isOptionDisabled($value, $label),
-                            'id' => e($id.'-'.$value),
+                            'id' => e("{$id}-{$value}"),
                             'name' => $id,
                             'required' => $this->isRequired() && (! $isDisabled) && (! $this->isOptionDisabled($value, $label)),
                             'value' => e($value),

@@ -51,7 +51,7 @@ class CreateAgentSourceTextAction
             'status' => SourceStatus::Pending,
         ]);
 
-        $filepath = KnowledgeStoragePath::forSource($sourceText).'/'.Str::uuid()->toString().'.txt';
+        $filepath = KnowledgeStoragePath::forSource($sourceText).'/'.Str::uuid7()->toString().'.txt';
         Storage::put($filepath, $content);
 
         try {

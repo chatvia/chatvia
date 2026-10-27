@@ -171,7 +171,7 @@ class ConnectorCatalog
      */
     public function builtinUrl(string $slug): string
     {
-        return Str::rtrim((string) config('app.url'), '/').'/mcp/'.$slug;
+        return Str::rtrim((string) config('app.url'), '/')."/mcp/{$slug}";
     }
 
     /**

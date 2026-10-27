@@ -28,7 +28,7 @@ final class ModelListData extends Data
     /** Whether the provider accepted the key (or needs none). */
     public function keyAccepted(): bool
     {
-        return ! in_array($this->status, [ModelListStatus::KeyRefused, ModelListStatus::Unreachable], true);
+        return ! collect([ModelListStatus::KeyRefused, ModelListStatus::Unreachable])->containsStrict($this->status);
     }
 
     /** Why there is no list, in plain words, or null when there is one. */

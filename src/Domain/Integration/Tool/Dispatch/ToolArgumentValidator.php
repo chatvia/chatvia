@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Integration\Tool\Dispatch;
 
 use Domain\Integration\Tool\Exceptions\InvalidToolArgumentsException;
+use Illuminate\Support\Arr;
 
 /**
  * Checks the arguments the model wrote for a tool call against the tool's
@@ -93,12 +94,12 @@ final class ToolArgumentValidator
         $types = array_values(array_filter((array) ($property['type'] ?? []), is_scalar(...)));
 
         if ($types !== [] && ! array_any($types, fn (mixed $type): bool => $this->isOfType((string) $type, $value))) {
-            return sprintf('"%s" must be of type %s', $key, implode(' or ', $types));
+            return sprintf('"%s" must be of type %s', $key, Arr::join($types, ' or '));
         }
 
         $allowed = $property['enum'] ?? null;
 
-        if (is_array($allowed) && $allowed !== [] && ! in_array($value, $allowed, true)) {
+        if (is_array($allowed) && $allowed !== [] && ! collect($allowed)->containsStrict($value)) {
             return sprintf('"%s" must be one of the allowed values', $key);
         }
 

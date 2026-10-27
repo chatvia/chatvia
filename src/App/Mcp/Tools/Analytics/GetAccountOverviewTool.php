@@ -45,7 +45,7 @@ class GetAccountOverviewTool extends AnalyticsTool
             Number::format($data->uniqueVisitors),
             Number::format($data->leads),
             $data->avgResponseMs !== null ? ' Avg response '.Number::format(round((float) $data->avgResponseMs)).'ms.' : '',
-            $feedback->rated() > 0 ? ' Feedback: '.$feedback->positive.'👍 / '.$feedback->negative.'👎.' : '',
+            $feedback->rated() > 0 ? " Feedback: {$feedback->positive}👍 / {$feedback->negative}👎." : '',
         );
 
         return Response::make(Response::text($summary))->withStructuredContent([

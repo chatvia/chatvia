@@ -46,6 +46,6 @@ class WorkspaceConnection
             ->pluck('connector_slug')
             ->all();
 
-        return array_values(array_filter($connectorSlugs, fn (string $slug): bool => in_array($slug, $usable, true)));
+        return array_values(array_filter($connectorSlugs, fn (string $slug): bool => collect($usable)->containsStrict($slug)));
     }
 }

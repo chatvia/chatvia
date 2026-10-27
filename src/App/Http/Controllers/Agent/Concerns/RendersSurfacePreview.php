@@ -22,6 +22,6 @@ trait RendersSurfacePreview
     {
         $theme = $request->query('theme');
 
-        return in_array($theme, ['auto', 'light', 'dark'], true) ? $theme : null;
+        return collect(['auto', 'light', 'dark'])->containsStrict($theme) ? $theme : null;
     }
 }

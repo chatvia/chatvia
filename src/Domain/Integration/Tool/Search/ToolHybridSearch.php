@@ -12,6 +12,7 @@ use Domain\Integration\Tool\Enums\ToolSearchPool;
 use Domain\Integration\Tool\ValueObjects\ToolName;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Retrieval\Services\LexicalSearch;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -72,7 +73,7 @@ class ToolHybridSearch
      */
     public function search(Agent $agent, string $userMessage, array $queryVector, int $limit = 30): array
     {
-        $vectorString = '['.implode(',', $queryVector).']';
+        $vectorString = '['.Arr::join($queryVector, ',').']';
         $candidateLimit = max($limit * 3, $limit);
 
         // Every channel scores its pool exactly — none of the three tables has
@@ -114,11 +115,11 @@ class ToolHybridSearch
         $pool = ToolSearchPool::from((string) $row->kind);
 
         $entry = match ($pool) {
-            ToolSearchPool::McpPreset => $this->mcpEntry('connector_tool:'.$row->id, $row->preset_server_slug, $row->preset_name, $row->preset_description, $row->preset_schema, $row->preset_scope),
-            ToolSearchPool::McpCustom => $this->mcpEntry('mcp_tool:'.$row->id, $row->custom_server_slug, $row->custom_name, $row->custom_description, $row->custom_schema, $row->custom_scope),
+            ToolSearchPool::McpPreset => $this->mcpEntry("connector_tool:{$row->id}", $row->preset_server_slug, $row->preset_name, $row->preset_description, $row->preset_schema, $row->preset_scope),
+            ToolSearchPool::McpCustom => $this->mcpEntry("mcp_tool:{$row->id}", $row->custom_server_slug, $row->custom_name, $row->custom_description, $row->custom_schema, $row->custom_scope),
             ToolSearchPool::Function => new ToolEntryData(
                 kind: ToolKind::Function,
-                sourceId: 'function:'.$row->id,
+                sourceId: "function:{$row->id}",
                 name: (string) $row->fn_name,
                 description: (string) $row->fn_description,
                 parameters: ToolEntryData::decodeSchema($row->fn_schema),

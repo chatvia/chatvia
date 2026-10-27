@@ -19,7 +19,7 @@ class ExportFormSubmissionsController
     {
         abort_unless($form->agent_id === $agent->id, 404);
 
-        $filename = 'submissions-'.$form->slug.'-'.now()->format('Ymd-His').'.csv';
+        $filename = "submissions-{$form->slug}-".now()->format('Ymd-His').'.csv';
 
         return response($export->execute($form, $request->toData()->ids), 200, [
             'Content-Type' => 'text/csv',

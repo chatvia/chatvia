@@ -58,5 +58,5 @@ it('does not hand out an expired checkpoint', function (): void {
 });
 
 it('hands out nothing for an unknown checkpoint', function (): void {
-    expect(app(ToolApprovalStore::class)->claim((string) Str::uuid()))->toBeNull();
+    expect(app(ToolApprovalStore::class)->claim((string) Str::uuid7()))->toBeNull();
 });

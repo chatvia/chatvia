@@ -6,6 +6,7 @@ namespace Domain\Knowledge\Ingestion\Services\Chunking\Splitting;
 
 use Domain\Knowledge\Ingestion\Contracts\ChunkMeasure;
 use Domain\Knowledge\Ingestion\Contracts\Separator;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 /**
@@ -141,7 +142,7 @@ final readonly class RecursiveSplitter
         }
 
         return array_map(
-            static fn (array $range): string => implode('', array_column(array_slice($pieces, $range[0], $range[1] - $range[0]), 0)),
+            static fn (array $range): string => Arr::join(array_column(array_slice($pieces, $range[0], $range[1] - $range[0]), 0), ''),
             $this->balanced($pieces, $ranges),
         );
     }

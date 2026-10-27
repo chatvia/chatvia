@@ -32,8 +32,8 @@ final class CodePage
             return mb_convert_encoding($bytes, 'UTF-8', self::MBSTRING[$codePage]);
         }
 
-        if (in_array($codePage, self::ICONV, true) || $codePage === self::MAC_ROMAN) {
-            $text = @iconv($codePage === self::MAC_ROMAN ? 'MACINTOSH' : 'CP'.$codePage, 'UTF-8//IGNORE', $bytes);
+        if (collect(self::ICONV)->containsStrict($codePage) || $codePage === self::MAC_ROMAN) {
+            $text = @iconv($codePage === self::MAC_ROMAN ? 'MACINTOSH' : "CP{$codePage}", 'UTF-8//IGNORE', $bytes);
 
             if ($text !== false) {
                 return $text;
@@ -61,7 +61,7 @@ final class CodePage
             0x1E => 874,
             0x11 => 932,
             0x12 => 949,
-            0x04 => in_array($languageId, [0x0404, 0x0C04, 0x1404], true) ? 950 : 936,
+            0x04 => collect([0x0404, 0x0C04, 0x1404])->containsStrict($languageId) ? 950 : 936,
             default => 1252,
         };
     }

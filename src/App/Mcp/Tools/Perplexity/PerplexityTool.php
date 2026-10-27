@@ -40,7 +40,7 @@ abstract class PerplexityTool extends Tool
             return $answer->answer;
         }
 
-        $summary = $answer->answer."\n\nSources:\n";
+        $summary = "{$answer->answer}\n\nSources:\n";
         foreach ($answer->citations as $i => $citation) {
             $summary .= sprintf("[%d] %s — %s\n", $i + 1, $citation->title ?: $citation->url, $citation->url);
         }

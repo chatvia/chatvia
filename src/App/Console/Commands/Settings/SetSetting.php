@@ -59,7 +59,7 @@ class SetSetting extends Command implements PromptsForMissingInput
         $keys = collect($this->laravel->make(SettingsConfig::class)->classes())
             ->flatMap(fn (string $class): array => collect($class::configKeys())
                 ->keys()
-                ->map(fn (string $property): string => $class::group().'.'.$property)
+                ->map(fn (string $property): string => $class::group().".{$property}")
                 ->all())
             ->values();
 

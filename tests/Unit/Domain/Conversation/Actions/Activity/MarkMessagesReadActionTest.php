@@ -30,7 +30,7 @@ function mmraConversation(): array
 
     $ids = [];
     foreach ([MessageRole::User, MessageRole::Operator, MessageRole::User, MessageRole::Operator] as $role) {
-        $id = (string) Str::uuid();
+        $id = (string) Str::uuid7();
         $memory->appendMessage(new MessageData(id: $id, role: $role, content: 'Hi', type: MessageData::TYPE_TEXT, timestamp: now()->timestamp));
         Message::factory()->create(['external_id' => $id, 'chat_conversation_id' => $conversation->id, 'role' => $role, 'content' => 'Hi']);
         $ids[$role->value][] = $id;

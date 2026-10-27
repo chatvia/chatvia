@@ -33,7 +33,7 @@ class TopicTrendsQuery
 
         $topTopics = $this->trend->top($agent, $start, $end);
         $countsByTopicAndDay = collect($this->trend->perDay($agent, $start, $end))
-            ->keyBy(static fn (TopicDayCountData $row): string => $row->topicId.'|'.$row->date);
+            ->keyBy(static fn (TopicDayCountData $row): string => "{$row->topicId}|{$row->date}");
 
         return new TopicsResourceData(
             topics_by_date: new DataCollection(TopicTrendData::class, array_map(
@@ -63,7 +63,7 @@ class TopicTrendsQuery
             counts: new DataCollection(TopicCountByDateData::class, array_map(
                 static fn (string $day): TopicCountByDateData => new TopicCountByDateData(
                     date: $day,
-                    count: $countsByTopicAndDay->get($topic->topicId.'|'.$day)?->count ?? 0,
+                    count: $countsByTopicAndDay->get("{$topic->topicId}|{$day}")?->count ?? 0,
                 ),
                 $days,
             )),

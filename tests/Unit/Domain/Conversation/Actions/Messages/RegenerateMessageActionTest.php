@@ -36,7 +36,7 @@ function rmaConversation(array $history = ['q1' => MessageRole::User, 'a1' => Me
     $ids = [];
 
     foreach ($history as $name => $role) {
-        $ids[$name] = (string) Str::uuid();
+        $ids[$name] = (string) Str::uuid7();
         $memory->appendMessage(new MessageData(id: $ids[$name], role: $role, content: "text {$name}", type: MessageData::TYPE_TEXT, timestamp: now()->timestamp));
     }
 
@@ -61,7 +61,7 @@ it('hands back the question for a regenerate and drops the last exchange', funct
 it('drops only the question on a regenerate when its answer never landed', function (): void {
     [$scope, , $ids] = rmaConversation(['q1' => MessageRole::User, 'a1' => MessageRole::Assistant, 'q2' => MessageRole::User]);
 
-    $result = app(RegenerateMessageAction::class)->execute($scope, (string) Str::uuid(), $ids['q2']);
+    $result = app(RegenerateMessageAction::class)->execute($scope, (string) Str::uuid7(), $ids['q2']);
 
     expect($result?->user_message_content)->toBe('text q2')
         ->and(rmaHistoryIds($scope))->toBe([$ids['q1'], $ids['a1']]);
@@ -81,7 +81,7 @@ it('deletes the question\'s uploads on a regenerate when its answer never landed
     $question = Message::factory()->fromUser()->create(['external_id' => $ids['q2'], 'chat_conversation_id' => $conversation->id, 'content' => 'text q2']);
     $upload = Attachment::factory()->forMessage($question)->stored()->create();
 
-    app(RegenerateMessageAction::class)->execute($scope, (string) Str::uuid(), $ids['q2']);
+    app(RegenerateMessageAction::class)->execute($scope, (string) Str::uuid7(), $ids['q2']);
 
     expect(Attachment::query()->find($upload->id))->toBeNull();
     Storage::disk(Attachment::DISK)->assertMissing($upload->filepath);
@@ -90,6 +90,6 @@ it('deletes the question\'s uploads on a regenerate when its answer never landed
 it('regenerates nothing when the question is not in the history', function (): void {
     [$scope, , $ids] = rmaConversation();
 
-    expect(app(RegenerateMessageAction::class)->execute($scope, $ids['a2'], (string) Str::uuid()))->toBeNull()
+    expect(app(RegenerateMessageAction::class)->execute($scope, $ids['a2'], (string) Str::uuid7()))->toBeNull()
         ->and(rmaHistoryIds($scope))->toBe(array_values($ids));
 });

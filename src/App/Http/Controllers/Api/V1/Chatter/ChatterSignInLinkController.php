@@ -39,7 +39,7 @@ class ChatterSignInLinkController
         );
 
         return response()->json(['data' => new SignInLinkData(
-            url: $agent->chat_url.'?token='.$result['token'],
+            url: "{$agent->chat_url}?token={$result['token']}",
             expires_at: $result['expires_at'],
         )], 201);
     }

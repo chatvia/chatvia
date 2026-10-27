@@ -99,7 +99,7 @@ final class ElevenLabsVoices
             ->map(fn (array $voice): array => [
                 'id' => (string) $voice['voice_id'],
                 'label' => $this->label($voice),
-                'professional' => in_array(Str::lower((string) ($voice['labels']['use_case'] ?? '')), self::PROFESSIONAL_USES, true),
+                'professional' => collect(self::PROFESSIONAL_USES)->containsStrict(Str::lower((string) ($voice['labels']['use_case'] ?? ''))),
                 'languages' => collect(Arr::wrap($voice['verified_languages'] ?? null))->pluck('language')->filter()->unique()->count(),
             ])
             ->values()

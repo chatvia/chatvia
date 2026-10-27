@@ -29,7 +29,7 @@ final class Ip2LocationCheck
             return new ConnectionCheckData(false, message: "IP2Location could not be reached at {$endpoint}.");
         }
 
-        if (in_array($response->status(), [401, 403], true)) {
+        if (collect([401, 403])->containsStrict($response->status())) {
             return new ConnectionCheckData(false, keyRefused: true, message: 'IP2Location refused this key, or it has no queries left this month.');
         }
 

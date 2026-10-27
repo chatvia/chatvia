@@ -11,6 +11,7 @@ use BackedEnum;
 use Closure;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Arr;
 
 /**
  * The install's protections and their logs: the bot check (Cloudflare
@@ -91,7 +92,7 @@ class ManageSecuritySettings extends AdminSettingsPage
                 $this->integer('guardrail_retention_days', 'Days to keep the guardrail log', min: 1),
                 $this->integer('max_message_chars', 'Longest visitor message (characters)',
                     help: 'Longer messages in the chat widget or the hosted chat are turned away before the AI reads them.', min: 200, max: 32000),
-            ])->summary(fn (): string => ($this->valueInUse('guardrails_enabled') ? 'On' : 'Off').' · log kept '.$this->valueInUse('guardrail_retention_days').' days · messages up to '.$this->valueInUse('max_message_chars').' characters'),
+            ])->summary(fn (): string => ($this->valueInUse('guardrails_enabled') ? 'On' : 'Off')." · log kept {$this->valueInUse('guardrail_retention_days')} days · messages up to {$this->valueInUse('max_message_chars')} characters"),
             SettingsCard::make('tool_calls', 'Tool calls', 'How far an agent may go with tools, and the log of every tool call.', Heroicon::OutlinedWrenchScrewdriver, fn (): array => [
                 $this->integer('tool_max_rounds', 'Tool rounds per answer',
                     help: 'How many times an agent may use its tools for one answer. After that, it answers with what it has found.', min: 1, max: 20),
@@ -123,7 +124,7 @@ class ManageSecuritySettings extends AdminSettingsPage
                             $fail('The fewest days cannot be more than the days to keep the security log.');
                         }
                     }),
-            ])->summary(fn (): string => ($this->valueInUse('security_audit_enabled') ? 'On' : 'Off').' · kept '.$this->valueInUse('security_audit_retention_days').' days'),
+            ])->summary(fn (): string => ($this->valueInUse('security_audit_enabled') ? 'On' : 'Off')." · kept {$this->valueInUse('security_audit_retention_days')} days"),
             SettingsCard::make('headers', 'Security headers', 'The Content Security Policy of every page.', Heroicon::OutlinedCodeBracketSquare, fn (): array => [
                 $this->choice('csp_mode', 'Content Security Policy', self::CSP_MODES,
                     help: 'Browser rules that block risky content and stop other sites from showing your dashboard and sign-in pages inside theirs. Enforce turns them fully on.'),
@@ -142,6 +143,6 @@ class ManageSecuritySettings extends AdminSettingsPage
     {
         $on = array_filter(self::TURNSTILE_FORMS, fn (string $property): bool => (bool) $this->valueInUse($property), ARRAY_FILTER_USE_KEY);
 
-        return $on === [] ? 'On no form' : 'Checks '.implode(', ', $on);
+        return $on === [] ? 'On no form' : 'Checks '.Arr::join($on, ', ');
     }
 }

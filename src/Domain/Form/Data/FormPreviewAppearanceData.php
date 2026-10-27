@@ -51,7 +51,7 @@ class FormPreviewAppearanceData extends Data
             avatar_url: ((string) ($appearance['avatar'] ?? '')) ?: null,
             color_theme: ((string) ($appearance['color_theme'] ?? '')) ?: self::DEFAULT_COLOR_THEME,
             color_shade: (int) ($appearance['color_shade'] ?? self::DEFAULT_COLOR_SHADE),
-            theme: in_array($widget['theme'] ?? null, ['light', 'dark'], true) ? $widget['theme'] : 'auto',
+            theme: collect(['light', 'dark'])->containsStrict($widget['theme'] ?? null) ? $widget['theme'] : 'auto',
             composer_placeholder: ((string) ($appearance['composer_placeholder'] ?? '')) ?: null,
             voice_input: $transcriberEnabled && (bool) ($appearance['allow_voice_input'] ?? true),
             show_branding: config('chatvia.powered_by') === true,

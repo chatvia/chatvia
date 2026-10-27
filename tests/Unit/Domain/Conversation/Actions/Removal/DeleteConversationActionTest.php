@@ -50,7 +50,7 @@ it('treats erasing an already-deleted conversation as a no-op', function (): voi
 
     // A repeated request must not crash on the missing (soft-deleted) row.
     $delete->execute(dcaScope($this->conversation));
-    $delete->execute(new ChatScopeData($this->conversation->agent, $this->conversation->session->external_id, (string) Str::uuid()));
+    $delete->execute(new ChatScopeData($this->conversation->agent, $this->conversation->session->external_id, (string) Str::uuid7()));
 
     expect(Conversation::withTrashed()->find($this->conversation->id)->trashed())->toBeTrue();
 });

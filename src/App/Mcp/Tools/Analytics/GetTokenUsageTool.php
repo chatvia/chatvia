@@ -61,7 +61,7 @@ class GetTokenUsageTool extends AnalyticsTool
             $structured['echarts_option'] = AnalyticsChart::line(
                 array_column($daily, 'date'),
                 [['name' => 'Tokens', 'data' => array_column($daily, 'tokens')]],
-                'Tokens per day — '.$period->label,
+                "Tokens per day — {$period->label}",
             );
         }
 

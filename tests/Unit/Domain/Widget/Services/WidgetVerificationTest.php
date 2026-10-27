@@ -122,7 +122,7 @@ it('adds the extra hosts set in the admin panel to the APP_URL host', function (
 it('lets the widget load on the APP_URL host with the default config', function (): void {
     $agent = wvAgentWithSites([]);
     // No config override: this is the list the app booted with.
-    $appHost = (string) Uri::of((string) env('APP_URL'))->host();
+    $appHost = (string) Uri::of((string) config('app.url'))->host();
 
     $verification = app(WidgetVerification::class);
 

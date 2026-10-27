@@ -73,7 +73,7 @@ class MistralOcr
         return $this->tags->during(AiCallTag::ServiceCheck, fn (): Response => $this->mistral
             ->client()
             ->timeout(30)
-            ->post($this->baseUrl.'/ocr', [
+            ->post("{$this->baseUrl}/ocr", [
                 'model' => (string) config('services.mistral.ocr_model'),
                 'document' => [
                     'type' => 'image_url',
@@ -91,7 +91,7 @@ class MistralOcr
         $response = $this->tags->during(AiCallTag::DocumentReading, fn (): Response => $this->mistral
             ->client()
             ->timeout(3600)
-            ->post($this->baseUrl.'/ocr', [
+            ->post("{$this->baseUrl}/ocr", [
                 'model' => (string) config('services.mistral.ocr_model'),
                 'document' => $document,
                 'table_format' => 'markdown',
@@ -139,6 +139,6 @@ class MistralOcr
     {
         $mimeType = MimeTypes::getDefault()->getMimeTypes(file_extension($file))[0] ?? 'application/octet-stream';
 
-        return 'data:'.$mimeType.';base64,'.base64_encode(File::get($file));
+        return "data:{$mimeType};base64,".base64_encode(File::get($file));
     }
 }

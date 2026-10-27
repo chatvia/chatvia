@@ -57,6 +57,6 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
 
     public function uniqueId(): string
     {
-        return 'ingestion:summary:files:'.$this->source::class.':'.$this->source->id;
+        return 'ingestion:summary:files:'.$this->source::class.":{$this->source->id}";
     }
 }

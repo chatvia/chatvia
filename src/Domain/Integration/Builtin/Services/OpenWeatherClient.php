@@ -24,7 +24,7 @@ class OpenWeatherClient
         // errors carry the full URL in their message — keep that message away
         // from the model.
         try {
-            $response = Http::timeout(10)->get($this->baseUrl().'/weather', [
+            $response = Http::timeout(10)->get("{$this->baseUrl()}/weather", [
                 'q' => $location,
                 'appid' => $apiKey,
                 'units' => $units->value,

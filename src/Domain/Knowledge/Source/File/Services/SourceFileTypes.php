@@ -39,7 +39,7 @@ final class SourceFileTypes
     /** Whether the document ingestion can read the file, judged by its extension. */
     public static function isDocument(UploadedFile|string $file): bool
     {
-        return in_array(file_extension($file), self::documentExtensions(), true);
+        return collect(self::documentExtensions())->containsStrict(file_extension($file));
     }
 
     /**
@@ -62,7 +62,7 @@ final class SourceFileTypes
     /** Whether this install accepts the document, judged by its extension. */
     public static function isSupported(UploadedFile|string $file): bool
     {
-        return in_array(file_extension($file), self::supportedExtensions(), true);
+        return collect(self::supportedExtensions())->containsStrict(file_extension($file));
     }
 
     /** Whether this install accepts audio or video of this MIME type. */
@@ -75,7 +75,7 @@ final class SourceFileTypes
     /** Whether the file is an image, judged by its extension. */
     public static function isImage(UploadedFile|string $file): bool
     {
-        return in_array(file_extension($file), config('mimes.ocr.image'), true);
+        return collect(config()->array('mimes.ocr.image'))->containsStrict(file_extension($file));
     }
 
     /**

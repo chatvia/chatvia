@@ -19,6 +19,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
 
@@ -143,7 +144,7 @@ class ManageMailSettings extends AdminSettingsPage
         }
 
         if ($field->kind === 'secret' && ($url = $provider->keysUrl()) !== null && $component instanceof TextInput) {
-            $component->hintAction(Action::make('getKey_'.$provider->value)
+            $component->hintAction(Action::make("getKey_{$provider->value}")
                 ->label('Get a key')
                 ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
                 ->iconPosition('after')
@@ -197,8 +198,8 @@ class ManageMailSettings extends AdminSettingsPage
 
         return match (true) {
             ! $provider->delivers() => 'Log only: nobody receives email',
-            $missing !== [] => $provider->label().' · missing: '.implode(', ', $missing),
-            default => $provider->label().' · from '.$this->shown($this->valueInUse('from_address')),
+            $missing !== [] => "{$provider->label()} · missing: ".Arr::join($missing, ', '),
+            default => "{$provider->label()} · from ".$this->shown($this->valueInUse('from_address')),
         };
     }
 

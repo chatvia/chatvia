@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
  */
 it('keeps the ownership of a staff account and a chatter with the same id apart', function (): void {
     $agent = Agent::factory()->create();
-    $conversationId = (string) Str::uuid();
+    $conversationId = (string) Str::uuid7();
 
     ChatCache::rememberOwner($conversationId, ChatViewerData::staff(42), $agent);
 
@@ -25,7 +25,7 @@ it('keeps the ownership of a staff account and a chatter with the same id apart'
 it('never counts a conversation of one agent as owned on another agent of the workspace', function (): void {
     $agent = Agent::factory()->create();
     $other = Agent::factory()->create(['workspace_id' => $agent->workspace_id]);
-    $conversationId = (string) Str::uuid();
+    $conversationId = (string) Str::uuid7();
 
     ChatCache::rememberOwner($conversationId, ChatViewerData::chatter(7), $agent);
 

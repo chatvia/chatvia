@@ -31,7 +31,7 @@ enum AgentSettingsGroup: string
      */
     public function rules(): array
     {
-        return (array) config('model-settings.validation.'.$this->value, []);
+        return (array) config("model-settings.validation.{$this->value}", []);
     }
 
     /**
@@ -41,6 +41,6 @@ enum AgentSettingsGroup: string
      */
     public function keys(): array
     {
-        return array_keys((array) config('model-settings.defaults.'.Agent::class.'.'.$this->value, []));
+        return array_keys((array) config('model-settings.defaults.'.Agent::class.".{$this->value}", []));
     }
 }

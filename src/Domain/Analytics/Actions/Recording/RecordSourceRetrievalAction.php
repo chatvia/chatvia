@@ -60,7 +60,7 @@ class RecordSourceRetrievalAction
         $unique = [];
 
         foreach ($sources as $source) {
-            $unique[$source->type."\0".$source->id] ??= $source;
+            $unique["{$source->type}\0{$source->id}"] ??= $source;
         }
 
         usort($unique, static fn (RetrievedSourceData $a, RetrievedSourceData $b): int => [$a->type, $a->id] <=> [$b->type, $b->id]);

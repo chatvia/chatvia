@@ -77,6 +77,6 @@ final class RunningTurns
 
     private function key(string $conversationId): string
     {
-        return 'turn-running:'.$conversationId;
+        return "turn-running:{$conversationId}";
     }
 }

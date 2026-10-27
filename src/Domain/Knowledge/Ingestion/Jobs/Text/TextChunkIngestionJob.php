@@ -99,6 +99,6 @@ class TextChunkIngestionJob implements ShouldBeUnique, ShouldQueue
 
     public function uniqueId(): string
     {
-        return 'agent:'.$this->agent->id.':sources:text:'.$this->sourceText->id.':page:'.($this->group->pages[0]->pageNumber ?? 0);
+        return "agent:{$this->agent->id}:sources:text:{$this->sourceText->id}:page:".($this->group->pages[0]->pageNumber ?? 0);
     }
 }

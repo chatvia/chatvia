@@ -277,6 +277,6 @@ class AiSettings extends AdminSettings
         $provider = EmbeddingProvider::tryFrom($service);
         $model = $provider instanceof EmbeddingProvider ? self::propertyFor($provider->modelConfig()) : null;
 
-        return $model === null ? $service : $service.' '.$value($model);
+        return $model === null ? $service : "{$service} ".$value($model);
     }
 }

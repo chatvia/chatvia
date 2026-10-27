@@ -72,7 +72,7 @@ class MessageQueryBuilder extends Builder
         return $this
             ->where(function (Builder $query) use ($words): void {
                 foreach ($words as $word) {
-                    $query->orWhere('content', 'ILIKE', '%'.$this->escapeLike($word).'%');
+                    $query->orWhere('content', 'ILIKE', "%{$this->escapeLike($word)}%");
                 }
             })
             ->orderByRaw($rank, [$query])

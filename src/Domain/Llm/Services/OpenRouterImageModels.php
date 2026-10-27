@@ -58,7 +58,7 @@ final class OpenRouterImageModels
         $listed = $this->live()[$model] ?? null;
 
         if ($listed === null) {
-            return in_array($model, self::WRITE_TEXT, true) || ! array_key_exists($model, self::CURATED);
+            return collect(self::WRITE_TEXT)->containsStrict($model) || ! array_key_exists($model, self::CURATED);
         }
 
         return $listed['text'];
@@ -83,7 +83,7 @@ final class OpenRouterImageModels
                     ->filter(static fn (mixed $model): bool => is_array($model) && filled($model['id'] ?? null))
                     ->mapWithKeys(static fn (array $model): array => [$model['id'] => [
                         'name' => (string) ($model['name'] ?? $model['id']),
-                        'text' => in_array('text', (array) data_get($model, 'architecture.output_modalities', []), true),
+                        'text' => collect((array) data_get($model, 'architecture.output_modalities', []))->containsStrict('text'),
                     ]])
                     ->all();
             });

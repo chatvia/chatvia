@@ -37,9 +37,9 @@ function samaAction(ChatCompletionProvider $provider): StoreAssistantMessageActi
 function samaUserTurn(Agent $agent, ?string $source = 'widget'): UserTurnData
 {
     $turn = UserTurnData::from([
-        'external_session_id' => (string) Str::uuid(),
-        'external_conversation_id' => (string) Str::uuid(),
-        'external_message_id' => (string) Str::uuid(),
+        'external_session_id' => (string) Str::uuid7(),
+        'external_conversation_id' => (string) Str::uuid7(),
+        'external_message_id' => (string) Str::uuid7(),
         'llm_id' => null,
         'message' => 'Hello, can you help me with my order?',
         'sent_at' => Carbon::parse('2026-06-05 10:00:00'),
@@ -56,12 +56,12 @@ function samaTurn(Llm $llm, UserTurnData $userTurn, array $overrides = []): Assi
     return AssistantTurnData::from(array_merge([
         'external_session_id' => $userTurn->external_session_id,
         'external_conversation_id' => $userTurn->external_conversation_id,
-        'external_message_id' => (string) Str::uuid(),
+        'external_message_id' => (string) Str::uuid7(),
         'message' => 'Sure — what is the order number?',
         'llm_id' => $llm->id,
         'sent_at' => Carbon::parse('2026-06-05 10:00:01'),
         'generation_id' => 'gen_'.Str::random(12),
-        'trace_id' => (string) Str::uuid(),
+        'trace_id' => (string) Str::uuid7(),
         'response_time_ms' => 1234,
         'source' => $userTurn->source,
     ], $overrides));

@@ -76,5 +76,5 @@ it('refuses a conversation of another session on every ping', function (): void 
 it('refuses ids that are not UUIDs before the cache', function (): void {
     $conversation = rwhConversation();
 
-    expect(app(RecordWidgetHeartbeatAction::class)->execute($conversation->agent, Str::repeat('x', 500), (string) Str::uuid()))->toBeFalse();
+    expect(app(RecordWidgetHeartbeatAction::class)->execute($conversation->agent, Str::repeat('x', 500), (string) Str::uuid7()))->toBeFalse();
 });

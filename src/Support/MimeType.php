@@ -67,6 +67,6 @@ final class MimeType
 
     private static function matches(string $mimeType, string $configKey): bool
     {
-        return in_array($mimeType, self::group($configKey), true);
+        return collect(self::group($configKey))->containsStrict($mimeType);
     }
 }

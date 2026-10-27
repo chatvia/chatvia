@@ -65,7 +65,7 @@ class NetworkAccessGuard
             return true;
         }
 
-        $listed = in_array(Str::lower($country), array_map(Str::lower(...), $geoCountries), true);
+        $listed = collect($geoCountries)->map(fn (string $code): string => Str::lower($code))->containsStrict(Str::lower($country));
 
         return $geoMode === GeoMode::Allow ? $listed : ! $listed;
     }

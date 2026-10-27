@@ -156,7 +156,7 @@ class SourceFile extends Model implements ChunkableContract
      */
     public function isDirectChunkable(): bool
     {
-        return in_array($this->extension(), ['txt', 'md', 'markdown'], true);
+        return collect(['txt', 'md', 'markdown'])->containsStrict($this->extension());
     }
 
     /**
@@ -166,7 +166,7 @@ class SourceFile extends Model implements ChunkableContract
      */
     public function isEbook(): bool
     {
-        return in_array($this->extension(), config('mimes.ocr.ebook'), true);
+        return collect(config()->array('mimes.ocr.ebook'))->containsStrict($this->extension());
     }
 
     /** How the text splitter splits a text file: Markdown and ebooks (read as Markdown) by their structure, .txt as plain text. */

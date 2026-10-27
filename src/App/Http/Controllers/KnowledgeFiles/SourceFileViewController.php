@@ -149,8 +149,8 @@ class SourceFileViewController
     private function servedAs(string $detected): array
     {
         return match (true) {
-            in_array($detected, self::INLINE_TYPES, true) => [$detected, true],
-            Str::startsWith($detected, 'text/') || in_array($detected, self::TEXT_TYPES, true) => ['text/plain; charset=utf-8', true],
+            collect(self::INLINE_TYPES)->containsStrict($detected) => [$detected, true],
+            Str::startsWith($detected, 'text/') || collect(self::TEXT_TYPES)->containsStrict($detected) => ['text/plain; charset=utf-8', true],
             default => ['application/octet-stream', false],
         };
     }

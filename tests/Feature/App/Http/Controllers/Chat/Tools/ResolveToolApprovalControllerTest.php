@@ -50,7 +50,7 @@ beforeEach(function (): void {
     $this->chatter = Chatter::factory()->ofWorkspace($this->agent->workspace)->create();
     $this->actingAs($this->chatter, 'chat');
     $this->post(
-        "/chat/{$this->agent->slug}/stream/".Str::uuid(),
+        "/chat/{$this->agent->slug}/stream/".Str::uuid7(),
         ['message' => 'Please cancel order 1234'],
         ['Accept' => 'text/event-stream'],
     )->assertOk()->streamedContent();
@@ -94,7 +94,7 @@ it('never offers an anonymous visitor a tool that needs approval', function (): 
     ));
 
     $this->post(
-        "/chat/{$this->agent->slug}/stream/".Str::uuid(),
+        "/chat/{$this->agent->slug}/stream/".Str::uuid7(),
         ['message' => 'Please cancel order 1234'],
         ['Accept' => 'text/event-stream'],
     )->assertOk()->streamedContent();

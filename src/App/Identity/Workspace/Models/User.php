@@ -291,7 +291,7 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
      */
     public function storageRoot(): string
     {
-        return $this->workspace()->storageRoot().'/members/'.$this->external_id;
+        return "{$this->workspace()->storageRoot()}/members/{$this->external_id}";
     }
 
     /** A person's setting images sit with their own files. */

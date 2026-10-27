@@ -36,7 +36,7 @@ class CapabilityProvider
         $connected = $this->connected($agent, $capability);
         $chosen = $this->chosen($agent, $capability);
 
-        return in_array($chosen, $connected, true) ? $chosen : ($connected[0] ?? null);
+        return collect($connected)->containsStrict($chosen) ? $chosen : ($connected[0] ?? null);
     }
 
     public function isMet(Agent $agent, ConnectorData $capability): bool

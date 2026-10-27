@@ -90,7 +90,7 @@ it('pulls horizons beyond the current retention back to it, in batches', functio
 
 it('sweeps a hidden conversation once its short life is over', function (): void {
     $agent = Agent::factory()->create();
-    $id = app(StartConversationAction::class)->execute(new ChatScopeData($agent, (string) Str::uuid()), ConversationSource::Widget)->external_id;
+    $id = app(StartConversationAction::class)->execute(new ChatScopeData($agent, (string) Str::uuid7()), ConversationSource::Widget)->external_id;
     $conversation = Conversation::query()->where('external_id', $id)->sole();
 
     app(PruneExpiredConversationsAction::class)->execute(chunk: 50, graceDays: 30);

@@ -33,7 +33,7 @@ beforeEach(function (): void {
 /** @return Collection<int, array<string, mixed>> the SSE events of one turn */
 function srtTurn(Agent $agent): Collection
 {
-    $response = test()->post("/chat/{$agent->external_id}/stream/".Str::uuid(), ['message' => 'Hi'], ['Accept' => 'text/event-stream'])->assertOk();
+    $response = test()->post("/chat/{$agent->external_id}/stream/".Str::uuid7(), ['message' => 'Hi'], ['Accept' => 'text/event-stream'])->assertOk();
 
     return collect(BufferedSseResponder::events($response->streamedContent()));
 }

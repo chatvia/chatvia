@@ -51,7 +51,7 @@ class EmbedConnectorToolsAction
 
         foreach ($tools as $tool) {
             try {
-                $text = Str::trim($context."\n\n".$tool->name."\n\n".$tool->description);
+                $text = Str::trim("{$context}\n\n{$tool->name}\n\n{$tool->description}");
                 $tool->forceFill([
                     'embedding' => $this->embeddings->embed($text),
                     'search_text' => $text,
@@ -79,7 +79,7 @@ class EmbedConnectorToolsAction
     {
         $preset = $this->catalog->find($connectorSlug);
         if ($preset instanceof ConnectorData) {
-            return Str::trim($preset->name."\n".$preset->description);
+            return Str::trim("{$preset->name}\n{$preset->description}");
         }
 
         foreach ((array) config('mcp.builtin', []) as $entry) {

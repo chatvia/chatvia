@@ -34,14 +34,14 @@ class WhatsappFormatter extends MarkdownDomFormatter
             'strong', 'b' => '*'.Str::trim($renderedChildren).'*',
             'em', 'i' => '_'.Str::trim($renderedChildren).'_',
             'del', 's', 'strike' => '~'.Str::trim($renderedChildren).'~',
-            'code' => '`'.$node->textContent.'`',
+            'code' => "`{$node->textContent}`",
             // textContent skips the fence's language tag, which would render
             // as literal text inside the monospace block.
             'pre' => "```\n".Str::rtrim($node->textContent)."\n```\n",
             'a' => $this->renderLink($node),
             'br' => "\n",
             'hr' => "\n",
-            'p' => $renderedChildren."\n\n",
+            'p' => "{$renderedChildren}\n\n",
             'blockquote' => $this->renderBlockquote($node),
             'h1', 'h2', 'h3', 'h4', 'h5', 'h6' => '*'.Str::trim($renderedChildren)."*\n\n",
             'ul', 'ol' => $this->renderList($node, $tag === 'ol'),
@@ -59,9 +59,9 @@ class WhatsappFormatter extends MarkdownDomFormatter
         $quoted = Str::of($this->renderChildren($node))
             ->trim()
             ->explode("\n")
-            ->map(fn (string $line): string => '> '.$line)
+            ->map(fn (string $line): string => "> {$line}")
             ->implode("\n");
 
-        return $quoted."\n\n";
+        return "{$quoted}\n\n";
     }
 }

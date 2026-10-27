@@ -87,7 +87,7 @@ class ManageObservabilitySettings extends AdminSettingsPage
 
         return match (count($recording)) {
             0 => ['Not recording', 'gray'],
-            1 => [$recording[0].' recording', 'success'],
+            1 => ["{$recording[0]} recording", 'success'],
             default => ['Both recording', 'success'],
         };
     }

@@ -128,10 +128,10 @@ class AgentSignInTokens
 
         $userId = $user->external_id;
         $exp = $expiresAt->getTimestamp();
-        $sig = hash_hmac('sha256', $userId.'.'.$exp, $this->signingKey($user, $agent));
+        $sig = hash_hmac('sha256', "{$userId}.{$exp}", $this->signingKey($user, $agent));
 
         return [
-            'token' => self::HMAC_PREFIX.$userId.'.'.$exp.'.'.$sig,
+            'token' => self::HMAC_PREFIX."{$userId}.{$exp}.{$sig}",
             'expires_at' => $expiresAt,
         ];
     }
@@ -192,7 +192,7 @@ class AgentSignInTokens
      */
     private function staffKey(string $secret): string
     {
-        return hash_hmac('sha256', 'agent-sign-in-staff|'.$secret, (string) config('app.key'));
+        return hash_hmac('sha256', "agent-sign-in-staff|{$secret}", (string) config('app.key'));
     }
 
     /**
@@ -283,7 +283,7 @@ class AgentSignInTokens
             return null;
         }
 
-        $expected = hash_hmac('sha256', $userId.'.'.$exp, $secret);
+        $expected = hash_hmac('sha256', "{$userId}.{$exp}", $secret);
 
         if (! hash_equals($expected, $sig)) {
             return null;

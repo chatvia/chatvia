@@ -66,7 +66,7 @@ final readonly class MeetingTypeData
             ->sortBy('position')
             ->values();
 
-        $notes = $questions->first(fn (array $question): bool => in_array($question['type'] ?? null, self::TEXT_QUESTION_TYPES, true));
+        $notes = $questions->first(fn (array $question): bool => collect(self::TEXT_QUESTION_TYPES)->containsStrict($question['type'] ?? null));
         $otherRequired = $questions->contains(fn (array $question): bool => ($question['required'] ?? false) === true && $question !== $notes);
 
         return new self(
@@ -79,7 +79,7 @@ final readonly class MeetingTypeData
             notesQuestion: $notes === null ? null : ['question' => (string) $notes['name'], 'position' => (int) ($notes['position'] ?? 0)],
             notesRequired: ($notes['required'] ?? false) === true,
             bookableInChat: ! $otherRequired
-                && ! in_array(Arr::get($location ?? [], 'kind'), self::INVITEE_LOCATION_KINDS, true),
+                && ! collect(self::INVITEE_LOCATION_KINDS)->containsStrict(Arr::get($location ?? [], 'kind')),
         );
     }
 
@@ -95,7 +95,7 @@ final readonly class MeetingTypeData
         $fields = collect((array) ($row['bookingFields'] ?? []))->filter(fn (mixed $field): bool => is_array($field) && ($field['hidden'] ?? false) !== true);
         $notes = $fields->first(fn (array $field): bool => ($field['slug'] ?? $field['name'] ?? null) === 'notes');
         $otherRequired = $fields->contains(fn (array $field): bool => ($field['required'] ?? false) === true
-            && ! in_array($field['slug'] ?? $field['name'] ?? null, self::CALCOM_FILLED_FIELDS, true));
+            && ! collect(self::CALCOM_FILLED_FIELDS)->containsStrict($field['slug'] ?? $field['name'] ?? null));
 
         $slug = filled($row['slug'] ?? null) ? (string) $row['slug'] : null;
 
@@ -109,7 +109,7 @@ final readonly class MeetingTypeData
             notesQuestion: null,
             notesRequired: is_array($notes) && ($notes['required'] ?? false) === true,
             bookableInChat: ! $otherRequired
-                && (! is_array($first) || ! in_array($first['type'] ?? null, self::CALCOM_ATTENDEE_LOCATIONS, true)),
+                && (! is_array($first) || ! collect(self::CALCOM_ATTENDEE_LOCATIONS)->containsStrict($first['type'] ?? null)),
         );
     }
 }

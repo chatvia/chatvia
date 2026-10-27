@@ -74,7 +74,7 @@ class FindFormsTool extends Tool
         ], $matches);
 
         return Response::make(Response::text(
-            $text."\n".json_encode($forms, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)
+            "{$text}\n".json_encode($forms, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)
         ))->withStructuredContent(['forms' => $forms]);
     }
 

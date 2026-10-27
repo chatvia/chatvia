@@ -21,7 +21,7 @@ beforeEach(function (): void {
 function pcqConversation(Agent $agent, ?ConversationSource $source, string $startedAt): void
 {
     app(AnalyticsDatabase::class)->table('analytics_conversation_metrics')->insert([
-        'conversation_external_id' => (string) Str::uuid(),
+        'conversation_external_id' => (string) Str::uuid7(),
         'agent_id' => $agent->id,
         'workspace_id' => $agent->workspace_id,
         'started_at' => $startedAt,

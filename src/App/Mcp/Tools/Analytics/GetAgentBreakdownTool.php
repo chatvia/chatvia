@@ -58,7 +58,7 @@ class GetAgentBreakdownTool extends AnalyticsTool
             $structured['echarts_option'] = AnalyticsChart::bar(
                 array_column($agents, 'name'),
                 [['name' => 'Messages', 'data' => array_column($agents, 'messages')]],
-                'Messages by agent — '.$period->label,
+                "Messages by agent — {$period->label}",
                 horizontal: true,
             );
         }

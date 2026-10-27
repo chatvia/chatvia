@@ -35,9 +35,9 @@ use Support\Localization\Country\Models\Country;
 function sumaTurn(array $overrides = []): UserTurnData
 {
     return UserTurnData::from(array_merge([
-        'external_session_id' => (string) Str::uuid(),
-        'external_conversation_id' => (string) Str::uuid(),
-        'external_message_id' => (string) Str::uuid(),
+        'external_session_id' => (string) Str::uuid7(),
+        'external_conversation_id' => (string) Str::uuid7(),
+        'external_message_id' => (string) Str::uuid7(),
         'llm_id' => null,
         'message' => 'Hello, can you help me with my order?',
         'sent_at' => Carbon::parse('2026-06-05 10:00:00'),
@@ -77,7 +77,7 @@ it('makes a hidden conversation visible with the full retention window on its fi
     $this->freezeSecond();
     config(['chatvia.retention.conversations_days' => 90]);
     $agent = Agent::factory()->create();
-    $scope = new ChatScopeData($agent, (string) Str::uuid());
+    $scope = new ChatScopeData($agent, (string) Str::uuid7());
     $conversationId = app(StartConversationAction::class)->execute($scope, ConversationSource::Widget)->external_id;
 
     $started = Conversation::query()->where('external_id', $conversationId)->sole();
@@ -97,7 +97,7 @@ it('makes a hidden conversation visible with the full retention window on its fi
 it('brings back an empty conversation that expired while the widget stayed open', function (): void {
     config(['chatvia.retention.conversations_days' => 90]);
     $agent = Agent::factory()->create();
-    $scope = new ChatScopeData($agent, (string) Str::uuid());
+    $scope = new ChatScopeData($agent, (string) Str::uuid7());
     $conversationId = app(StartConversationAction::class)->execute($scope, ConversationSource::Widget)->external_id;
     Conversation::query()->where('external_id', $conversationId)->sole()->delete();
 
@@ -113,7 +113,7 @@ it('brings back an empty conversation that expired while the widget stayed open'
 
 it('refuses a message to a conversation someone deleted, without reusing its id', function (): void {
     $agent = Agent::factory()->create();
-    $scope = new ChatScopeData($agent, (string) Str::uuid());
+    $scope = new ChatScopeData($agent, (string) Str::uuid7());
     $conversationId = app(StartConversationAction::class)->execute($scope, ConversationSource::Widget)->external_id;
     $conversation = Conversation::query()->where('external_id', $conversationId)->sole();
     $conversation->update(['deleted_by' => 'user']);
@@ -147,7 +147,7 @@ it('backfills the chatter onto a session that was started without one', function
     $agent = Agent::factory()->create();
     $chatter = Chatter::factory()->grantedTo($agent)->create();
 
-    $sessionExternalId = (string) Str::uuid();
+    $sessionExternalId = (string) Str::uuid7();
     Session::factory()->create(['external_id' => $sessionExternalId, 'agent_id' => $agent->id]);
 
     app(StoreUserMessageAction::class)->execute($agent, sumaTurn([
@@ -167,7 +167,7 @@ it('never puts a chatter on a staff preview session', function (): void {
     $agent = Agent::factory()->create();
     $chatter = Chatter::factory()->grantedTo($agent)->create();
 
-    $sessionExternalId = (string) Str::uuid();
+    $sessionExternalId = (string) Str::uuid7();
     Session::factory()->create(['external_id' => $sessionExternalId, 'agent_id' => $agent->id, 'user_id' => $agent->workspace->owner->id]);
 
     app(StoreUserMessageAction::class)->execute($agent, sumaTurn([
@@ -231,7 +231,7 @@ it('names no chatter to analytics for a staff preview session', function (): voi
     $agent = Agent::factory()->create(['workspace_id' => $owner->workspace()->id]);
     Chatter::factory()->grantedTo($agent)->create(['id' => $owner->id]);
 
-    $sessionExternalId = (string) Str::uuid();
+    $sessionExternalId = (string) Str::uuid7();
     Session::factory()->create(['external_id' => $sessionExternalId, 'agent_id' => $agent->id, 'user_id' => $owner->id]);
     $turn = sumaTurn(['external_session_id' => $sessionExternalId]);
 
@@ -289,7 +289,7 @@ it('writes nothing and queues nothing when one of its writes fails', function ()
 it('announces the session country to analytics', function (): void {
     $country = Country::query()->firstOrFail();
     $agent = Agent::factory()->create();
-    $sessionId = (string) Str::uuid();
+    $sessionId = (string) Str::uuid7();
     Session::factory()->create(['agent_id' => $agent->id, 'external_id' => $sessionId, 'country_id' => $country->id]);
 
     app(StoreUserMessageAction::class)->execute($agent, sumaTurn(['external_session_id' => $sessionId]));

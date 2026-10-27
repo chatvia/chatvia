@@ -21,8 +21,8 @@ function mrcPayload(string $conversationId): array
 {
     return [
         'conversation_id' => $conversationId,
-        'user_message_id' => (string) Str::uuid(),
-        'assistant_message_id' => (string) Str::uuid(),
+        'user_message_id' => (string) Str::uuid7(),
+        'assistant_message_id' => (string) Str::uuid7(),
     ];
 }
 
@@ -38,7 +38,7 @@ it('answers 404 for a conversation that is gone or not the agent\'s', function (
 
         return $conversation->external_id;
     }],
-    'never existed' => [fn (): string => (string) Str::uuid()],
+    'never existed' => [fn (): string => (string) Str::uuid7()],
     'of another agent' => [fn (): string => Conversation::factory()->forAgent(Agent::factory()->create(['is_public' => true]))->hostedChat()->create()->external_id],
 ]);
 

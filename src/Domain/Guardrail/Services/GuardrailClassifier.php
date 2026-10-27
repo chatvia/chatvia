@@ -16,6 +16,7 @@ use Domain\Llm\Services\StructuredCompletion;
 use Domain\Llm\Services\TaskModels;
 use GuzzleHttp\Promise\Create;
 use GuzzleHttp\Promise\PromiseInterface;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
@@ -118,11 +119,11 @@ class GuardrailClassifier
     private function userPrompt(string $text, ClassifierOptionsData $options): string
     {
         $scope = Str::trim($options->allowedScope ?? '');
-        $blocked = implode("\n", array_map(
-            static fn (string $topic, int $index): string => ($index + 1).'. '.$topic,
+        $blocked = Arr::join(array_map(
+            static fn (string $topic, int $index): string => ($index + 1).". {$topic}",
             $options->blockedTopics,
             array_keys($options->blockedTopics),
-        ));
+        ), "\n");
 
         return Str::rtrim(prompt('guardrails/classifier-user', [
             'checkTopic' => $options->checkTopic,
@@ -145,14 +146,14 @@ class GuardrailClassifier
         foreach (array_slice($history, -self::HISTORY_MESSAGES) as $entry) {
             $content = filled($entry['content'] ?? null) ? Str::squish($entry['content']) : '';
 
-            if ($content === '' || ! in_array($entry['role'] ?? null, ['user', 'assistant', 'agent'], true)) {
+            if ($content === '' || ! collect(['user', 'assistant', 'agent'])->containsStrict($entry['role'] ?? null)) {
                 continue;
             }
 
             $lines[] = ($entry['role'] === 'user' ? 'Visitor: ' : 'Agent: ').mb_strimwidth($this->untagged($content), 0, self::MESSAGE_CHARS, '…');
         }
 
-        return implode("\n", $lines);
+        return Arr::join($lines, "\n");
     }
 
     /** The text without the tags that wrap it in the prompt. */

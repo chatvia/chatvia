@@ -32,7 +32,7 @@ final class ChunkImageLink
      */
     public static function path(string $externalId, int $index): string
     {
-        return '/my/chunks/'.$externalId.'/'.$index.'.png?'
+        return "/my/chunks/{$externalId}/{$index}.png?"
             .self::SIGNATURE_PARAM.'='.self::signature($externalId, $index);
     }
 
@@ -51,6 +51,6 @@ final class ChunkImageLink
 
     private static function signature(string $externalId, int $index): string
     {
-        return hash_hmac('sha256', 'chunk-image|'.$externalId.'|'.$index, (string) config('app.key'));
+        return hash_hmac('sha256', "chunk-image|{$externalId}|{$index}", (string) config('app.key'));
     }
 }

@@ -61,7 +61,7 @@ class GetChannelBreakdownTool extends AnalyticsTool
         if (count($channels) > 1) {
             $structured['echarts_option'] = AnalyticsChart::pie(
                 array_map(static fn (array $channel): array => ['name' => $channel['label'], 'value' => $channel['conversations']], $channels),
-                'Conversations by channel — '.$period->label,
+                "Conversations by channel — {$period->label}",
             );
         }
 

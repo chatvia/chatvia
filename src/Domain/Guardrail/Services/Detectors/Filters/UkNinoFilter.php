@@ -33,6 +33,6 @@ final class UkNinoFilter extends PiiFilter
 
     protected function accepts(string $value): bool
     {
-        return ! in_array(Str::of($value)->substr(0, 2)->upper()->toString(), self::INVALID_PREFIXES, true);
+        return ! collect(self::INVALID_PREFIXES)->containsStrict(Str::of($value)->substr(0, 2)->upper()->toString());
     }
 }

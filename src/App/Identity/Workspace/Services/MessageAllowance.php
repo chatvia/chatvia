@@ -41,7 +41,7 @@ class MessageAllowance
     /** Whether the chatter may send one more message of their own this month. */
     public function canSendAsChatter(int $chatterId): bool
     {
-        return $this->allows('chatter:'.$chatterId, fn (): ?MessageLimit => $this->limitForChatter($chatterId), null);
+        return $this->allows("chatter:{$chatterId}", fn (): ?MessageLimit => $this->limitForChatter($chatterId), null);
     }
 
     public function limitFor(int $workspaceId): ?MessageLimit
@@ -106,7 +106,7 @@ class MessageAllowance
 
     public function forgetChatter(int $chatterId): void
     {
-        Cache::forget($this->cacheKey('chatter:'.$chatterId));
+        Cache::forget($this->cacheKey("chatter:{$chatterId}"));
     }
 
     /** Drop the cached answer of whichever account owns the limit. */
@@ -125,7 +125,7 @@ class MessageAllowance
 
     private function workspaceOwner(int $workspaceId, ?int $cap): string
     {
-        return 'workspace:'.$workspaceId.($cap === null ? '' : ':cap'.$cap);
+        return "workspace:{$workspaceId}".($cap === null ? '' : ":cap{$cap}");
     }
 
     /**

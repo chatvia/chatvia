@@ -70,7 +70,7 @@ class SpeakMessageAction
         $disk = Storage::disk(MessageSpeechFiles::DISK);
 
         if (! $disk->exists($path)) {
-            Cache::lock('speech:'.$path, self::LOCK_SECONDS)->block(self::LOCK_SECONDS, function () use ($disk, $path, $text, $voice): void {
+            Cache::lock("speech:{$path}", self::LOCK_SECONDS)->block(self::LOCK_SECONDS, function () use ($disk, $path, $text, $voice): void {
                 if ($disk->exists($path)) {
                     return;
                 }

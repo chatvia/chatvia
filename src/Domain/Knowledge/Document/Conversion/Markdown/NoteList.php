@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Document\Conversion\Markdown;
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 /**
@@ -29,9 +30,9 @@ final class NoteList
         $lines = [];
 
         foreach ($this->notes as $index => $text) {
-            $lines[] = '[^'.($index + 1).']: '.$text;
+            $lines[] = '[^'.($index + 1)."]: {$text}";
         }
 
-        return implode("\n\n", $lines);
+        return Arr::join($lines, "\n\n");
     }
 }

@@ -42,7 +42,7 @@ abstract class MarkdownDomFormatter
         // <meta charset> keeps multibyte text (emoji, accents) intact; the wrapper
         // gives a single root, and the flags stop libxml adding <html>/<body>/DTD.
         $dom->loadHTML(
-            '<meta http-equiv="Content-Type" content="text/html; charset=utf-8"><div>'.$html.'</div>',
+            '<meta http-equiv="Content-Type" content="text/html; charset=utf-8"><div>'."{$html}</div>",
             LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD,
         );
         libxml_clear_errors();
@@ -99,7 +99,7 @@ abstract class MarkdownDomFormatter
             }
         }
 
-        return $out."\n";
+        return "{$out}\n";
     }
 
     /**

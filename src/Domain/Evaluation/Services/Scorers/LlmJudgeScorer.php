@@ -55,7 +55,7 @@ class LlmJudgeScorer implements Scorer
                 responseSchema: new ResponseSchemaData('eval_verdict', $this->schema(), strict: false),
             ))->data;
         } catch (Throwable $e) {
-            return ScoreResultData::fail(0.0, 'Judge call failed: '.$e->getMessage());
+            return ScoreResultData::fail(0.0, "Judge call failed: {$e->getMessage()}");
         }
 
         if ($data === null) {

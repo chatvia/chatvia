@@ -45,7 +45,7 @@ final class AiProviderUsage
         return array_values(array_filter(
             $provider->capabilities(),
             fn (AiCapability $capability): bool => $capability === AiCapability::Chat
-                ? in_array($provider, $this->chatProviders(), true)
+                ? collect($this->chatProviders())->containsStrict($provider)
                 : $this->providerFor($capability) === $provider,
         ));
     }

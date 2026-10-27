@@ -40,6 +40,6 @@ enum FileInput: string
     /** The input a stored file's MIME type belongs to, if any. */
     public static function forMimeType(string $mimeType): ?self
     {
-        return array_find(self::cases(), static fn (self $input): bool => in_array($mimeType, $input->mimeTypes(), true));
+        return array_find(self::cases(), static fn (self $input): bool => collect($input->mimeTypes())->containsStrict($mimeType));
     }
 }

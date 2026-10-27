@@ -57,7 +57,7 @@ class GetTopTopicsTool extends AnalyticsTool
             $structured['echarts_option'] = AnalyticsChart::bar(
                 array_column($topics, 'topic'),
                 [['name' => 'Conversations', 'data' => array_column($topics, 'conversations')]],
-                'Top topics — '.$period->label,
+                "Top topics — {$period->label}",
                 horizontal: true,
             );
         }

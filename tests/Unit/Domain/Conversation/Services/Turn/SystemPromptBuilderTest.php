@@ -20,8 +20,8 @@ function spbPrompt(Agent $agent, ?string $chatterName, ?string $source = null, ?
     $data = new StreamRequestData(
         agent: $agent,
         message: new StreamRequestMessageData(model: Llm::factory()->create(), message: 'Hi'),
-        externalSessionId: (string) Str::uuid(),
-        conversationId: (string) Str::uuid(),
+        externalSessionId: (string) Str::uuid7(),
+        conversationId: (string) Str::uuid7(),
         chatterName: $chatterName,
         source: $source,
         locale: $locale,

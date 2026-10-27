@@ -54,7 +54,7 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
 
     public function uniqueId(): string
     {
-        return 'ingestion:media:'.$this->sourceFile->id;
+        return "ingestion:media:{$this->sourceFile->id}";
     }
 
     /**
@@ -63,7 +63,7 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
     public function tags(): array
     {
         return [
-            'source_file:'.$this->sourceFile->id,
+            "source_file:{$this->sourceFile->id}",
             'ingestion_job',
             'media',
         ];

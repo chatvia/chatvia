@@ -44,7 +44,7 @@ final class MarkdownText
     {
         $text = Str::of($text)->replaceMatches('/\s+/u', ' ')->trim()->toString();
 
-        return $text === '' ? '' : Str::repeat('#', max(1, min(6, $level))).' '.$text;
+        return $text === '' ? '' : Str::repeat('#', max(1, min(6, $level)))." {$text}";
     }
 
     /**
@@ -61,7 +61,7 @@ final class MarkdownText
     {
         $indent = Str::repeat(' ', 4 * max(0, $level));
 
-        return $indent.$marker.' '.Str::replace("\n", "\n".$indent.Str::repeat(' ', Str::length($marker) + 1), self::paragraph($text));
+        return "{$indent}{$marker} ".Str::replace("\n", "\n{$indent}".Str::repeat(' ', Str::length($marker) + 1), self::paragraph($text));
     }
 
     /**
@@ -72,7 +72,7 @@ final class MarkdownText
      */
     public static function table(array $rows): string
     {
-        $rows = array_values(array_filter($rows, static fn (array $row): bool => implode('', $row) !== ''));
+        $rows = array_values(array_filter($rows, static fn (array $row): bool => Arr::join($row, '') !== ''));
 
         if ($rows === []) {
             return '';
@@ -80,20 +80,20 @@ final class MarkdownText
 
         $width = max(array_map(count(...), $rows));
         $rows = array_map(static fn (array $row): array => array_pad($row, $width, ''), $rows);
-        $used = array_values(array_filter(range(0, $width - 1), static fn (int $column): bool => implode('', array_column($rows, $column)) !== ''));
+        $used = array_values(array_filter(range(0, $width - 1), static fn (int $column): bool => Arr::join(array_column($rows, $column), '') !== ''));
 
         $lines = [];
 
         foreach ($rows as $number => $row) {
             $cells = array_map(static fn (int $column): string => self::cell($row[$column]), $used);
-            $lines[] = '| '.implode(' | ', $cells).' |';
+            $lines[] = '| '.Arr::join($cells, ' | ').' |';
 
             if ($number === 0) {
                 $lines[] = '|'.Str::repeat(' --- |', count($used));
             }
         }
 
-        return implode("\n", $lines);
+        return Arr::join($lines, "\n");
     }
 
     /**
@@ -109,7 +109,7 @@ final class MarkdownText
             return [[self::BLOCK, self::table($rows)]];
         }
 
-        return Str::of(implode("\n", Arr::flatten($rows)))
+        return Str::of(Arr::join(Arr::flatten($rows), "\n"))
             ->explode("\n")
             ->filter(fn (string $line): bool => filled($line))
             ->map(fn (string $line): array => [self::BLOCK, self::paragraph(Str::trim($line))])
@@ -134,7 +134,7 @@ final class MarkdownText
             }
 
             if ($previous !== null) {
-                $out .= $kind === self::ITEM && in_array($previous, [self::ITEM, self::LIST_START], true) ? "\n" : "\n\n";
+                $out .= $kind === self::ITEM && collect([self::ITEM, self::LIST_START])->containsStrict($previous) ? "\n" : "\n\n";
             }
 
             $out .= $markdown;

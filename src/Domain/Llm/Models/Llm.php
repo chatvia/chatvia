@@ -136,7 +136,7 @@ class Llm extends Model
             return $values[0];
         }
 
-        if (in_array($effort->value, $values, true)) {
+        if (collect($values)->containsStrict($effort->value)) {
             return $effort->value;
         }
 

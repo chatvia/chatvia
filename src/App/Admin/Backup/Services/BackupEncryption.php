@@ -45,10 +45,10 @@ class BackupEncryption
         }
 
         return $this->withHome(function (string $home) use ($publicKey): PublicKeyData {
-            File::put($home.'/key.asc', $publicKey);
+            File::put("{$home}/key.asc", $publicKey);
 
             // show-only lists the key without adding it to the keyring.
-            $result = $this->gpg($home, ['--with-colons', '--import-options', 'show-only', '--import', $home.'/key.asc']);
+            $result = $this->gpg($home, ['--with-colons', '--import-options', 'show-only', '--import', "{$home}/key.asc"]);
 
             if (! $result->successful()) {
                 throw new InvalidPublicKeyException(__('This public key cannot be read. Export it again with: gpg --armor --export you@example.com'));
@@ -68,9 +68,9 @@ class BackupEncryption
         $fingerprint = $this->inspect($publicKey)->fingerprint;
 
         $this->withHome(function (string $home) use ($publicKey, $fingerprint, $source, $target): void {
-            File::put($home.'/key.asc', $publicKey);
+            File::put("{$home}/key.asc", $publicKey);
 
-            $import = $this->gpg($home, ['--import', $home.'/key.asc']);
+            $import = $this->gpg($home, ['--import', "{$home}/key.asc"]);
 
             if (! $import->successful()) {
                 throw new BackupException('gpg could not import the public key: '.Str::trim($import->errorOutput()));
@@ -97,11 +97,11 @@ class BackupEncryption
     private function keyFrom(string $listing): PublicKeyData
     {
         $records = Str::of($listing)->explode("\n")
-            ->map(fn (string $line): array => explode(':', $line))
+            ->map(fn (string $line): array => Str::of($line)->explode(':')->all())
             ->filter(fn (array $fields): bool => count($fields) > 9)
             ->values();
 
-        if ($records->contains(fn (array $fields): bool => in_array($fields[0], ['sec', 'ssb'], true))) {
+        if ($records->contains(fn (array $fields): bool => collect(['sec', 'ssb'])->containsStrict($fields[0]))) {
             throw new InvalidPublicKeyException(__('This is a private key. Paste the public key: the server must never hold the key that opens the backups.'));
         }
 

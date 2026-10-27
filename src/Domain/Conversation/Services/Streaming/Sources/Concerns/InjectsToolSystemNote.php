@@ -34,7 +34,7 @@ trait InjectsToolSystemNote
 
         foreach ($llmMessages as $i => $message) {
             if (($message['role'] ?? null) === 'system') {
-                $llmMessages[$i]['content'] = Str::rtrim((string) ($message['content'] ?? ''))."\n\n".$note;
+                $llmMessages[$i]['content'] = Str::rtrim((string) ($message['content'] ?? ''))."\n\n{$note}";
 
                 return;
             }

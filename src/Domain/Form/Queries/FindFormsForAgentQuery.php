@@ -38,7 +38,7 @@ class FindFormsForAgentQuery
             slug: $form->slug,
             name: $form->name,
             purpose: $form->agent_instructions,
-            alreadySubmitted: in_array($form->id, $submittedIds, true),
+            alreadySubmitted: collect($submittedIds)->containsStrict($form->id),
         ))->values()->all();
     }
 }

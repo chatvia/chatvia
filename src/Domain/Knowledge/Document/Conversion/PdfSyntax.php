@@ -59,7 +59,7 @@ final class PdfSyntax
             $char === '<' => $this->hexString(),
             $char === '(' => $this->literalString(),
             $char === '[' => $this->array($depth),
-            $char === '/' => '/'.$this->name(),
+            $char === '/' => "/{$this->name()}",
             default => $this->keywordOrNumber(),
         };
     }
@@ -132,7 +132,7 @@ final class PdfSyntax
         $digits = (string) preg_replace('/[^0-9A-Fa-f]/', '', substr($this->bytes, $this->position + 1, $end - $this->position - 1));
         $this->position = $end + 1;
 
-        return (string) hex2bin(strlen($digits) % 2 === 1 ? $digits.'0' : $digits);
+        return (string) hex2bin(strlen($digits) % 2 === 1 ? "{$digits}0" : $digits);
     }
 
     private function literalString(): string

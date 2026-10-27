@@ -41,7 +41,7 @@ class GetConversationStatsTool extends AnalyticsTool
             Number::format($data->conversations),
             $data->avgMessagesPerConversation !== null ? Number::format(round((float) $data->avgMessagesPerConversation, 1), precision: 1) : '0',
             $data->avgDurationSeconds !== null ? ' and about '.Number::format(round((float) $data->avgDurationSeconds)).'s long' : '',
-            $busiest instanceof DailyCountData ? ' Busiest day was '.$busiest->date.' ('.Number::format($busiest->count).' conversations).' : '',
+            $busiest instanceof DailyCountData ? " Busiest day was {$busiest->date} (".Number::format($busiest->count).' conversations).' : '',
         );
 
         return Response::make(Response::text($summary))->withStructuredContent([

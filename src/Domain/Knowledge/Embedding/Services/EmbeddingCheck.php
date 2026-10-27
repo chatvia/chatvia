@@ -43,7 +43,7 @@ final readonly class EmbeddingCheck
         } catch (RequestException $e) {
             $status = $e->response->status();
 
-            return new EmbeddingCheckData(in_array($status, [401, 403], true) ? EmbeddingCheckStatus::KeyRefused : EmbeddingCheckStatus::ModelFailed, httpStatus: $status);
+            return new EmbeddingCheckData(collect([401, 403])->containsStrict($status) ? EmbeddingCheckStatus::KeyRefused : EmbeddingCheckStatus::ModelFailed, httpStatus: $status);
         } catch (ConnectionException) {
             return new EmbeddingCheckData(EmbeddingCheckStatus::Unreachable);
         }

@@ -38,7 +38,7 @@ class CreateBackup extends Command
         ]));
 
         if ($backup->status !== BackupStatus::Completed) {
-            $this->error('The backup failed: '.$backup->error);
+            $this->error("The backup failed: {$backup->error}");
 
             return self::FAILURE;
         }

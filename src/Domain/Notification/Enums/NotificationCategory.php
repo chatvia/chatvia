@@ -25,7 +25,7 @@ enum NotificationCategory: string
     /** Desktop alerts are on by default only where someone should act now. */
     public function desktopByDefault(): bool
     {
-        return in_array($this, [self::Handoffs, self::Security], true);
+        return collect([self::Handoffs, self::Security])->containsStrict($this);
     }
 
     /** Only a waiting visitor makes a sound by default. */

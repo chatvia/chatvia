@@ -38,7 +38,7 @@ trait HasStorageFile
         }
 
         $extension = pathinfo($path, PATHINFO_EXTENSION);
-        $tempPath = sys_get_temp_dir().'/storage_file_'.Str::uuid()->toString().($extension !== '' ? '.'.$extension : '');
+        $tempPath = sys_get_temp_dir().'/storage_file_'.Str::uuid7()->toString().($extension !== '' ? ".{$extension}" : '');
 
         LocalFiles::put($tempPath, $data);
 
@@ -121,7 +121,7 @@ trait HasStorageFile
         // stores its file under that root, including chat attachments, which
         // have no workspace column of their own.
         $root = Str::of((string) ($this->getAttributes()['filepath'] ?? ''))->explode('/')->take(2)->implode('/');
-        $pdfPath = ($root !== '' ? $root : 'tmp').'/tmp/'.Str::uuid()->toString().'.pdf';
+        $pdfPath = ($root !== '' ? $root : 'tmp').'/tmp/'.Str::uuid7()->toString().'.pdf';
 
         try {
             Storage::put($pdfPath, LocalFiles::get($localPdf));

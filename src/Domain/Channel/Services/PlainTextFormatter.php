@@ -33,7 +33,7 @@ class PlainTextFormatter extends MarkdownDomFormatter
             'a' => $this->renderLink($node),
             'br' => "\n",
             'hr' => "\n",
-            'p' => $renderedChildren."\n\n",
+            'p' => "{$renderedChildren}\n\n",
             'blockquote' => Str::trim($renderedChildren)."\n\n",
             'h1', 'h2', 'h3', 'h4', 'h5', 'h6' => Str::trim($renderedChildren)."\n\n",
             'ul', 'ol' => $this->renderList($node, $tag === 'ol'),

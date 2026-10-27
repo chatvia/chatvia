@@ -124,7 +124,7 @@ final readonly class ToolEntryData
 
         $out = [];
         foreach ($value as $key => $child) {
-            if (in_array($key, self::OBJECT_KEYS, true) && $child === []) {
+            if (collect(self::OBJECT_KEYS)->containsStrict($key) && $child === []) {
                 $out[$key] = new stdClass;
 
                 continue;

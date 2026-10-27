@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Embedding;
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Support\Http\ProviderRetry;
 
@@ -22,7 +23,7 @@ class OpenAi extends AbstractEmbeddingsProvider
         $embedding = $this->embedBatch([$text])[0] ?? [];
 
         if ($returnAsText) {
-            return '['.implode(',', $embedding).']';
+            return '['.Arr::join($embedding, ',').']';
         }
 
         return $embedding;

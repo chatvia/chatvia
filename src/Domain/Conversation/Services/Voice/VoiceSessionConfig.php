@@ -112,7 +112,7 @@ final readonly class VoiceSessionConfig
             ->cachedMessages();
 
         return collect($messages)
-            ->filter(static fn (MessageData $message): bool => in_array($message->role, [MessageRole::User, MessageRole::Assistant], true) && filled($message->content))
+            ->filter(static fn (MessageData $message): bool => collect([MessageRole::User, MessageRole::Assistant])->containsStrict($message->role) && filled($message->content))
             ->slice(-$limit)
             ->map(static fn (MessageData $message): array => [
                 'role' => $message->role->value,

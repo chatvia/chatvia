@@ -33,8 +33,8 @@ final class StreamTurn
         $data = new StreamRequestData(...[
             'agent' => $agent,
             'message' => new StreamRequestMessageData(model: $agent->llm, message: $message),
-            'externalSessionId' => (string) Str::uuid(),
-            'conversationId' => (string) Str::uuid(),
+            'externalSessionId' => (string) Str::uuid7(),
+            'conversationId' => (string) Str::uuid7(),
             ...$request,
         ]);
 

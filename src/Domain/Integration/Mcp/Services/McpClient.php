@@ -262,7 +262,7 @@ class McpClient
         }
 
         return match ($server->auth_type) {
-            McpAuthType::Bearer => ['Authorization' => 'Bearer '.$server->auth_value],
+            McpAuthType::Bearer => ['Authorization' => "Bearer {$server->auth_value}"],
             McpAuthType::Header => ['X-Auth' => $server->auth_value],
             McpAuthType::None => [],
         };
@@ -296,7 +296,7 @@ class McpClient
         array|object $params,
         array $identityHeaders = [],
     ): array {
-        $id = (string) Str::uuid();
+        $id = (string) Str::uuid7();
 
         try {
             $response = $this->send($server, $sessionId, [
@@ -306,7 +306,7 @@ class McpClient
                 'params' => $params,
             ], $identityHeaders);
         } catch (Throwable $e) {
-            throw new McpException('Could not reach MCP server: '.$e->getMessage(), $e->getCode(), previous: $e);
+            throw new McpException("Could not reach MCP server: {$e->getMessage()}", $e->getCode(), previous: $e);
         }
 
         if ($response->failed()) {
@@ -319,7 +319,7 @@ class McpClient
 
         $body = $this->decodeResponseBody($response);
         if (! is_array($body)) {
-            throw new McpException('MCP server returned non-JSON for '.$method);
+            throw new McpException("MCP server returned non-JSON for {$method}");
         }
 
         if (($body['id'] ?? null) !== $id) {
@@ -332,7 +332,7 @@ class McpClient
             // Surface the protocol-level error as an exception; callers may
             // catch and convert it to a user-facing string.
             throw McpException::reportedByServer(
-                'MCP error from '.$method.': '.$body['error']['message'],
+                "MCP error from {$method}: {$body['error']['message']}",
                 (string) $body['error']['message'],
             );
         }

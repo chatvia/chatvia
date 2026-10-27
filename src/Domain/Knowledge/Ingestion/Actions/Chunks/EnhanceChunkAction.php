@@ -7,6 +7,7 @@ use Domain\Knowledge\Ingestion\Data\Chunking\EnhancedChunkData;
 use Domain\Knowledge\Ingestion\Services\ChunkEmbeddingText;
 use Domain\Knowledge\Ingestion\Services\Chunking\Chunker;
 use Domain\Knowledge\Ingestion\Services\Enhancement\PageVisualsDescriber;
+use Illuminate\Support\Arr;
 
 /**
  * Turns a page into a "contextual" chunk before it is stored, for every
@@ -38,7 +39,7 @@ class EnhanceChunkAction
         $enhancement = $this->chunker->enhancePage($data->page, $data->previousPage, $data->nextPage);
 
         $embeddingText = ChunkEmbeddingText::forPage($enhancement->summary, $data->page->content, $visuals?->embeddingText() ?? '');
-        $questions = implode("\n", $enhancement->questions);
+        $questions = Arr::join($enhancement->questions, "\n");
 
         return new EnhancedChunkData(
             embeddingText: $embeddingText,

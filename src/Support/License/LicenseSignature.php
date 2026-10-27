@@ -32,7 +32,7 @@ final class LicenseSignature
 
         $terms = self::VERSION.'.'.self::encode(json_encode($license->toPayload(), JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
 
-        return $terms.'.'.self::encode(sodium_crypto_sign_detached($terms, $secret));
+        return "{$terms}.".self::encode(sodium_crypto_sign_detached($terms, $secret));
     }
 
     /**
@@ -44,7 +44,7 @@ final class LicenseSignature
     public static function verify(string $key, ?string $publicKey): ?LicenseKey
     {
         $public = self::rawKey($publicKey ?? '', SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES);
-        $parts = explode('.', (string) preg_replace('/\s+/', '', $key));
+        $parts = Str::of($key)->replaceMatches('/\s+/', '')->explode('.')->all();
 
         if ($public === null || count($parts) !== 3 || $parts[0] !== self::VERSION) {
             return null;
@@ -53,7 +53,7 @@ final class LicenseSignature
         $signature = self::decode($parts[2]);
 
         if ($signature === null || strlen($signature) !== SODIUM_CRYPTO_SIGN_BYTES
-            || ! sodium_crypto_sign_verify_detached($signature, $parts[0].'.'.$parts[1], $public)) {
+            || ! sodium_crypto_sign_verify_detached($signature, "{$parts[0]}.{$parts[1]}", $public)) {
             return null;
         }
 

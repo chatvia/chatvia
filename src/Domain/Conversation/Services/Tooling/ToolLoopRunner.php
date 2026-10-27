@@ -376,7 +376,7 @@ class ToolLoopRunner
         $offeredCalls = [];
 
         foreach ($toolCalls as $call) {
-            if (in_array($call->name, $offeredNames, true)) {
+            if (collect($offeredNames)->containsStrict($call->name)) {
                 $offeredCalls[] = $call;
 
                 continue;

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Document\Conversion\Markdown;
 
+use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 /**
@@ -80,7 +83,7 @@ final class PptReader
     /** All slides as Markdown, one block per slide. */
     public function toMarkdown(string $path): string
     {
-        return implode("\n\n", array_filter($this->slides($path), static fn (string $slide): bool => $slide !== ''));
+        return Arr::join(array_filter($this->slides($path), static fn (string $slide): bool => $slide !== ''), "\n\n");
     }
 
     /**
@@ -203,7 +206,7 @@ final class PptReader
                     $slides[$current] = [];
                 } elseif ($current !== null && $record['type'] === self::TEXT_HEADER) {
                     $slides[$current][] = '';
-                } elseif ($current !== null && in_array($record['type'], [self::TEXT_CHARS, self::TEXT_BYTES], true) && $slides[$current] !== []) {
+                } elseif ($current !== null && collect([self::TEXT_CHARS, self::TEXT_BYTES])->containsStrict($record['type']) && $slides[$current] !== []) {
                     $slides[$current][array_key_last($slides[$current])] = $this->text($record);
                 }
             }
@@ -238,18 +241,18 @@ final class PptReader
                 }
             }
 
-            $texts[] = implode("\n", $parts);
+            $texts[] = Arr::join($parts, "\n");
         }
 
         foreach ($placeholders as $index => $text) {
-            if (! isset($used[$index]) && ! in_array($text, $texts, true)) {
+            if (! isset($used[$index]) && ! collect($texts)->containsStrict($text)) {
                 $texts[] = $text;
             }
         }
 
         $lines = [];
 
-        foreach (explode("\n", implode("\n", $texts)) as $line) {
+        foreach (collect($texts)->flatMap(fn (string $text): Collection => Str::of($text)->explode("\n")) as $line) {
             $line = trim((string) preg_replace('/[ \t]+/u', ' ', $line));
 
             // A lone "*" stands for a field such as the slide number.
@@ -258,7 +261,7 @@ final class PptReader
             }
         }
 
-        return implode("\n", $lines);
+        return Arr::join($lines, "\n");
     }
 
     /**
@@ -276,7 +279,7 @@ final class PptReader
             if ($record['type'] === self::CLIENT_TEXTBOX) {
                 $boxes[] = array_values(array_filter(
                     $this->records($record['start'], $record['start'] + $record['length']),
-                    static fn (array $inner): bool => in_array($inner['type'], [self::TEXT_CHARS, self::TEXT_BYTES, self::OUTLINE_TEXT_REFERENCE], true),
+                    static fn (array $inner): bool => collect([self::TEXT_CHARS, self::TEXT_BYTES, self::OUTLINE_TEXT_REFERENCE])->containsStrict($inner['type']),
                 ));
             } elseif ($record['version'] === self::CONTAINER && $depth < self::MAX_DEPTH) {
                 array_push($boxes, ...$this->textBoxes($record, $depth + 1));

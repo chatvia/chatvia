@@ -39,8 +39,8 @@ it('cancels a media batch whose id was stored in internal_ingestion_job_id', fun
 
 it('does nothing when the batch no longer exists', function (): void {
     $file = AgentFileFactory::new()->create([
-        'internal_chunking_batch_id' => (string) Str::uuid(),
-        'internal_ingestion_job_id' => (string) Str::uuid(),
+        'internal_chunking_batch_id' => (string) Str::uuid7(),
+        'internal_ingestion_job_id' => (string) Str::uuid7(),
     ]);
 
     app(CancelFileIngestionAction::class)->execute($file);

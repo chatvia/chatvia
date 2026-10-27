@@ -40,6 +40,6 @@ final class CsvDownload
             default => (string) $value,
         };
 
-        return Str::isMatch('/^[=+\-@\t\r]/', $text) ? "'".$text : $text;
+        return Str::isMatch('/^[=+\-@\t\r]/', $text) ? "'{$text}" : $text;
     }
 }

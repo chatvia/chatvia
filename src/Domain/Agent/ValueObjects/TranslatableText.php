@@ -97,7 +97,7 @@ final readonly class TranslatableText
     {
         $locale = Str::lower(Str::trim($locale ?? ''));
 
-        if (in_array($locale, ['', 'auto', '*'], true)) {
+        if (collect(['', 'auto', '*'])->containsStrict($locale)) {
             return null;
         }
 

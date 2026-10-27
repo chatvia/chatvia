@@ -45,6 +45,6 @@ class AcceptAgentInvitationController
 
         $authToken = $authTokens->generateToken($agent, $chatter, 5);
 
-        return Inertia::location($agent->chat_url.'?auth_token='.$authToken);
+        return Inertia::location("{$agent->chat_url}?auth_token={$authToken}");
     }
 }

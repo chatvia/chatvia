@@ -29,7 +29,7 @@ beforeEach(function (): void {
     app()->instance(ToolLoopRunner::class, $this->runner);
 
     $this->agent = Agent::factory()->create(['llm_id' => Llm::factory()->create()->id]);
-    $this->scope = new ChatScopeData($this->agent, (string) Str::uuid(), (string) Str::uuid());
+    $this->scope = new ChatScopeData($this->agent, (string) Str::uuid7(), (string) Str::uuid7());
 });
 
 /** @return list<StreamEvent> */

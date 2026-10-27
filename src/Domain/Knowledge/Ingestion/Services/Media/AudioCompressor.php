@@ -31,7 +31,7 @@ class AudioCompressor
             throw new RuntimeException("Input file not found: {$input}");
         }
 
-        $output = create_temp_dir('/audio-compression').'/'.Str::uuid().'.mp3';
+        $output = create_temp_dir('/audio-compression').'/'.Str::uuid7().'.mp3';
 
         $result = Process::run([
             (string) config('services.bin.ffmpeg'),
@@ -50,7 +50,7 @@ class AudioCompressor
         if ($result->failed()) {
             File::delete($output);
 
-            throw new RuntimeException("Compression failed:\n".$result->errorOutput());
+            throw new RuntimeException("Compression failed:\n{$result->errorOutput()}");
         }
 
         return $output;

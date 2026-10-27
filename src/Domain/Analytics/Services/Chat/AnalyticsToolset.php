@@ -41,7 +41,7 @@ class AnalyticsToolset
         $routes = [];
 
         foreach ((array) config('mcp.builtin', []) as $entry) {
-            $url = $base.'/mcp/'.$entry['slug'];
+            $url = "{$base}/mcp/{$entry['slug']}";
 
             foreach ($this->toolClasses($entry['class']) as $toolClass) {
                 /** @var Tool $tool */

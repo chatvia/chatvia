@@ -21,7 +21,7 @@ beforeEach(function (): void {
     VoiceCalls::fakeOpenAi();
 
     $this->agent = Agent::factory()->create();
-    $this->call = VoiceCalls::data($this->agent, (string) Str::uuid(), (string) Str::uuid(), providerCallId: 'rtc_abc123');
+    $this->call = VoiceCalls::data($this->agent, (string) Str::uuid7(), (string) Str::uuid7(), providerCallId: 'rtc_abc123');
     app(VoiceCallStore::class)->put($this->call);
 });
 
@@ -34,7 +34,7 @@ it('hangs up the visitor\'s own call and flags it ended', function (): void {
 
 it('does not end a call of another session, another agent or no call at all', function (string $who): void {
     [$agent, $sessionId, $callId] = match ($who) {
-        'another session' => [$this->agent, (string) Str::uuid(), $this->call->call_id],
+        'another session' => [$this->agent, (string) Str::uuid7(), $this->call->call_id],
         'another agent' => [Agent::factory()->create(), $this->call->session_id, $this->call->call_id],
         'an unknown call' => [$this->agent, $this->call->session_id, Str::uuid7()->toString()],
     };

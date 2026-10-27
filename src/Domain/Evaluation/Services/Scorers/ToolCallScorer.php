@@ -6,6 +6,7 @@ use Domain\Evaluation\Contracts\Scorer;
 use Domain\Evaluation\Data\AgentRunResultData;
 use Domain\Evaluation\Data\ScoreResultData;
 use Domain\Evaluation\Models\EvalCase;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 /**
@@ -44,7 +45,7 @@ class ToolCallScorer implements Scorer
         $match = $this->findCall($result->toolCalls, $expectedTool);
 
         if ($match === null) {
-            $called = implode(', ', array_map(static fn (array $c): string => $c['name'] ?? '', $result->toolCalls));
+            $called = Arr::join(array_map(static fn (array $c): string => $c['name'] ?? '', $result->toolCalls), ', ');
 
             return ScoreResultData::fail(0.0, "Expected the agent to call \"{$expectedTool}\", but it called: {$called}.");
         }
@@ -68,7 +69,7 @@ class ToolCallScorer implements Scorer
             return ScoreResultData::pass(1.0, "Agent called \"{$expectedTool}\" with matching arguments.");
         }
 
-        return new ScoreResultData(false, $score, "Agent called \"{$expectedTool}\" but arguments differ: ".implode('; ', $mismatches).'.');
+        return new ScoreResultData(false, $score, "Agent called \"{$expectedTool}\" but arguments differ: ".Arr::join($mismatches, '; ').'.');
     }
 
     /**
@@ -83,7 +84,7 @@ class ToolCallScorer implements Scorer
         foreach ($calls as $call) {
             $name = $call['name'] ?? '';
 
-            if ($name === $expectedTool || Str::endsWith($name, '__'.$expectedTool)) {
+            if ($name === $expectedTool || Str::endsWith($name, "__{$expectedTool}")) {
                 return $call;
             }
         }
@@ -133,7 +134,7 @@ class ToolCallScorer implements Scorer
                 continue;
             }
 
-            $mismatches[] = "\"{$key}\" expected ".$this->stringify($value).', got '.$this->stringify($actual[$key]);
+            $mismatches[] = "\"{$key}\" expected {$this->stringify($value)}, got {$this->stringify($actual[$key])}";
         }
 
         return [$matched, $mismatches];

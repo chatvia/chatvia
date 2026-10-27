@@ -74,7 +74,7 @@ class ManageWorkspaceSettings extends AdminSettingsPage
             ])->summary(fn (): string => sprintf(
                 'Sign-up %s · %s',
                 app(WorkspaceAllowance::class)->signUpOpen() ? 'open' : 'closed',
-                (int) $this->valueInUse('new_workspace_message_limit') === 0 ? 'no message limit' : $this->valueInUse('new_workspace_message_limit').' messages a month',
+                (int) $this->valueInUse('new_workspace_message_limit') === 0 ? 'no message limit' : "{$this->valueInUse('new_workspace_message_limit')} messages a month",
             )),
             SettingsCard::make('owner_account', 'Owner account', 'What a workspace owner can do with their own account in the dashboard.', Heroicon::OutlinedUserCircle, fn (): array => [
                 $this->toggle('owner_data_export', 'Let owners download their data',
@@ -100,11 +100,11 @@ class ManageWorkspaceSettings extends AdminSettingsPage
                             $fail('The fewest days cannot be more than the days to keep conversations.');
                         }
                     }),
-            ])->summary(fn (): string => 'Kept '.$this->valueInUse('retention_days').' days'),
+            ])->summary(fn (): string => "Kept {$this->valueInUse('retention_days')} days"),
             SettingsCard::make('notifications', 'Notifications', 'How long the dashboard keeps notifications.', Heroicon::OutlinedBell, fn (): array => [
                 $this->integer('notification_retention_days', 'Days to keep notifications',
                     help: 'Notifications older than this are deleted every night, read or not.', min: 1, max: 365),
-            ])->summary(fn (): string => 'Kept '.$this->valueInUse('notification_retention_days').' days'),
+            ])->summary(fn (): string => "Kept {$this->valueInUse('notification_retention_days')} days"),
         ];
     }
 

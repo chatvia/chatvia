@@ -43,6 +43,6 @@ readonly class SiemWebhookPolicy
         // Per-action allowlist; null = deliver every event.
         $allowlist = $policy->webhook_events;
 
-        return ! is_array($allowlist) || in_array($event->action, $allowlist, true) ? $policy : null;
+        return ! is_array($allowlist) || collect($allowlist)->containsStrict($event->action) ? $policy : null;
     }
 }

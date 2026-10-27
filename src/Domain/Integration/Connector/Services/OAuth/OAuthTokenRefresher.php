@@ -41,7 +41,7 @@ class OAuthTokenRefresher implements AccessTokenRefresher
         }
 
         try {
-            Cache::lock('mcp:refresh:'.$server->id, self::LOCK_SECONDS)
+            Cache::lock("mcp:refresh:{$server->id}", self::LOCK_SECONDS)
                 ->block(self::WAIT_SECONDS, function () use ($server): void {
                     $this->reload($server);
 
@@ -110,7 +110,7 @@ class OAuthTokenRefresher implements AccessTokenRefresher
         }
 
         return $this->registrar->findByAuthServer((string) $server->oauth_authorization_server)
-            ?? throw new McpOAuthException('No registered OAuth client found for '.$server->oauth_authorization_server);
+            ?? throw new McpOAuthException("No registered OAuth client found for {$server->oauth_authorization_server}");
     }
 
     private function reload(AgentMcpServer $server): void

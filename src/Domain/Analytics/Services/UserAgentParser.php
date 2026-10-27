@@ -86,7 +86,7 @@ class UserAgentParser
 
         $windows = Str::match('/windows nt\s+([\d.]+)/i', $userAgent);
         if ($windows !== '') {
-            return 'Windows '.$windows;
+            return "Windows {$windows}";
         }
 
         return $this->firstMatch(self::FALLBACK_OS_PATTERNS, $userAgent) ?? 'Unknown';

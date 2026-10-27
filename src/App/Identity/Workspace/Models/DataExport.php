@@ -61,7 +61,7 @@ class DataExport extends Model
 
     public function isActive(): bool
     {
-        if (in_array($this->status, [DataExportStatus::Pending, DataExportStatus::Processing], true)) {
+        if (collect([DataExportStatus::Pending, DataExportStatus::Processing])->containsStrict($this->status)) {
             return true;
         }
 

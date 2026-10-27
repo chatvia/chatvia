@@ -42,7 +42,7 @@ class Country extends Model
      */
     public function localizedName(?string $locale = null): string
     {
-        $name = Locale::getDisplayRegion('-'.$this->code, $locale ?? app()->getLocale());
+        $name = Locale::getDisplayRegion("-{$this->code}", $locale ?? app()->getLocale());
 
         return $name !== '' && strcasecmp($name, $this->code) !== 0 ? $name : $this->name;
     }

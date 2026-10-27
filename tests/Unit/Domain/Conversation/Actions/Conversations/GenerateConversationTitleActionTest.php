@@ -20,7 +20,7 @@ use Illuminate\Support\Str;
  */
 function gctaScope(?string $firstMessage = null): ChatScopeData
 {
-    $scope = new ChatScopeData(Agent::factory()->create(), (string) Str::uuid());
+    $scope = new ChatScopeData(Agent::factory()->create(), (string) Str::uuid7());
     $scope = $scope->forConversation(app(StartConversationAction::class)->execute($scope, ConversationSource::HostedChat)->external_id);
 
     if ($firstMessage !== null) {

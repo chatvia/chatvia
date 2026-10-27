@@ -28,7 +28,7 @@ class ExportFormSubmissionsController
      */
     public function __invoke(ExportApiSubmissionsRequest $request, Agent $agent, FormDefinition $form, ExportSubmissionsCsvAction $export): Response
     {
-        $filename = 'submissions-'.$form->slug.'-'.now()->format('Ymd-His').'.csv';
+        $filename = "submissions-{$form->slug}-".now()->format('Ymd-His').'.csv';
 
         return response($export->execute($form, $request->toData()->ids), 200, [
             'Content-Type' => 'text/csv',

@@ -94,12 +94,12 @@ abstract class OpenAiCompatibleAdapter implements ProviderAdapter
     /** Where the provider lists its models. */
     protected function modelsUrl(LlmProvider $provider): string
     {
-        return $this->baseUrl($provider).'/models';
+        return "{$this->baseUrl($provider)}/models";
     }
 
     public function refusesKey(Response $response): bool
     {
-        return in_array($response->status(), [401, 403], true);
+        return collect([401, 403])->containsStrict($response->status());
     }
 
     public function account(): ?AiProvider

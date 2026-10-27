@@ -55,6 +55,6 @@ class ExportSubmissionsCsvAction
 
     private function csvSafe(string $value): string
     {
-        return Str::isMatch('/^[=+\-@\t\r]/', $value) ? "'".$value : $value;
+        return Str::isMatch('/^[=+\-@\t\r]/', $value) ? "'{$value}" : $value;
     }
 }

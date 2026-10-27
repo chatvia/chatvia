@@ -74,7 +74,7 @@ class CurrencyConverter
         try {
             $response = Http::timeout(10)
                 ->withToken($apiKey)
-                ->get($baseUrl.'/latest/'.self::BASE_CURRENCY);
+                ->get("{$baseUrl}/latest/".self::BASE_CURRENCY);
         } catch (Throwable) {
             return null;
         }

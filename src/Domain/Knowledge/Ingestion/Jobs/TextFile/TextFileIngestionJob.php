@@ -47,7 +47,7 @@ class TextFileIngestionJob implements ShouldBeUnique, ShouldQueue
 
     public function uniqueId(): string
     {
-        return 'ingestion:files:'.$this->sourceFile->id;
+        return "ingestion:files:{$this->sourceFile->id}";
     }
 
     /**
@@ -56,7 +56,7 @@ class TextFileIngestionJob implements ShouldBeUnique, ShouldQueue
     public function tags(): array
     {
         return [
-            'source_file:'.$this->sourceFile->id,
+            "source_file:{$this->sourceFile->id}",
             'ingestion_job',
         ];
     }

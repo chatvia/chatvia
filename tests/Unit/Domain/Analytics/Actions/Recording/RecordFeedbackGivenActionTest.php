@@ -35,8 +35,8 @@ function rfgGive(int $agentId, string $convId, string $msgId, ?string $feedback,
 }
 
 it('stores exactly one feedback row per message and overwrites on switch', function (): void {
-    $convId = (string) Str::uuid();
-    $msgId = (string) Str::uuid();
+    $convId = (string) Str::uuid7();
+    $msgId = (string) Str::uuid7();
 
     rfgGive(950001, $convId, $msgId, 'positive');
     expect(rfgRows($msgId)->count())->toBe(1)
@@ -49,8 +49,8 @@ it('stores exactly one feedback row per message and overwrites on switch', funct
 });
 
 it('removes the row when feedback is cleared', function (): void {
-    $convId = (string) Str::uuid();
-    $msgId = (string) Str::uuid();
+    $convId = (string) Str::uuid7();
+    $msgId = (string) Str::uuid7();
 
     rfgGive(950002, $convId, $msgId, 'positive');
     expect(rfgRows($msgId)->count())->toBe(1);
@@ -61,10 +61,10 @@ it('removes the row when feedback is cleared', function (): void {
 
 it('counts current feedback as a snapshot, not a lifetime tally', function (): void {
     $agentId = 950003;
-    $convId = (string) Str::uuid();
-    $switched = (string) Str::uuid();
-    $cleared = (string) Str::uuid();
-    $kept = (string) Str::uuid();
+    $convId = (string) Str::uuid7();
+    $switched = (string) Str::uuid7();
+    $cleared = (string) Str::uuid7();
+    $kept = (string) Str::uuid7();
 
     rfgGive($agentId, $convId, $switched, 'positive');
     rfgGive($agentId, $convId, $switched, 'negative'); // switched → negative only
@@ -80,9 +80,9 @@ it('counts current feedback as a snapshot, not a lifetime tally', function (): v
 });
 
 it('keeps the chatter of the rated message on the feedback row', function (): void {
-    $convId = (string) Str::uuid();
-    $chatterMsg = (string) Str::uuid();
-    $anonymousMsg = (string) Str::uuid();
+    $convId = (string) Str::uuid7();
+    $chatterMsg = (string) Str::uuid7();
+    $anonymousMsg = (string) Str::uuid7();
 
     rfgGive(950004, $convId, $chatterMsg, 'positive', chatterId: 950104);
     rfgGive(950004, $convId, $anonymousMsg, 'negative');

@@ -161,7 +161,7 @@ class ChannelReplyRunner
             conversationId: $turn->conversationExternalId,
             saveUserMessageImmediately: true,
             source: $turn->source->value,
-            requestId: $turn->requestIdPrefix.Str::uuid(),
+            requestId: $turn->requestIdPrefix.Str::uuid7(),
         ));
         $context = $this->chatTurnPreparer->enrichContextWithKnowledge($context);
 

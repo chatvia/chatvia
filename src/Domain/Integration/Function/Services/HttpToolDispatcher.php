@@ -242,7 +242,7 @@ class HttpToolDispatcher implements ToolDispatcher
         $config = $function->auth_config ?? [];
 
         if ($function->auth_type === FunctionAuthType::Bearer && ! empty($config['token'])) {
-            $headers['Authorization'] = 'Bearer '.$config['token'];
+            $headers['Authorization'] = "Bearer {$config['token']}";
         }
         if ($function->auth_type === FunctionAuthType::Header && ! empty($config['name']) && isset($config['value'])) {
             $headers[(string) $config['name']] = (string) $config['value'];
@@ -268,7 +268,7 @@ class HttpToolDispatcher implements ToolDispatcher
 
         return [
             self::TIMESTAMP_HEADER => $timestamp,
-            self::SIGNATURE_HEADER => 'sha256='.WebhookSignature::sign($timestamp.'.'.$payload, $secret),
+            self::SIGNATURE_HEADER => 'sha256='.WebhookSignature::sign("{$timestamp}.{$payload}", $secret),
         ];
     }
 
@@ -308,6 +308,6 @@ class HttpToolDispatcher implements ToolDispatcher
 
     private function error(string $message): ToolDispatchResultData
     {
-        return ToolDispatchResultData::error('Tool error: '.$message);
+        return ToolDispatchResultData::error("Tool error: {$message}");
     }
 }

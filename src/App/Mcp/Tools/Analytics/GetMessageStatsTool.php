@@ -64,7 +64,7 @@ class GetMessageStatsTool extends AnalyticsTool
             $structured['echarts_option'] = AnalyticsChart::line(
                 array_column($daily, 'date'),
                 [['name' => 'Messages', 'data' => array_column($daily, 'messages')]],
-                'Messages per day — '.$period->label,
+                "Messages per day — {$period->label}",
             );
         }
 

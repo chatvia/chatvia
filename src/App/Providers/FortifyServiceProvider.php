@@ -122,7 +122,7 @@ class FortifyServiceProvider extends ServiceProvider
             $ip = (string) $request->ip();
 
             return [
-                Limit::perMinute(5)->by(Str::transliterate($email.'|'.$ip)),
+                Limit::perMinute(5)->by(Str::transliterate("{$email}|{$ip}")),
                 Limit::perHour(30)->by($ip),
             ];
         });
@@ -145,7 +145,7 @@ class FortifyServiceProvider extends ServiceProvider
             $credentialId = $request->input('credential.id');
 
             return Limit::perMinute(10)->by(
-                ($credentialId ?: $request->session()->getId()).'|'.$request->ip()
+                ($credentialId ?: $request->session()->getId())."|{$request->ip()}"
             );
         });
     }

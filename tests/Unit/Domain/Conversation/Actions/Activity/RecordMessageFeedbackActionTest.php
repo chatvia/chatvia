@@ -42,7 +42,7 @@ function rmfaMessage(ChatScopeData $scope, string $externalId): Message
 
 it('records the rating once when the message is in the live memory', function (): void {
     $scope = rmfaScope();
-    $messageId = (string) Str::uuid();
+    $messageId = (string) Str::uuid7();
 
     $memory = app(ChatMemory::class)->withScope($scope);
     $memory->appendMessage(new MessageData(
@@ -68,7 +68,7 @@ it('records the rating once when the message is in the live memory', function ()
 
 it('still records the rating when the live memory is cold', function (): void {
     $scope = rmfaScope();
-    $messageId = (string) Str::uuid();
+    $messageId = (string) Str::uuid7();
     rmfaMessage($scope, $messageId);
 
     app(RecordMessageFeedbackAction::class)->execute($scope, $messageId, MessageFeedback::Negative);
@@ -87,7 +87,7 @@ it('still records the rating when the live memory is cold', function (): void {
 
 it('clears a rating with null', function (): void {
     $scope = rmfaScope();
-    $messageId = (string) Str::uuid();
+    $messageId = (string) Str::uuid7();
     rmfaMessage($scope, $messageId)->update(['feedback' => MessageFeedback::Positive]);
 
     app(RecordMessageFeedbackAction::class)->execute($scope, $messageId, null);
@@ -97,7 +97,7 @@ it('clears a rating with null', function (): void {
 
 it('keeps a note added to a thumbs-down without counting the rating again', function (): void {
     $scope = rmfaScope();
-    $messageId = (string) Str::uuid();
+    $messageId = (string) Str::uuid7();
     rmfaMessage($scope, $messageId);
 
     app(RecordMessageFeedbackAction::class)->execute($scope, $messageId, MessageFeedback::Negative);
@@ -109,7 +109,7 @@ it('keeps a note added to a thumbs-down without counting the rating again', func
 
 it('drops the note when the rating is not a thumbs-down', function (): void {
     $scope = rmfaScope();
-    $messageId = (string) Str::uuid();
+    $messageId = (string) Str::uuid7();
     rmfaMessage($scope, $messageId)->update(['feedback' => MessageFeedback::Negative, 'feedback_comment' => 'Wrong price.']);
 
     app(RecordMessageFeedbackAction::class)->execute($scope, $messageId, MessageFeedback::Positive, 'Ignored.');
@@ -123,7 +123,7 @@ it('drops the note when the rating is not a thumbs-down', function (): void {
 it('keeps the thumbs-down but drops the note while the agent asks for none', function (): void {
     $scope = rmfaScope();
     $scope->agent->setSetting('allow_feedback_comment', false, 'appearance');
-    $messageId = (string) Str::uuid();
+    $messageId = (string) Str::uuid7();
     rmfaMessage($scope, $messageId);
 
     app(RecordMessageFeedbackAction::class)->execute($scope, $messageId, MessageFeedback::Negative, 'The refund period is wrong.');
@@ -139,7 +139,7 @@ it('cannot rate a message of a conversation outside the scope', function (): voi
     // The database path must look the message up inside the visitor's own
     // conversation, never by its id alone.
     $victim = rmfaScope();
-    $messageId = (string) Str::uuid();
+    $messageId = (string) Str::uuid7();
     rmfaMessage($victim, $messageId);
 
     $attacker = rmfaScope();

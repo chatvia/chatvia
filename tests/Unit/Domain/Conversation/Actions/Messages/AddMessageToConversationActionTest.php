@@ -26,7 +26,7 @@ beforeEach(function (): void {
 
 function addMessageScope(Agent $agent): ChatScopeData
 {
-    return new ChatScopeData($agent, (string) Str::uuid(), (string) Str::uuid());
+    return new ChatScopeData($agent, (string) Str::uuid7(), (string) Str::uuid7());
 }
 
 it('adds a visitor message to the live memory and queues the chat-log copy', function (): void {

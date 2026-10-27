@@ -7,7 +7,7 @@
         "finish": "Xong",
         "step_of": "{current}/{total}",
         "welcome": {
-            "title": "Chào mừng đến với ChatVia.ai",
+            "title": "Chào mừng đến với {name}",
             "description": "Một hướng dẫn ngắn giới thiệu bảng điều khiển và giúp bạn thiết lập trợ lý AI đầu tiên.",
             "how_title": "Cách hoạt động",
             "how_move": "Dùng Tiếp và Quay lại, hoặc phím mũi tên, để chuyển giữa các bước.",

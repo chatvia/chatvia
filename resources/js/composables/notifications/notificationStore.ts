@@ -74,10 +74,16 @@ export function notificationsCleared(): void {
     listeners.forEach((listener) => listener.cleared?.());
 }
 
-// The tab title carries the unread count ("(3) Agents - ChatVia.ai"). Inertia
-// sets the title per page through pageTitle(); a change of count rewrites it.
-const APP_NAME = 'ChatVia.ai';
+// The tab title carries the unread count ("(3) Agents - Acme"), after the
+// app's name (Settings → Platform). Inertia sets the title per page through
+// pageTitle(); a change of count rewrites it.
+let appName = 'ChatVia.ai';
 let baseTitle: string | null = null;
+
+/** Takes the app's name from each page the server sends (shared as `name`). */
+export function setAppName(name: unknown): void {
+    if (typeof name === 'string' && name !== '') appName = name;
+}
 
 function withUnreadCount(title: string): string {
     if (unreadCount.value <= 0) return title;
@@ -86,7 +92,8 @@ function withUnreadCount(title: string): string {
 }
 
 export function pageTitle(title: string): string {
-    baseTitle = `${title} - ${APP_NAME}`;
+    // A page named after the app itself (the hosted chat's start) shows the name once.
+    baseTitle = title === '' || title === appName ? appName : `${title} - ${appName}`;
 
     return withUnreadCount(baseTitle);
 }

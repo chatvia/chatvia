@@ -7,7 +7,7 @@
         "finish": "Bitir",
         "step_of": "{current}/{total}",
         "welcome": {
-            "title": "ChatVia.ai'ye hoş geldiniz",
+            "title": "{name} uygulamasına hoş geldiniz",
             "description": "Kısa bir tur size paneli gösterir ve ilk asistanınızı kurmanıza yardım eder.",
             "how_title": "Nasıl çalışır",
             "how_move": "Adımlar arasında geçmek için İleri ve Geri düğmelerini ya da ok tuşlarını kullanın.",

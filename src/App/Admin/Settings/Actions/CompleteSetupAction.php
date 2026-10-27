@@ -39,8 +39,8 @@ use InvalidArgumentException;
  * with the task models it brings ({@see TaskModelPreset}), the model for
  * image descriptions (none turns image descriptions off), the embedding service and
  * model, the reranker, the document reader, the Firecrawl key, speech to
- * text, voice conversations, where files are kept, how email is sent, and
- * whether Spectra records AI calls. A service left at "Not now" is turned
+ * text, voice conversations, where files are kept, how email is sent,
+ * whether Spectra records AI calls, and the app's name. A service left at "Not now" is turned
  * off, so "Automatic" does not turn it on. Agents made before any model
  * was added (the demo data) get the default model. Then the setup is
  * marked done. A value that still equals its default
@@ -150,6 +150,10 @@ final readonly class CompleteSetupAction
             }
 
             $this->set($this->observability, 'spectra_enabled', $data->recordAiCalls);
+
+            if (filled($data->appName)) {
+                $this->set($this->platform, 'app_name', $data->appName);
+            }
 
             $this->providers->save();
             $this->ai->save();

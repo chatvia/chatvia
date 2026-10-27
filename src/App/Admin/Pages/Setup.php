@@ -114,9 +114,11 @@ use Support\License\LicenseFeature;
  * step. Each key is checked before the next step and saved once.
  *
  * 1. Server: the services ChatVia.ai runs on (database, Redis, queue,
- *    scheduler, live updates), checked live as on the Status page, and
- *    keyword search: pg_textsearch is recommended, with why and how to get
- *    it, and turned on here when the database has it loaded; and pg_partman,
+ *    scheduler, live updates), checked live as on the Status page; the
+ *    app's name, which the sender name of emails follows until it is
+ *    changed there; and keyword search: pg_textsearch is recommended, with
+ *    why and how to get it, and turned on here when the database has it
+ *    loaded; and pg_partman,
  *    which analytics needs, with a warning and a link to the docs when missing.
  *    License (optional): what a license key adds to a free install, with a
  *    link to buy one, and the key, activated at chatvia.ai and saved on Next
@@ -320,7 +322,8 @@ class Setup extends SimplePage
             'storage_driver' => app(StorageSettings::class)->driver === 's3' ? 's3' : 'local',
             'mailer' => $mailer === MailProvider::Sendmail ? MailProvider::Log->value : $mailer->value,
             'from_address' => config('mail.from.address'),
-            'from_name' => 'ChatVia.ai',
+            'app_name' => config('app.name'),
+            'from_name' => config('app.name'),
             'observability' => app(ObservabilitySettings::class)->spectra_enabled === false ? self::NOT_NOW : self::SPECTRA,
         ]);
     }
@@ -437,6 +440,7 @@ class Setup extends SimplePage
                 fromName: $this->filled($state, 'from_name'),
             ),
             recordAiCalls: ($state['observability'] ?? null) !== self::NOT_NOW,
+            appName: $this->filled($state, 'app_name'),
         ));
 
         Cache::forget($this->modelCacheKey());
@@ -470,6 +474,22 @@ class Setup extends SimplePage
                             'checked' => $this->server !== [],
                             'headline' => $this->serverHeadline(),
                         ]),
+                    ]),
+                Section::make('App name')
+                    ->description('The name people see in browser tabs, the dashboard, the admin panel and emails. You can change it later in Settings → Platform.')
+                    ->icon(Heroicon::OutlinedTag)
+                    ->schema([
+                        TextInput::make('app_name')
+                            ->label('App name')
+                            ->required()
+                            ->maxLength(60)
+                            ->live(onBlur: true)
+                            // The sender name of emails follows until it is changed by hand.
+                            ->afterStateUpdated(function (Get $get, Set $set, ?string $state, ?string $old): void {
+                                if ($get('from_name') === $old) {
+                                    $set('from_name', $state);
+                                }
+                            }),
                     ]),
                 Section::make('License (optional)')
                     ->description('ChatVia.ai is free to use, with a few limits. A license key lifts them and supports its development.')

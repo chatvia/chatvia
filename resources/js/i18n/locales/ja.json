@@ -4443,7 +4443,7 @@
         "finish": "完了",
         "step_of": "{current} / {total}",
         "welcome": {
-            "title": "ChatVia.ai へようこそ",
+            "title": "{name} へようこそ",
             "description": "短いツアーでダッシュボードを案内し、最初のエージェントの設定をお手伝いします。",
             "how_title": "使い方",
             "how_move": "次へと戻る、または矢印キーでステップを移動します。",

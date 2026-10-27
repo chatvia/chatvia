@@ -12,7 +12,7 @@ import { toast } from 'vue-sonner';
 import 'vue-sonner/style.css';
 import Vue3ColorPicker from 'vue3-colorpicker';
 import 'vue3-colorpicker/style.css';
-import { pageTitle, syncNotificationSummary } from './composables/notifications/notificationStore';
+import { pageTitle, setAppName, syncNotificationSummary } from './composables/notifications/notificationStore';
 import { initializeTheme } from './composables/useAppearance';
 import { i18n, isRTL, normalizeLocale, resolveLocale, setI18nLocale } from './i18n';
 import { auth as chatBroadcastAuth } from './routes/chat/broadcasting';
@@ -70,10 +70,11 @@ axios.interceptors.request.use((config) => {
 http.onRequest((config) => ({ ...config, headers: { ...config.headers, ...csrfHeaders() } }));
 
 /**
- * Takes the agent segment, the CSRF token and the notification bell's count
- * from each page the server sends.
+ * Takes the agent segment, the CSRF token, the app's name and the
+ * notification bell's count from each page the server sends.
  */
 function syncPageContext(pageProps: Record<string, unknown>): void {
+    setAppName(pageProps.name);
     agentSlug = typeof pageProps.agentSlug === 'string' && pageProps.agentSlug !== '' ? pageProps.agentSlug : null;
     setCsrfToken(pageProps.csrfToken);
     syncNotificationSummary(pageProps.notifications as SharedData['notifications'] | undefined);
@@ -85,7 +86,7 @@ function defaultLocaleOf(pageProps: Record<string, unknown>): string | null {
 }
 
 createInertiaApp({
-    // "Page - ChatVia.ai", led by the unread notification count when there is one.
+    // "Page - {app name}", led by the unread notification count when there is one.
     title: (title) => pageTitle(title),
     setup({ el, App, props, plugin }) {
         syncPageContext(props.initialPage.props);

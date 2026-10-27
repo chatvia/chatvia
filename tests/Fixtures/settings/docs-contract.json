@@ -295,6 +295,9 @@
     "settings/platform#alerts": [
         "Alert email"
     ],
+    "settings/platform#app-name": [
+        "App name"
+    ],
     "settings/platform#development": [
         "Logs page"
     ],

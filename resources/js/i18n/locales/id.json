@@ -4443,7 +4443,7 @@
         "finish": "Selesai",
         "step_of": "{current} dari {total}",
         "welcome": {
-            "title": "Selamat datang di ChatVia.ai",
+            "title": "Selamat datang di {name}",
             "description": "Tur singkat ini menunjukkan dasbor dan membantu Anda menyiapkan agen pertama.",
             "how_title": "Cara kerjanya",
             "how_move": "Gunakan Berikutnya dan Kembali, atau tombol panah, untuk berpindah langkah.",

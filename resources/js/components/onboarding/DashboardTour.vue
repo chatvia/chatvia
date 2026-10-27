@@ -10,6 +10,7 @@ import OnboardingTour, { type TourStop } from '@/components/onboarding/Onboardin
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useOnboardingTour } from '@/composables/onboarding/useOnboardingTour';
+import { useAppName } from '@/composables/useAppName';
 import { ArrowLeftRight, Compass, Menu, X } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -20,6 +21,7 @@ const emit = defineEmits<{ 'create-agent': [] }>();
 
 const { t } = useI18n();
 const { enabled, stage, moveTo } = useOnboardingTour();
+const appName = useAppName();
 
 const welcomeOpen = ref(false);
 const tour = ref<InstanceType<typeof OnboardingTour> | null>(null);
@@ -96,7 +98,7 @@ defineExpose({ createAgentClicked });
     <Dialog :open="welcomeOpen" @update:open="onWelcomeOpenChange">
         <DialogContent class="sm:max-w-md">
             <DialogHeader>
-                <DialogTitle>{{ t('onboarding.welcome.title') }}</DialogTitle>
+                <DialogTitle>{{ t('onboarding.welcome.title', { name: appName }) }}</DialogTitle>
                 <DialogDescription>{{ t('onboarding.welcome.description') }}</DialogDescription>
             </DialogHeader>
             <div class="space-y-3 text-sm">

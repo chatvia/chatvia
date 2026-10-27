@@ -7,13 +7,13 @@ return [
     | Application Name
     |--------------------------------------------------------------------------
     |
-    | This value is the name of your application, which will be used when the
-    | framework needs to place the application's name in a notification or
-    | other UI elements where an application name needs to be displayed.
+    | The name people see: in browser tabs, the dashboard, the admin panel and
+    | emails. An admin sets it in Settings → Platform (or in the setup), so it
+    | is not read from .env: APP_NAME only names the cookies and Redis keys.
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => 'ChatVia.ai',
 
     /*
     |--------------------------------------------------------------------------

@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Api\V1\Chatter;
 
-use App\Http\Requests\Concerns\ScopesRulesToWorkspace;
-use App\Http\Rules\WorkspaceRule;
+use App\Http\Requests\Concerns\ValidatesManageableAgents;
 use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\AgentSignInTokens;
@@ -18,14 +17,15 @@ use Illuminate\Foundation\Http\FormRequest;
  * The agent and the person a sign-in link is for. Both must be in your
  * workspace: any other id is a validation error (422), worded the same for
  * "unknown" and "someone else's", so the answer never shows whether an id
- * exists somewhere else. The person must be able to reach the agent, or the
- * link would never sign them in, and only the owner may sign in a staff
+ * exists somewhere else. A teammate's key names only the agents their team
+ * role reaches, as on the dashboard. The person must be able to reach the
+ * agent, or the link would never sign them in, and only the owner may sign in a staff
  * account other than their own, so a teammate's key cannot open a chat as
  * the owner or another teammate.
  */
 class StoreChatterSignInLinkRequest extends FormRequest
 {
-    use ScopesRulesToWorkspace;
+    use ValidatesManageableAgents;
 
     public function authorize(): bool
     {
@@ -38,8 +38,10 @@ class StoreChatterSignInLinkRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // ID of the agent to sign the user into.
-            'agent_id' => ['bail', 'required', 'string', WorkspaceRule::exists('agents', $this->ruleWorkspaceId(), 'external_id')->withoutTrashed()],
+            // ID of the agent to sign the user into: one of your agents that
+            // your key may manage (a teammate's key reaches the agents of
+            // their team role only).
+            'agent_id' => ['bail', 'required', 'string', $this->manageableAgentExists()],
             // ID of the user the link signs in: one of your chatters with
             // access to the agent, or (owner keys only) the owner or a
             // teammate of your workspace (see `GET /api/v1/users`).

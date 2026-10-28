@@ -67,6 +67,17 @@ it("rejects another workspace's agent as a plain field error", function (): void
         ->assertJsonValidationErrors(['agent_id', 'user_id']);
 });
 
+it("rejects an agent the calling teammate's role does not reach, as a plain field error", function (): void {
+    $reached = createAgent($this->owner, ['name' => 'Reached']);
+    $teammate = teammateWithPermissions($this->owner, ['account.chatters.manage'], allAgents: false, agentExternalIds: [$reached->external_id]);
+    $chatter = Chatter::factory()->grantedTo($this->agent)->create();
+
+    $this->withToken($teammate->createToken('account')->plainTextToken)
+        ->postJson('/api/v1/chatters/sign', ['agent_id' => $this->agent->external_id, 'user_id' => $chatter->external_id])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['agent_id']);
+});
+
 it('rejects a chatter who has no access to the agent, as the link would never sign them in', function (): void {
     $stranger = Chatter::factory()->create(['workspace_id' => $this->agent->workspace_id]);
 

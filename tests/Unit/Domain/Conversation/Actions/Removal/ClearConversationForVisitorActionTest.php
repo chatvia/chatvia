@@ -3,6 +3,7 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Removal\ClearConversationForVisitorAction;
+use Domain\Conversation\Actions\Removal\ClearSessionConversationsForVisitorAction;
 use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
@@ -15,7 +16,8 @@ use Domain\Widget\Services\WidgetVerification;
  * conversation from the visitor's widget while leaving the customer's persisted
  * record fully intact (message content, no soft-delete, still visible in the
  * chat log). Contrast AdminDeleteConversationActionTest, which is the erasing
- * owner/admin path that nulls content and soft-deletes.
+ * owner/admin path that nulls content and soft-deletes. Clearing a whole
+ * session works the same way for each of its conversations.
  */
 /**
  * @return array{0: Agent, 1: Session, 2: Conversation, 3: Message}
@@ -97,4 +99,19 @@ it('stops the widget read side from resurfacing a cleared conversation', functio
     // bootstrap restore, form submit all funnel through verifyConversationId).
     expect(app(WidgetVerification::class)->verifyConversationId($conversation->external_id, $agent))
         ->toBeNull();
+});
+
+it('clears every conversation in the session without erasing any of them', function (): void {
+    $session = Session::factory()->create();
+    [$first, $second] = Conversation::factory()->count(2)->inSession($session)->visible()->create();
+    $message = Message::factory()->fromUser()->create(['chat_conversation_id' => $first->id, 'content' => 'What are your opening hours?']);
+
+    app(ClearSessionConversationsForVisitorAction::class)->execute(new ChatScopeData($session->agent, $session->external_id));
+
+    $rows = Conversation::query()->whereKey([$first->id, $second->id])->get();
+
+    expect($rows)->toHaveCount(2)
+        ->and($rows->whereNull('cleared_at'))->toBeEmpty()
+        ->and($rows->pluck('deleted_by')->all())->toBe(['user', 'user'])
+        ->and($message->fresh()->content)->toBe('What are your opening hours?');
 });

@@ -342,7 +342,6 @@
     "tests/Unit/Domain/Channel/Actions/HandleChannelMessageActionTest.php": 1,
     "tests/Unit/Domain/Channel/Messenger/Services/MessengerClientTest.php": 1,
     "tests/Unit/Domain/Channel/Services/Replies/StreamingReplyStrategyTest.php": 2,
-    "tests/Unit/Domain/Channel/Services/Replies/TypingReplyStrategyTest.php": 1,
     "tests/Unit/Domain/Channel/Telegram/Actions/UpdateTelegramCommandsActionTest.php": 1,
     "tests/Unit/Domain/Channel/Telegram/Services/TelegramCommandRouterTest.php": 2,
     "tests/Unit/Domain/Conversation/Actions/Messages/DeleteMessagePairActionTest.php": 4,

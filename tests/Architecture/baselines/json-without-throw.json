@@ -102,7 +102,6 @@
     "tests/Unit/Domain/Knowledge/Ingestion/Actions/Sources/CreateSourceSummaryActionTest.php": 1,
     "tests/Unit/Domain/Knowledge/Ingestion/Actions/Website/TrainWebsiteUrlActionTest.php": 1,
     "tests/Unit/Domain/Knowledge/Ingestion/Services/Chunking/ChunkerTest.php": 2,
-    "tests/Unit/Domain/Knowledge/Ingestion/Services/ContentAnalyzerTest.php": 1,
     "tests/Unit/Domain/Llm/Operations/Query/QueryRewriterTest.php": 6,
     "tests/Unit/Domain/Llm/Operations/Realtime/OpenAiRealtimeCallsTest.php": 1,
     "tests/Unit/Domain/Llm/Providers/AnthropicTest.php": 1,

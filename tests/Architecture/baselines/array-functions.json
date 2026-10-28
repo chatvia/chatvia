@@ -393,7 +393,6 @@
     "tests/Unit/Domain/Knowledge/Ingestion/Services/Parsing/AzureDocumentParserTest.php": 3,
     "tests/Unit/Domain/Knowledge/Retrieval/Queries/HybridChunkSearchTest.php": 6,
     "tests/Unit/Domain/Knowledge/Retrieval/Services/KnowledgeBaseTest.php": 7,
-    "tests/Unit/Domain/Knowledge/Source/File/Enums/KnowledgeFileTypeTest.php": 2,
     "tests/Unit/Domain/Knowledge/Source/File/Services/SourceFileTypesTest.php": 1,
     "tests/Unit/Domain/Knowledge/Source/Qa/Actions/SyncQaQuestionsActionTest.php": 3,
     "tests/Unit/Domain/Llm/Actions/Catalog/CheckLlmListingActionTest.php": 1,

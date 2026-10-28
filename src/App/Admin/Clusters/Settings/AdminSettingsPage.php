@@ -95,7 +95,7 @@ abstract class AdminSettingsPage extends Page
             Grid::make(['default' => 1, 'xl' => 5])
                 ->extraAttributes(['class' => 'cv-settings-layout'])
                 ->schema([
-                    View::make('filament.settings.outline')
+                    View::make('admin.settings.outline')
                         ->viewData(fn (): array => ['items' => array_map($this->outlineItem(...), $this->visibleCards())]),
                     Form::make([EmbeddedSchema::make('form')])
                         ->id('form')
@@ -132,7 +132,7 @@ abstract class AdminSettingsPage extends Page
 
         return $schema->components([
             ...array_map($this->section(...), array_values($everyday)),
-            ...($advanced === [] ? [] : [View::make('filament.settings.advanced')]),
+            ...($advanced === [] ? [] : [View::make('admin.settings.advanced')]),
             ...array_map($this->section(...), array_values($advanced)),
         ]);
     }
@@ -363,7 +363,7 @@ abstract class AdminSettingsPage extends Page
 
     /**
      * The page opened on one card: the page opens the card, scrolls to it and
-     * rings it (resources/views/filament/settings/outline.blade.php).
+     * rings it (resources/views/admin/settings/outline.blade.php).
      */
     public static function cardUrl(string $key): string
     {

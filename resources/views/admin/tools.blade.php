@@ -3,7 +3,7 @@
     logo, what it looks after and what it is for. A tool the admin can open
     has a button that opens it in a new tab; any other says why it cannot,
     with no link. Styled by the panel theme
-    (resources/css/filament/admin/theme.css), so it follows dark mode.
+    (resources/css/admin/theme.css), so it follows dark mode.
 
     @var list<\App\Admin\StaffTool> $tools
 --}}

@@ -5,7 +5,7 @@
     ({@see \App\Admin\Update\Services\AvailableUpdate}); the sign-in page
     does not tell visitors the version. The mark uses the same paths
     as resources/js/components/AppLogoIcon.vue. Styled by the panel theme
-    (resources/css/filament/admin/theme.css), so it follows dark mode.
+    (resources/css/admin/theme.css), so it follows dark mode.
 --}}
 <span class="cv-brand">
     <span class="cv-brand__mark" aria-hidden="true">

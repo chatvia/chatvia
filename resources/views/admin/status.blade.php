@@ -9,7 +9,7 @@
     The checks start once the page is open: the services first, then the
     outside services, which wait on other servers. Until a check answers,
     its card says "Checking…". Styled by the panel theme
-    (resources/css/filament/admin/theme.css), so it follows dark mode.
+    (resources/css/admin/theme.css), so it follows dark mode.
 
     @var list<array{0: \App\Admin\Status\Service, 1: ?\App\Admin\Status\Data\ServiceStatusData}> $services
     @var list<array{0: \App\Admin\Status\AiService, 1: ?\App\Admin\Status\Data\ServiceStatusData}> $aiServices
@@ -71,7 +71,7 @@
 
         <div class="cv-status-grid">
             @foreach ($services as [$service, $status])
-                @include('filament.status.service-card', ['service' => $service, 'status' => $status])
+                @include('admin.status.service-card', ['service' => $service, 'status' => $status])
             @endforeach
         </div>
     </section>
@@ -109,7 +109,7 @@
                         @endif
                     </div>
 
-                    @include('filament.status.outside-state', ['status' => $status])
+                    @include('admin.status.outside-state', ['status' => $status])
 
                     <div class="cv-status-row__change">
                         <x-filament::link :href="$service->settingsUrl()" color="gray" size="sm">
@@ -142,7 +142,7 @@
                         @endif
                     </div>
 
-                    @include('filament.status.outside-state', ['status' => $status])
+                    @include('admin.status.outside-state', ['status' => $status])
 
                     {{-- Nothing to set up: the cell keeps the check marks in line. --}}
                     <div class="cv-status-row__change"></div>

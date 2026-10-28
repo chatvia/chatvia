@@ -37,7 +37,7 @@ class ServiceStatusBanner extends Widget
     protected int|string|array $columnSpan = 'full';
 
     #[\Override]
-    protected string $view = 'filament.status.dashboard-banner';
+    protected string $view = 'admin.status.dashboard-banner';
 
     /** @var array<string, array<string, mixed>> The checked services, by {@see Service} value. */
     public array $services = [];

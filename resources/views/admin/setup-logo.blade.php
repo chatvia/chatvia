@@ -1,7 +1,7 @@
 {{--
     The ChatVia.ai mark, large and in the brand colour, centred above the card
     of the admin setup ({@see \App\Admin\Pages\Setup}). Styled by the panel
-    theme (resources/css/filament/admin/theme.css), so it follows dark mode.
+    theme (resources/css/admin/theme.css), so it follows dark mode.
 --}}
 <div class="cv-setup-mark">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor" role="img" aria-label="ChatVia.ai">

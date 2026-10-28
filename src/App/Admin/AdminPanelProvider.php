@@ -69,11 +69,11 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             // The app's name (Settings → Platform), in every page title: "Agents - Acme Admin".
             ->brandName(fn (): string => config('app.name').' Admin')
-            ->brandLogo(fn (): Factory|\Illuminate\Contracts\View\View => view('filament.brand'))
+            ->brandLogo(fn (): Factory|\Illuminate\Contracts\View\View => view('admin.brand'))
             ->brandLogoHeight('2rem')
             ->favicon(asset('images/favicons/favicon.svg'))
             // The setup shows the mark alone, large, above its card, instead of the logo.
-            ->renderHook(PanelsRenderHook::SIMPLE_LAYOUT_START, fn (): Factory|\Illuminate\Contracts\View\View => view('filament.setup-logo'), scopes: Setup::class)
+            ->renderHook(PanelsRenderHook::SIMPLE_LAYOUT_START, fn (): Factory|\Illuminate\Contracts\View\View => view('admin.setup-logo'), scopes: Setup::class)
             ->authGuard('admin')
             ->login()
             ->profile()
@@ -85,7 +85,7 @@ class AdminPanelProvider extends PanelProvider
             // Inter and the theme's styles. No top bar: search and the user
             // menu sit in the sidebar, beside the page.
             ->colors(PanelColors::all())
-            ->viteTheme('resources/css/filament/admin/theme.css')
+            ->viteTheme('resources/css/admin/theme.css')
             ->font('Inter', url: asset('fonts/inter/inter.css'), provider: LocalFontProvider::class)
             ->defaultAvatarProvider(InitialsAvatarProvider::class)
             ->topbar(false)

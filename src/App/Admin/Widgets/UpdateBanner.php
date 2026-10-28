@@ -30,7 +30,7 @@ class UpdateBanner extends Widget
     protected int|string|array $columnSpan = 'full';
 
     #[\Override]
-    protected string $view = 'filament.update-banner';
+    protected string $view = 'admin.update-banner';
 
     #[\Override]
     public static function canView(): bool

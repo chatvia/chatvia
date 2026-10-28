@@ -7,7 +7,7 @@
     opens its section if it is closed, and the link of the section in view
     is highlighted. A page opened on a section (a find of the Settings
     search) opens it, scrolls to it and rings it for a moment. Styled by the
-    panel theme (resources/css/filament/admin/theme.css), which also holds
+    panel theme (resources/css/admin/theme.css), which also holds
     the rules for the cards themselves (`cv-settings-card`).
 
     @var list<array{id: string, title: string, icon: string|\Filament\Support\Icons\Heroicon, status: string, tone: ?string, advanced: bool}> $items

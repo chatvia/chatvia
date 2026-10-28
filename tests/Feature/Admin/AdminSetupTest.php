@@ -1138,7 +1138,7 @@ it('keeps the wizard on the models step while something did not answer, and says
 });
 
 it('shows each section of the test window as one card: how many are done, the model asked, and a mark per model', function (): void {
-    $html = view('filament.setup.model-tests', ['image' => null, 'onFailure' => null, 'sections' => [['section' => 'chat', 'title' => 'Chat models', 'rows' => [
+    $html = view('admin.setup.model-tests', ['image' => null, 'onFailure' => null, 'sections' => [['section' => 'chat', 'title' => 'Chat models', 'rows' => [
         ['key' => 'qwen/qwen3', 'label' => '<b>Qwen3</b>', 'name' => 'Qwen3'],
         ['key' => 'gpt-oss-120b', 'label' => 'gpt-oss-120b', 'name' => 'gpt-oss-120b'],
     ]]]])->render();

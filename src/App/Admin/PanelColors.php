@@ -11,7 +11,7 @@ use Filament\Support\Colors\Color;
  * Tailwind's indigo as the primary colour, the same shades the dashboard's
  * `--primary` uses (resources/css/app.css). Filament fills with shade 600 in
  * light mode and 500 in dark mode, as the dashboard does. The panel theme
- * (resources/css/filament/admin/theme.css) reads these shades for its own
+ * (resources/css/admin/theme.css) reads these shades for its own
  * buttons, links and focus rings.
  */
 final class PanelColors

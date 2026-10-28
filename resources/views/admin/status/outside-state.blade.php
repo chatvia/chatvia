@@ -11,5 +11,5 @@
         <span class="sr-only">{{ $status->state->outsideServiceLabel() }}</span>
     </span>
 @else
-    @include('filament.status.state', ['status' => $status, 'label' => $status?->state->outsideServiceLabel()])
+    @include('admin.status.state', ['status' => $status, 'label' => $status?->state->outsideServiceLabel()])
 @endif

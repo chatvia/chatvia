@@ -293,7 +293,7 @@ trait BuildsChunkingCards
             ->size(Size::Small)
             ->modalHeading('Chunk '.($index + 1))
             ->modalDescription("{$chunk['tokens']} tokens, {$chunk['characters']} characters")
-            ->modalContent(view('filament.settings.chunk', ['text' => $chunk['text']]))
+            ->modalContent(view('admin.settings.chunk', ['text' => $chunk['text']]))
             ->modalWidth(Width::ThreeExtraLarge)
             ->modalSubmitAction(false)
             ->modalCancelActionLabel('Close');

@@ -38,7 +38,7 @@
     <div class="cv-status-list">
         @foreach ($services as [$service, $status])
             <div class="cv-status-row cv-status-row--service" data-service="{{ $service->value }}" data-state="{{ $status?->state->value ?? 'checking' }}">
-                @include('filament.status.service-icon', ['service' => $service])
+                @include('admin.status.service-icon', ['service' => $service])
 
                 <div class="cv-status-row__name">
                     <h3 class="cv-service__title">{{ $service->label() }}</h3>
@@ -47,7 +47,7 @@
                     </p>
                 </div>
 
-                @include('filament.status.state', ['status' => $status, 'label' => $status?->state->label()])
+                @include('admin.status.state', ['status' => $status, 'label' => $status?->state->label()])
 
                 <div class="cv-status-row__details">
                     @if ($status !== null && ($status->checks !== [] || $status->hint !== null))
@@ -68,7 +68,7 @@
                             @endif
 
                             @if ($status->checks !== [])
-                                @include('filament.status.checks', ['checks' => $status->checks])
+                                @include('admin.status.checks', ['checks' => $status->checks])
                             @endif
                         </x-filament::modal>
                     @endif

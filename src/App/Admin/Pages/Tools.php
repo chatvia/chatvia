@@ -64,7 +64,7 @@ class Tools extends Page
     public function content(Schema $schema): Schema
     {
         return $schema->components([
-            View::make('filament.tools')->viewData(fn (): array => ['tools' => StaffTool::cases()]),
+            View::make('admin.tools')->viewData(fn (): array => ['tools' => StaffTool::cases()]),
         ]);
     }
 }

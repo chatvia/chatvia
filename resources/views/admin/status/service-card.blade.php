@@ -7,21 +7,21 @@
 --}}
 <article class="cv-service" data-service="{{ $service->value }}" data-state="{{ $status?->state->value ?? 'checking' }}">
     <div class="cv-service__head">
-        @include('filament.status.service-icon', ['service' => $service])
+        @include('admin.status.service-icon', ['service' => $service])
 
         <div class="cv-service__name">
             <h3 class="cv-service__title">{{ $service->label() }}</h3>
             <p class="cv-service__description cv-service__description--line">{{ $service->descriptionHtml() }}</p>
         </div>
 
-        @include('filament.status.state', ['status' => $status, 'label' => $status?->state->label()])
+        @include('admin.status.state', ['status' => $status, 'label' => $status?->state->label()])
     </div>
 
     @if ($status === null)
         <span class="cv-skeleton" aria-hidden="true"></span>
     @else
         @if ($status->checks !== [])
-            @include('filament.status.checks', ['checks' => $status->cardChecks()])
+            @include('admin.status.checks', ['checks' => $status->cardChecks()])
         @endif
 
         @if (count($status->checks) > \App\Admin\Status\Data\ServiceStatusData::CARD_CHECKS || $status->hint !== null)
@@ -44,7 +44,7 @@
                 @endif
 
                 @if ($status->checks !== [])
-                    @include('filament.status.checks', ['checks' => $status->checks])
+                    @include('admin.status.checks', ['checks' => $status->checks])
                 @endif
             </x-filament::modal>
         @endif

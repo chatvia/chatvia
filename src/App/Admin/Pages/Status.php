@@ -109,7 +109,7 @@ class Status extends Page
     public function content(Schema $schema): Schema
     {
         return $schema->components([
-            View::make('filament.status')->viewData(fn (): array => [
+            View::make('admin.status')->viewData(fn (): array => [
                 'services' => $this->serviceResults(fn (Service $service): bool => ! $service->isOutside()),
                 'aiServices' => array_map(fn (AiService $service): array => [$service, $this->result($this->aiServices, $service->value)], AiService::cases()),
                 'outsideServices' => $this->serviceResults(fn (Service $service): bool => $service->isOutside()),

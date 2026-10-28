@@ -10,12 +10,12 @@
  * Filament selector. They only change colour, shape, spacing and type, never
  * `display` or `position`, so Filament's show/hide classes keep working.
  */
-@import '../../../../vendor/filament/filament/resources/css/theme.css';
-@import '../../../../vendor/saade/filament-laravel-log/resources/css/filament-laravel-log.css';
+@import '../../../vendor/filament/filament/resources/css/theme.css';
+@import '../../../vendor/saade/filament-laravel-log/resources/css/filament-laravel-log.css';
 
-@source '../../../../src/App/Admin/**/*';
-@source '../../../../resources/views/filament/**/*';
-@source '../../../../vendor/saade/filament-laravel-log/resources/views/**/*.blade.php';
+@source '../../../src/App/Admin/**/*';
+@source '../../../resources/views/admin/**/*';
+@source '../../../vendor/saade/filament-laravel-log/resources/views/**/*.blade.php';
 
 /* -------------------------------------------------------------------------
  * Tokens

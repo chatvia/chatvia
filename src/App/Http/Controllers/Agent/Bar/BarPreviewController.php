@@ -20,7 +20,7 @@ class BarPreviewController
 
     public function __invoke(Request $request, Agent $agent, SurfacePreviewTokens $previewTokens): View
     {
-        return view('bar.preview', [
+        return view('chat.bar-preview', [
             'embedScriptUrl' => url(config('chatvia.widget.script_url_embed')),
             'agentId' => $agent->external_id,
             'agentName' => $agent->name,

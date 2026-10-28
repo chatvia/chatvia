@@ -8,7 +8,7 @@
 
     Keys: "/" goes to the box, Down and Up walk the finds, Enter opens the
     first, Escape empties the box. Styled by the panel theme
-    (resources/css/filament/admin/theme.css), so it follows dark mode.
+    (resources/css/admin/theme.css), so it follows dark mode.
 
     @var list<array{heading: ?string, tiles: list<array{key: string, title: string, description: string, icon: mixed, status: ?string, tone: string, href: string}>}> $groups
     @var \App\Admin\Clusters\Settings\SettingsSearch $search
@@ -100,7 +100,7 @@
                 <div class="cv-settings__grid">
                     @foreach ($group['tiles'] as $tile)
                         <a href="{{ $tile['href'] }}" class="cv-tile" data-tile="{{ $tile['key'] }}">
-                            @include('filament.settings.tile', ['tile' => $tile])
+                            @include('admin.settings.tile', ['tile' => $tile])
                         </a>
                     @endforeach
                 </div>

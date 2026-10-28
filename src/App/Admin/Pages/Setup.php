@@ -473,7 +473,7 @@ class Setup extends SimplePage
                     ->description('ChatVia.ai needs these running beside the web server. Each one is checked live, as on the Status page.')
                     ->icon(Heroicon::OutlinedServerStack)
                     ->schema([
-                        View::make('filament.setup.server')->viewData(fn (): array => [
+                        View::make('admin.setup.server')->viewData(fn (): array => [
                             'services' => array_map(fn (Service $service): array => [
                                 $service,
                                 isset($this->server[$service->value]) ? ServiceStatusData::from($this->server[$service->value]) : null,
@@ -987,7 +987,7 @@ class Setup extends SimplePage
             ->description('Finish and sign in')
             ->icon(Heroicon::OutlinedCheckBadge)
             ->schema([
-                View::make('filament.setup.complete')
+                View::make('admin.setup.complete')
                     ->viewData(['loginUrl' => route('login')]),
             ]);
     }
@@ -1245,7 +1245,7 @@ class Setup extends SimplePage
                 ->visible(fn (): bool => filled($this->listMessage)),
             ViewField::make('chat_models')
                 ->label('Models agents can use')
-                ->view('filament.setup.chat-models')
+                ->view('admin.setup.chat-models')
                 ->viewData(fn (Get $get): array => [
                     'chosen' => collect((array) $get('chat_models'))
                         ->mapWithKeys(fn (string $id): array => [$id => $this->modelName($id)])
@@ -1574,7 +1574,7 @@ class Setup extends SimplePage
             ->modalDescription(fn (array $arguments): string => ($picked = $task($arguments)) instanceof LlmTask
                 ? LlmTaskText::help($picked).' The model for quick tasks does it.'
                 : 'Small AI jobs the app does on its own: around each reply, while you set up agents and while sources are trained. The model for quick tasks does all of them. Later, in Settings → AI models, you can give any of them a model of its own.')
-            ->modalContent(fn (array $arguments): ?ViewContract => $task($arguments) instanceof LlmTask ? null : view('filament.setup.quick-tasks', [
+            ->modalContent(fn (array $arguments): ?ViewContract => $task($arguments) instanceof LlmTask ? null : view('admin.setup.quick-tasks', [
                 'groups' => array_map(
                     fn (array $tasks): array => collect($tasks)->mapWithKeys(fn (LlmTask $task): array => [LlmTaskText::label($task) => LlmTaskText::help($task)])->all(),
                     LlmTaskText::quickTaskGroups(),
@@ -1697,7 +1697,7 @@ class Setup extends SimplePage
     {
         return $action
             ->modalWidth(Width::Large)
-            ->modalContent(fn (): ViewContract => view('filament.setup.model-tests', [
+            ->modalContent(fn (): ViewContract => view('admin.setup.model-tests', [
                 'sections' => collect($sections)
                     ->map(fn (string $section): array => [
                         'section' => $section,

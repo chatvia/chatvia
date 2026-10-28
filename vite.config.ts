@@ -107,7 +107,7 @@ export default defineConfig({
         laravel({
             // The admin panel's Filament theme is its own entry: the panel
             // loads it instead of Filament's prebuilt stylesheet.
-            input: ['resources/js/app.ts', 'resources/css/filament/admin/theme.css'],
+            input: ['resources/js/app.ts', 'resources/css/admin/theme.css'],
             refresh: true,
         }),
         // SSR is off (INERTIA_SSR_ENABLED=false) and app.ts touches window/document

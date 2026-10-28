@@ -20,7 +20,7 @@ class WidgetPreviewController
 
     public function __invoke(Request $request, Agent $agent, SurfacePreviewTokens $previewTokens): View
     {
-        return view('widget.preview', [
+        return view('chat.widget-preview', [
             'embedScriptUrl' => url(config('chatvia.widget.script_url_embed')),
             'agentId' => $agent->external_id,
             'authToken' => $previewTokens->issue(ConversationSource::Widget->value, $agent, $request->user()),

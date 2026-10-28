@@ -102,7 +102,7 @@ class SettingsOverview extends Page
     {
         return $schema->components([
             $this->supportCallout(),
-            View::make('filament.settings.tiles')->viewData(function (): array {
+            View::make('admin.settings.tiles')->viewData(function (): array {
                 $search = app(SettingsSearch::class);
                 $terms = $search->terms($this->search);
 

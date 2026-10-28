@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/chatvia/chatvia/actions/workflows/tests.yml"><img src="https://img.shields.io/github/actions/workflow/status/chatvia/chatvia/tests.yml?branch=main&label=tests&logo=githubactions&logoColor=white" alt="Tests"></a>
+  <a href="https://github.com/chatvia/chatvia/actions/workflows/tests.yml"><img src="https://github.com/chatvia/chatvia/actions/workflows/tests.yml/badge.svg?branch=main" alt="Tests"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-ChatVia.ai-blue.svg" alt="ChatVia.ai License"></a>
   <br>
   <a href="https://www.php.net"><img src="https://img.shields.io/badge/PHP-8.5-777bb4.svg?logo=php&logoColor=white" alt="PHP 8.5"></a>

@@ -10,8 +10,10 @@
 #   (and offers to install it), asks a few questions, writes compose.yaml,
 #   .env and the `manage` tool into the install folder, saves PostgreSQL's
 #   settings to postgres/postgresql.conf there, starts Chatvia and prints
-#   where to sign in. Run it again in the same folder (or ./manage upgrade)
-#   to upgrade. .env always names one exact version, like 1.4.2: the
+#   where to sign in. When ChatVia.ai handles HTTPS (--https builtin), it
+#   also runs Caddy, which gets the certificates, also for agents' custom
+#   domains. Run it again in the same folder (or ./manage upgrade) to
+#   upgrade. .env always names one exact version, like 1.4.2: the
 #   installer looks up which release "latest" (or 1.4) is and saves that.
 #
 # - Complete installation: everything directly on a fresh Ubuntu server
@@ -48,6 +50,11 @@
 #   --dir PATH          install folder               CHATVIA_DIR (~/chatvia)
 #   --port PORT         port on this machine         CHATVIA_PORT (8899, or the next free one)
 #   --url URL           address people open          CHATVIA_URL (http://localhost:PORT)
+#   --https builtin     ChatVia.ai handles HTTPS     CHATVIA_HTTPS=builtin (needs ports 80, 443
+#                       and --url https://DOMAIN or --domain DOMAIN)
+#   --https proxy       your own proxy handles HTTPS CHATVIA_HTTPS=proxy (the default)
+#   CHATVIA_HTTPS=yes or no (the complete installation's values) changes
+#   nothing here.
 #   --image NAME        image name, without version  CHATVIA_IMAGE (ghcr.io/chatvia/chatvia)
 #   --no-pull           use the image already on this machine (a local build)
 #   --no-start          upgrade: get the version ready, but start nothing
@@ -55,6 +62,8 @@
 # Only with the complete installation:
 #   --domain NAME       domain name or IP address people open   CHATVIA_DOMAIN
 #   --no-https          no Let's Encrypt certificate (HTTP only) CHATVIA_HTTPS=no
+#   CHATVIA_HTTPS here is yes (the default) or no; builtin and proxy are
+#   the Docker answers (--https).
 #   --no-firewall       leave the firewall (ufw) as it is        CHATVIA_FIREWALL=no
 #   --force             install on a server that is not fresh    CHATVIA_FORCE=1
 #   --no-auto-update    no automatic updates (once a night)      CHATVIA_AUTO_UPDATE=no

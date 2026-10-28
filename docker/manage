@@ -35,9 +35,15 @@ readonly DEFAULT_IMAGE="ghcr.io/chatvia/chatvia"
 readonly MIN_PASSWORD=12
 
 # The long-running services, in the order `status` shows them; the first five
-# use the database.
-readonly SERVICES="app horizon scheduler reverb pulse postgres redis"
+# use the database. SERVICES adds proxy (Caddy) when built-in HTTPS is on.
+readonly BASE_SERVICES="app horizon scheduler reverb pulse postgres redis"
 readonly DATABASE_USERS="app horizon scheduler reverb pulse"
+
+# Built-in HTTPS: the private networks Docker gives its containers, so the app
+# believes Caddy's X-Forwarded-* headers. Safe, as the app's port then
+# listens on 127.0.0.1 only.
+readonly HTTPS_TRUSTED_PROXIES="172.16.0.0/12,10.0.0.0/8,192.168.0.0/16"
+readonly HTTPS_ENV_COMMENT="# Built-in HTTPS, by Caddy on ports 80 and 443. Changed by ./manage https."
 
 # Where PostgreSQL reads postgres/postgresql.conf inside its container.
 readonly PG_CONF_MOUNT="/etc/postgresql/chatvia"
@@ -688,6 +694,23 @@ script_dir() {
 env_value() {
     [ -f "$DIR/.env" ] || return 0
     sed -n "s/^$1=//p" "$DIR/.env" | tail -n 1
+}
+
+# unset_env_value LINE...: removes the lines KEY= (or the exact comment
+# line) from .env.
+unset_env_value() {
+    local tmp keys
+    [ -f "$DIR/.env" ] || return 0
+    # Joined with \n, which awk -v turns into newlines (a real one breaks
+    # macOS awk).
+    keys=$(printf '%s\\n' "$@")
+    tmp=$(mktemp "$DIR/.env.XXXXXX")
+    awk -v keys="$keys" '
+        BEGIN { n = split(keys, list, "\n") }
+        { for (i = 1; i <= n; i++) if (list[i] != "" && ($0 == list[i] || index($0, list[i] "=") == 1)) next; print }
+    ' "$DIR/.env" >"$tmp"
+    chmod 600 "$tmp"
+    mv "$tmp" "$DIR/.env"
 }
 
 # set_env_value KEY VALUE: changes the line in .env, or adds it.
@@ -1351,7 +1374,7 @@ cmd_status() {
     intro 'Status' "$(pretty_path "$DIR")"
     check_docker
 
-    local rows service state health line address version folder backups newest count=0 broken=''
+    local rows service state health line address version https folder backups newest count=0 broken=''
     local name_state name_health
     rows=$(compose ps --all --format '{{.Service}}|{{.State}}|{{.Health}}' 2>/dev/null) || rows=''
 
@@ -1361,6 +1384,15 @@ cmd_status() {
         kv_to address 'Address' "$(app_url)  ${C_YELLOW}not answering$C_RESET"
     fi
     kv_to version 'Version' "$(app_version)"
+    if https_on; then
+        if https_is_up; then
+            kv_to https 'HTTPS' "built in  $C_GREEN$S_OK certificate works$C_RESET"
+        else
+            kv_to https 'HTTPS' "built in  ${C_YELLOW}not working yet$C_RESET  $(dim '(./manage https status)')"
+        fi
+    else
+        kv_to https 'HTTPS' "$(dim 'your own proxy, or none (./manage https on)')"
+    fi
     kv_to folder 'Folder' "$(pretty_path "$DIR")"
     newest=$(list_backups | tail -n 1)
     count=$(list_backups | wc -l | tr -d ' ')
@@ -1369,7 +1401,7 @@ cmd_status() {
     else
         kv_to backups 'Backups' "${C_YELLOW}none yet$C_RESET  $(dim '(./manage backup)')"
     fi
-    note "$(bold 'ChatVia.ai')" "$address" "$version" "$folder" "$backups"
+    note "$(bold 'ChatVia.ai')" "$address" "$version" "$https" "$folder" "$backups"
 
     section 'Services'
     for service in $SERVICES; do
@@ -2767,6 +2799,243 @@ postgres_start_failed() {
     die 'PostgreSQL did not start.' 'Fix postgres/postgresql.conf, then run ./manage postgres apply.'
 }
 
+#------------------------------------------------------------------------------
+# Built-in HTTPS
+#
+# compose.yaml's proxy service (Caddy, the https profile) on ports 80 and 443:
+# a certificate for the install's own domain, and one for each agent's custom
+# domain the first time it is opened, after the app says it is a saved one.
+#------------------------------------------------------------------------------
+
+https_on() {
+    case ,$(env_value COMPOSE_PROFILES), in *,https,*) [ -n "$(env_value CHATVIA_DOMAIN)" ] ;; *) return 1 ;; esac
+}
+
+# The certificate works: Caddy on this machine answers for the domain with
+# one a client trusts.
+https_is_up() {
+    local domain
+    domain=$(env_value CHATVIA_DOMAIN)
+    [ -n "$domain" ] || return 1
+    curl -fs -o /dev/null --max-time 10 --resolve "$domain:443:127.0.0.1" "https://$domain/up" 2>/dev/null
+}
+
+valid_https_domain() {
+    if [[ $1 =~ ^[0-9.]+$ ]] || ! [[ $1 =~ ^([A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,63}$ ]]; then
+        INVALID='Type a domain name like chat.example.com: no IP address, no https:// and no path.'
+        return 1
+    fi
+    return 0
+}
+
+# The ports Caddy needs that something here already uses, like "80 443".
+https_ports_busy() {
+    local port busy=''
+    for port in 80 443; do
+        if (exec 3<>"/dev/tcp/127.0.0.1/$port") 2>/dev/null ||
+            { command -v ss >/dev/null 2>&1 && [ -n "$(ss -Hltn "( sport = :$port )" 2>/dev/null)" ]; } ||
+            { command -v lsof >/dev/null 2>&1 && lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; }; then
+            busy="$busy $port"
+        fi
+    done
+    printf '%s' "${busy# }"
+}
+
+# Let's Encrypt checks that the domain points at this server. Only a
+# warning: Caddy keeps trying by itself once it does.
+https_check_dns() {
+    command -v getent >/dev/null 2>&1 || return 0
+    local domain=$1 addresses public mine
+    addresses=$(getent ahostsv4 "$domain" 2>/dev/null | awk '{ print $1 }' | sort -u) || addresses=''
+    public=$(curl -4 -fsS --max-time 5 https://api.ipify.org 2>/dev/null) || public=''
+    mine=$({ printf '%s\n' "$public"; hostname -I 2>/dev/null | tr ' ' '\n'; } | sed '/^$/d' | sort -u)
+    if [ -n "$addresses" ] && grep -qFxf <(printf '%s\n' "$mine") <<<"$addresses"; then
+        ok "$domain points at this server"
+        return 0
+    fi
+    if [ -z "$addresses" ]; then
+        warn "$domain has no A record yet."
+    else
+        warn "$domain points at $(printf '%s' "$addresses" | paste -sd ' ' - | sed 's/ /, /g'), not at this server${public:+ ($public)}."
+    fi
+    info "Add an A record that points at ${public:-this server}. Caddy gets the certificate by itself then."
+}
+
+# with_item LIST ITEM / without_item LIST ITEM: a comma-separated list with
+# ITEM added (once) or taken out.
+with_item() {
+    case ,$1, in *,"$2",*) printf '%s' "$1" ;; ,,) printf '%s' "$2" ;; *) printf '%s,%s' "$1" "$2" ;; esac
+}
+
+without_item() {
+    printf '%s' ",$1," | awk -v item=",$2," '{ while ((i = index($0, item)) > 0) $0 = substr($0, 1, i) substr($0, i + length(item)); print }' |
+        sed 's/^,//; s/,$//'
+}
+
+cmd_https() {
+    local action=${1:-}
+    if [ $# -gt 0 ]; then shift; fi
+    case $action in
+        on) https_turn_on "$@" ;;
+        off) https_turn_off "$@" ;;
+        status) https_status "$@" ;;
+        '' | help | -h | --help) command_help https ;;
+        *) die "Unknown: ./manage https $action" 'Use on, off or status.' ;;
+    esac
+}
+
+https_turn_on() {
+    local domain='' url busy
+    while [ $# -gt 0 ]; do
+        case $1 in
+            --domain) domain=${2:?--domain needs a name}; shift ;;
+            --yes | -y) YES=1 INTERACTIVE=0 ;;
+            *) die "Unknown option: $1" 'See ./manage help https' ;;
+        esac
+        shift
+    done
+    intro 'Built-in HTTPS' "$(pretty_path "$DIR")"
+    if ! grep -q '^  proxy:' "$DIR/compose.yaml"; then
+        die 'This compose.yaml has no built-in HTTPS yet.' 'Upgrade first: ./manage upgrade'
+    fi
+    check_docker
+    lock
+
+    if https_on && [ -z "$domain" ]; then
+        ok "Built-in HTTPS is already on, for $(bold "$(env_value CHATVIA_DOMAIN)")."
+        outro "$(dim 'See it: ./manage https status')"
+        return
+    fi
+
+    # The domain: --domain, else the one in APP_URL, else asked.
+    url=$(app_url)
+    if [ -z "$domain" ]; then
+        case $url in https://* | http://*) domain=${url#*://} ;; esac
+        if ! valid_https_domain "$domain" 2>/dev/null; then domain=''; fi
+    fi
+    domain=$(printf '%s' "${domain#https://}" | tr '[:upper:]' '[:lower:]')
+    if [ "$INTERACTIVE" = 1 ]; then
+        ask domain 'Domain name' --default "$domain" --placeholder 'chat.example.com' \
+            --hint 'Where people open ChatVia.ai. Its A record must point at this server.' \
+            --check valid_https_domain
+        domain=$(printf '%s' "$domain" | tr '[:upper:]' '[:lower:]')
+    fi
+    [ -n "$domain" ] || die 'Name the domain: ./manage https on --domain chat.example.com'
+    valid_https_domain "$domain" || die "$INVALID"
+
+    if ! is_running proxy; then
+        busy=$(https_ports_busy)
+        if [ -n "$busy" ]; then
+            if [ "$busy" = '80 443' ]; then busy='Ports 80 and 443 are'; else busy="Port $busy is"; fi
+            die "$busy already in use on this machine." \
+                'Built-in HTTPS needs ports 80 and 443. Stop the program that uses them (often a' \
+                'web server like nginx or Apache), or keep your own proxy.'
+        fi
+    fi
+    https_check_dns "$domain"
+
+    info "ChatVia.ai moves to $(bold "https://$domain"), and its port $(app_port) then only listens"
+    info 'on this machine. A short restart follows.'
+    if [ "$INTERACTIVE" = 1 ] && ! confirm 'Turn on built-in HTTPS?' y; then
+        outro 'Nothing was changed.'
+        return
+    fi
+
+    if ! grep -qxF "$HTTPS_ENV_COMMENT" "$DIR/.env" 2>/dev/null; then
+        printf '\n%s\n' "$HTTPS_ENV_COMMENT" >>"$DIR/.env"
+    fi
+    set_env_value COMPOSE_PROFILES "$(with_item "$(env_value COMPOSE_PROFILES)" https)"
+    set_env_value CHATVIA_DOMAIN "$domain"
+    set_env_value APP_BIND_IP 127.0.0.1
+    set_env_value CHATVIA_ON_DEMAND_TLS true
+    set_env_value TRUSTED_PROXIES "$(with_item "$(env_value TRUSTED_PROXIES)" "$HTTPS_TRUSTED_PROXIES")"
+    set_env_value APP_URL "https://$domain"
+    set_env_value SESSION_SECURE_COOKIE true
+    ok "Settings saved $(dim "$(pretty_path "$DIR")/.env")"
+
+    run_step 'Starting Caddy and restarting ChatVia.ai' compose up -d --remove-orphans || start_failed
+    run_step 'Waiting for the web app' wait_until 180 app_is_up ||
+        die 'The web app did not answer within 3 minutes.' 'See why: ./manage status, then ./manage logs app'
+    if run_step "Getting the HTTPS certificate for $domain" wait_until 120 https_is_up; then
+        outro "ChatVia.ai is running at $(accent "https://$domain")"
+        return
+    fi
+    warn "HTTPS for $domain does not work yet."
+    info "Caddy keeps trying by itself once $domain points at this server and ports 80"
+    info 'and 443 are open. See why: ./manage logs proxy'
+    outro "$(dim 'Check again: ./manage https status')"
+}
+
+https_turn_off() {
+    local domain port
+    no_options "$@"
+    intro 'Built-in HTTPS' "$(pretty_path "$DIR")"
+    check_docker
+    lock
+    if ! https_on; then
+        ok 'Built-in HTTPS is already off.'
+        outro "$(dim 'Turn it on: ./manage https on')"
+        return
+    fi
+    domain=$(env_value CHATVIA_DOMAIN)
+    port=$(app_port)
+    warn "Without it, nothing here answers on ports 80 and 443, and agents' custom"
+    info 'domains get no new certificates. Your own proxy then has to handle HTTPS.'
+    info "ChatVia.ai keeps the address https://$domain, and its port $port opens to the network."
+    if [ "$INTERACTIVE" = 1 ] && ! confirm 'Turn off built-in HTTPS?' n; then
+        outro 'Nothing was changed.'
+        return
+    fi
+
+    run_step 'Stopping Caddy' compose rm -sf proxy || die 'Caddy did not stop.'
+    local profiles proxies
+    profiles=$(without_item "$(env_value COMPOSE_PROFILES)" https)
+    proxies=$(without_item "$(env_value TRUSTED_PROXIES)" "$HTTPS_TRUSTED_PROXIES")
+    unset_env_value "$HTTPS_ENV_COMMENT" CHATVIA_DOMAIN APP_BIND_IP CHATVIA_ON_DEMAND_TLS COMPOSE_PROFILES TRUSTED_PROXIES
+    if [ -n "$profiles" ]; then set_env_value COMPOSE_PROFILES "$profiles"; fi
+    if [ -n "$proxies" ]; then set_env_value TRUSTED_PROXIES "$proxies"; fi
+    ok "Settings saved $(dim "$(pretty_path "$DIR")/.env")"
+
+    run_step 'Restarting ChatVia.ai' compose up -d --remove-orphans || start_failed
+    run_step 'Waiting for the web app' wait_until 180 app_is_up ||
+        die 'The web app did not answer within 3 minutes.' 'See why: ./manage status, then ./manage logs app'
+    info "Point your proxy at http://localhost:$port, and add its address to TRUSTED_PROXIES in .env."
+    info "$(dim 'The certificates stay saved, for when you turn it on again.')"
+    outro 'Built-in HTTPS is off.'
+}
+
+https_status() {
+    no_options "$@"
+    intro 'Built-in HTTPS' "$(pretty_path "$DIR")"
+    check_docker
+    if ! https_on; then
+        info "Off. $(dim 'ChatVia.ai answers on its port, for your own proxy.')"
+        outro "$(dim 'Turn it on: ./manage https on')"
+        return
+    fi
+    local domain state names name
+    domain=$(env_value CHATVIA_DOMAIN)
+    if is_running proxy; then state="$C_GREEN$S_OK running$C_RESET"; else state="${C_RED}stopped$C_RESET"; fi
+    kv_to domain 'Domain' "$domain"
+    kv_to name 'Caddy' "$state"
+    if https_is_up; then
+        kv_to names 'Certificate' "$C_GREEN$S_OK works$C_RESET"
+    else
+        kv_to names 'Certificate' "${C_YELLOW}not working yet$C_RESET  $(dim '(./manage logs proxy)')"
+    fi
+    note "$(bold 'On')" "$domain" "$name" "$names"
+
+    is_running proxy || { outro "$(dim 'Start it: ./manage start')"; return; }
+    names=$(compose exec -T proxy sh -c 'ls /data/caddy/certificates/*/ 2>/dev/null' | sed '/^$/d; /:$/d' | sort -u) || names=''
+    section 'Certificates'
+    if [ -z "$names" ]; then
+        info "$(dim 'None yet.')"
+    else
+        while IFS= read -r name; do info "$name"; done <<<"$names"
+    fi
+    outro "$(dim "Agents' custom domains get theirs the first time they are opened.")"
+}
+
 cmd_uninstall() {
     while [ $# -gt 0 ]; do
         case $1 in
@@ -2833,6 +3102,7 @@ usage() {
     help_row 'logs [SERVICE]' 'Follow the logs (Ctrl-C to stop)'
     help_row 'upgrade' 'Back up, then upgrade to the newest version'
     help_row 'rollback [FILE]' 'Go back to the version before the last upgrade'
+    help_row 'https on|off|status' 'Built-in HTTPS on ports 80 and 443 (Caddy)'
     help_section 'Backups'
     help_row 'backup' 'Back up the database, the app key and Redis'
     help_row 'backups' 'List the backups'
@@ -2904,9 +3174,20 @@ command_help() {
             help_option '--no-secrets' 'Leave out the app key (keep it somewhere else then)'
             help_option '--no-redis' 'Leave out Redis (sign-ins and chat memory)'
             help_option '--keep N' 'Then delete all but the newest N backups'
+            info "$(dim 'The HTTPS certificates are not in it: Caddy gets them again by itself.')"
             info ''
             info "$(dim 'Every night at 3, keeping a week:')"
             info "$(dim "0 3 * * * $DIR/manage backup --keep 7")"
+            ;;
+        https)
+            info 'Built-in HTTPS: Caddy answers on ports 80 and 443 and gets the Let'"'"'s Encrypt'
+            info "certificates by itself, for your domain and for agents' custom domains."
+            info "The app's own port then only listens on this machine."
+            help_option 'on' 'Turn it on (asks for the domain), then restart'
+            help_option 'off' 'Turn it off, for your own proxy; the certificates are kept'
+            help_option 'status' 'Show whether it works, and the certificates'
+            help_option '--domain NAME' 'on: the domain, without asking'
+            help_option '--yes' 'No questions'
             ;;
         backups) info 'Lists the backups, oldest first.' ;;
         restore)
@@ -2993,6 +3274,8 @@ main() {
         die "There is no ChatVia.ai install in $(pretty_path "$DIR") (no compose.yaml)." \
             'Run this from the install folder, or set CHATVIA_DIR.'
     fi
+    SERVICES=$BASE_SERVICES
+    if https_on; then SERVICES="proxy $SERVICES"; fi
 
     COMMAND=${1:-help}
     if [ $# -gt 0 ]; then shift; fi
@@ -3056,6 +3339,7 @@ main() {
         artisan) cmd_artisan "$@" ;;
         shell) cmd_shell "$@" ;;
         sync-tools) cmd_sync_tools "$@" ;;
+        https) cmd_https "$@" ;;
         uninstall) cmd_uninstall "$@" ;;
         *) die "There is no command called $COMMAND." 'See ./manage help' ;;
     esac

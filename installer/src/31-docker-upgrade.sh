@@ -65,6 +65,7 @@ do_upgrade() {
     APP_PORT=${APP_PORT:-8000}
     APP_URL=$(env_value APP_URL)
     APP_URL=${APP_URL:-http://localhost:$APP_PORT}
+    read_https_settings
     local installed
     installed=$(env_value CHATVIA_VERSION)
     # Without --version: the newest release. A local build (--no-pull) keeps
@@ -114,8 +115,14 @@ do_upgrade() {
     remove_setup_container
     run_step 'Waiting for the web app' wait_until 180 app_is_up ||
         die 'The web app did not answer within 3 minutes.' "See why: cd $(pretty_path "$INSTALL_DIR") && ./manage logs app"
+    wait_for_https
 
     ok "$(bold "ChatVia.ai $CHATVIA_VERSION is running.")"
+    # Custom domains need a certificate per domain, which only the built-in
+    # HTTPS gets by itself.
+    if [ "$BUILTIN_HTTPS" = 0 ] && [ "$APP_URL" != "http://localhost:$APP_PORT" ]; then
+        info "$(dim "For agents' custom domains, ChatVia.ai can handle HTTPS: ./manage https on")"
+    fi
     outro "Open $(accent "$APP_URL")"
 }
 

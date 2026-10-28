@@ -36,7 +36,11 @@ native_show_finish() {
     info "   sudo -u $NATIVE_USER php $NATIVE_ROOT/current/artisan chatvia:mcp:sync-builtin"
 
     section 'Running on this server'
-    info "Web app       nginx and PHP-FPM $NATIVE_PHP $(dim "($APP_URL)")"
+    if [ "${HTTPS_SERVER:-}" = caddy ]; then
+        info "Web app       Caddy, then nginx and PHP-FPM $NATIVE_PHP $(dim "($APP_URL)")"
+    else
+        info "Web app       nginx and PHP-FPM $NATIVE_PHP $(dim "($APP_URL)")"
+    fi
     info "Queues        Horizon $(dim '(Supervisor: chatvia-horizon)')"
     info "Live updates  Reverb $(dim '(Supervisor: chatvia-reverb, through nginx at /app/)')"
     info "Server stats  Pulse $(dim '(Supervisor: chatvia-pulse)')"
@@ -47,7 +51,9 @@ native_show_finish() {
         info "Database      PostgreSQL $NATIVE_PG $(dim '(pgvector, pg_textsearch, pg_partman)')"
     fi
     info "Cache         Redis $(dim '(with a password, kept on disk)')"
-    if [ "$HTTPS" = yes ]; then info "HTTPS         Let's Encrypt $(dim '(renews by itself)')"; fi
+    if [ "$HTTPS" = yes ]; then
+        info "HTTPS         Let's Encrypt, through Caddy $(dim '(renews by itself, also for custom domains)')"
+    fi
     if [ "$FIREWALL" = yes ]; then info "Firewall      ufw $(dim '(SSH, HTTP and HTTPS only)')"; fi
     info "Deploys       Deployer $(dim "(user $NATIVE_USER, in $NATIVE_DEPLOY_DIR)")"
     if [ "$AUTO_UPDATE" = yes ]; then
@@ -120,9 +126,15 @@ native_upgrade() {
         if [ "$INTERACTIVE" = 0 ]; then
             die 'Pass --upgrade to upgrade it without questions.'
         fi
-        choose 'What do you want to do?' \
-            'Upgrade to the newest version  — keeps your data' \
-            'Nothing, exit'
+        local options=('Upgrade to the newest version  — keeps your data')
+        if [ "${HTTPS_SERVER:-}" = certbot ]; then
+            options+=("Move HTTPS from Certbot to Caddy  — for agents' custom domains")
+        fi
+        choose 'What do you want to do?' "${options[@]}" 'Nothing, exit'
+        if [ "$CHOICE" = 1 ] && [ "${HTTPS_SERVER:-}" = certbot ]; then
+            native_move_to_caddy
+            return
+        fi
         if [ "$CHOICE" != 0 ]; then
             outro 'Nothing was changed.'
             exit 0
@@ -248,9 +260,46 @@ native_retry_https() {
 native_switch_to_https() {
     native_set_env APP_URL "$APP_URL"
     native_set_env SESSION_SECURE_COOKIE true
+    native_use_caddy_env
     conf_set HTTPS yes
     conf_set APP_URL "$APP_URL"
     as_chatvia "$NATIVE_ROOT/current" php artisan optimize
     as_chatvia "$NATIVE_ROOT/current" php artisan reload
+}
+
+# The app learns that Caddy is in front: it believes Caddy about each
+# visitor (a proxy list the install already had is kept) and turns custom
+# domains on.
+native_use_caddy_env() {
+    local proxies
+    proxies=$(env_value TRUSTED_PROXIES)
+    case ",$proxies," in
+        *,127.0.0.1,*) ;;
+        ,,) native_set_env TRUSTED_PROXIES 127.0.0.1 ;;
+        *) native_set_env TRUSTED_PROXIES "$proxies,127.0.0.1" ;;
+    esac
+    native_set_env CHATVIA_ON_DEMAND_TLS true
+    HTTPS_SERVER=caddy
+    conf_set HTTPS_SERVER caddy
+}
+
+# An install from before Caddy: Caddy takes ports 80 and 443 from nginx and
+# Certbot, so agents' custom domains get their certificates by themselves.
+# When Caddy gets no certificate, nginx keeps Certbot's site as it was.
+native_move_to_caddy() {
+    run_step "Moving HTTPS for $DOMAIN to Caddy" native_get_certificate ||
+        die 'Caddy got no certificate, so nothing changed: nginx and Certbot serve HTTPS as before.' \
+            "See why: $LOG"
+    run_step 'Stopping the Certbot renewals' certbot delete --non-interactive --cert-name "$DOMAIN" ||
+        warn "Certbot still renews the old certificate. It does no harm. See why: $LOG"
+    if [ "$FIREWALL" = yes ]; then
+        run_step 'Opening port 443 for HTTP/3' ufw allow 443/udp comment 'HTTPS (HTTP/3)' ||
+            warn "Port 443/udp stays closed, so browsers use HTTP/2. See why: $LOG"
+    fi
+    run_step 'Telling ChatVia.ai that Caddy is in front' native_switch_to_https ||
+        die 'Caddy serves HTTPS, but the app settings were not changed.' "See why: $LOG"
+    ok "$(bold 'Caddy serves HTTPS now.')"
+    info 'Agents can show their Hosted Chat on custom domains: Settings → Platform → Custom domains.'
+    outro "Open $(accent "$APP_URL")"
 }
 

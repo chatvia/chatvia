@@ -10,8 +10,10 @@
 #   (and offers to install it), asks a few questions, writes compose.yaml,
 #   .env and the `manage` tool into the install folder, saves PostgreSQL's
 #   settings to postgres/postgresql.conf there, starts Chatvia and prints
-#   where to sign in. Run it again in the same folder (or ./manage upgrade)
-#   to upgrade. .env always names one exact version, like 1.4.2: the
+#   where to sign in. When ChatVia.ai handles HTTPS (--https builtin), it
+#   also runs Caddy, which gets the certificates, also for agents' custom
+#   domains. Run it again in the same folder (or ./manage upgrade) to
+#   upgrade. .env always names one exact version, like 1.4.2: the
 #   installer looks up which release "latest" (or 1.4) is and saves that.
 #
 # - Complete installation: everything directly on a fresh Ubuntu server
@@ -48,6 +50,11 @@
 #   --dir PATH          install folder               CHATVIA_DIR (~/chatvia)
 #   --port PORT         port on this machine         CHATVIA_PORT (8899, or the next free one)
 #   --url URL           address people open          CHATVIA_URL (http://localhost:PORT)
+#   --https builtin     ChatVia.ai handles HTTPS     CHATVIA_HTTPS=builtin (needs ports 80, 443
+#                       and --url https://DOMAIN or --domain DOMAIN)
+#   --https proxy       your own proxy handles HTTPS CHATVIA_HTTPS=proxy (the default)
+#   CHATVIA_HTTPS=yes or no (the complete installation's values) changes
+#   nothing here.
 #   --image NAME        image name, without version  CHATVIA_IMAGE (ghcr.io/chatvia/chatvia)
 #   --no-pull           use the image already on this machine (a local build)
 #   --no-start          upgrade: get the version ready, but start nothing
@@ -55,6 +62,8 @@
 # Only with the complete installation:
 #   --domain NAME       domain name or IP address people open   CHATVIA_DOMAIN
 #   --no-https          no Let's Encrypt certificate (HTTP only) CHATVIA_HTTPS=no
+#   CHATVIA_HTTPS here is yes (the default) or no; builtin and proxy are
+#   the Docker answers (--https).
 #   --no-firewall       leave the firewall (ufw) as it is        CHATVIA_FIREWALL=no
 #   --force             install on a server that is not fresh    CHATVIA_FORCE=1
 #   --no-auto-update    no automatic updates (once a night)      CHATVIA_AUTO_UPDATE=no
@@ -1378,9 +1387,10 @@ export_postgres_settings() {
 }
 
 write_env() {
-    local secure='' image_line=''
+    local secure='' image_line='' https_block=''
     [ -n "$CHATVIA_IMAGE" ] && image_line="CHATVIA_IMAGE=$CHATVIA_IMAGE"$'\n'
     case $APP_URL in https://*) secure=$'SESSION_SECURE_COOKIE=true\n' ;; esac
+    if [ "$BUILTIN_HTTPS" = 1 ]; then https_block=$(https_env_block)$'\n'; fi
     (
         umask 077
         cat >"$INSTALL_DIR/.env" <<EOF
@@ -1401,11 +1411,123 @@ EMBEDDING_INDEX=$EMBEDDING_INDEX
 ${image_line}CHATVIA_VERSION=$CHATVIA_VERSION
 APP_PORT=$APP_PORT
 APP_URL=$APP_URL
-${secure}
+${secure}${https_block}
 # The first admin. Only read on the first start.
 ADMIN_EMAIL=$ADMIN_EMAIL
 EOF
     )
+}
+
+#------------------------------------------------------------------------------
+# Built-in HTTPS
+#------------------------------------------------------------------------------
+
+# The private networks Docker gives its containers. Caddy's address in them
+# is not fixed, and only Caddy (and this machine) can reach the app's port,
+# which then listens on 127.0.0.1 only.
+readonly HTTPS_TRUSTED_PROXIES="172.16.0.0/12,10.0.0.0/8,192.168.0.0/16"
+
+# The .env lines that turn on the proxy service (Caddy, compose.yaml's https
+# profile). ./manage https on and off write and remove the same lines, the
+# comment too.
+https_env_block() {
+    cat <<EOF
+
+# Built-in HTTPS, by Caddy on ports 80 and 443. Changed by ./manage https.
+COMPOSE_PROFILES=https
+CHATVIA_DOMAIN=$DOMAIN
+APP_BIND_IP=127.0.0.1
+CHATVIA_ON_DEMAND_TLS=true
+TRUSTED_PROXIES=$HTTPS_TRUSTED_PROXIES
+EOF
+}
+
+# A domain name for a certificate: no IP address, no localhost.
+valid_https_domain() {
+    local host=${1#https://}
+    if is_ip "$host" || ! [[ $host =~ ^([A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,63}$ ]]; then
+        INVALID='Type a domain name like chat.example.com: no IP address, no http:// and no path.'
+        return 1
+    fi
+    return 0
+}
+
+# The ports Caddy needs that something here already uses, like "80 443".
+https_ports_busy() {
+    local port busy=''
+    for port in 80 443; do
+        if port_in_use "$port" ||
+            { command -v ss >/dev/null 2>&1 && [ -n "$(ss -Hltn "( sport = :$port )" 2>/dev/null)" ]; }; then
+            busy="$busy $port"
+        fi
+    done
+    printf '%s' "${busy# }"
+}
+
+# Returns 1 (with a warning) when port 80 or 443 is taken. A dry run only
+# warns.
+check_https_ports() {
+    local busy
+    busy=$(https_ports_busy)
+    [ -n "$busy" ] || return 0
+    if [ "$busy" = '80 443' ]; then
+        warn 'Ports 80 and 443 are already in use on this machine.'
+    else
+        warn "Port $busy is already in use on this machine."
+    fi
+    info 'Built-in HTTPS needs ports 80 and 443. Stop the program that uses them (often a'
+    info 'web server like nginx or Apache), or let your own proxy handle HTTPS.'
+    [ "$DRY_RUN" = 1 ]
+}
+
+# Let's Encrypt checks that the domain points at this server. Only a
+# warning: Caddy keeps trying by itself once it does. Skipped on macOS,
+# which has no getent.
+check_https_dns() {
+    command -v getent >/dev/null 2>&1 || return 0
+    SERVER_IP=$(server_ip)
+    if ! native_check_dns; then
+        info 'Caddy gets the certificate by itself as soon as it does.'
+    fi
+    return 0
+}
+
+# The certificate works: Caddy on this machine answers for DOMAIN with one
+# a client trusts.
+https_is_up() {
+    curl -fs -o /dev/null --max-time 10 --resolve "$DOMAIN:443:127.0.0.1" "https://$DOMAIN/up" 2>/dev/null
+}
+
+# After a start: waits (bounded) for the certificate. A timeout is no
+# failure: the app runs, and Caddy keeps trying.
+wait_for_https() {
+    [ "$BUILTIN_HTTPS" = 1 ] || return 0
+    if run_step "Getting the HTTPS certificate for $DOMAIN" wait_until 120 https_is_up; then
+        return 0
+    fi
+    warn "HTTPS for $DOMAIN does not work yet."
+    info "Caddy keeps trying by itself once $DOMAIN points at this server and ports 80"
+    info "and 443 are open. See why: cd $(pretty_path "$INSTALL_DIR") && ./manage logs proxy"
+}
+
+# BUILTIN_HTTPS and DOMAIN from an existing install's .env.
+read_https_settings() {
+    BUILTIN_HTTPS=0 DOMAIN=''
+    case ,$(env_value COMPOSE_PROFILES), in *,https,*) BUILTIN_HTTPS=1 ;; esac
+    if [ "$BUILTIN_HTTPS" = 1 ]; then DOMAIN=$(env_value CHATVIA_DOMAIN); fi
+    [ -n "$DOMAIN" ] || BUILTIN_HTTPS=0
+}
+
+# The address question's answer for built-in HTTPS: the domain, then the
+# checks. Returns 1 when the ports are taken, to choose again.
+ask_https_domain() {
+    check_https_ports || return 1
+    ask DOMAIN 'Domain name' --default "${DOMAIN:-${CHATVIA_DOMAIN:-}}" --placeholder 'chat.example.com' \
+        --hint 'Where people open ChatVia.ai. Its A record must point at this server.' \
+        --check valid_https_domain
+    DOMAIN=$(printf '%s' "${DOMAIN#https://}" | tr '[:upper:]' '[:lower:]')
+    APP_URL="https://$DOMAIN"
+    check_https_dns
 }
 
 # `up -d` first waits for the one-time database setup (the migrate service),
@@ -1532,6 +1654,7 @@ start_and_finish() {
     fi
     run_step 'Sizing the queue workers to this machine' tune_docker_workers ||
         warn "The workers kept their defaults. Size them later: $(accent './manage artisan chatvia:workers:tune --restart')"
+    wait_for_https
     mark_finished
 
     show_finish
@@ -1556,6 +1679,7 @@ do_resume() {
     CHATVIA_VERSION=$(env_value CHATVIA_VERSION)
     APP_PORT=${APP_PORT:-8000} APP_URL=${APP_URL:-http://localhost:${APP_PORT:-8000}} CHATVIA_VERSION=${CHATVIA_VERSION:-latest}
     CHATVIA_IMAGE=${CHATVIA_IMAGE:-$(env_value CHATVIA_IMAGE)}
+    read_https_settings
 
     # Used only when the earlier attempt did not make the admin account yet.
     ADMIN_PASS=${CHATVIA_ADMIN_PASSWORD:-}
@@ -1582,6 +1706,12 @@ do_resume() {
 collect_settings() {
     local default_port
     default_port=${CHATVIA_PORT:-$(first_free_port "$DEFAULT_PORT")}
+    # yes and no are the complete installation's answers (--no-https): with
+    # Docker they change nothing, like proxy.
+    case ${CHATVIA_HTTPS:-} in
+        '' | builtin | proxy | yes | no | true | false | 1 | 0) ;;
+        *) die "With Docker, CHATVIA_HTTPS must be builtin or proxy, not $CHATVIA_HTTPS." ;;
+    esac
 
     if [ "$INTERACTIVE" = 0 ]; then
         ADMIN_EMAIL=${CHATVIA_ADMIN_EMAIL:-}
@@ -1595,6 +1725,18 @@ collect_settings() {
         APP_PORT=$default_port
         valid_port "$APP_PORT" || die "$INVALID"
         APP_URL=${CHATVIA_URL:-http://localhost:$APP_PORT}
+        if [ "$BUILTIN_HTTPS" = 1 ]; then
+            if [ -z "${CHATVIA_URL:-}" ] && [ -n "${CHATVIA_DOMAIN:-}" ]; then APP_URL="https://$CHATVIA_DOMAIN"; fi
+            case $APP_URL in
+                https://*) ;;
+                *) die 'Built-in HTTPS needs the address: --url https://chat.example.com (or --domain).' ;;
+            esac
+            DOMAIN=$(printf '%s' "${APP_URL#https://}" | tr '[:upper:]' '[:lower:]')
+            valid_https_domain "$DOMAIN" || die "$INVALID"
+            APP_URL="https://$DOMAIN"
+            check_https_ports || die 'Free ports 80 and 443, or use --https proxy.'
+            check_https_dns
+        fi
         valid_url "$APP_URL" || die "$INVALID"
         EMBEDDING_TYPE=${CHATVIA_EMBEDDING_TYPE:-halfvec}
         EMBEDDING_DIMENSIONS=${CHATVIA_EMBEDDING_DIMENSIONS:-1024}
@@ -1611,15 +1753,25 @@ collect_settings() {
     ask APP_PORT 'Port on this computer' --default "$default_port" \
         --check valid_port --status port_status
 
-    choose 'Where will people open ChatVia.ai?' \
-        "On this computer only  — http://localhost:$APP_PORT" \
-        'On my own domain or IP address  — your proxy handles HTTPS'
-    if [ "$CHOICE" = 0 ]; then
-        APP_URL="http://localhost:$APP_PORT"
-    else
-        ask APP_URL 'Address' --default "${CHATVIA_URL:-}" --placeholder 'https://chat.example.com' \
-            --hint 'The full address people open, without a path.' --check valid_url
-    fi
+    while true; do
+        choose 'Where will people open ChatVia.ai?' \
+            "On this computer only  — http://localhost:$APP_PORT" \
+            'On my domain, ChatVia.ai handles HTTPS  — needs ports 80 and 443 (recommended on a server)' \
+            'On my own domain or IP address  — your own proxy handles HTTPS'
+        BUILTIN_HTTPS=0
+        case $CHOICE in
+            0) APP_URL="http://localhost:$APP_PORT" ;;
+            1)
+                ask_https_domain || continue
+                BUILTIN_HTTPS=1
+                ;;
+            *)
+                ask APP_URL 'Address' --default "${CHATVIA_URL:-}" --placeholder 'https://chat.example.com' \
+                    --hint 'The full address people open, without a path.' --check valid_url
+                ;;
+        esac
+        break
+    done
 
     ask_setup
 }
@@ -1700,8 +1852,13 @@ show_summary() {
     kv_to folder 'Folder' "$(pretty_path "$INSTALL_DIR")"
     kv_to email 'Admin e-mail' "$ADMIN_EMAIL"
     kv_to password 'Admin password' "$password"
-    kv_to address 'Address' "$APP_URL"
-    kv_to port 'Port' "$APP_PORT"
+    if [ "$BUILTIN_HTTPS" = 1 ]; then
+        kv_to address 'Address' "$APP_URL  $(dim '(HTTPS by ChatVia.ai, on ports 80 and 443)')"
+        kv_to port 'Port' "$APP_PORT $(dim '(this machine only)')"
+    else
+        kv_to address 'Address' "$APP_URL"
+        kv_to port 'Port' "$APP_PORT"
+    fi
     kv_to storage 'Search storage' "$EMBEDDING_TYPE, $EMBEDDING_DIMENSIONS dimensions $(dim '(permanent)')"
     kv_to index 'Search index' "$EMBEDDING_INDEX $(dim '(can be changed later)')"
     kv_to image_row 'Image' "$image"
@@ -1814,7 +1971,7 @@ show_finish() {
     note "$title" "$open" "$admin" "$email" "$password" ${saved:+"$saved"}
 
     section 'Next steps'
-    if [ "$APP_URL" != "http://localhost:$APP_PORT" ]; then
+    if [ "$BUILTIN_HTTPS" = 0 ] && [ "$APP_URL" != "http://localhost:$APP_PORT" ]; then
         info "$n. Point your proxy at http://localhost:$APP_PORT and set TRUSTED_PROXIES"
         info '   in .env (see the guide).'
         n=$((n + 1))
@@ -1830,6 +1987,7 @@ show_finish() {
     info "./manage start           $(dim 'start again')"
     info "./manage backup          $(dim 'back up the database and the app key')"
     info "./manage upgrade         $(dim 'upgrade to the newest version')"
+    info "./manage https status    $(dim 'built-in HTTPS and its certificates')"
     info "./manage postgres edit   $(dim 'tune PostgreSQL (postgres/postgresql.conf)')"
     info "./manage                 $(dim 'every command')"
 
@@ -1907,6 +2065,7 @@ do_upgrade() {
     APP_PORT=${APP_PORT:-8000}
     APP_URL=$(env_value APP_URL)
     APP_URL=${APP_URL:-http://localhost:$APP_PORT}
+    read_https_settings
     local installed
     installed=$(env_value CHATVIA_VERSION)
     # Without --version: the newest release. A local build (--no-pull) keeps
@@ -1956,8 +2115,14 @@ do_upgrade() {
     remove_setup_container
     run_step 'Waiting for the web app' wait_until 180 app_is_up ||
         die 'The web app did not answer within 3 minutes.' "See why: cd $(pretty_path "$INSTALL_DIR") && ./manage logs app"
+    wait_for_https
 
     ok "$(bold "ChatVia.ai $CHATVIA_VERSION is running.")"
+    # Custom domains need a certificate per domain, which only the built-in
+    # HTTPS gets by itself.
+    if [ "$BUILTIN_HTTPS" = 0 ] && [ "$APP_URL" != "http://localhost:$APP_PORT" ]; then
+        info "$(dim "For agents' custom domains, ChatVia.ai can handle HTTPS: ./manage https on")"
+    fi
     outro "Open $(accent "$APP_URL")"
 }
 
@@ -1967,8 +2132,8 @@ do_upgrade() {
 #
 # Ubuntu 24.04 LTS or newer on a fresh server. It does what the guides
 # "Install on Ubuntu" and "Deploy with Deployer" describe: PostgreSQL 18
-# with the search extensions, Redis, PHP-FPM behind nginx, a Let's Encrypt
-# certificate, Horizon, Reverb and Pulse under Supervisor, the scheduler in
+# with the search extensions, Redis, PHP-FPM behind nginx, Caddy for the
+# Let's Encrypt certificates, Horizon, Reverb and Pulse under Supervisor, the scheduler in
 # cron, and the firewall. One system user, chatvia, owns the code and runs every part of
 # the app. Deployer, installed for that user, deploys each release into its
 # own folder under /var/www/chatvia and switches over in one step, so an
@@ -2291,7 +2456,7 @@ native_warning() {
     warn "$(bold 'The complete installation sets up this whole server for ChatVia.ai.')"
     if [ "$DATABASE" = existing ]; then
         info 'It installs Redis, PHP, nginx, Node.js, Supervisor (for Horizon, Reverb'
-        info 'and Pulse), cron (for the scheduler), Certbot and Deployer, changes their'
+        info 'and Pulse), cron (for the scheduler), Caddy and Deployer, changes their'
         info 'settings for ChatVia.ai, takes over ports 80 and 443, and turns on the'
         info 'firewall. Other sites and programs on this server may stop working, and'
         info 'none of it is easy to undo. It uses your PostgreSQL server as it is.'
@@ -2299,7 +2464,7 @@ native_warning() {
         question='Can ChatVia.ai have this server to itself, apart from PostgreSQL?'
     else
         info 'It installs PostgreSQL, Redis, PHP, nginx, Node.js, Supervisor (for'
-        info 'Horizon, Reverb and Pulse), cron (for the scheduler), Certbot and'
+        info 'Horizon, Reverb and Pulse), cron (for the scheduler), Caddy and'
         info 'Deployer, changes their settings for ChatVia.ai, takes over ports 80 and'
         info '443, and turns on the firewall. Other sites, databases and programs on'
         info 'this server may stop working, and none of it is easy to undo.'
@@ -2590,6 +2755,9 @@ native_load_settings() {
     DOMAIN=$(conf_value CHATVIA_DOMAIN)
     APP_URL=$(conf_value APP_URL)
     HTTPS=$(conf_value HTTPS)
+    # Installs from before Caddy got their certificate from Certbot.
+    HTTPS_SERVER=$(conf_value HTTPS_SERVER)
+    if [ "$HTTPS" = yes ] && [ -z "$HTTPS_SERVER" ]; then HTTPS_SERVER=certbot; fi
     ADMIN_EMAIL=$(conf_value ADMIN_EMAIL)
     EMBEDDING_TYPE=$(conf_value EMBEDDING_VECTOR_TYPE)
     EMBEDDING_DIMENSIONS=$(conf_value EMBEDDING_DIMENSIONS)
@@ -3081,7 +3249,9 @@ pgdg_carries_this_release() {
 native_https() {
     if run_step "Getting an HTTPS certificate for $DOMAIN" native_get_certificate; then
         HTTPS=yes
+        HTTPS_SERVER=caddy
         APP_URL="https://$DOMAIN"
+        if [ "$DRY_RUN" = 0 ]; then conf_set HTTPS_SERVER caddy; fi
     else
         HTTPS=pending
         APP_URL="http://$DOMAIN"
@@ -3200,7 +3370,7 @@ native_install_packages() {
     apt_get install \
         git curl unzip ca-certificates cron ufw \
         $(native_php_packages) $(native_composer_package) \
-        nginx redis-server supervisor certbot python3-certbot-nginx fail2ban \
+        nginx redis-server supervisor fail2ban \
         $(native_postgres_packages) \
         $(native_backup_packages) \
         poppler-utils pandoc catdoc ffmpeg weasyprint fonts-noto-core fonts-noto-cjk || return
@@ -3530,12 +3700,32 @@ EOF
     systemctl restart "php$NATIVE_PHP-fpm"
 }
 
-# The site, on HTTP. Certbot adds HTTPS to it.
+# The site. nginx answers on port 80 itself until Caddy runs (no HTTPS, or
+# until Caddy has its certificate); then Caddy holds ports 80 and 443 and
+# nginx answers it on 127.0.0.1:8081. An install that runs again keeps
+# whichever it has.
 native_configure_nginx() {
-    local name=$DOMAIN
+    local mode=direct
+    if systemctl is-active --quiet caddy; then mode=behind; fi
+    native_write_nginx_site "$mode"
+    ln -sfn /etc/nginx/sites-available/chatvia /etc/nginx/sites-enabled/chatvia
+    rm -f /etc/nginx/sites-enabled/default
+    nginx -t
+    systemctl enable nginx
+    systemctl reload-or-restart nginx
+}
+
+# native_write_nginx_site direct|behind
+native_write_nginx_site() {
+    local name=$DOMAIN listen=()
     if is_ip "$DOMAIN"; then name=_; fi
-    sed -e "s|__SERVER_NAME__|$name|" -e "s|__ROOT__|$NATIVE_ROOT/current/public|" >/etc/nginx/sites-available/chatvia <<'EOF'
-# Chatvia. Written by the Chatvia installer; Certbot adds HTTPS to it.
+    if [ "$1" = behind ]; then
+        name=_
+        listen=(-e 's|^    listen 80;$|    listen 127.0.0.1:8081;|' -e '/^    listen \[::\]:80;$/d')
+    fi
+    sed "${listen[@]}" -e "s|__SERVER_NAME__|$name|" -e "s|__ROOT__|$NATIVE_ROOT/current/public|" >/etc/nginx/sites-available/chatvia <<'EOF'
+# Chatvia. Written by the Chatvia installer. With HTTPS, Caddy holds ports
+# 80 and 443 and passes every request to this site on 127.0.0.1:8081.
 server {
     listen 80;
     listen [::]:80;
@@ -3623,25 +3813,103 @@ server {
     }
 }
 EOF
-    ln -sfn /etc/nginx/sites-available/chatvia /etc/nginx/sites-enabled/chatvia
-    rm -f /etc/nginx/sites-enabled/default
-    nginx -t
-    systemctl enable nginx
-    systemctl reload-or-restart nginx
 }
 
-# --keep-until-expiring: a certificate from an earlier attempt is put back
-# into the site instead of asking for a new one.
+# Caddy from its own repository, signed by the key with this fingerprint.
+# Masked while it installs: the package starts it at once on port 80, where
+# nginx answers.
+native_install_caddy() {
+    local key=65760C51EDEA2017CEA2CA15155B6D79CA56EA34 keyring=/usr/share/keyrings/caddy-stable-archive-keyring.gpg
+    command -v caddy >/dev/null 2>&1 && return 0
+    apt_get install gnupg || return
+    curl -fsSL --max-time 30 https://dl.cloudsmith.io/public/caddy/stable/gpg.key -o "$keyring.asc" || return
+    if ! gpg --show-keys --with-colons "$keyring.asc" | grep -q "^fpr:*:$key:"; then
+        rm -f "$keyring.asc"
+        echo "The key from dl.cloudsmith.io is not Caddy's signing key ($key)."
+        return 1
+    fi
+    gpg --dearmor --yes -o "$keyring" "$keyring.asc" || return
+    rm -f "$keyring.asc"
+    printf 'deb [signed-by=%s] https://dl.cloudsmith.io/public/caddy/stable/deb/debian any-version main\n' "$keyring" \
+        >/etc/apt/sources.list.d/caddy-stable.list
+    apt_get update || return
+    systemctl mask caddy
+    apt_get install caddy
+}
+
+# HTTPS through Caddy. It takes ports 80 and 443, gets the certificate for
+# DOMAIN (and later, on demand, for agents' custom domains) and passes every
+# request to nginx on 127.0.0.1:8081. When no certificate comes, nginx gets
+# its site back as it was (on port 80, or Certbot's), and Caddy stops.
 native_get_certificate() {
-    certbot --nginx --non-interactive --agree-tos --no-eff-email --keep-until-expiring --redirect \
-        -m "$ADMIN_EMAIL" -d "$DOMAIN"
+    local site=/etc/nginx/sites-available/chatvia
+    native_install_caddy || return
+    install -d /etc/caddy
+    sed -e "s|__DOMAIN__|$DOMAIN|" -e "s|__EMAIL__|$ADMIN_EMAIL|" >/etc/caddy/Caddyfile <<'EOF'
+# ChatVia.ai. Written by the ChatVia.ai installer.
+# Caddy holds ports 80 and 443, gets the HTTPS certificates from Let's
+# Encrypt and renews them, and passes every request to nginx on
+# 127.0.0.1:8081.
+{
+	email __EMAIL__
+
+	# Before Caddy gets a certificate for a name it does not know, it asks
+	# ChatVia.ai whether the name is an agent's saved custom domain.
+	on_demand_tls {
+		ask http://127.0.0.1:8081/custom-domains
+	}
+}
+
+__DOMAIN__ {
+	reverse_proxy 127.0.0.1:8081
+}
+
+# Every other name that points here: an agent's custom domain.
+https:// {
+	tls {
+		on_demand
+	}
+	reverse_proxy 127.0.0.1:8081
+}
+EOF
+    caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile || return
+    cp "$site" "$site.before-caddy"
+    native_write_nginx_site behind
+    if nginx -t && systemctl reload nginx && systemctl unmask caddy && systemctl enable caddy &&
+        systemctl restart caddy && wait_until 120 native_https_answers; then
+        rm -f "$site.before-caddy"
+        return 0
+    fi
+    echo "Caddy got no certificate for $DOMAIN: does $DOMAIN point at this server, and are ports 80 and 443 open?"
+    systemctl disable --now caddy || true
+    mv "$site.before-caddy" "$site"
+    nginx -t && systemctl reload nginx
+    return 1
+}
+
+# Whether DOMAIN answers over HTTPS on this server with a valid certificate.
+# Any answer counts: before the first deploy there is no app yet.
+native_https_answers() {
+    curl -sS -o /dev/null --max-time 10 --resolve "$DOMAIN:443:127.0.0.1" "https://$DOMAIN/"
+}
+
+# The .env lines for Caddy in front: believe what it says about each visitor
+# (the address, and that they came over HTTPS), and turn custom domains on.
+native_caddy_env_text() {
+    cat <<'EOF'
+
+# Caddy, on this server, holds ports 80 and 443 and gets the HTTPS
+# certificates, also for agents' custom domains.
+TRUSTED_PROXIES=127.0.0.1
+CHATVIA_ON_DEMAND_TLS=true
+EOF
 }
 
 # The settings of this install. Secrets from an earlier attempt are kept:
 # the database and Redis already use them.
 native_write_env() {
     local file="$INSTALL_DIR/.env" app_key db_password redis_password reverb_id reverb_key reverb_secret mcp_secret
-    local db_port secure=false
+    local db_port secure=false proxy_env=''
     app_key=$(env_value APP_KEY)
     db_password=$(env_value DB_PASSWORD)
     redis_password=$(env_value REDIS_PASSWORD)
@@ -3656,6 +3924,9 @@ native_write_env() {
     reverb_key=${reverb_key:-$(random_hex 16)}
     reverb_secret=${reverb_secret:-$(random_hex 32)}
     mcp_secret=${mcp_secret:-$(random_hex 32)}
+    if [ "${HTTPS_SERVER:-}" = caddy ]; then
+        proxy_env=$(native_caddy_env_text)
+    fi
     if [ "$DATABASE" = existing ]; then
         db_port=$DB_PORT
     else
@@ -3749,6 +4020,7 @@ VITE_REVERB_SCHEME=
 
 # Signs the calls the app makes to its own built-in tools.
 BUILTIN_MCP_SECRET=$mcp_secret
+$proxy_env
 EOF
     )
     chown "$NATIVE_USER:$NATIVE_USER" "$file.new"
@@ -4241,6 +4513,7 @@ native_configure_firewall() {
     done
     ufw allow 80/tcp comment 'HTTP'
     ufw allow 443/tcp comment 'HTTPS'
+    ufw allow 443/udp comment 'HTTPS (HTTP/3)'
     ufw --force enable
     ufw status verbose
 }
@@ -4281,6 +4554,7 @@ native_horizon_is_up() {
 native_check_parts() {
     local service code
     local services=(redis-server "php$NATIVE_PHP-fpm" nginx supervisor cron)
+    if [ "${HTTPS_SERVER:-}" = caddy ]; then services+=(caddy); fi
     # An existing PostgreSQL may run elsewhere, or under another name.
     if [ "$DATABASE" = local ]; then services=(postgresql "${services[@]}"); fi
     for service in "${services[@]}"; do
@@ -4353,7 +4627,11 @@ native_show_finish() {
     info "   sudo -u $NATIVE_USER php $NATIVE_ROOT/current/artisan chatvia:mcp:sync-builtin"
 
     section 'Running on this server'
-    info "Web app       nginx and PHP-FPM $NATIVE_PHP $(dim "($APP_URL)")"
+    if [ "${HTTPS_SERVER:-}" = caddy ]; then
+        info "Web app       Caddy, then nginx and PHP-FPM $NATIVE_PHP $(dim "($APP_URL)")"
+    else
+        info "Web app       nginx and PHP-FPM $NATIVE_PHP $(dim "($APP_URL)")"
+    fi
     info "Queues        Horizon $(dim '(Supervisor: chatvia-horizon)')"
     info "Live updates  Reverb $(dim '(Supervisor: chatvia-reverb, through nginx at /app/)')"
     info "Server stats  Pulse $(dim '(Supervisor: chatvia-pulse)')"
@@ -4364,7 +4642,9 @@ native_show_finish() {
         info "Database      PostgreSQL $NATIVE_PG $(dim '(pgvector, pg_textsearch, pg_partman)')"
     fi
     info "Cache         Redis $(dim '(with a password, kept on disk)')"
-    if [ "$HTTPS" = yes ]; then info "HTTPS         Let's Encrypt $(dim '(renews by itself)')"; fi
+    if [ "$HTTPS" = yes ]; then
+        info "HTTPS         Let's Encrypt, through Caddy $(dim '(renews by itself, also for custom domains)')"
+    fi
     if [ "$FIREWALL" = yes ]; then info "Firewall      ufw $(dim '(SSH, HTTP and HTTPS only)')"; fi
     info "Deploys       Deployer $(dim "(user $NATIVE_USER, in $NATIVE_DEPLOY_DIR)")"
     if [ "$AUTO_UPDATE" = yes ]; then
@@ -4437,9 +4717,15 @@ native_upgrade() {
         if [ "$INTERACTIVE" = 0 ]; then
             die 'Pass --upgrade to upgrade it without questions.'
         fi
-        choose 'What do you want to do?' \
-            'Upgrade to the newest version  — keeps your data' \
-            'Nothing, exit'
+        local options=('Upgrade to the newest version  — keeps your data')
+        if [ "${HTTPS_SERVER:-}" = certbot ]; then
+            options+=("Move HTTPS from Certbot to Caddy  — for agents' custom domains")
+        fi
+        choose 'What do you want to do?' "${options[@]}" 'Nothing, exit'
+        if [ "$CHOICE" = 1 ] && [ "${HTTPS_SERVER:-}" = certbot ]; then
+            native_move_to_caddy
+            return
+        fi
         if [ "$CHOICE" != 0 ]; then
             outro 'Nothing was changed.'
             exit 0
@@ -4565,10 +4851,47 @@ native_retry_https() {
 native_switch_to_https() {
     native_set_env APP_URL "$APP_URL"
     native_set_env SESSION_SECURE_COOKIE true
+    native_use_caddy_env
     conf_set HTTPS yes
     conf_set APP_URL "$APP_URL"
     as_chatvia "$NATIVE_ROOT/current" php artisan optimize
     as_chatvia "$NATIVE_ROOT/current" php artisan reload
+}
+
+# The app learns that Caddy is in front: it believes Caddy about each
+# visitor (a proxy list the install already had is kept) and turns custom
+# domains on.
+native_use_caddy_env() {
+    local proxies
+    proxies=$(env_value TRUSTED_PROXIES)
+    case ",$proxies," in
+        *,127.0.0.1,*) ;;
+        ,,) native_set_env TRUSTED_PROXIES 127.0.0.1 ;;
+        *) native_set_env TRUSTED_PROXIES "$proxies,127.0.0.1" ;;
+    esac
+    native_set_env CHATVIA_ON_DEMAND_TLS true
+    HTTPS_SERVER=caddy
+    conf_set HTTPS_SERVER caddy
+}
+
+# An install from before Caddy: Caddy takes ports 80 and 443 from nginx and
+# Certbot, so agents' custom domains get their certificates by themselves.
+# When Caddy gets no certificate, nginx keeps Certbot's site as it was.
+native_move_to_caddy() {
+    run_step "Moving HTTPS for $DOMAIN to Caddy" native_get_certificate ||
+        die 'Caddy got no certificate, so nothing changed: nginx and Certbot serve HTTPS as before.' \
+            "See why: $LOG"
+    run_step 'Stopping the Certbot renewals' certbot delete --non-interactive --cert-name "$DOMAIN" ||
+        warn "Certbot still renews the old certificate. It does no harm. See why: $LOG"
+    if [ "$FIREWALL" = yes ]; then
+        run_step 'Opening port 443 for HTTP/3' ufw allow 443/udp comment 'HTTPS (HTTP/3)' ||
+            warn "Port 443/udp stays closed, so browsers use HTTP/2. See why: $LOG"
+    fi
+    run_step 'Telling ChatVia.ai that Caddy is in front' native_switch_to_https ||
+        die 'Caddy serves HTTPS, but the app settings were not changed.' "See why: $LOG"
+    ok "$(bold 'Caddy serves HTTPS now.')"
+    info 'Agents can show their Hosted Chat on custom domains: Settings → Platform → Custom domains.'
+    outro "Open $(accent "$APP_URL")"
 }
 
 # --- installer/src/90-main.sh ---
@@ -4616,6 +4939,7 @@ parse_args() {
             --email) CHATVIA_ADMIN_EMAIL=${2:?--email needs an address}; shift ;;
             --port) CHATVIA_PORT=${2:?--port needs a number}; shift ;;
             --url) CHATVIA_URL=${2:?--url needs an address}; shift ;;
+            --https) CHATVIA_HTTPS=${2:?--https needs builtin or proxy}; shift ;;
             --version) CHATVIA_VERSION=${2:?--version needs a version} VERSION_GIVEN=1; shift ;;
             --image) CHATVIA_IMAGE=${2:?--image needs a name}; shift ;;
             --no-pull) NO_PULL=1 ;;
@@ -4666,6 +4990,7 @@ main() {
     MODE=${CHATVIA_INSTALL:-} FORCE=${CHATVIA_FORCE:-0} ARGS=("$@")
     CHATVIA_REPO=${CHATVIA_REPO:-$NATIVE_REPO} CHATVIA_RELEASE='' CHATVIA_BRANCH=''
     DOMAIN='' SERVER_IP='' HTTPS=no FIREWALL=no SWAP=no AUTO_UPDATE=no DNS_READY=1
+    BUILTIN_HTTPS=0
     DATABASE=local DB_HOST=127.0.0.1 DB_PORT=5432 DB_NAME=chatvia DB_USER=chatvia DB_PASS=''
     DB_ANALYTICS=analytics DB_PULSE=pulse DB_SPECTRA=spectra DB_MAJOR=$NATIVE_PG
 
@@ -4681,6 +5006,12 @@ main() {
         [ "$NO_PULL" = 1 ] || [ "$NO_START" = 1 ]; then
         DOCKER_OPTIONS=1
     fi
+    # builtin and proxy are the Docker answers; the complete installation
+    # takes no (--no-https).
+    case ${CHATVIA_HTTPS:-} in
+        builtin) DOCKER_OPTIONS=1 BUILTIN_HTTPS=1 ;;
+        proxy) DOCKER_OPTIONS=1 ;;
+    esac
 
     trap cleanup EXIT
     trap interrupted INT TERM

@@ -42,6 +42,7 @@ parse_args() {
             --email) CHATVIA_ADMIN_EMAIL=${2:?--email needs an address}; shift ;;
             --port) CHATVIA_PORT=${2:?--port needs a number}; shift ;;
             --url) CHATVIA_URL=${2:?--url needs an address}; shift ;;
+            --https) CHATVIA_HTTPS=${2:?--https needs builtin or proxy}; shift ;;
             --version) CHATVIA_VERSION=${2:?--version needs a version} VERSION_GIVEN=1; shift ;;
             --image) CHATVIA_IMAGE=${2:?--image needs a name}; shift ;;
             --no-pull) NO_PULL=1 ;;
@@ -92,6 +93,7 @@ main() {
     MODE=${CHATVIA_INSTALL:-} FORCE=${CHATVIA_FORCE:-0} ARGS=("$@")
     CHATVIA_REPO=${CHATVIA_REPO:-$NATIVE_REPO} CHATVIA_RELEASE='' CHATVIA_BRANCH=''
     DOMAIN='' SERVER_IP='' HTTPS=no FIREWALL=no SWAP=no AUTO_UPDATE=no DNS_READY=1
+    BUILTIN_HTTPS=0
     DATABASE=local DB_HOST=127.0.0.1 DB_PORT=5432 DB_NAME=chatvia DB_USER=chatvia DB_PASS=''
     DB_ANALYTICS=analytics DB_PULSE=pulse DB_SPECTRA=spectra DB_MAJOR=$NATIVE_PG
 
@@ -107,6 +109,12 @@ main() {
         [ "$NO_PULL" = 1 ] || [ "$NO_START" = 1 ]; then
         DOCKER_OPTIONS=1
     fi
+    # builtin and proxy are the Docker answers; the complete installation
+    # takes no (--no-https).
+    case ${CHATVIA_HTTPS:-} in
+        builtin) DOCKER_OPTIONS=1 BUILTIN_HTTPS=1 ;;
+        proxy) DOCKER_OPTIONS=1 ;;
+    esac
 
     trap cleanup EXIT
     trap interrupted INT TERM

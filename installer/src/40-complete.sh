@@ -3,8 +3,8 @@
 #
 # Ubuntu 24.04 LTS or newer on a fresh server. It does what the guides
 # "Install on Ubuntu" and "Deploy with Deployer" describe: PostgreSQL 18
-# with the search extensions, Redis, PHP-FPM behind nginx, a Let's Encrypt
-# certificate, Horizon, Reverb and Pulse under Supervisor, the scheduler in
+# with the search extensions, Redis, PHP-FPM behind nginx, Caddy for the
+# Let's Encrypt certificates, Horizon, Reverb and Pulse under Supervisor, the scheduler in
 # cron, and the firewall. One system user, chatvia, owns the code and runs every part of
 # the app. Deployer, installed for that user, deploys each release into its
 # own folder under /var/www/chatvia and switches over in one step, so an
@@ -327,7 +327,7 @@ native_warning() {
     warn "$(bold 'The complete installation sets up this whole server for ChatVia.ai.')"
     if [ "$DATABASE" = existing ]; then
         info 'It installs Redis, PHP, nginx, Node.js, Supervisor (for Horizon, Reverb'
-        info 'and Pulse), cron (for the scheduler), Certbot and Deployer, changes their'
+        info 'and Pulse), cron (for the scheduler), Caddy and Deployer, changes their'
         info 'settings for ChatVia.ai, takes over ports 80 and 443, and turns on the'
         info 'firewall. Other sites and programs on this server may stop working, and'
         info 'none of it is easy to undo. It uses your PostgreSQL server as it is.'
@@ -335,7 +335,7 @@ native_warning() {
         question='Can ChatVia.ai have this server to itself, apart from PostgreSQL?'
     else
         info 'It installs PostgreSQL, Redis, PHP, nginx, Node.js, Supervisor (for'
-        info 'Horizon, Reverb and Pulse), cron (for the scheduler), Certbot and'
+        info 'Horizon, Reverb and Pulse), cron (for the scheduler), Caddy and'
         info 'Deployer, changes their settings for ChatVia.ai, takes over ports 80 and'
         info '443, and turns on the firewall. Other sites, databases and programs on'
         info 'this server may stop working, and none of it is easy to undo.'
@@ -626,6 +626,9 @@ native_load_settings() {
     DOMAIN=$(conf_value CHATVIA_DOMAIN)
     APP_URL=$(conf_value APP_URL)
     HTTPS=$(conf_value HTTPS)
+    # Installs from before Caddy got their certificate from Certbot.
+    HTTPS_SERVER=$(conf_value HTTPS_SERVER)
+    if [ "$HTTPS" = yes ] && [ -z "$HTTPS_SERVER" ]; then HTTPS_SERVER=certbot; fi
     ADMIN_EMAIL=$(conf_value ADMIN_EMAIL)
     EMBEDDING_TYPE=$(conf_value EMBEDDING_VECTOR_TYPE)
     EMBEDDING_DIMENSIONS=$(conf_value EMBEDDING_DIMENSIONS)

@@ -229,7 +229,12 @@ else. The web server gets its certificate on demand and first asks
 `GET /custom-domains` (`CustomDomainLookupController`) whether the name is a
 saved domain; `chatvia:check:agent-domains` probes each domain
 (`CustomDomainProbe`, through `SafeUrl`) and `AgentUrlBuilder` uses it once
-it is verified.
+it is verified. The installer puts Caddy in front for that (the Docker
+`proxy` service under the `https` profile; on the complete install Caddy on
+80/443 and nginx on `127.0.0.1:8081`) and writes `CHATVIA_ON_DEMAND_TLS=true`,
+which makes the admin switch start on. The optional CNAME target
+(`chatvia.custom_domains.cname_target`) is the host customers point at when
+`APP_URL` runs behind a CDN; no agent may claim it or `APP_URL`'s host.
 
 ### `App\Mcp`: built-in MCP servers
 

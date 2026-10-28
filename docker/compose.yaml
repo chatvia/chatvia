@@ -12,6 +12,12 @@
 #
 # Then open http://localhost:8000.
 #
+# Built-in HTTPS: with COMPOSE_PROFILES=https and CHATVIA_DOMAIN in .env, the
+# proxy service (Caddy) takes ports 80 and 443, gets a Let's Encrypt
+# certificate for CHATVIA_DOMAIN, and one for each agent's custom domain the
+# first time it is opened (./manage https on sets it all up). Without it,
+# put your own proxy in front of APP_PORT.
+#
 # The installer (install.sh) also puts `manage` next to this file, for the
 # everyday work: ./manage start, stop, backup, restore and more (./manage
 # help). Your own changes go in compose.override.yaml, which upgrades never
@@ -133,11 +139,46 @@ services:
 
   # Web app: nginx + PHP-FPM. Also forwards browser WebSocket connections
   # (/app/) to Reverb, so only this one port needs to be published.
+  # APP_BIND_IP=127.0.0.1 keeps it on this machine, for a proxy in front.
   app:
     <<: *app
     ports:
-      - "${APP_PORT:-8000}:8080"
+      - "${APP_BIND_IP:+${APP_BIND_IP}:}${APP_PORT:-8000}:8080"
     depends_on: *depends-on-migrate
+
+  # Built-in HTTPS (the https profile): Caddy on ports 80 and 443 in front of
+  # the app. Its certificates are kept in caddy_data; backups leave them out,
+  # as Caddy gets them again by itself.
+  proxy:
+    image: caddy:2.11-alpine
+    profiles: [https]
+    restart: unless-stopped
+    logging: *logging
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    configs:
+      - source: caddyfile
+        target: /etc/caddy/Caddyfile
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+    healthcheck:
+      # Caddy's admin endpoint; /metrics is the one it does not log.
+      test: ["CMD", "wget", "-qO", "/dev/null", "http://127.0.0.1:2019/metrics"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   # The command services run with a small init process: it passes on the stop
   # signal and reaps finished child processes (the scheduler's background
@@ -190,8 +231,34 @@ services:
       test: ["CMD", "pgrep", "-f", "pulse:check"]
       start_period: 30s
 
+# Caddy's settings for the proxy service. A custom domain gets a certificate
+# only when the app says it is a saved agent domain (the ask), so a name that
+# merely points here never does.
+configs:
+  caddyfile:
+    content: |
+      {
+      	on_demand_tls {
+      		ask http://app:8080/custom-domains
+      	}
+      }
+
+      ${CHATVIA_DOMAIN:-localhost} {
+      	reverse_proxy app:8080
+      }
+
+      # Every other name that points here: an agent's custom domain.
+      https:// {
+      	tls {
+      		on_demand
+      	}
+      	reverse_proxy app:8080
+      }
+
 volumes:
   storage:
   secrets:
   pgdata:
   redisdata:
+  caddy_data:
+  caddy_config:

@@ -1,0 +1,25 @@
+# ChatVia.ai. Written by the ChatVia.ai installer.
+# Caddy holds ports 80 and 443, gets the HTTPS certificates from Let's
+# Encrypt and renews them, and passes every request to nginx on
+# 127.0.0.1:8081.
+{
+	email __EMAIL__
+
+	# Before Caddy gets a certificate for a name it does not know, it asks
+	# ChatVia.ai whether the name is an agent's saved custom domain.
+	on_demand_tls {
+		ask http://127.0.0.1:8081/custom-domains
+	}
+}
+
+__DOMAIN__ {
+	reverse_proxy 127.0.0.1:8081
+}
+
+# Every other name that points here: an agent's custom domain.
+https:// {
+	tls {
+		on_demand
+	}
+	reverse_proxy 127.0.0.1:8081
+}

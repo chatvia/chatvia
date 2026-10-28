@@ -8,7 +8,9 @@
 native_https() {
     if run_step "Getting an HTTPS certificate for $DOMAIN" native_get_certificate; then
         HTTPS=yes
+        HTTPS_SERVER=caddy
         APP_URL="https://$DOMAIN"
+        if [ "$DRY_RUN" = 0 ]; then conf_set HTTPS_SERVER caddy; fi
     else
         HTTPS=pending
         APP_URL="http://$DOMAIN"
@@ -127,7 +129,7 @@ native_install_packages() {
     apt_get install \
         git curl unzip ca-certificates cron ufw \
         $(native_php_packages) $(native_composer_package) \
-        nginx redis-server supervisor certbot python3-certbot-nginx fail2ban \
+        nginx redis-server supervisor fail2ban \
         $(native_postgres_packages) \
         $(native_backup_packages) \
         poppler-utils pandoc catdoc ffmpeg weasyprint fonts-noto-core fonts-noto-cjk || return
@@ -415,13 +417,14 @@ EOF
     systemctl restart "php$NATIVE_PHP-fpm"
 }
 
-# The site, on HTTP. Certbot adds HTTPS to it.
+# The site. nginx answers on port 80 itself until Caddy runs (no HTTPS, or
+# until Caddy has its certificate); then Caddy holds ports 80 and 443 and
+# nginx answers it on 127.0.0.1:8081. An install that runs again keeps
+# whichever it has.
 native_configure_nginx() {
-    local name=$DOMAIN
-    if is_ip "$DOMAIN"; then name=_; fi
-    sed -e "s|__SERVER_NAME__|$name|" -e "s|__ROOT__|$NATIVE_ROOT/current/public|" >/etc/nginx/sites-available/chatvia <<'EOF'
-#@include templates/nginx-site.conf
-EOF
+    local mode=direct
+    if systemctl is-active --quiet caddy; then mode=behind; fi
+    native_write_nginx_site "$mode"
     ln -sfn /etc/nginx/sites-available/chatvia /etc/nginx/sites-enabled/chatvia
     rm -f /etc/nginx/sites-enabled/default
     nginx -t
@@ -429,18 +432,90 @@ EOF
     systemctl reload-or-restart nginx
 }
 
-# --keep-until-expiring: a certificate from an earlier attempt is put back
-# into the site instead of asking for a new one.
+# native_write_nginx_site direct|behind
+native_write_nginx_site() {
+    local name=$DOMAIN listen=()
+    if is_ip "$DOMAIN"; then name=_; fi
+    if [ "$1" = behind ]; then
+        name=_
+        listen=(-e 's|^    listen 80;$|    listen 127.0.0.1:8081;|' -e '/^    listen \[::\]:80;$/d')
+    fi
+    sed "${listen[@]}" -e "s|__SERVER_NAME__|$name|" -e "s|__ROOT__|$NATIVE_ROOT/current/public|" >/etc/nginx/sites-available/chatvia <<'EOF'
+#@include templates/nginx-site.conf
+EOF
+}
+
+# Caddy from its own repository, signed by the key with this fingerprint.
+# Masked while it installs: the package starts it at once on port 80, where
+# nginx answers.
+native_install_caddy() {
+    local key=65760C51EDEA2017CEA2CA15155B6D79CA56EA34 keyring=/usr/share/keyrings/caddy-stable-archive-keyring.gpg
+    command -v caddy >/dev/null 2>&1 && return 0
+    apt_get install gnupg || return
+    curl -fsSL --max-time 30 https://dl.cloudsmith.io/public/caddy/stable/gpg.key -o "$keyring.asc" || return
+    if ! gpg --show-keys --with-colons "$keyring.asc" | grep -q "^fpr:*:$key:"; then
+        rm -f "$keyring.asc"
+        echo "The key from dl.cloudsmith.io is not Caddy's signing key ($key)."
+        return 1
+    fi
+    gpg --dearmor --yes -o "$keyring" "$keyring.asc" || return
+    rm -f "$keyring.asc"
+    printf 'deb [signed-by=%s] https://dl.cloudsmith.io/public/caddy/stable/deb/debian any-version main\n' "$keyring" \
+        >/etc/apt/sources.list.d/caddy-stable.list
+    apt_get update || return
+    systemctl mask caddy
+    apt_get install caddy
+}
+
+# HTTPS through Caddy. It takes ports 80 and 443, gets the certificate for
+# DOMAIN (and later, on demand, for agents' custom domains) and passes every
+# request to nginx on 127.0.0.1:8081. When no certificate comes, nginx gets
+# its site back as it was (on port 80, or Certbot's), and Caddy stops.
 native_get_certificate() {
-    certbot --nginx --non-interactive --agree-tos --no-eff-email --keep-until-expiring --redirect \
-        -m "$ADMIN_EMAIL" -d "$DOMAIN"
+    local site=/etc/nginx/sites-available/chatvia
+    native_install_caddy || return
+    install -d /etc/caddy
+    sed -e "s|__DOMAIN__|$DOMAIN|" -e "s|__EMAIL__|$ADMIN_EMAIL|" >/etc/caddy/Caddyfile <<'EOF'
+#@include templates/Caddyfile
+EOF
+    caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile || return
+    cp "$site" "$site.before-caddy"
+    native_write_nginx_site behind
+    if nginx -t && systemctl reload nginx && systemctl unmask caddy && systemctl enable caddy &&
+        systemctl restart caddy && wait_until 120 native_https_answers; then
+        rm -f "$site.before-caddy"
+        return 0
+    fi
+    echo "Caddy got no certificate for $DOMAIN: does $DOMAIN point at this server, and are ports 80 and 443 open?"
+    systemctl disable --now caddy || true
+    mv "$site.before-caddy" "$site"
+    nginx -t && systemctl reload nginx
+    return 1
+}
+
+# Whether DOMAIN answers over HTTPS on this server with a valid certificate.
+# Any answer counts: before the first deploy there is no app yet.
+native_https_answers() {
+    curl -sS -o /dev/null --max-time 10 --resolve "$DOMAIN:443:127.0.0.1" "https://$DOMAIN/"
+}
+
+# The .env lines for Caddy in front: believe what it says about each visitor
+# (the address, and that they came over HTTPS), and turn custom domains on.
+native_caddy_env_text() {
+    cat <<'EOF'
+
+# Caddy, on this server, holds ports 80 and 443 and gets the HTTPS
+# certificates, also for agents' custom domains.
+TRUSTED_PROXIES=127.0.0.1
+CHATVIA_ON_DEMAND_TLS=true
+EOF
 }
 
 # The settings of this install. Secrets from an earlier attempt are kept:
 # the database and Redis already use them.
 native_write_env() {
     local file="$INSTALL_DIR/.env" app_key db_password redis_password reverb_id reverb_key reverb_secret mcp_secret
-    local db_port secure=false
+    local db_port secure=false proxy_env=''
     app_key=$(env_value APP_KEY)
     db_password=$(env_value DB_PASSWORD)
     redis_password=$(env_value REDIS_PASSWORD)
@@ -455,6 +530,9 @@ native_write_env() {
     reverb_key=${reverb_key:-$(random_hex 16)}
     reverb_secret=${reverb_secret:-$(random_hex 32)}
     mcp_secret=${mcp_secret:-$(random_hex 32)}
+    if [ "${HTTPS_SERVER:-}" = caddy ]; then
+        proxy_env=$(native_caddy_env_text)
+    fi
     if [ "$DATABASE" = existing ]; then
         db_port=$DB_PORT
     else
@@ -548,6 +626,7 @@ VITE_REVERB_SCHEME=
 
 # Signs the calls the app makes to its own built-in tools.
 BUILTIN_MCP_SECRET=$mcp_secret
+$proxy_env
 EOF
     )
     chown "$NATIVE_USER:$NATIVE_USER" "$file.new"
@@ -749,6 +828,7 @@ native_configure_firewall() {
     done
     ufw allow 80/tcp comment 'HTTP'
     ufw allow 443/tcp comment 'HTTPS'
+    ufw allow 443/udp comment 'HTTPS (HTTP/3)'
     ufw --force enable
     ufw status verbose
 }
@@ -789,6 +869,7 @@ native_horizon_is_up() {
 native_check_parts() {
     local service code
     local services=(redis-server "php$NATIVE_PHP-fpm" nginx supervisor cron)
+    if [ "${HTTPS_SERVER:-}" = caddy ]; then services+=(caddy); fi
     # An existing PostgreSQL may run elsewhere, or under another name.
     if [ "$DATABASE" = local ]; then services=(postgresql "${services[@]}"); fi
     for service in "${services[@]}"; do

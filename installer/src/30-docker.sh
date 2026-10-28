@@ -271,9 +271,10 @@ export_postgres_settings() {
 }
 
 write_env() {
-    local secure='' image_line=''
+    local secure='' image_line='' https_block=''
     [ -n "$CHATVIA_IMAGE" ] && image_line="CHATVIA_IMAGE=$CHATVIA_IMAGE"$'\n'
     case $APP_URL in https://*) secure=$'SESSION_SECURE_COOKIE=true\n' ;; esac
+    if [ "$BUILTIN_HTTPS" = 1 ]; then https_block=$(https_env_block)$'\n'; fi
     (
         umask 077
         cat >"$INSTALL_DIR/.env" <<EOF
@@ -294,11 +295,123 @@ EMBEDDING_INDEX=$EMBEDDING_INDEX
 ${image_line}CHATVIA_VERSION=$CHATVIA_VERSION
 APP_PORT=$APP_PORT
 APP_URL=$APP_URL
-${secure}
+${secure}${https_block}
 # The first admin. Only read on the first start.
 ADMIN_EMAIL=$ADMIN_EMAIL
 EOF
     )
+}
+
+#------------------------------------------------------------------------------
+# Built-in HTTPS
+#------------------------------------------------------------------------------
+
+# The private networks Docker gives its containers. Caddy's address in them
+# is not fixed, and only Caddy (and this machine) can reach the app's port,
+# which then listens on 127.0.0.1 only.
+readonly HTTPS_TRUSTED_PROXIES="172.16.0.0/12,10.0.0.0/8,192.168.0.0/16"
+
+# The .env lines that turn on the proxy service (Caddy, compose.yaml's https
+# profile). ./manage https on and off write and remove the same lines, the
+# comment too.
+https_env_block() {
+    cat <<EOF
+
+# Built-in HTTPS, by Caddy on ports 80 and 443. Changed by ./manage https.
+COMPOSE_PROFILES=https
+CHATVIA_DOMAIN=$DOMAIN
+APP_BIND_IP=127.0.0.1
+CHATVIA_ON_DEMAND_TLS=true
+TRUSTED_PROXIES=$HTTPS_TRUSTED_PROXIES
+EOF
+}
+
+# A domain name for a certificate: no IP address, no localhost.
+valid_https_domain() {
+    local host=${1#https://}
+    if is_ip "$host" || ! [[ $host =~ ^([A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,63}$ ]]; then
+        INVALID='Type a domain name like chat.example.com: no IP address, no http:// and no path.'
+        return 1
+    fi
+    return 0
+}
+
+# The ports Caddy needs that something here already uses, like "80 443".
+https_ports_busy() {
+    local port busy=''
+    for port in 80 443; do
+        if port_in_use "$port" ||
+            { command -v ss >/dev/null 2>&1 && [ -n "$(ss -Hltn "( sport = :$port )" 2>/dev/null)" ]; }; then
+            busy="$busy $port"
+        fi
+    done
+    printf '%s' "${busy# }"
+}
+
+# Returns 1 (with a warning) when port 80 or 443 is taken. A dry run only
+# warns.
+check_https_ports() {
+    local busy
+    busy=$(https_ports_busy)
+    [ -n "$busy" ] || return 0
+    if [ "$busy" = '80 443' ]; then
+        warn 'Ports 80 and 443 are already in use on this machine.'
+    else
+        warn "Port $busy is already in use on this machine."
+    fi
+    info 'Built-in HTTPS needs ports 80 and 443. Stop the program that uses them (often a'
+    info 'web server like nginx or Apache), or let your own proxy handle HTTPS.'
+    [ "$DRY_RUN" = 1 ]
+}
+
+# Let's Encrypt checks that the domain points at this server. Only a
+# warning: Caddy keeps trying by itself once it does. Skipped on macOS,
+# which has no getent.
+check_https_dns() {
+    command -v getent >/dev/null 2>&1 || return 0
+    SERVER_IP=$(server_ip)
+    if ! native_check_dns; then
+        info 'Caddy gets the certificate by itself as soon as it does.'
+    fi
+    return 0
+}
+
+# The certificate works: Caddy on this machine answers for DOMAIN with one
+# a client trusts.
+https_is_up() {
+    curl -fs -o /dev/null --max-time 10 --resolve "$DOMAIN:443:127.0.0.1" "https://$DOMAIN/up" 2>/dev/null
+}
+
+# After a start: waits (bounded) for the certificate. A timeout is no
+# failure: the app runs, and Caddy keeps trying.
+wait_for_https() {
+    [ "$BUILTIN_HTTPS" = 1 ] || return 0
+    if run_step "Getting the HTTPS certificate for $DOMAIN" wait_until 120 https_is_up; then
+        return 0
+    fi
+    warn "HTTPS for $DOMAIN does not work yet."
+    info "Caddy keeps trying by itself once $DOMAIN points at this server and ports 80"
+    info "and 443 are open. See why: cd $(pretty_path "$INSTALL_DIR") && ./manage logs proxy"
+}
+
+# BUILTIN_HTTPS and DOMAIN from an existing install's .env.
+read_https_settings() {
+    BUILTIN_HTTPS=0 DOMAIN=''
+    case ,$(env_value COMPOSE_PROFILES), in *,https,*) BUILTIN_HTTPS=1 ;; esac
+    if [ "$BUILTIN_HTTPS" = 1 ]; then DOMAIN=$(env_value CHATVIA_DOMAIN); fi
+    [ -n "$DOMAIN" ] || BUILTIN_HTTPS=0
+}
+
+# The address question's answer for built-in HTTPS: the domain, then the
+# checks. Returns 1 when the ports are taken, to choose again.
+ask_https_domain() {
+    check_https_ports || return 1
+    ask DOMAIN 'Domain name' --default "${DOMAIN:-${CHATVIA_DOMAIN:-}}" --placeholder 'chat.example.com' \
+        --hint 'Where people open ChatVia.ai. Its A record must point at this server.' \
+        --check valid_https_domain
+    DOMAIN=$(printf '%s' "${DOMAIN#https://}" | tr '[:upper:]' '[:lower:]')
+    APP_URL="https://$DOMAIN"
+    check_https_dns
 }
 
 # `up -d` first waits for the one-time database setup (the migrate service),
@@ -425,6 +538,7 @@ start_and_finish() {
     fi
     run_step 'Sizing the queue workers to this machine' tune_docker_workers ||
         warn "The workers kept their defaults. Size them later: $(accent './manage artisan chatvia:workers:tune --restart')"
+    wait_for_https
     mark_finished
 
     show_finish
@@ -449,6 +563,7 @@ do_resume() {
     CHATVIA_VERSION=$(env_value CHATVIA_VERSION)
     APP_PORT=${APP_PORT:-8000} APP_URL=${APP_URL:-http://localhost:${APP_PORT:-8000}} CHATVIA_VERSION=${CHATVIA_VERSION:-latest}
     CHATVIA_IMAGE=${CHATVIA_IMAGE:-$(env_value CHATVIA_IMAGE)}
+    read_https_settings
 
     # Used only when the earlier attempt did not make the admin account yet.
     ADMIN_PASS=${CHATVIA_ADMIN_PASSWORD:-}
@@ -475,6 +590,12 @@ do_resume() {
 collect_settings() {
     local default_port
     default_port=${CHATVIA_PORT:-$(first_free_port "$DEFAULT_PORT")}
+    # yes and no are the complete installation's answers (--no-https): with
+    # Docker they change nothing, like proxy.
+    case ${CHATVIA_HTTPS:-} in
+        '' | builtin | proxy | yes | no | true | false | 1 | 0) ;;
+        *) die "With Docker, CHATVIA_HTTPS must be builtin or proxy, not $CHATVIA_HTTPS." ;;
+    esac
 
     if [ "$INTERACTIVE" = 0 ]; then
         ADMIN_EMAIL=${CHATVIA_ADMIN_EMAIL:-}
@@ -488,6 +609,18 @@ collect_settings() {
         APP_PORT=$default_port
         valid_port "$APP_PORT" || die "$INVALID"
         APP_URL=${CHATVIA_URL:-http://localhost:$APP_PORT}
+        if [ "$BUILTIN_HTTPS" = 1 ]; then
+            if [ -z "${CHATVIA_URL:-}" ] && [ -n "${CHATVIA_DOMAIN:-}" ]; then APP_URL="https://$CHATVIA_DOMAIN"; fi
+            case $APP_URL in
+                https://*) ;;
+                *) die 'Built-in HTTPS needs the address: --url https://chat.example.com (or --domain).' ;;
+            esac
+            DOMAIN=$(printf '%s' "${APP_URL#https://}" | tr '[:upper:]' '[:lower:]')
+            valid_https_domain "$DOMAIN" || die "$INVALID"
+            APP_URL="https://$DOMAIN"
+            check_https_ports || die 'Free ports 80 and 443, or use --https proxy.'
+            check_https_dns
+        fi
         valid_url "$APP_URL" || die "$INVALID"
         EMBEDDING_TYPE=${CHATVIA_EMBEDDING_TYPE:-halfvec}
         EMBEDDING_DIMENSIONS=${CHATVIA_EMBEDDING_DIMENSIONS:-1024}
@@ -504,15 +637,25 @@ collect_settings() {
     ask APP_PORT 'Port on this computer' --default "$default_port" \
         --check valid_port --status port_status
 
-    choose 'Where will people open ChatVia.ai?' \
-        "On this computer only  — http://localhost:$APP_PORT" \
-        'On my own domain or IP address  — your proxy handles HTTPS'
-    if [ "$CHOICE" = 0 ]; then
-        APP_URL="http://localhost:$APP_PORT"
-    else
-        ask APP_URL 'Address' --default "${CHATVIA_URL:-}" --placeholder 'https://chat.example.com' \
-            --hint 'The full address people open, without a path.' --check valid_url
-    fi
+    while true; do
+        choose 'Where will people open ChatVia.ai?' \
+            "On this computer only  — http://localhost:$APP_PORT" \
+            'On my domain, ChatVia.ai handles HTTPS  — needs ports 80 and 443 (recommended on a server)' \
+            'On my own domain or IP address  — your own proxy handles HTTPS'
+        BUILTIN_HTTPS=0
+        case $CHOICE in
+            0) APP_URL="http://localhost:$APP_PORT" ;;
+            1)
+                ask_https_domain || continue
+                BUILTIN_HTTPS=1
+                ;;
+            *)
+                ask APP_URL 'Address' --default "${CHATVIA_URL:-}" --placeholder 'https://chat.example.com' \
+                    --hint 'The full address people open, without a path.' --check valid_url
+                ;;
+        esac
+        break
+    done
 
     ask_setup
 }
@@ -593,8 +736,13 @@ show_summary() {
     kv_to folder 'Folder' "$(pretty_path "$INSTALL_DIR")"
     kv_to email 'Admin e-mail' "$ADMIN_EMAIL"
     kv_to password 'Admin password' "$password"
-    kv_to address 'Address' "$APP_URL"
-    kv_to port 'Port' "$APP_PORT"
+    if [ "$BUILTIN_HTTPS" = 1 ]; then
+        kv_to address 'Address' "$APP_URL  $(dim '(HTTPS by ChatVia.ai, on ports 80 and 443)')"
+        kv_to port 'Port' "$APP_PORT $(dim '(this machine only)')"
+    else
+        kv_to address 'Address' "$APP_URL"
+        kv_to port 'Port' "$APP_PORT"
+    fi
     kv_to storage 'Search storage' "$EMBEDDING_TYPE, $EMBEDDING_DIMENSIONS dimensions $(dim '(permanent)')"
     kv_to index 'Search index' "$EMBEDDING_INDEX $(dim '(can be changed later)')"
     kv_to image_row 'Image' "$image"
@@ -707,7 +855,7 @@ show_finish() {
     note "$title" "$open" "$admin" "$email" "$password" ${saved:+"$saved"}
 
     section 'Next steps'
-    if [ "$APP_URL" != "http://localhost:$APP_PORT" ]; then
+    if [ "$BUILTIN_HTTPS" = 0 ] && [ "$APP_URL" != "http://localhost:$APP_PORT" ]; then
         info "$n. Point your proxy at http://localhost:$APP_PORT and set TRUSTED_PROXIES"
         info '   in .env (see the guide).'
         n=$((n + 1))
@@ -723,6 +871,7 @@ show_finish() {
     info "./manage start           $(dim 'start again')"
     info "./manage backup          $(dim 'back up the database and the app key')"
     info "./manage upgrade         $(dim 'upgrade to the newest version')"
+    info "./manage https status    $(dim 'built-in HTTPS and its certificates')"
     info "./manage postgres edit   $(dim 'tune PostgreSQL (postgres/postgresql.conf)')"
     info "./manage                 $(dim 'every command')"
 

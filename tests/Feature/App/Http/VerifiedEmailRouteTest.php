@@ -3,6 +3,7 @@
 use App\Identity\Workspace\Models\User;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Route as Router;
+use Illuminate\Support\Str;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,8 +19,8 @@ use Illuminate\Support\Facades\Route as Router;
 
 it('puts the verified gate on every workspace and API route', function (): void {
     $missing = collect(Router::getRoutes()->getRoutes())
-        ->filter(fn (Route $route): bool => str_starts_with($route->uri(), 'my/') || str_starts_with($route->uri(), 'api/v1/'))
-        ->filter(fn (Route $route): bool => collect($route->gatherMiddleware())->contains(fn (string $middleware): bool => $middleware === 'auth' || str_starts_with($middleware, 'auth:')))
+        ->filter(fn (Route $route): bool => Str::startsWith($route->uri(), ['my/', 'api/v1/']))
+        ->filter(fn (Route $route): bool => collect($route->gatherMiddleware())->contains(fn (string $middleware): bool => $middleware === 'auth' || Str::startsWith($middleware, 'auth:')))
         ->reject(fn (Route $route): bool => in_array('verified', $route->gatherMiddleware(), true))
         ->map(fn (Route $route): string => $route->uri())
         ->values()

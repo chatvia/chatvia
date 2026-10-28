@@ -16,6 +16,7 @@ use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Str;
+use Support\Http\SafeUrl;
 use Support\Localization\Country\Models\Country;
 
 /**
@@ -195,8 +196,10 @@ class ChatLogWriter
             'device_type' => $device->deviceType,
             'browser' => $device->browser,
             'os' => $device->os,
-            'referrer_url' => $turn->referrer_url,
-            'page_url' => $turn->page_url,
+            // The visitor sent both URLs: a link in the dashboard is made
+            // of them, so only an http(s) one of a sane length is kept.
+            'referrer_url' => SafeUrl::httpSchemeOrNull($turn->referrer_url),
+            'page_url' => SafeUrl::httpSchemeOrNull($turn->page_url),
             'locale' => $turn->locale ? Str::before($turn->locale, ',') : null,
         ];
     }

@@ -8,6 +8,7 @@ use App\Http\Requests\Concerns\ReadsUploadedSourceFile;
 use App\Http\Rules\NotUploadedBefore;
 use App\Http\Rules\UnlockedPdf;
 use Domain\Knowledge\Source\File\Data\UploadedSourceFileData;
+use Domain\Knowledge\Source\File\Services\SourceFileTypes;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -31,7 +32,7 @@ class UploadKnowledgeFileRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'file' => ['required', 'file', new UnlockedPdf, new NotUploadedBefore($this->user()->workspace())],
+            'file' => ['required', 'file', 'max:'.SourceFileTypes::MAX_UPLOAD_KB, new UnlockedPdf, new NotUploadedBefore($this->user()->workspace())],
         ];
     }
 

@@ -78,6 +78,9 @@ use Support\Concerns\HasExternalId;
 #[Guarded(['id'])]
 class SourceText extends Model implements ChunkableContract
 {
+    /** The longest text a source takes: past this a text is a file. */
+    public const int MAX_CONTENT_CHARS = 1_000_000;
+
     /** @use HasFactory<SourceTextFactory> */
     use Chunkable, HasExternalId, HasFactory, HasStorageFile;
 

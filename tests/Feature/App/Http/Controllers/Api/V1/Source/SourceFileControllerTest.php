@@ -2,6 +2,7 @@
 
 use Database\Factories\AgentFileFactory;
 use Domain\Knowledge\Source\File\Models\SourceFile;
+use Domain\Knowledge\Source\File\Services\SourceFileTypes;
 use Domain\Llm\Enums\AiProvider;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Bus;
@@ -42,6 +43,15 @@ it('answers an unsupported file with the standard field error and stores nothing
         ->post($this->uri, ['file' => UploadedFile::fake()->createWithContent('tool.exe', 'MZ')])
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['file' => 'Unsupported file type.']);
+
+    expect(SourceFile::query()->where('workspace_id', $this->agent->workspace_id)->exists())->toBeFalse();
+});
+
+it('refuses a file larger than the parser takes, before reading it', function (): void {
+    $this->withToken($this->token)
+        ->post($this->uri, ['file' => UploadedFile::fake()->create('handbook.txt', SourceFileTypes::MAX_UPLOAD_KB + 1)])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['file']);
 
     expect(SourceFile::query()->where('workspace_id', $this->agent->workspace_id)->exists())->toBeFalse();
 });

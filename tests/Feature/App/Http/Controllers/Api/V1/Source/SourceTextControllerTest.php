@@ -31,6 +31,13 @@ it('adds a text and answers 201 with its public id', function (): void {
         ->and(SourceText::query()->where('external_id', $response->json('data.id'))->exists())->toBeTrue();
 });
 
+it('refuses a text longer than a source takes', function (): void {
+    $this->withToken($this->token)
+        ->postJson($this->uri, ['content' => Str::repeat('a', SourceText::MAX_CONTENT_CHARS + 1)])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['content']);
+});
+
 it('deletes a text by its public id', function (): void {
     $text = SourceText::factory()->attachedTo($this->agent)->create();
 

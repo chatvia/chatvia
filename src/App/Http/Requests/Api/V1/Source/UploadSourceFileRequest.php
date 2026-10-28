@@ -7,6 +7,7 @@ namespace App\Http\Requests\Api\V1\Source;
 use App\Http\Requests\Concerns\ReadsUploadedSourceFile;
 use App\Http\Rules\UnlockedPdf;
 use Domain\Knowledge\Source\File\Data\UploadedSourceFileData;
+use Domain\Knowledge\Source\File\Services\SourceFileTypes;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -31,7 +32,7 @@ class UploadSourceFileRequest extends FormRequest
             // The document to train on, as a multipart upload. Accepted
             // formats and the size cap match the dashboard's uploader; a
             // password-protected PDF is rejected.
-            'file' => ['required', 'file', new UnlockedPdf],
+            'file' => ['required', 'file', 'max:'.SourceFileTypes::MAX_UPLOAD_KB, new UnlockedPdf],
         ];
     }
 

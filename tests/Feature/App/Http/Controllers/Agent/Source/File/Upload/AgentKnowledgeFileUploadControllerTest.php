@@ -3,6 +3,7 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
 use Domain\Knowledge\Source\File\Models\SourceFile;
+use Domain\Knowledge\Source\File\Services\SourceFileTypes;
 use Domain\Llm\Contracts\Transcriber;
 use Domain\Llm\Enums\AiProvider;
 use Illuminate\Http\UploadedFile;
@@ -52,6 +53,19 @@ it('accepts an upload whose file type is on', function (): void {
         ->assertOk();
 
     expect(SourceFile::query()->where('workspace_id', $this->owner->workspace()->id)->value('filetype'))->toBe(KnowledgeFileType::Text);
+});
+
+it('refuses a file larger than the parser takes, before reading it', function (): void {
+    config(['chatvia.knowledge.file_types' => ['text']]);
+
+    $this->actingAs($this->owner)
+        ->postJson(route('agents.sources.files.upload', $this->agent), [
+            'file' => UploadedFile::fake()->create('handbook.txt', SourceFileTypes::MAX_UPLOAD_KB + 1),
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['file']);
+
+    expect(SourceFile::query()->where('workspace_id', $this->owner->workspace()->id)->exists())->toBeFalse();
 });
 
 it('refuses a file the workspace already uploaded', function (): void {

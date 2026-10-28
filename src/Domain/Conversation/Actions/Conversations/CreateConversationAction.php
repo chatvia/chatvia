@@ -13,6 +13,7 @@ use Domain\Conversation\Services\ChatStoragePath;
 use Domain\Guardrail\Services\GuardrailInspector;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Support\Http\SafeUrl;
 
 /**
  * Opens a hosted-chat conversation from the visitor's first message: starts
@@ -57,8 +58,8 @@ class CreateConversationAction
             chatter_id: $data->chatterId,
             ip_address: $data->ipAddress,
             user_agent: $data->userAgent,
-            referrer_url: $data->referrerUrl,
-            page_url: $data->pageUrl,
+            referrer_url: SafeUrl::httpSchemeOrNull($data->referrerUrl),
+            page_url: SafeUrl::httpSchemeOrNull($data->pageUrl),
             locale: $data->locale,
         ));
 

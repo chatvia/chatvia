@@ -10,6 +10,7 @@ use Domain\Conversation\Enums\MessageOrigin;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Events\MessagePosted;
 use Illuminate\Support\Str;
+use Support\Http\SafeUrl;
 
 /**
  * Delivers a visitor's message to the human operator holding the
@@ -61,8 +62,8 @@ class SendVisitorHandoffMessageAction
                 chatter_id: $session->chatter_id,
                 ip_address: $data->ipAddress,
                 user_agent: $data->userAgent,
-                referrer_url: $data->referrerUrl,
-                page_url: $data->pageUrl,
+                referrer_url: SafeUrl::httpSchemeOrNull($data->referrerUrl),
+                page_url: SafeUrl::httpSchemeOrNull($data->pageUrl),
                 locale: $data->locale,
                 source: MessageOrigin::Handoff->value,
             ),

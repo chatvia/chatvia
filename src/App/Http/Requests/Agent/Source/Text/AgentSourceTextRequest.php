@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Agent\Source\Text;
 
+use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -26,7 +27,7 @@ class AgentSourceTextRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'content' => ['required', 'string', 'min:500'],
+            'content' => ['required', 'string', 'min:500', 'max:'.SourceText::MAX_CONTENT_CHARS],
         ];
     }
 

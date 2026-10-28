@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Str;
 use Support\Exceptions\UnsafeUrlException;
 use Support\Http\SafeUrl;
 
@@ -70,3 +71,13 @@ it('allows private addresses only when an admin allowed them', function (): void
 
     expect(SafeUrl::pinnedClientOptions('http://127.0.0.1:8080/mcp'))->toBe(['allow_redirects' => false]);
 });
+
+it('keeps a stored visitor URL only with an http(s) scheme, cut to the stored length', function (?string $url, ?string $kept): void {
+    expect(SafeUrl::httpSchemeOrNull($url))->toBe($kept);
+})->with([
+    'https' => ['https://example.com/pricing?plan=pro', 'https://example.com/pricing?plan=pro'],
+    'javascript' => ['javascript:alert(1)', null],
+    'data' => ['data:text/html,<script>alert(1)</script>', null],
+    'blank' => ['', null],
+    'too long' => ['https://example.com/'.Str::repeat('a', 3000), 'https://example.com/'.Str::repeat('a', SafeUrl::STORED_URL_LENGTH - 20)],
+]);

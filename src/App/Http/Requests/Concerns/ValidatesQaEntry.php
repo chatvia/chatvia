@@ -18,9 +18,9 @@ trait ValidatesQaEntry
     {
         return [
             'title' => ['required', 'string', 'max:255'],
-            'questions' => ['required', 'array', 'min:1'],
-            'questions.*.question' => ['required', 'string'],
-            'answer' => ['required', 'string', 'min:10'],
+            'questions' => ['required', 'array', 'min:1', 'max:100'],
+            'questions.*.question' => ['required', 'string', 'max:1000'],
+            'answer' => ['required', 'string', 'min:10', 'max:20000'],
         ];
     }
 

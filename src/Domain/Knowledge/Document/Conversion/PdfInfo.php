@@ -24,7 +24,9 @@ final readonly class PdfInfo implements PdfInspector
     public function __construct()
     {
         $this->pdfInfoPath = config('services.bin.pdfinfo');
-        $this->timeout = 3600;
+        // Reading a PDF's metadata takes seconds, even for the largest upload;
+        // the probe runs inside the upload request, so it may not hang it.
+        $this->timeout = 60;
     }
 
     public function getInfo(string $pdfPath): FileAnalysisData

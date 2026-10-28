@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Api\V1\Source;
 
+use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -24,7 +25,7 @@ class StoreSourceTextRequest extends FormRequest
     {
         return [
             // The text to train on, at least 500 characters.
-            'content' => ['required', 'string', 'min:500'],
+            'content' => ['required', 'string', 'min:500', 'max:'.SourceText::MAX_CONTENT_CHARS],
         ];
     }
 

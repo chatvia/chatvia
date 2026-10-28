@@ -173,11 +173,15 @@ final class SafeUrl
         self::$resolver = $resolver;
     }
 
+    /** The most of a visitor's page or referrer URL that is kept. */
+    public const int STORED_URL_LENGTH = 2048;
+
     /**
-     * Return the URL only if its scheme is http/https, else null. Cheap
-     * scheme-only guard for values that are merely STORED and later rendered
-     * (e.g. visitor page_url/referrer_url shown in the admin UI) so a
-     * `javascript:`/`data:` URI can never reach an href.
+     * Return the URL only if its scheme is http/https, else null, cut to
+     * {@see STORED_URL_LENGTH}. Cheap guard for values that are merely STORED
+     * and later rendered (a visitor's page_url/referrer_url shown in the
+     * dashboard) so a `javascript:`/`data:` URI can never reach an href and
+     * a visitor cannot fill the row with an endless one.
      */
     public static function httpSchemeOrNull(?string $url): ?string
     {
@@ -187,7 +191,7 @@ final class SafeUrl
 
         $scheme = Str::lower((string) self::parse($url)?->scheme());
 
-        return collect(['http', 'https'])->containsStrict($scheme) ? $url : null;
+        return collect(['http', 'https'])->containsStrict($scheme) ? Str::limit($url, self::STORED_URL_LENGTH, '') : null;
     }
 
     /**

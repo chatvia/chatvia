@@ -23,6 +23,9 @@ use Support\MimeType;
  */
 final class SourceFileTypes
 {
+    /** The largest knowledge file an upload takes, in KB: the document parser's limit. */
+    public const int MAX_UPLOAD_KB = 51200;
+
     /**
      * Every extension the document ingestion can read, accepted or not.
      *

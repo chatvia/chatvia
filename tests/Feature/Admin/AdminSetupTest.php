@@ -1590,7 +1590,7 @@ it('keeps backups in the private bucket with its fields filled in and locked, an
     setupFakeScaleway($this->dimensions);
     $checked = new ArrayObject;
     // StorageCheck is final: stand in for it with a class of the same shape.
-    app()->instance(StorageCheck::class, new class($checked)
+    app()->instance(StorageCheck::class, new readonly class($checked)
     {
         public function __construct(private ArrayObject $checked) {}
 

@@ -189,7 +189,7 @@ class ManageStorageSettings extends AdminSettingsPage
                         ...$this->bucketFields('backup', 'Backups bucket', 'For example chatvia-backups.'),
                     ]),
             ])
-                ->properties('driver', ...self::bucketProperties())
+                ->properties('driver', ...$this->bucketProperties())
                 ->summary(fn (): string => self::DRIVERS[(string) $this->valueInUse('driver')] ?? self::DRIVERS['local']),
         ];
     }
@@ -280,7 +280,7 @@ class ManageStorageSettings extends AdminSettingsPage
      *
      * @return list<string>
      */
-    private static function bucketProperties(): array
+    private function bucketProperties(): array
     {
         return collect(['private', 'public', 'backup'])
             ->flatMap(fn (string $bucket): array => [
@@ -329,7 +329,7 @@ class ManageStorageSettings extends AdminSettingsPage
             }
 
             if (array_key_exists($choice, $data) && $data[$choice] !== 'bucket') {
-                foreach (self::bucketProperties() as $property) {
+                foreach ($this->bucketProperties() as $property) {
                     if (Str::startsWith($property, "s3_{$bucket}_")) {
                         $values[$property] = null;
                     }

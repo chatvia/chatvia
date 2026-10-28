@@ -524,19 +524,19 @@ class Setup extends SimplePage
                         : null)
                     ->icon(Heroicon::OutlinedCheckCircle)
                     ->success(),
-                Section::make(self::sectionTitle(self::TEST_CHAT))
+                Section::make($this->sectionTitle(self::TEST_CHAT))
                     ->description('The models agents can use. Each agent picks one; new agents start with the default. You can add more later in Settings → AI models.')
                     ->icon(Heroicon::OutlinedChatBubbleLeftRight)
                     ->key(self::TEST_CHAT, isInheritable: false)
                     ->headerActions([$this->testAction(self::TEST_CHAT)])
                     ->schema($this->chatModelFields()),
-                Section::make(self::sectionTitle(self::TEST_EMBEDDINGS))
+                Section::make($this->sectionTitle(self::TEST_EMBEDDINGS))
                     ->description(fn (Get $get): string => $this->embeddingDescription($get))
                     ->icon(Heroicon::OutlinedCubeTransparent)
                     ->key(self::TEST_EMBEDDINGS, isInheritable: false)
                     ->headerActions([$this->testAction(self::TEST_EMBEDDINGS)])
                     ->schema([...$this->embeddingServiceFields(), ...$this->embeddingModelFields()]),
-                Section::make(self::sectionTitle(self::TEST_RERANKER))
+                Section::make($this->sectionTitle(self::TEST_RERANKER))
                     ->description('Scores what search finds, and your tools, against each question, so agents use only the relevant ones.')
                     ->icon(Heroicon::OutlinedBarsArrowDown)
                     ->key(self::TEST_RERANKER, isInheritable: false)
@@ -1528,7 +1528,7 @@ class Setup extends SimplePage
     {
         $host = Str::trim($this->license()->host(), '[]');
 
-        return $host === '' || $host === 'localhost' || $host === '::1'
+        return in_array($host, ['', 'localhost', '::1'], true)
             || Str::endsWith($host, '.localhost') || Str::startsWith($host, '127.');
     }
 
@@ -1703,7 +1703,7 @@ class Setup extends SimplePage
                 'sections' => collect($sections)
                     ->map(fn (string $section): array => [
                         'section' => $section,
-                        'title' => self::sectionTitle($section),
+                        'title' => $this->sectionTitle($section),
                         'rows' => $this->testRows($section),
                     ])
                     ->reject(fn (array $section): bool => $section['rows'] === [])
@@ -1715,7 +1715,7 @@ class Setup extends SimplePage
     }
 
     /** The title of a section of the models step, on the step and in the test window. */
-    private static function sectionTitle(string $section): string
+    private function sectionTitle(string $section): string
     {
         return match ($section) {
             self::TEST_CHAT => 'Chat models',

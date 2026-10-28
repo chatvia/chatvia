@@ -258,7 +258,7 @@ final readonly class CompleteSetupAction
             $this->set($this->storage, $property, StorageSettings::cast($property, $value));
         }
 
-        if ($bucket === null) {
+        if (!$bucket instanceof \App\Admin\Settings\Data\S3BucketData) {
             $this->storage->{"s3_{$name}_secret"} = null;
         } elseif (filled($bucket->secret)) {
             $this->storage->{"s3_{$name}_secret"} = $bucket->secret;

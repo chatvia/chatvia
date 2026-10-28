@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-use Rector\CodeQuality\Rector\Class_\CompleteDynamicPropertiesRector;
 use Rector\CodingStyle\Rector\ArrowFunction\ArrowFunctionDelegatingCallToFirstClassCallableRector;
-use Rector\TypeDeclaration\Rector\ArrowFunction\AddArrowFunctionReturnTypeRector;
 use Rector\Config\RectorConfig;
+use Rector\TypeDeclaration\Rector\ArrowFunction\AddArrowFunctionReturnTypeRector;
 use Rector\TypeDeclaration\Rector\ClassMethod\StrictArrayParamDimFetchRector;
 
 /*
@@ -30,10 +29,6 @@ use Rector\TypeDeclaration\Rector\ClassMethod\StrictArrayParamDimFetchRector;
  *   `$this` is bound to when a test rebinds the closure with `->call()`;
  * - typing a closure parameter as `array` because the body reads `$x['key']`
  *   breaks Laravel's HTTP fakes, which pass ArrayAccess Request objects.
- *
- * Macro classes skip the dynamic-property rule: their closures run bound to
- * the macro's target (`$this` is the Request), so a `$this->server` there is
- * the target's property, not one the macro class is missing.
  */
 return RectorConfig::configure()
     ->withPaths([
@@ -59,6 +54,5 @@ return RectorConfig::configure()
         ArrowFunctionDelegatingCallToFirstClassCallableRector::class => [__DIR__.'/tests'],
         AddArrowFunctionReturnTypeRector::class => [__DIR__.'/tests'],
         StrictArrayParamDimFetchRector::class => [__DIR__.'/tests'],
-        CompleteDynamicPropertiesRector::class => [__DIR__.'/src/App/Http/Macros'],
     ])
     ->withComposerBased(laravel: true);

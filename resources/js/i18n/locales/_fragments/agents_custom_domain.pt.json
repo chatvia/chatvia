@@ -1,0 +1,34 @@
+{
+    "agents": {
+        "deploy": {
+            "custom_domain": {
+                "title": "Domínio próprio",
+                "description": "Mostre este chat num endereço seu, como help.yourshop.com.",
+                "placeholder": "help.yourshop.com",
+                "saved": "Domínio guardado. Estamos a verificá-lo agora.",
+                "removed": "Domínio removido.",
+                "remove": "Remover",
+                "check_again": "Verificar novamente",
+                "off_title": "Os domínios próprios estão desligados",
+                "off_body": "Peça ao seu administrador para ligar os domínios próprios neste servidor.",
+                "active_body": "O seu chat já está ativo neste domínio.",
+                "waiting_body": "Adicione o registo abaixo. Verificamos o domínio a cada poucos minutos, e pode demorar até uma hora depois de adicionar o registo.",
+                "dns_title": "Adicione este registo no seu fornecedor de domínio",
+                "dns_type": "Tipo",
+                "dns_name": "Nome",
+                "dns_value": "Aponta para",
+                "status": {
+                    "waiting": "À espera do DNS",
+                    "active": "Ativo",
+                    "problem": "Ainda não funciona"
+                },
+                "check": {
+                    "no_certificate": "O seu domínio aponta para aqui, mas este servidor ainda não tem um certificado para ele. Peça ao seu administrador para configurar certificados para domínios próprios.",
+                    "points_elsewhere": "O seu domínio responde, mas não a partir deste servidor. Verifique se o registo aponta para {target}.",
+                    "not_reached": "Ainda não conseguimos chegar ao seu domínio. Verifique se o registo aponta para {target} e aguarde alguns minutos.",
+                    "private_address": "O seu domínio aponta para um endereço de rede privada. Faça-o apontar para {target}."
+                }
+            }
+        }
+    }
+}

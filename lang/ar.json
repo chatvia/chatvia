@@ -561,5 +561,12 @@
     "Your admin does not let agents offer a choice of models.": "لا يسمح المسؤول للوكلاء بعرض خيار بين النماذج.",
     "Your admin does not let chatters pick a model.": "لا يسمح المسؤول لمستخدمي الدردشة باختيار نموذج.",
     "This form is managed by a capability and cannot be changed.": "هذا النموذج تديره إمكانية ولا يمكن تغييره.",
-    "Connect :name first.": "اربط :name أولًا."
+    "Connect :name first.": "اربط :name أولًا.",
+    "Custom domains": "النطاقات المخصصة",
+    "Lets agents show their Hosted Chat on a domain of their own, such as help.yourshop.com. Needs a license key.": "يتيح للوكلاء عرض المحادثة المستضافة على نطاق خاص بهم، مثل help.yourshop.com. يتطلب مفتاح ترخيص.",
+    "Turn this on only when your web server gets a certificate for each new domain by itself, for example Caddy with on-demand TLS. Without one, visitors see a security warning.": "فعّل هذا فقط عندما يحصل خادم الويب على شهادة لكل نطاق جديد بنفسه، مثل Caddy مع TLS عند الطلب. بدونها يرى الزوار تحذيرًا أمنيًا.",
+    "How to set up": "طريقة الإعداد",
+    "Use a domain of your own, not the address of this server.": "استخدم نطاقًا خاصًا بك، وليس عنوان هذا الخادم.",
+    "Enter a domain name, such as help.yourshop.com.": "أدخل اسم نطاق، مثل help.yourshop.com.",
+    "Another agent already uses this domain.": "وكيل آخر يستخدم هذا النطاق بالفعل."
 }

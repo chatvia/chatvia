@@ -8,6 +8,7 @@ use App\Identity\Chatter\Events\ChatterPasswordResetRequested;
 use App\Identity\Chatter\Notifications\ChatterResetPasswordNotification;
 use App\Identity\Chatter\Services\ChatterPasswordResetTokens;
 use Domain\Agent\Models\Agent;
+use Domain\Agent\Services\AgentUrlBuilder;
 
 /**
  * Emails the chatter a "reset your password" link to the reset page of one of
@@ -32,10 +33,13 @@ class SendChatterPasswordResetLink
 
         $token = $this->tokens->create($chatter);
 
-        $chatter->notify(new ChatterResetPasswordNotification($token, route('chat.password.reset', [
+        // On the agent's custom domain when it has one, where its chat lives.
+        $resetPath = route('chat.password.reset', [
             'agentSlug' => $agent->slug ?? $agent->external_id,
             'token' => $token,
             'chatter' => $chatter->external_id,
-        ])));
+        ], absolute: false);
+
+        $chatter->notify(new ChatterResetPasswordNotification($token, AgentUrlBuilder::origin($agent).$resetPath));
     }
 }

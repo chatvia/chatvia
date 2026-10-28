@@ -56,7 +56,11 @@ class SendMagicLinkAction
             numMaxVisits: 1,
         );
 
-        MagicLinkRequested::dispatch($email, $magicLink->url, $agent?->name);
+        // On APP_URL even when asked from an agent's custom domain: the link
+        // runs on the dashboard session, which only APP_URL serves.
+        $url = $magicLink->baseUrl((string) config('app.url'))->url;
+
+        MagicLinkRequested::dispatch($email, $url, $agent?->name);
     }
 
     /** A chatter of the agent's workspace with this email, if any. */

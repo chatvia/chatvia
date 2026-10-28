@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware\Web;
 
 use Closure;
+use Domain\Agent\Services\CustomDomainLookup;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
@@ -17,12 +18,16 @@ use Symfony\Component\HttpFoundation\Response;
  * the request's Host header is whatever the client sent. On a host that is
  * not APP_URL's, every link is built on APP_URL instead, so a forged Host
  * header cannot send someone a sign-in link that leads to another site.
+ * An agent's verified custom domain is known too, so its chat pages link and
+ * redirect within that domain.
  *
  * Unknown hosts are not refused: the Docker stack reaches the app on an
  * internal address (`BUILTIN_MCP_INTERNAL_URL`, health checks), which must
  */
 final class UseAppUrlForUnknownHosts
 {
+    public function __construct(private readonly CustomDomainLookup $domains) {}
+
     public function handle(Request $request, Closure $next): Response
     {
         // Set on every request, as the URL generator outlives one request in
@@ -38,6 +43,7 @@ final class UseAppUrlForUnknownHosts
     {
         $host = Str::lower($request->getHost());
 
-        return $host === Str::lower((string) Uri::of($appUrl)->host());
+        return $host === Str::lower((string) Uri::of($appUrl)->host())
+            || $this->domains->activeAgentIdFor($host) !== null;
     }
 }

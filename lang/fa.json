@@ -561,5 +561,12 @@
     "Your admin does not let agents offer a choice of models.": "مدیر شما اجازه نمی‌دهد عامل‌ها انتخابی از مدل‌ها پیشنهاد دهند.",
     "Your admin does not let chatters pick a model.": "مدیر شما اجازه نمی‌دهد کاربران گفتگو مدلی انتخاب کنند.",
     "This form is managed by a capability and cannot be changed.": "این فرم را یک قابلیت مدیریت می‌کند و قابل تغییر نیست.",
-    "Connect :name first.": "ابتدا :name را متصل کنید."
+    "Connect :name first.": "ابتدا :name را متصل کنید.",
+    "Custom domains": "دامنه‌های اختصاصی",
+    "Lets agents show their Hosted Chat on a domain of their own, such as help.yourshop.com. Needs a license key.": "به عامل‌ها اجازه می‌دهد گفتگوی میزبانی‌شده خود را روی دامنه خودشان نشان دهند، مانند help.yourshop.com. به کلید مجوز نیاز دارد.",
+    "Turn this on only when your web server gets a certificate for each new domain by itself, for example Caddy with on-demand TLS. Without one, visitors see a security warning.": "این را فقط وقتی روشن کنید که سرور وب شما برای هر دامنه جدید خودش گواهی بگیرد، مانند Caddy با TLS درخواستی. بدون آن، بازدیدکنندگان هشدار امنیتی می‌بینند.",
+    "How to set up": "نحوه راه‌اندازی",
+    "Use a domain of your own, not the address of this server.": "از دامنه خودتان استفاده کنید، نه نشانی این سرور.",
+    "Enter a domain name, such as help.yourshop.com.": "یک نام دامنه وارد کنید، مانند help.yourshop.com.",
+    "Another agent already uses this domain.": "عامل دیگری از این دامنه استفاده می‌کند."
 }

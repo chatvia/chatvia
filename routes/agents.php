@@ -46,6 +46,8 @@ use App\Http\Controllers\Agent\ChatLog\CountryController as ChatLogCountriesCont
 use App\Http\Controllers\Agent\ChatLog\TopicController as ChatLogTopicsController;
 use App\Http\Controllers\Agent\Chatter\AgentChatterController;
 use App\Http\Controllers\Agent\Chatter\GrantAgentChatterAccessController;
+use App\Http\Controllers\Agent\Domain\AgentDomainCheckController;
+use App\Http\Controllers\Agent\Domain\AgentDomainController;
 use App\Http\Controllers\Agent\Eval\AgentEvalCaseController;
 use App\Http\Controllers\Agent\Eval\AgentEvalController;
 use App\Http\Controllers\Agent\Eval\AgentEvalRunController;
@@ -412,6 +414,16 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
 
         // Deploy — embed/install hub (Widget, Hosted Chat, Command Bar snippets).
         Route::get('deploy', AgentDeployController::class)->middleware('agent.permission:agent.setup')->name('deploy');
+
+        // Deploy → Hosted Chat → Custom domain: needs a license key and the
+        // admin's Custom domains switch. A check calls the customer's domain,
+        // so it is throttled.
+        Route::put('domain', [AgentDomainController::class, 'update'])
+            ->middleware(['agent.permission:agent.setup', 'license.custom-domains'])->name('domain.update');
+        Route::delete('domain', [AgentDomainController::class, 'destroy'])
+            ->middleware(['agent.permission:agent.setup', 'license.custom-domains'])->name('domain.destroy');
+        Route::post('domain/checks', AgentDomainCheckController::class)
+            ->middleware(['agent.permission:agent.setup', 'license.custom-domains', 'throttle:6,1,agent-domain-checks'])->name('domain.checks.store');
 
         // Setup → Model: the model the agent answers with (one the admin
         // made available) and its answer temperature.

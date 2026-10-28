@@ -376,6 +376,7 @@ it('Conversation/Session external_id lookups go through WidgetVerification', fun
 const BARE_DATABASE_RULE_ALLOWLIST = [
     'src/App/Http/Requests/Auth/RegisterUserRequest.php', // an account email is install-wide
     'src/App/Http/Requests/Settings/Account/ProfileUpdateRequest.php', // an account email is install-wide
+    'src/App/Http/Requests/Agent/Domain/UpdateAgentDomainRequest.php', // a custom domain serves one agent install-wide
 ];
 
 it('form requests scope exists/unique rules to the workspace', function (): void {

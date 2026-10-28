@@ -2292,7 +2292,35 @@
             "toggle_surface": "Bu yüzeyi etkinleştir veya devre dışı bırak",
             "surface_enabled": "Yüzey etkin",
             "surface_disabled": "Yüzey devre dışı — erişilebilir olmayacak",
-            "surface_error": "Güncellenemedi — lütfen tekrar deneyin"
+            "surface_error": "Güncellenemedi — lütfen tekrar deneyin",
+            "custom_domain": {
+                "title": "Özel alan adı",
+                "description": "Bu sohbeti kendi adresinizde gösterin, örneğin help.yourshop.com.",
+                "placeholder": "help.yourshop.com",
+                "saved": "Alan adı kaydedildi. Şimdi kontrol ediyoruz.",
+                "removed": "Alan adı kaldırıldı.",
+                "remove": "Kaldır",
+                "check_again": "Yeniden kontrol et",
+                "off_title": "Özel alan adları kapalı",
+                "off_body": "Yöneticinizden bu sunucuda özel alan adlarını açmasını isteyin.",
+                "active_body": "Sohbetiniz artık bu alan adında yayında.",
+                "waiting_body": "Aşağıdaki kaydı ekleyin. Alan adını birkaç dakikada bir kontrol ediyoruz; kaydı ekledikten sonra bir saate kadar sürebilir.",
+                "dns_title": "Bu kaydı alan adı sağlayıcınıza ekleyin",
+                "dns_type": "Tür",
+                "dns_name": "Ad",
+                "dns_value": "Yönlendirdiği yer",
+                "status": {
+                    "waiting": "DNS bekleniyor",
+                    "active": "Etkin",
+                    "problem": "Henüz çalışmıyor"
+                },
+                "check": {
+                    "no_certificate": "Alan adınız buraya yönleniyor ama bu sunucunun henüz onun için bir sertifikası yok. Yöneticinizden özel alan adları için sertifika kurmasını isteyin.",
+                    "points_elsewhere": "Alan adınız yanıt veriyor ama bu sunucudan değil. Kaydın {target} adresini gösterdiğini kontrol edin.",
+                    "not_reached": "Alan adınıza henüz ulaşamıyoruz. Kaydın {target} adresini gösterdiğini kontrol edin ve birkaç dakika bekleyin.",
+                    "private_address": "Alan adınız özel bir ağ adresini gösteriyor. {target} adresini göstermesini sağlayın."
+                }
+            }
         },
         "chatters": {
             "title": "Kullanıcılar",

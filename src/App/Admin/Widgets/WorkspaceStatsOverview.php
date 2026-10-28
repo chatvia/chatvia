@@ -90,14 +90,14 @@ class WorkspaceStatsOverview extends StatsOverviewWidget
     {
         $inForce = $limit?->monthly_limit;
 
-        if ($inForce === null) {
+        if (! $limit instanceof MessageLimit || $inForce === null) {
             return Stat::make('Message limit', 'No limit')
                 ->icon(Heroicon::OutlinedAdjustmentsHorizontal)
                 ->description('Agent replies are not capped');
         }
 
-        $used = $limit?->usedThisMonth() ?? 0;
-        $reached = $limit instanceof MessageLimit && $limit->reached();
+        $used = $limit->usedThisMonth();
+        $reached = $limit->reached();
         $percent = Number::format($inForce > 0 ? $used / $inForce * 100 : 0, maxPrecision: 0);
         $restarts = now()->addMonthNoOverflow()->startOfMonth()->format('j F');
 

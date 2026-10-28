@@ -1,0 +1,28 @@
+# Caddy in front of ChatVia.ai, with custom domains for agents' Hosted Chats.
+#
+# Replace chat.example.com with your install's address (APP_URL), and
+# 127.0.0.1:8000 with where ChatVia.ai listens (APP_PORT in the Docker
+# install, 127.0.0.1:8081 for nginx on a complete install).
+#
+# Then turn on Settings -> Platform -> Custom domains in the admin panel.
+# https://chatvia.ai/docs/guide/installation/custom-domains
+
+{
+	# Before Caddy gets a certificate for a new name, it asks ChatVia.ai
+	# whether that name is an agent's saved custom domain.
+	on_demand_tls {
+		ask http://127.0.0.1:8000/custom-domains
+	}
+}
+
+chat.example.com {
+	reverse_proxy 127.0.0.1:8000
+}
+
+# Every other name that points here: an agent's custom domain.
+https:// {
+	tls {
+		on_demand
+	}
+	reverse_proxy 127.0.0.1:8000
+}

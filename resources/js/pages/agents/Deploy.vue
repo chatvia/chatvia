@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import AllowedSitesForm from '@/components/agents/deploy/AllowedSitesForm.vue';
+import CustomDomainForm from '@/components/agents/deploy/CustomDomainForm.vue';
 import DeployApiDocsDialog from '@/components/agents/deploy/DeployApiDocsDialog.vue';
 import DeployCardLinks from '@/components/agents/deploy/DeployCardLinks.vue';
 import DeploySnippet from '@/components/agents/deploy/DeploySnippet.vue';
@@ -26,6 +27,8 @@ const props = defineProps<{
     barSettings: SurfaceSettings;
     defaultBar: SurfaceSettings;
     surfaces: SurfaceSettings;
+    customDomain: Domain.Agent.Data.Resources.Account.AgentDomainResourceData | null;
+    customDomainOptions: Domain.Agent.Data.Resources.Account.CustomDomainOptionsData;
 }>();
 
 const { t } = useI18n();
@@ -124,6 +127,7 @@ window.chatvia.off('open'); // Remove all callbacks for this event`;
                     @toggle="(value) => toggleSurface('hosted_chat', value)"
                 >
                     <HostedChatLink :url="shareUrl" :copied="copiedKey === 'url'" @copy="copySnippet(shareUrl, 'url')" />
+                    <CustomDomainForm :agent-id="agent.external_id" :domain="customDomain" :options="customDomainOptions" />
                     <IframeEmbedBuilder
                         :src="agent.chat_embed_url"
                         :agent-name="agent.name"

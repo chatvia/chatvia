@@ -507,6 +507,16 @@ class Agent extends Model
     }
 
     /**
+     * The custom domain of the agent's Hosted Chat, if one is saved.
+     *
+     * @return HasOne<AgentDomain, $this>
+     */
+    public function domain(): HasOne
+    {
+        return $this->hasOne(AgentDomain::class);
+    }
+
+    /**
      * The agent's effective starters — read from the agent's own ordered starter
      * set. Each entry is `{ text, icon }` (icon = optional Heroicon name or null).
      *

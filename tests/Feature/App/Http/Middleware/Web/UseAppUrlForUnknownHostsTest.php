@@ -50,12 +50,10 @@ it('builds the hosted chat sign-in link on APP_URL when the Host header is forge
 });
 
 it('builds links on the request host again after a request to an unknown host', function (): void {
-    Chatter::factory()->grantedTo($this->agent)->create(['email' => 'chatter@example.test']);
-
     $this->get('http://evil.example/up');
-    // APP_URL is http://localhost: an https link shows the request's own
-    // root was used, not one left forced by the request before.
-    $this->post('https://localhost/chat/'.$this->agent->slug.'/magic-link', ['email' => 'chatter@example.test']);
 
-    expect(uauhSentLink())->toStartWith('https://localhost/magiclink/');
+    // APP_URL is http://localhost: an https redirect shows the request's own
+    // root was used, not one left forced by the request before.
+    $this->get('https://localhost/')
+        ->assertRedirect('https://localhost/login');
 });

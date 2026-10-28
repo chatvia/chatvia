@@ -66,6 +66,12 @@ final readonly class Entitlements
         return $this->licensed();
     }
 
+    /** Whether agents may serve their Hosted Chat on a custom domain. */
+    public function customDomains(): bool
+    {
+        return $this->licensed();
+    }
+
     /** Whether the Splitting options apply; without a key texts are split with the defaults. */
     public function customSplitting(): bool
     {

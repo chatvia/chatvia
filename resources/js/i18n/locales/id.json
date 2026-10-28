@@ -2292,7 +2292,35 @@
             "toggle_surface": "Aktifkan atau nonaktifkan permukaan ini",
             "surface_enabled": "Permukaan diaktifkan",
             "surface_disabled": "Permukaan dinonaktifkan — tidak akan dapat diakses",
-            "surface_error": "Tidak dapat memperbarui — silakan coba lagi"
+            "surface_error": "Tidak dapat memperbarui — silakan coba lagi",
+            "custom_domain": {
+                "title": "Domain sendiri",
+                "description": "Tampilkan chat ini di alamat Anda sendiri, misalnya help.yourshop.com.",
+                "placeholder": "help.yourshop.com",
+                "saved": "Domain disimpan. Kami sedang memeriksanya.",
+                "removed": "Domain dihapus.",
+                "remove": "Hapus",
+                "check_again": "Periksa lagi",
+                "off_title": "Domain sendiri dimatikan",
+                "off_body": "Minta administrator Anda menyalakan domain sendiri di server ini.",
+                "active_body": "Chat Anda sudah aktif di domain ini.",
+                "waiting_body": "Tambahkan record di bawah. Kami memeriksa domain setiap beberapa menit, dan bisa memakan waktu hingga satu jam setelah record ditambahkan.",
+                "dns_title": "Tambahkan record ini di penyedia domain Anda",
+                "dns_type": "Jenis",
+                "dns_name": "Nama",
+                "dns_value": "Mengarah ke",
+                "status": {
+                    "waiting": "Menunggu DNS",
+                    "active": "Aktif",
+                    "problem": "Belum berfungsi"
+                },
+                "check": {
+                    "no_certificate": "Domain Anda mengarah ke sini, tetapi server ini belum punya sertifikat untuknya. Minta administrator Anda menyiapkan sertifikat untuk domain sendiri.",
+                    "points_elsewhere": "Domain Anda menjawab, tetapi bukan dari server ini. Pastikan record mengarah ke {target}.",
+                    "not_reached": "Kami belum bisa menjangkau domain Anda. Pastikan record mengarah ke {target}, lalu tunggu beberapa menit.",
+                    "private_address": "Domain Anda mengarah ke alamat jaringan pribadi. Arahkan ke {target}."
+                }
+            }
         },
         "chatters": {
             "title": "Chatter",

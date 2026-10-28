@@ -2292,7 +2292,35 @@
             "toggle_surface": "Aktivér eller deaktivér denne overflade",
             "surface_enabled": "Overflade aktiveret",
             "surface_disabled": "Overflade deaktiveret – den vil ikke være tilgængelig",
-            "surface_error": "Kunne ikke opdatere – prøv venligst igen"
+            "surface_error": "Kunne ikke opdatere – prøv venligst igen",
+            "custom_domain": {
+                "title": "Eget domæne",
+                "description": "Vis denne chat på din egen adresse, f.eks. help.yourshop.com.",
+                "placeholder": "help.yourshop.com",
+                "saved": "Domænet er gemt. Vi tjekker det nu.",
+                "removed": "Domænet er fjernet.",
+                "remove": "Fjern",
+                "check_again": "Tjek igen",
+                "off_title": "Egne domæner er slået fra",
+                "off_body": "Bed din administrator om at slå egne domæner til på denne server.",
+                "active_body": "Din chat kører nu på dette domæne.",
+                "waiting_body": "Tilføj posten nedenfor. Vi tjekker domænet med få minutters mellemrum, og det kan tage op til en time, efter du har tilføjet posten.",
+                "dns_title": "Tilføj denne post hos din domæneudbyder",
+                "dns_type": "Type",
+                "dns_name": "Navn",
+                "dns_value": "Peger på",
+                "status": {
+                    "waiting": "Venter på DNS",
+                    "active": "Aktiv",
+                    "problem": "Virker ikke endnu"
+                },
+                "check": {
+                    "no_certificate": "Dit domæne peger hertil, men serveren har endnu ikke et certifikat til det. Bed din administrator om at opsætte certifikater til egne domæner.",
+                    "points_elsewhere": "Dit domæne svarer, men ikke fra denne server. Tjek, at posten peger på {target}.",
+                    "not_reached": "Vi kan ikke nå dit domæne endnu. Tjek, at posten peger på {target}, og vent et par minutter.",
+                    "private_address": "Dit domæne peger på en privat netværksadresse. Lad det pege på {target}."
+                }
+            }
         },
         "chatters": {
             "title": "Chattere",

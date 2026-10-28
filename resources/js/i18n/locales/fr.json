@@ -2292,7 +2292,35 @@
             "toggle_surface": "Activer ou désactiver cette surface",
             "surface_enabled": "Surface activée",
             "surface_disabled": "Surface désactivée — elle ne sera pas accessible",
-            "surface_error": "Impossible de mettre à jour — veuillez réessayer"
+            "surface_error": "Impossible de mettre à jour — veuillez réessayer",
+            "custom_domain": {
+                "title": "Domaine personnalisé",
+                "description": "Affichez ce chat à votre propre adresse, par exemple help.yourshop.com.",
+                "placeholder": "help.yourshop.com",
+                "saved": "Domaine enregistré. Nous le vérifions maintenant.",
+                "removed": "Domaine supprimé.",
+                "remove": "Supprimer",
+                "check_again": "Vérifier à nouveau",
+                "off_title": "Les domaines personnalisés sont désactivés",
+                "off_body": "Demandez à votre administrateur d’activer les domaines personnalisés sur ce serveur.",
+                "active_body": "Votre chat est en ligne sur ce domaine.",
+                "waiting_body": "Ajoutez l’enregistrement ci-dessous. Nous vérifions le domaine toutes les quelques minutes, et cela peut prendre jusqu’à une heure après l’ajout.",
+                "dns_title": "Ajoutez cet enregistrement chez votre fournisseur de domaine",
+                "dns_type": "Type",
+                "dns_name": "Nom",
+                "dns_value": "Pointe vers",
+                "status": {
+                    "waiting": "En attente du DNS",
+                    "active": "Actif",
+                    "problem": "Ne fonctionne pas encore"
+                },
+                "check": {
+                    "no_certificate": "Votre domaine pointe ici, mais ce serveur n’a pas encore de certificat pour lui. Demandez à votre administrateur de configurer les certificats des domaines personnalisés.",
+                    "points_elsewhere": "Votre domaine répond, mais pas depuis ce serveur. Vérifiez que l’enregistrement pointe vers {target}.",
+                    "not_reached": "Nous ne pouvons pas encore joindre votre domaine. Vérifiez que l’enregistrement pointe vers {target}, puis patientez quelques minutes.",
+                    "private_address": "Votre domaine pointe vers une adresse de réseau privé. Faites-le pointer vers {target}."
+                }
+            }
         },
         "chatters": {
             "title": "Chatters",

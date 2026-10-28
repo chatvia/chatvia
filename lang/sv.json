@@ -561,5 +561,12 @@
     "Your admin does not let agents offer a choice of models.": "Din administratör låter inte agenter erbjuda ett val av modeller.",
     "Your admin does not let chatters pick a model.": "Din administratör låter inte chattanvändare välja en modell.",
     "This form is managed by a capability and cannot be changed.": "Det här formuläret hanteras av en funktion och kan inte ändras.",
-    "Connect :name first.": "Anslut :name först."
+    "Connect :name first.": "Anslut :name först.",
+    "Custom domains": "Egna domäner",
+    "Lets agents show their Hosted Chat on a domain of their own, such as help.yourshop.com. Needs a license key.": "Låter agenter visa sin hostade chatt på en egen domän, till exempel help.yourshop.com. Kräver en licensnyckel.",
+    "Turn this on only when your web server gets a certificate for each new domain by itself, for example Caddy with on-demand TLS. Without one, visitors see a security warning.": "Slå bara på detta när din webbserver själv hämtar ett certifikat för varje ny domän, till exempel Caddy med on-demand TLS. Utan det ser besökare en säkerhetsvarning.",
+    "How to set up": "Så ställer du in det",
+    "Use a domain of your own, not the address of this server.": "Använd en egen domän, inte den här serverns adress.",
+    "Enter a domain name, such as help.yourshop.com.": "Ange ett domännamn, till exempel help.yourshop.com.",
+    "Another agent already uses this domain.": "En annan agent använder redan den här domänen."
 }

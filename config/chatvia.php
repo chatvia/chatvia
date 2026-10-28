@@ -178,6 +178,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Custom Domains
+    |--------------------------------------------------------------------------
+    |
+    | `enabled` lets agents serve their Hosted Chat on a domain of their own
+    | (help.yourshop.com, a CNAME to this install). It needs a license key
+    | and a web server in front that gets a certificate for each new domain
+    | (Caddy's on-demand TLS asks /custom-domains first). Saved by the admin
+    | panel (Settings → Platform → Custom domains).
+    |
+    */
+
+    'custom_domains' => [
+        'enabled' => false,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Pulse and Spectra
     |--------------------------------------------------------------------------
     |

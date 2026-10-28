@@ -1,0 +1,34 @@
+{
+    "agents": {
+        "deploy": {
+            "custom_domain": {
+                "title": "Egen domän",
+                "description": "Visa den här chatten på din egen adress, till exempel help.yourshop.com.",
+                "placeholder": "help.yourshop.com",
+                "saved": "Domänen är sparad. Vi kontrollerar den nu.",
+                "removed": "Domänen är borttagen.",
+                "remove": "Ta bort",
+                "check_again": "Kontrollera igen",
+                "off_title": "Egna domäner är avstängda",
+                "off_body": "Be din administratör att slå på egna domäner på den här servern.",
+                "active_body": "Din chatt är nu live på den här domänen.",
+                "waiting_body": "Lägg till posten nedan. Vi kontrollerar domänen med några minuters mellanrum, och det kan ta upp till en timme efter att du lagt till posten.",
+                "dns_title": "Lägg till den här posten hos din domänleverantör",
+                "dns_type": "Typ",
+                "dns_name": "Namn",
+                "dns_value": "Pekar på",
+                "status": {
+                    "waiting": "Väntar på DNS",
+                    "active": "Aktiv",
+                    "problem": "Fungerar inte än"
+                },
+                "check": {
+                    "no_certificate": "Din domän pekar hit, men servern har inget certifikat för den än. Be din administratör att ställa in certifikat för egna domäner.",
+                    "points_elsewhere": "Din domän svarar, men inte från den här servern. Kontrollera att posten pekar på {target}.",
+                    "not_reached": "Vi når inte din domän än. Kontrollera att posten pekar på {target} och vänta några minuter.",
+                    "private_address": "Din domän pekar på en privat nätverksadress. Låt den peka på {target}."
+                }
+            }
+        }
+    }
+}

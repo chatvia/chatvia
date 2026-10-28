@@ -294,6 +294,9 @@
     "settings/platform#app-name": [
         "App name"
     ],
+    "settings/platform#custom-domains": [
+        "Custom domains"
+    ],
     "settings/platform#development": [
         "Logs page"
     ],

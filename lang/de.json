@@ -561,5 +561,12 @@
     "Your admin does not let agents offer a choice of models.": "Ihr Administrator erlaubt Agenten nicht, eine Auswahl an Modellen anzubieten.",
     "Your admin does not let chatters pick a model.": "Ihr Administrator erlaubt Chattern nicht, ein Modell zu wählen.",
     "This form is managed by a capability and cannot be changed.": "Dieses Formular wird von einer Fähigkeit verwaltet und kann nicht geändert werden.",
-    "Connect :name first.": "Verbinden Sie zuerst :name."
+    "Connect :name first.": "Verbinden Sie zuerst :name.",
+    "Custom domains": "Eigene Domains",
+    "Lets agents show their Hosted Chat on a domain of their own, such as help.yourshop.com. Needs a license key.": "Agenten können ihren gehosteten Chat unter einer eigenen Domain zeigen, z. B. help.yourshop.com. Braucht einen Lizenzschlüssel.",
+    "Turn this on only when your web server gets a certificate for each new domain by itself, for example Caddy with on-demand TLS. Without one, visitors see a security warning.": "Schalten Sie dies nur ein, wenn Ihr Webserver für jede neue Domain selbst ein Zertifikat holt, z. B. Caddy mit On-Demand-TLS. Ohne Zertifikat sehen Besucher eine Sicherheitswarnung.",
+    "How to set up": "So richten Sie es ein",
+    "Use a domain of your own, not the address of this server.": "Verwenden Sie eine eigene Domain, nicht die Adresse dieses Servers.",
+    "Enter a domain name, such as help.yourshop.com.": "Geben Sie einen Domainnamen ein, z. B. help.yourshop.com.",
+    "Another agent already uses this domain.": "Ein anderer Agent nutzt diese Domain bereits."
 }

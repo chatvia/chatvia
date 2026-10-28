@@ -113,10 +113,10 @@ class ManageBackupSettings extends AdminSettingsPage implements HasTable
                     ->danger()
                     ->visible(fn (): bool => $this->missingPrograms() !== []),
                 Callout::make('Backups are kept on this server')
-                    ->description('If this server\'s disk breaks, the backups are lost with it. Keep files in S3-compatible storage (Settings → Storage), where backups go to the private bucket or a backups bucket of their own, or download the backups and keep them somewhere else.')
+                    ->description('If this server\'s disk breaks, the backups are lost with it. Keep them in an S3-compatible private bucket (Settings → Storage → Backups), or download the backups and keep them somewhere else.')
                     ->icon(Heroicon::OutlinedExclamationTriangle)
                     ->warning()
-                    ->visible(fn (): bool => config('filesystems.storage') !== 's3'),
+                    ->visible(fn (): bool => blank(config('filesystems.buckets.backup.name'))),
             ])
                 ->properties('enabled', 'frequency', 'keep')
                 ->summary(fn (): string => $this->scheduleSummary()),

@@ -22,12 +22,13 @@ return [
     | File Storage
     |--------------------------------------------------------------------------
     |
-    | Where the app keeps its files: "local" (this server) or "s3" (an
-    | S3-compatible service, such as AWS S3, Scaleway, Cloudflare R2 or
-    | MinIO). With "s3", each bucket below has its own connection: `private`
-    | holds the private files, and the optional `public` (served from its
-    | `url`) and `backup` hold the public images and the backups. All are set
-    | in the admin panel (Settings → Storage). Switching moves no files.
+    | Where the app keeps its private files: "local" (this server) or "s3"
+    | (the `private` bucket below, at an S3-compatible service such as AWS
+    | S3, Scaleway, Cloudflare R2 or MinIO). The public images and the
+    | backups go to the `public` (served from its `url`) and `backup` buckets
+    | when they are named, else to this server. Each bucket has its own
+    | connection. All are set in the admin panel (Settings → Storage).
+    | Switching moves no files.
     |
     | Supported: "local", "s3"
     |
@@ -69,11 +70,9 @@ return [
     |--------------------------------------------------------------------------
     |
     | The disks the app writes to. `private`, `assets` (profile photos, agent
-    | logos) and `backups` stay on this server until the storage above is
-    | "s3"; App\Admin\Settings\StorageDisks then builds each from the `s3`
-    | disk and its bucket's connection: `private` the private bucket,
-    | `assets` the public bucket when one is set, and `backups` the backup
-    | bucket, or else the private one. `local` keeps data exports.
+    | logos) and `backups` stay on this server until their bucket is used
+    | (see above); App\Admin\Settings\StorageDisks then builds each from the
+    | `s3` disk and its bucket's connection. `local` keeps data exports.
     |
     | Supported drivers: "local", "s3"
     |

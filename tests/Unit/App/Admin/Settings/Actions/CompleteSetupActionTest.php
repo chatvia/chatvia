@@ -198,6 +198,20 @@ it('saves every optional service with its own key', function (): void {
         ->and(savedSetting(MailSettings::class, 'from_name'))->toBe('Acme Support');
 });
 
+it('saves a backups bucket while the private files stay on this server', function (): void {
+    app(CompleteSetupAction::class)->execute(completeSetupData([
+        'storage' => new StorageSetupData(
+            driver: 'local',
+            backup: new S3BucketData(bucket: 'archives', region: 'eu-west-1', key: 'backup-key', secret: 'backup-secret'),
+        ),
+    ]));
+
+    expect(savedSetting(StorageSettings::class, 'driver'))->toBeNull()
+        ->and(savedSetting(StorageSettings::class, 's3_private_bucket'))->toBeNull()
+        ->and(savedSetting(StorageSettings::class, 's3_backup_bucket'))->toBe('archives')
+        ->and(savedSetting(StorageSettings::class, 's3_backup_secret'))->toBe('backup-secret');
+});
+
 it('keeps a saved key when the setup leaves it blank', function (): void {
     saveSettings(AiProviderSettings::class, ['scaleway_api_key' => 'saved-key']);
 

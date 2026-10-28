@@ -235,12 +235,7 @@ final readonly class CompleteSetupAction
     private function saveStorage(StorageSetupData $storage): void
     {
         $this->set($this->storage, 'driver', $storage->driver);
-
-        if (! $storage->usesS3()) {
-            return;
-        }
-
-        $this->saveBucket('private', $storage->private);
+        $this->saveBucket('private', $storage->usesS3() ? $storage->private : null);
         $this->saveBucket('public', $storage->public);
         $this->saveBucket('backup', $storage->backup);
         $this->set($this->storage, 's3_public_url', $storage->public?->url);

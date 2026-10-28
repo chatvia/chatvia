@@ -1586,23 +1586,61 @@ it('checks the public and backups buckets with their own connections, and shows 
         ->assertHasNoFormErrors(['s3_private_bucket', 's3_backup_bucket']);
 });
 
-it('keeps public images on this server and backups in the private bucket until a bucket of their own, with its connection, is picked', function (): void {
+it('keeps backups in the private bucket with its fields filled in and locked, and checks that bucket once', function (): void {
+    setupFakeScaleway($this->dimensions);
+    $checked = new ArrayObject;
+    // StorageCheck is final: stand in for it with a class of the same shape.
+    app()->instance(StorageCheck::class, new class($checked)
+    {
+        public function __construct(private ArrayObject $checked) {}
+
+        public function check(S3BucketData $bucket): ?string
+        {
+            $this->checked->append($bucket->bucket);
+
+            return null;
+        }
+    });
+
+    setupPage($this->admin)
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test', 'storage_driver' => 's3'])
+        ->fillForm([
+            's3_private_region' => 'fr-par',
+            's3_private_key' => 'key',
+            's3_private_secret' => 'secret',
+            's3_private_bucket' => 'files',
+            'backup_files' => 'private',
+        ])
+        ->assertFormSet(['s3_backup_bucket' => 'files', 's3_backup_region' => 'fr-par', 's3_backup_key' => 'key'])
+        ->assertFormFieldDisabled('s3_backup_region')
+        ->goToWizardStep(7)
+        ->assertHasNoFormErrors(['s3_private_bucket', 's3_backup_bucket'])
+        ->fillForm(['storage_driver' => 'local'])
+        ->assertFormSet(['backup_files' => 'local']);
+
+    expect($checked->getArrayCopy())->toBe(['files']);
+});
+
+it('keeps every kind of file on this server until a bucket of its own, with its connection, is picked', function (): void {
     setupFakeScaleway($this->dimensions);
 
     setupPage($this->admin)
-        ->assertFormSet(['public_files' => 'local', 'backup_files' => 'private'])
-        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test', 'storage_driver' => 's3'])
-        ->assertFormFieldVisible('s3_private_region')
+        ->assertFormSet(['storage_driver' => 'local', 'public_files' => 'local', 'backup_files' => 'local'])
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
+        ->assertFormFieldHidden('s3_private_region')
         ->assertFormFieldHidden('s3_public_bucket')
         ->assertFormFieldHidden('s3_public_region')
         ->assertFormFieldHidden('s3_backup_bucket')
         ->assertFormFieldHidden('s3_backup_region')
         ->fillForm(['public_files' => 'bucket', 'backup_files' => 'bucket'])
+        ->assertFormFieldHidden('s3_private_region')
         ->assertFormFieldVisible('s3_public_bucket')
         ->assertFormFieldVisible('s3_public_url')
         ->assertFormFieldVisible('s3_public_region')
         ->assertFormFieldVisible('s3_backup_bucket')
-        ->assertFormFieldVisible('s3_backup_region');
+        ->assertFormFieldVisible('s3_backup_region')
+        ->fillForm(['storage_driver' => 's3'])
+        ->assertFormFieldVisible('s3_private_region');
 });
 
 it('sends email with the provider set up, or warns that nobody gets email', function (): void {

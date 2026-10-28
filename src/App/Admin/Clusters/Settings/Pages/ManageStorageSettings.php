@@ -12,6 +12,7 @@ use App\Admin\Settings\StorageDisks;
 use App\Admin\Settings\StorageSettings;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Forms\Components\Field;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Callout;
@@ -19,6 +20,7 @@ use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
@@ -26,9 +28,9 @@ use Illuminate\Support\Str;
 use Throwable;
 
 /**
- * Where the app keeps its files: on this server, or in S3-compatible object
- * storage (AWS S3, Scaleway, Cloudflare R2, MinIO, ...) with a private
- * bucket and optional public and backups buckets, each with its own
+ * Where the app keeps its files: the private files, the public images and
+ * the backups each on this server or in a bucket of S3-compatible object
+ * storage (AWS S3, Scaleway, Cloudflare R2, MinIO, ...), each with its own
  * connection, so it may sit with another service or account. A button checks
  * the saved storage by writing, reading and deleting a small file on each
  * disk. Switching moves no files, so the page says so.
@@ -60,7 +62,7 @@ class ManageStorageSettings extends AdminSettingsPage
 
     public static function description(): string
     {
-        return 'Where files are kept: this server or S3-compatible storage.';
+        return 'Where files are kept: this server or S3-compatible buckets.';
     }
 
     public static function overviewGroup(): string
@@ -71,7 +73,9 @@ class ManageStorageSettings extends AdminSettingsPage
     public function overviewStatus(): array
     {
         if ($this->valueInUse('driver') !== 's3') {
-            return ['On this server', 'gray'];
+            return filled($this->valueInUse('s3_public_bucket')) || filled($this->valueInUse('s3_backup_bucket'))
+                ? ['S3-compatible storage', 'success']
+                : ['On this server', 'gray'];
         }
 
         return ['S3-compatible storage', filled($this->valueInUse('s3_private_bucket')) ? 'success' : 'warning'];
@@ -110,37 +114,51 @@ class ManageStorageSettings extends AdminSettingsPage
 
     protected function cards(): array
     {
-        $s3 = fn (Get $get): bool => $this->usesS3($get);
-
         return [
             SettingsCard::make('location', 'Where files are kept', 'Knowledge files, chat attachments, chunk images, generated media, public images and backups.', Heroicon::OutlinedArchiveBox, fn (): array => [
-                $this->choice('driver', 'Store files in', self::DRIVERS,
-                    help: 'This server needs no setup. S3-compatible storage keeps files with an online service, such as AWS S3 or Cloudflare R2, and grows with them.')
-                    ->live(),
+                Callout::make('We recommend S3-compatible storage')
+                    ->description('Files on this server are lost if its disk breaks, and other servers cannot reach them. A bucket keeps them safe and lets the app grow to more servers.')
+                    ->icon(Heroicon::OutlinedLightBulb)
+                    ->info()
+                    ->visible(fn (Get $get): bool => ! $this->usesS3($get) || $get('public_files') !== 'bucket' || $get('backup_files') !== 'bucket'),
                 Callout::make('Switching moves no files')
                     ->description('Files already stored stay where they are, and the app no longer finds them. Switch before people add files, or copy the files to the new place first.')
                     ->icon(Heroicon::OutlinedExclamationTriangle)
                     ->warning(),
                 Fieldset::make('Private files')
                     ->columns(2)
-                    ->visible($s3)
                     ->schema([
-                        $this->explanation('Knowledge files, chat attachments, chunk images and generated media. Keep this bucket private: the app opens its files only through short-lived signed links.'),
+                        $this->explanation('Knowledge files, chat attachments, chunk images and generated media.'),
+                        CardRadio::make('driver')
+                            ->label('Keep private files on')
+                            ->options(['local' => 'This server', 's3' => 'S3-compatible private bucket'])
+                            ->descriptions([
+                                'local' => 'Private files are stored on this server.',
+                                's3' => 'AWS S3, Cloudflare R2, MinIO and others.',
+                            ])
+                            ->icons(['local' => Heroicon::OutlinedServer, 's3' => asset('images/logos/services/aws.svg')])
+                            ->in(array_keys(self::DRIVERS))
+                            ->live()
+                            ->afterStateUpdated(function (Get $get, Set $set): void {
+                                if (! $this->usesS3($get) && $get('backup_files') === 'private') {
+                                    $set('backup_files', 'local');
+                                }
+                            })
+                            ->columnSpanFull(),
                         ...$this->bucketFields('private', 'Private bucket', 'For example chatvia-files.'),
                     ]),
                 Fieldset::make('Public images')
                     ->columns(2)
-                    ->visible($s3)
                     ->schema([
-                        $this->explanation('Profile photos and agent logos. Visitors\' browsers load them straight from where they are kept, so a bucket for them must be public.'),
+                        $this->explanation('Profile photos and agent logos. A bucket for them must be public.'),
                         CardRadio::make('public_files')
                             ->label('Keep profile photos and agent logos on')
-                            ->options(['local' => 'This server', 'bucket' => 'A public bucket'])
+                            ->options(['local' => 'This server', 'bucket' => 'S3-compatible public bucket'])
                             ->descriptions([
-                                'local' => 'This server keeps and serves them. Fine for one server.',
-                                'bucket' => 'A bucket anyone can read. Needed when the app runs on more than one server.',
+                                'local' => 'Public images are stored on this server.',
+                                'bucket' => 'A bucket anyone can read.',
                             ])
-                            ->icons(['local' => Heroicon::OutlinedServer, 'bucket' => Heroicon::OutlinedGlobeAlt])
+                            ->icons(['local' => Heroicon::OutlinedServer, 'bucket' => asset('images/logos/services/aws.svg')])
                             ->afterStateHydrated(fn (CardRadio $component): CardRadio => $component->state(filled($this->valueInUse('s3_public_bucket')) ? 'bucket' : 'local'))
                             ->live()
                             ->columnSpanFull(),
@@ -148,19 +166,25 @@ class ManageStorageSettings extends AdminSettingsPage
                     ]),
                 Fieldset::make('Backups')
                     ->columns(2)
-                    ->visible($s3)
                     ->schema([
-                        $this->explanation('The backups of the database and Redis. They hold all your data, so keep their bucket private.'),
+                        $this->explanation('Backups of the database and Redis. A bucket for them must be private.'),
                         CardRadio::make('backup_files')
-                            ->label('Keep backups in')
-                            ->options(['private' => 'The private bucket', 'bucket' => 'A bucket of their own'])
-                            ->descriptions([
-                                'private' => 'Next to the private files. Nothing more to set up.',
-                                'bucket' => 'Safer: the backups stay if the private bucket is deleted.',
+                            ->label('Keep backups on')
+                            ->options(['local' => 'This server', 'bucket' => 'S3-compatible private bucket', 'private' => 'Same as the private bucket'])
+                            ->descriptions(fn (Get $get): array => [
+                                'local' => 'Backups are stored on this server.',
+                                'bucket' => 'Safe if this server breaks.',
+                                'private' => $this->usesS3($get) ? 'Uses the bucket and keys of the private files.' : 'Keep private files in a bucket first.',
                             ])
-                            ->icons(['private' => Heroicon::OutlinedLockClosed, 'bucket' => Heroicon::OutlinedArchiveBox])
-                            ->afterStateHydrated(fn (CardRadio $component): CardRadio => $component->state(filled($this->valueInUse('s3_backup_bucket')) ? 'bucket' : 'private'))
+                            ->icons(['local' => Heroicon::OutlinedServer, 'bucket' => asset('images/logos/services/aws.svg'), 'private' => Heroicon::OutlinedDocumentDuplicate])
+                            ->disableOptionWhen(fn (string $value, Get $get): bool => $value === 'private' && ! $this->usesS3($get))
+                            ->afterStateHydrated(fn (CardRadio $component): CardRadio => $component->state(match (true) {
+                                app(StorageSettings::class)->backupsInPrivateBucket() => 'private',
+                                filled($this->valueInUse('s3_backup_bucket')) => 'bucket',
+                                default => 'local',
+                            }))
                             ->live()
+                            ->afterStateUpdated($this->copyPrivateBucket(...))
                             ->columnSpanFull(),
                         ...$this->bucketFields('backup', 'Backups bucket', 'For example chatvia-backups.'),
                     ]),
@@ -186,15 +210,25 @@ class ManageStorageSettings extends AdminSettingsPage
     private function bucketFields(string $bucket, string $label, string $help): array
     {
         $used = fn (Get $get): bool => $this->usesBucket($get, $bucket);
+        $copied = fn (Get $get): bool => $bucket === 'backup' && $get('backup_files') === 'private';
+        $shown = fn (Get $get): bool => $used($get) || $copied($get);
 
-        return [
+        // The backups bucket follows the private one while the backups go
+        // there: its fields show the private bucket's and are locked.
+        $linked = fn (Field $field): Field => match ($bucket) {
+            'private' => $field->live(onBlur: $field instanceof TextInput)->afterStateUpdated($this->copyPrivateBucket(...)),
+            'backup' => $field->disabled($copied),
+            default => $field,
+        };
+
+        return Arr::map([
             $this->text("s3_{$bucket}_bucket", $label, help: $help)
                 ->when($bucket === 'public', fn (TextInput $input): TextInput => $input
                     ->different('s3_private_bucket')
                     ->different('s3_backup_bucket')
                     ->validationMessages(['different' => 'Use a bucket of its own: anyone can read the files in the public bucket.']))
                 ->required($used)
-                ->visible($used)
+                ->visible($shown)
                 ->columnSpan($bucket === 'public' ? 1 : 'full'),
             ...($bucket === 'public' ? [
                 $this->url('s3_public_url', 'Public URL', help: 'The address that serves the public bucket\'s files, for example https://pub-1234.r2.dev or your CDN.')
@@ -202,21 +236,37 @@ class ManageStorageSettings extends AdminSettingsPage
                     ->visible($used),
             ] : []),
             $this->url("s3_{$bucket}_endpoint", 'Endpoint', help: 'The address of your storage service, for example https://s3.fr-par.scw.cloud. Leave it empty for AWS S3.')
-                ->visible($used),
+                ->visible($shown),
             $this->text("s3_{$bucket}_region", 'Region', help: 'Where the bucket is kept, for example eu-west-1 or fr-par. Use auto for Cloudflare R2.')
                 ->required($used)
-                ->visible($used),
+                ->visible($shown),
             $this->text("s3_{$bucket}_key", 'Access key ID')
                 ->required($used)
-                ->visible($used),
+                ->visible($shown),
             $this->secret("s3_{$bucket}_secret", 'Secret access key')
                 ->required(fn (Get $get): bool => $used($get) && ! $this->isSaved("s3_{$bucket}_secret"))
-                ->visible($used),
+                ->visible($shown),
             $this->toggle("s3_{$bucket}_path_style", 'Use path-style addresses',
                 help: 'Turn this on if your storage server needs it, as MinIO does. Most services, like AWS S3, work with it off.')
-                ->visible($used)
+                ->visible($shown)
                 ->columnSpanFull(),
-        ];
+        ], $linked);
+    }
+
+    /**
+     * Fill the backups bucket's fields with the private bucket's while the
+     * backups go to the private bucket, so the locked fields show what is
+     * used. Saving copies the saved values too ({@see valuesToSave()}).
+     */
+    private function copyPrivateBucket(Get $get, Set $set): void
+    {
+        if ($get('backup_files') !== 'private') {
+            return;
+        }
+
+        foreach (['bucket', ...self::CONNECTION] as $field) {
+            $set("s3_backup_{$field}", $get("s3_private_{$field}"));
+        }
     }
 
     /** A line of text that says what a part of the card is for. */
@@ -244,17 +294,18 @@ class ManageStorageSettings extends AdminSettingsPage
     /** Whether the form keeps files in this bucket of S3-compatible storage. */
     private function usesBucket(Get $get, string $bucket): bool
     {
-        return $this->usesS3($get) && match ($bucket) {
+        return match ($bucket) {
             'public' => $get('public_files') === 'bucket',
             'backup' => $get('backup_files') === 'bucket',
-            default => true,
+            default => $this->usesS3($get),
         };
     }
 
     /**
-     * The two "keep … on" choices are no settings: picking this server for
-     * public images, or the private bucket for backups, forgets the bucket
-     * named for them and its connection.
+     * The "keep … on" choices of public images and backups are no settings:
+     * picking this server for them forgets the bucket named for them and its
+     * connection, and keeping backups in the private bucket saves a copy of
+     * its name and connection (a blank secret: the saved one) as theirs.
      *
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
@@ -264,7 +315,19 @@ class ManageStorageSettings extends AdminSettingsPage
     {
         $values = parent::valuesToSave($data);
 
+        $backupsInPrivate = ($data['backup_files'] ?? null) === 'private' && ($data['driver'] ?? null) === 's3';
+
         foreach (['public' => 'public_files', 'backup' => 'backup_files'] as $bucket => $choice) {
+            if ($bucket === 'backup' && $backupsInPrivate) {
+                foreach (['bucket', ...self::CONNECTION] as $field) {
+                    $values["s3_backup_{$field}"] = array_key_exists("s3_private_{$field}", $values)
+                        ? $values["s3_private_{$field}"]
+                        : app(StorageSettings::class)->{"s3_private_{$field}"};
+                }
+
+                continue;
+            }
+
             if (array_key_exists($choice, $data) && $data[$choice] !== 'bucket') {
                 foreach (self::bucketProperties() as $property) {
                     if (Str::startsWith($property, "s3_{$bucket}_")) {

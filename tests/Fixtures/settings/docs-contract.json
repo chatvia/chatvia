@@ -428,7 +428,7 @@
         "Preview text"
     ],
     "settings/storage#where-files-are-kept": [
-        "Store files in",
+        "Keep private files on",
         "Private bucket",
         "Endpoint",
         "Region",
@@ -438,7 +438,7 @@
         "Keep profile photos and agent logos on",
         "Public bucket",
         "Public URL",
-        "Keep backups in",
+        "Keep backups on",
         "Backups bucket"
     ],
     "settings/widget#ai-disclosure": [

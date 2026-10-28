@@ -146,8 +146,9 @@ use Support\License\LicenseFeature;
  *    API or none (the default); it needs an OpenAI key even when agents
  *    answer with another provider, and each agent still turns calls on in
  *    its own setup.
- * 6. Storage: this server (the default) or S3-compatible storage (checked
- *    with a test file).
+ * 6. Storage: private files, public images and backups, each on this
+ *    server (the default) or in an S3-compatible bucket of its own (each
+ *    bucket checked with a test file).
  * 7. Mailer: none (the default) or a mail service. Without one nobody
  *    receives sign-up, password or invitation emails.
  * 8. Observability: Spectra, the log of every AI call (the default), or
@@ -322,7 +323,11 @@ class Setup extends SimplePage
             'voice' => collect($this->voiceOptions())->containsStrict(app(AiSettings::class)->voice) ? app(AiSettings::class)->voice : self::NOT_NOW,
             'storage_driver' => app(StorageSettings::class)->driver === 's3' ? 's3' : 'local',
             'public_files' => filled(app(StorageSettings::class)->s3_public_bucket) ? 'bucket' : 'local',
-            'backup_files' => filled(app(StorageSettings::class)->s3_backup_bucket) ? 'bucket' : 'private',
+            'backup_files' => match (true) {
+                app(StorageSettings::class)->backupsInPrivateBucket() => 'private',
+                filled(app(StorageSettings::class)->s3_backup_bucket) => 'bucket',
+                default => 'local',
+            },
             'mailer' => $mailer === MailProvider::Sendmail ? MailProvider::Log->value : $mailer->value,
             'from_address' => config('mail.from.address'),
             'app_name' => config('app.name'),
@@ -690,71 +695,77 @@ class Setup extends SimplePage
 
     private function storageStep(): Step
     {
-        $s3 = fn (Get $get): bool => $get('storage_driver') === 's3';
-
         return Step::make('Storage')
             ->description('Where files are kept')
             ->icon(Heroicon::OutlinedArchiveBox)
             ->schema([
-                Section::make('Where files are kept')
-                    ->description('Knowledge files, chat attachments, generated media, public images and backups.')
-                    ->icon(Heroicon::OutlinedArchiveBox)
+                Callout::make('We recommend S3-compatible storage')
+                    ->description('Files on this server are lost if its disk breaks, and other servers cannot reach them. A bucket keeps them safe and lets the app grow to more servers.')
+                    ->icon(Heroicon::OutlinedLightBulb)
+                    ->info()
+                    ->visible(fn (Get $get): bool => $get('storage_driver') !== 's3' || $get('public_files') !== 'bucket' || $get('backup_files') !== 'bucket'),
+                Section::make('Private files')
+                    ->description('Knowledge files, chat attachments, and generated images and videos.')
+                    ->icon(Heroicon::OutlinedLockClosed)
+                    ->columns(2)
                     ->schema([
                         CardRadio::make('storage_driver')
                             ->hiddenLabel()
-                            ->options(['local' => 'This server', 's3' => 'S3-compatible storage'])
+                            ->options(['local' => 'This server', 's3' => 'S3-compatible private bucket'])
                             ->descriptions([
-                                'local' => 'No account needed. Fine for one server.',
-                                's3' => 'AWS S3, Scaleway Object Storage, Cloudflare R2, MinIO and others. Keeps files off the server.',
+                                'local' => 'Private files are stored on this server.',
+                                's3' => 'AWS S3, Cloudflare R2, MinIO and others.',
                             ])
                             ->icons([
                                 'local' => Heroicon::OutlinedServer,
                                 's3' => asset('images/logos/services/aws.svg'),
                             ])
                             ->required()
-                            ->live(),
+                            ->live()
+                            ->afterStateUpdated(function (Get $get, Set $set): void {
+                                if ($get('storage_driver') !== 's3' && $get('backup_files') === 'private') {
+                                    $set('backup_files', 'local');
+                                }
+                            })
+                            ->columnSpanFull(),
+                        ...$this->bucketFields('private', 'Private bucket', 'For example chatvia-files.'),
                     ]),
-                Section::make('Private files')
-                    ->description('Knowledge files, chat attachments, and generated images and videos. Keep this bucket private: the app opens its files only through short-lived signed links.')
-                    ->icon(Heroicon::OutlinedLockClosed)
-                    ->columns(2)
-                    ->visible($s3)
-                    ->schema($this->bucketFields('private', 'Private bucket', 'For example chatvia-files.')),
                 Section::make('Public images')
-                    ->description('Profile photos and agent logos. Visitors\' browsers load them straight from where they are kept, so a bucket for them must be public.')
+                    ->description('Profile photos and agent logos. A bucket for them must be public.')
                     ->icon(Heroicon::OutlinedPhoto)
                     ->columns(2)
-                    ->visible($s3)
                     ->schema([
                         CardRadio::make('public_files')
                             ->hiddenLabel()
-                            ->options(['local' => 'This server', 'bucket' => 'A public bucket'])
+                            ->options(['local' => 'This server', 'bucket' => 'S3-compatible public bucket'])
                             ->descriptions([
-                                'local' => 'This server keeps and serves them. Fine for one server.',
-                                'bucket' => 'A bucket anyone can read. Needed when the app runs on more than one server.',
+                                'local' => 'Public images are stored on this server.',
+                                'bucket' => 'A bucket anyone can read.',
                             ])
-                            ->icons(['local' => Heroicon::OutlinedServer, 'bucket' => Heroicon::OutlinedGlobeAlt])
+                            ->icons(['local' => Heroicon::OutlinedServer, 'bucket' => asset('images/logos/services/aws.svg')])
                             ->default('local')
                             ->live()
                             ->columnSpanFull(),
                         ...$this->bucketFields('public', 'Public bucket', 'Turn on public read access for this bucket.'),
                     ]),
                 Section::make('Backups')
-                    ->description('The backups of the database and Redis. They hold all your data, so keep their bucket private.')
+                    ->description('Backups of the database and Redis. A bucket for them must be private.')
                     ->icon(Heroicon::OutlinedCircleStack)
                     ->columns(2)
-                    ->visible($s3)
                     ->schema([
                         CardRadio::make('backup_files')
                             ->hiddenLabel()
-                            ->options(['private' => 'The private bucket', 'bucket' => 'A bucket of their own'])
-                            ->descriptions([
-                                'private' => 'Next to the private files. Nothing more to set up.',
-                                'bucket' => 'Safer: the backups stay if the private bucket is deleted.',
+                            ->options(['local' => 'This server', 'bucket' => 'S3-compatible private bucket', 'private' => 'Same as the private bucket'])
+                            ->descriptions(fn (Get $get): array => [
+                                'local' => 'Backups are stored on this server.',
+                                'bucket' => 'Safe if this server breaks.',
+                                'private' => $get('storage_driver') === 's3' ? 'Uses the bucket and keys of the private files.' : 'Keep private files in a bucket first.',
                             ])
-                            ->icons(['private' => Heroicon::OutlinedLockClosed, 'bucket' => Heroicon::OutlinedArchiveBox])
-                            ->default('private')
+                            ->icons(['local' => Heroicon::OutlinedServer, 'bucket' => asset('images/logos/services/aws.svg'), 'private' => Heroicon::OutlinedDocumentDuplicate])
+                            ->disableOptionWhen(fn (string $value, Get $get): bool => $value === 'private' && $get('storage_driver') !== 's3')
+                            ->default('local')
                             ->live()
+                            ->afterStateUpdated($this->copyPrivateBucket(...))
                             ->columnSpanFull(),
                         ...$this->bucketFields('backup', 'Backups bucket', 'For example chatvia-backups.'),
                     ]),
@@ -772,8 +783,18 @@ class Setup extends SimplePage
     private function bucketFields(string $bucket, string $label, string $help): array
     {
         $used = fn (Get $get): bool => $this->usesBucket($get, $bucket);
+        $copied = fn (Get $get): bool => $bucket === 'backup' && $get('backup_files') === 'private';
+        $shown = fn (Get $get): bool => $used($get) || $copied($get);
 
-        return [
+        // The backups bucket follows the private one while the backups go
+        // there: its fields show the private bucket's and are locked.
+        $linked = fn (Field $field): Field => match ($bucket) {
+            'private' => $field->live(onBlur: $field instanceof TextInput)->afterStateUpdated($this->copyPrivateBucket(...)),
+            'backup' => $field->disabled($copied),
+            default => $field,
+        };
+
+        return Arr::map([
             TextInput::make("s3_{$bucket}_bucket")
                 ->label($label)
                 ->helperText($help)
@@ -782,7 +803,7 @@ class Setup extends SimplePage
                     ->different('s3_backup_bucket')
                     ->validationMessages(['different' => 'Use a bucket of its own: anyone can read the files in the public bucket.']))
                 ->required($used)
-                ->visible($used)
+                ->visible($shown)
                 ->columnSpan($bucket === 'public' ? 1 : 'full'),
             ...($bucket === 'public' ? [
                 TextInput::make('s3_public_url')
@@ -790,44 +811,60 @@ class Setup extends SimplePage
                     ->url()
                     ->helperText('The address that serves its files, for example https://pub-1234.r2.dev or your CDN.')
                     ->required($used)
-                    ->visible($used),
+                    ->visible($shown),
             ] : []),
             TextInput::make("s3_{$bucket}_endpoint")
                 ->label('Endpoint')
                 ->url()
                 ->helperText('For example https://s3.fr-par.scw.cloud or http://minio:9000. Leave empty for AWS S3.')
-                ->visible($used),
+                ->visible($shown),
             TextInput::make("s3_{$bucket}_region")
                 ->label('Region')
                 ->helperText('For example fr-par, eu-west-1, or auto for Cloudflare R2.')
                 ->required($used)
-                ->visible($used),
+                ->visible($shown),
             TextInput::make("s3_{$bucket}_key")
                 ->label('Access key ID')
                 ->required($used)
-                ->visible($used),
+                ->visible($shown),
             TextInput::make("s3_{$bucket}_secret")
                 ->label('Secret access key')
                 ->password()
                 ->revealable()
                 ->autocomplete('new-password')
                 ->required(fn (Get $get): bool => $used($get) && blank(config("filesystems.buckets.{$bucket}.secret")))
-                ->visible($used),
+                ->visible($shown),
             Toggle::make("s3_{$bucket}_path_style")
                 ->label('Use path-style addresses')
                 ->helperText('MinIO and some other servers need it.')
-                ->visible($used)
+                ->visible($shown)
                 ->columnSpanFull(),
-        ];
+        ], $linked);
+    }
+
+    /**
+     * Fill the backups bucket's fields with the private bucket's while the
+     * backups go to the private bucket, so the locked fields show what is
+     * used. Saving uses the private bucket itself ({@see storageData()}).
+     */
+    private function copyPrivateBucket(Get $get, Set $set): void
+    {
+        if ($get('backup_files') !== 'private') {
+            return;
+        }
+
+        foreach (['bucket', 'endpoint', 'region', 'key', 'secret', 'path_style'] as $field) {
+            $set("s3_backup_{$field}", $get("s3_private_{$field}"));
+        }
     }
 
     /** Whether the form keeps files in this bucket of S3-compatible storage. */
     private function usesBucket(Get $get, string $bucket): bool
     {
-        return $get('storage_driver') === 's3' && match ($bucket) {
+        return match ($bucket) {
             'public' => $get('public_files') === 'bucket',
             'backup' => $get('backup_files') === 'bucket',
-            default => true,
+            default => $get('storage_driver') === 's3',
         };
     }
 
@@ -2234,15 +2271,14 @@ class Setup extends SimplePage
      */
     private function checkStorage(): void
     {
-        $storage = $this->storageData($this->form->getRawState());
-
-        if (! $storage->usesS3()) {
-            return;
-        }
-
+        $state = $this->form->getRawState();
+        $storage = $this->storageData($state);
         $check = app(StorageCheck::class);
 
-        $errors = collect(['private' => $storage->private, 'public' => $storage->public, 'backup' => $storage->backup])
+        // Backups kept in the private bucket need no second check.
+        $backup = ($state['backup_files'] ?? null) === 'private' ? null : $storage->backup;
+
+        $errors = collect(['private' => $storage->private, 'public' => $storage->public, 'backup' => $backup])
             ->filter()
             ->mapWithKeys(fn (S3BucketData $bucket, string $name): array => ["data.s3_{$name}_bucket" => $check->check(
                 $bucket->secret === null ? S3BucketData::from([...$bucket->toArray(), 'secret' => config("filesystems.buckets.{$name}.secret")]) : $bucket,
@@ -2407,16 +2443,31 @@ class Setup extends SimplePage
     {
         $driver = ($state['storage_driver'] ?? 'local') === 's3' ? 's3' : 'local';
 
-        if ($driver === 'local') {
-            return new StorageSetupData($driver);
-        }
-
         return new StorageSetupData(
             driver: $driver,
-            private: $this->bucketData($state, 'private'),
+            private: $driver === 's3' ? $this->bucketData($state, 'private') : null,
             public: ($state['public_files'] ?? null) === 'bucket' ? $this->bucketData($state, 'public') : null,
-            backup: ($state['backup_files'] ?? null) === 'bucket' ? $this->bucketData($state, 'backup') : null,
+            backup: match ($state['backup_files'] ?? null) {
+                'bucket' => $this->bucketData($state, 'backup'),
+                'private' => $driver === 's3' ? $this->privateBucketForBackups($state) : null,
+                default => null,
+            },
         );
+    }
+
+    /**
+     * The private bucket as the backups' bucket. A blank secret keeps the
+     * saved one for the private bucket, so the backups get that one.
+     *
+     * @param  array<string, mixed>  $state
+     */
+    private function privateBucketForBackups(array $state): S3BucketData
+    {
+        $bucket = $this->bucketData($state, 'private');
+
+        return $bucket->secret === null
+            ? S3BucketData::from([...$bucket->toArray(), 'secret' => config('filesystems.buckets.private.secret')])
+            : $bucket;
     }
 
     /**

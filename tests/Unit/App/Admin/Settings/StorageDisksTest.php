@@ -9,10 +9,10 @@ use League\Flysystem\Local\LocalFilesystemAdapter;
 /**
  * StorageDisks: while S3-compatible storage is chosen (Settings → Storage),
  * the private disk, and with it the knowledge files and chat attachments,
- * is the `s3` disk with the private bucket's connection, public images go to
- * the public bucket when one is named and backups to the backups bucket
- * (else the private one), each with its own connection; once it is not, all
- * are this server's disks again, also in a process that started on S3.
+ * is the `s3` disk with the private bucket's connection; once it is not, it
+ * is this server's disk again, also in a process that started on S3. Public
+ * images go to the public bucket and backups to the backups bucket while one
+ * is named, each with its own connection, whatever the private files use.
  */
 it('gives the private disk the s3 disk once S3-compatible storage is chosen', function (): void {
     config([
@@ -59,23 +59,24 @@ it('goes back to this server in a process that started on S3-compatible storage'
     expect(config('filesystems.disks.private'))->toBe($local);
 });
 
-it('keeps public images and backups on this server while files stay here', function (): void {
+it('puts public images and backups in their buckets while private files stay here', function (): void {
     config(['filesystems.buckets.public.name' => 'images', 'filesystems.buckets.backup.name' => 'archives']);
 
     app(StorageDisks::class)->apply();
 
-    expect(config('filesystems.disks.assets.driver'))->toBe('local')
-        ->and(config('filesystems.disks.backups.driver'))->toBe('local');
+    expect(config('filesystems.disks.private.driver'))->toBe('local')
+        ->and(config('filesystems.disks.assets'))->toMatchArray(['driver' => 's3', 'bucket' => 'images'])
+        ->and(config('filesystems.disks.backups'))->toMatchArray(['driver' => 's3', 'bucket' => 'archives']);
 });
 
-it('keeps public images on this server and backups in the private bucket when only that bucket is named', function (): void {
-    $assets = config('filesystems.disks.assets');
+it('keeps public images and backups on this server when only the private bucket is named', function (): void {
+    $local = ['assets' => config('filesystems.disks.assets'), 'backups' => config('filesystems.disks.backups')];
     config(['filesystems.storage' => 's3', 'filesystems.buckets.private.region' => 'fr-par', 'filesystems.buckets.private.name' => 'files']);
 
     app(StorageDisks::class)->apply();
 
-    expect(config('filesystems.disks.assets'))->toBe($assets)
-        ->and(config('filesystems.disks.backups'))->toMatchArray(['driver' => 's3', 'bucket' => 'files', 'region' => 'fr-par']);
+    expect(config('filesystems.disks.assets'))->toBe($local['assets'])
+        ->and(config('filesystems.disks.backups'))->toBe($local['backups']);
 });
 
 it('gives public images and backups their own buckets, each with its own connection', function (): void {
@@ -118,7 +119,7 @@ it('puts every disk back on this server in a process that started on S3-compatib
 
     $disks = new StorageDisks(app('config'), app());
     $disks->apply();
-    config(['filesystems.storage' => 'local']);
+    config(['filesystems.storage' => 'local', 'filesystems.buckets.public.name' => null, 'filesystems.buckets.backup.name' => null]);
     $disks->apply();
 
     expect(config('filesystems.disks.assets'))->toBe($local['assets'])

@@ -80,4 +80,17 @@ class StorageSettings extends AdminSettings
     {
         return 'storage';
     }
+
+    /**
+     * Whether the backups go to the private files' bucket: the backups
+     * bucket was saved as a copy of the private one, the private files
+     * being in a bucket.
+     */
+    public function backupsInPrivateBucket(): bool
+    {
+        return $this->driver === 's3'
+            && filled($this->s3_backup_bucket)
+            && collect(['bucket', 'endpoint', 'region', 'key'])
+                ->every(fn (string $field): bool => $this->{"s3_backup_{$field}"} === $this->{"s3_private_{$field}"});
+    }
 }

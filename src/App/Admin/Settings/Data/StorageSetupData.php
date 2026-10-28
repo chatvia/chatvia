@@ -7,11 +7,11 @@ namespace App\Admin\Settings\Data;
 use Spatie\LaravelData\Data;
 
 /**
- * Where an install keeps its files, as the admin setup asks for it: this
- * server, or S3-compatible storage with a private bucket and, optionally, a
- * public bucket and a backups bucket, each with its own connection. A
- * missing public or backups bucket keeps public images on this server and
- * backups in the private bucket.
+ * Where an install keeps its files, as the admin setup asks for it: the
+ * private files, the public images and the backups each on this server or
+ * in an S3-compatible bucket with its own connection. The private files use
+ * their bucket with the "s3" driver; a missing public or backups bucket
+ * keeps those on this server.
  */
 final class StorageSetupData extends Data
 {

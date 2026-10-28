@@ -592,11 +592,11 @@ theme.
   server or S3-compatible storage. Knowledge files follow it too: the default
   disk is always `private`, and `FILESYSTEM_DISK` is no longer read. With
   nothing set, files stay on the local disk.
-- S3-compatible storage takes up to three buckets, each with its own
-  endpoint, region and keys: a private bucket (required), a public bucket
-  with its public URL for profile photos and agent logos (else they stay on
-  this server, and the page says so), and a backups bucket (else backups go
-  to the private bucket). Bunny
+- Private files, public images and backups each pick their own place:
+  this server, or an S3-compatible bucket with its own endpoint, region and
+  keys. The public bucket also takes the public URL for profile photos and
+  agent logos. So backups can go to a bucket while the files stay on this
+  server. Bunny
   CDN support and the `BUNNYCDN_*` / `FILESYSTEM_ASSETS_DRIVER` keys are
   removed: put a CDN in front of the public bucket instead.
 - `php artisan chatvia:admin:create-user` creates an admin with its own workspace,

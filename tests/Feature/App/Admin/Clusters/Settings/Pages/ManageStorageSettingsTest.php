@@ -8,10 +8,11 @@ use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Settings → Storage: files stay on this server until S3-compatible storage
- * is chosen there; then the private disk uses that service at once, also in
- * a process that had it open already, and public images and backups use
- * their own buckets, each with its own connection, when named. A button checks the saved storage.
+ * Settings → Storage: private files, public images and backups each stay on
+ * this server until a bucket is picked for them; the private disk then uses
+ * that service at once, also in a process that had it open already, and
+ * public images and backups use their own buckets, each with its own
+ * connection, whatever the private files use. A button checks the saved storage.
  * How the disks follow the setting is StorageDisksTest's.
  */
 beforeEach(function (): void {
@@ -93,10 +94,11 @@ it('says why the storage failed', function (): void {
         ->assertNotified(Notification::make()->danger()->title('Storage does not work')->body('The private storage failed: Access Denied')->persistent());
 });
 
-it('keeps public images on this server and backups in the private bucket until a bucket of their own is picked', function (): void {
+it('keeps public images and backups on this server until a bucket of their own is picked, also with private files on this server', function (): void {
+    config(['filesystems.storage' => 'local']);
+
     adminPage(ManageStorageSettings::class, $this->admin)
-        ->fillForm(['driver' => 's3'])
-        ->assertFormSet(['public_files' => 'local', 'backup_files' => 'private'])
+        ->assertFormSet(['driver' => 'local', 'public_files' => 'local', 'backup_files' => 'local'])
         ->assertFormFieldHidden('s3_public_bucket')
         ->assertFormFieldHidden('s3_public_key')
         ->assertFormFieldHidden('s3_backup_bucket')
@@ -109,7 +111,7 @@ it('keeps public images on this server and backups in the private bucket until a
         ->assertFormFieldVisible('s3_backup_key');
 });
 
-it('saves the public and backups buckets with their own connections, and forgets them when this server or the private bucket is picked again', function (): void {
+it('saves the public and backups buckets with their own connections, and forgets them when this server is picked again', function (): void {
     $s3 = ['driver' => 's3', 's3_private_region' => 'fr-par', 's3_private_key' => 'scw-key', 's3_private_secret' => 'scw-secret', 's3_private_bucket' => 'chatvia'];
 
     $page = adminPage(ManageStorageSettings::class, $this->admin)
@@ -135,12 +137,12 @@ it('saves the public and backups buckets with their own connections, and forgets
         ->and(config('filesystems.disks.assets'))->toMatchArray(['driver' => 's3', 'bucket' => 'chatvia-public', 'url' => 'https://pub-1234.r2.dev', 'key' => 'r2-key', 'secret' => 'r2-secret'])
         ->and(config('filesystems.disks.backups'))->toMatchArray(['driver' => 's3', 'bucket' => 'chatvia-backups', 'key' => 'aws-key', 'region' => 'eu-west-1']);
 
-    $page->fillForm(['public_files' => 'local', 'backup_files' => 'private'])
+    $page->fillForm(['public_files' => 'local', 'backup_files' => 'local'])
         ->call('save')
         ->assertHasNoFormErrors();
 
     expect(config('filesystems.disks.assets.driver'))->toBe('local')
-        ->and(config('filesystems.disks.backups'))->toMatchArray(['bucket' => 'chatvia', 'key' => 'scw-key'])
+        ->and(config('filesystems.disks.backups.driver'))->toBe('local')
         ->and(savedSetting(StorageSettings::class, 's3_public_bucket'))->toBeNull()
         ->and(savedSetting(StorageSettings::class, 's3_public_secret'))->toBeNull()
         ->and(savedSetting(StorageSettings::class, 's3_backup_bucket'))->toBeNull()
@@ -172,4 +174,30 @@ it('refuses a public bucket without its URL, or one that is also the private or 
         ->assertHasFormErrors(['s3_public_bucket' => 'different']);
 
     expect(config('filesystems.disks.assets.driver'))->toBe('local');
+});
+
+it('keeps backups in the private bucket with its connection locked in, and only while private files are in a bucket', function (): void {
+    config(['filesystems.storage' => 'local']);
+    $s3 = ['driver' => 's3', 's3_private_endpoint' => 'https://s3.fr-par.scw.cloud', 's3_private_region' => 'fr-par', 's3_private_key' => 'scw-key', 's3_private_secret' => 'scw-secret', 's3_private_bucket' => 'chatvia'];
+
+    adminPage(ManageStorageSettings::class, $this->admin)
+        ->fillForm(['backup_files' => 'private'])
+        ->call('save')
+        ->assertHasFormErrors(['backup_files']);
+
+    adminPage(ManageStorageSettings::class, $this->admin)
+        ->fillForm($s3)
+        ->fillForm(['backup_files' => 'private'])
+        ->assertFormSet(['s3_backup_bucket' => 'chatvia', 's3_backup_region' => 'fr-par', 's3_backup_key' => 'scw-key'])
+        ->assertFormFieldDisabled('s3_backup_bucket')
+        ->assertFormFieldDisabled('s3_backup_secret')
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(config('filesystems.disks.backups'))->toMatchArray(['driver' => 's3', 'bucket' => 'chatvia', 'endpoint' => 'https://s3.fr-par.scw.cloud', 'key' => 'scw-key', 'secret' => 'scw-secret']);
+
+    adminPage(ManageStorageSettings::class, $this->admin)
+        ->assertFormSet(['backup_files' => 'private'])
+        ->fillForm(['driver' => 'local'])
+        ->assertFormSet(['backup_files' => 'local']);
 });

@@ -4518,8 +4518,6 @@
         "hide": "Masquer les étapes"
     },
     "license": {
-        "agents_of_limit": "{count} sur {limit} agents",
-        "agents_body": "Cet espace de travail peut avoir {limit} agents. Veuillez contacter votre administrateur pour en ajouter d'autres.",
         "unavailable_title": "Cette fonctionnalité n'est pas disponible",
         "unavailable_body": "Veuillez contacter votre administrateur.",
         "unavailable": "Cette fonctionnalité n'est pas disponible. Veuillez contacter votre administrateur."

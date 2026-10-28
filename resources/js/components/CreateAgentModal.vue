@@ -1,15 +1,12 @@
 <script lang="ts" setup>
 /**
  * "Create agent" dialog: a name field that creates the agent and tells the
- * page to reload its numbers. At the free-use agent limit it says so and
- * cannot submit; the server refuses the agent too.
+ * page to reload its numbers.
  */
-import LicenseNotice from '@/components/license/LicenseNotice.vue';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useLicense } from '@/composables/useLicense';
 import { store } from '@/routes/agents';
 import { useForm } from '@inertiajs/vue3';
 import { Bot, LoaderCircle, Plus } from 'lucide-vue-next';
@@ -17,11 +14,9 @@ import { nextTick, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
-const { agentLimit } = useLicense();
 
 const props = defineProps<{
     open: boolean;
-    limitReached?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -44,8 +39,6 @@ const focusNameInput = () => {
 };
 
 const submit = () => {
-    if (props.limitReached) return;
-
     isSubmitting.value = true;
 
     form.post(store.url(), {
@@ -98,7 +91,6 @@ watch(
             <form @submit.prevent="submit">
                 <progress v-if="form.progress" :value="form.progress.percentage" max="100">{{ form.progress.percentage }}%</progress>
                 <div class="space-y-6">
-                    <LicenseNotice v-if="limitReached" :body="t('license.agents_body', { limit: agentLimit ?? 0 })" />
                     <div class="space-y-2">
                         <Label for="name" required>{{ t('agents.create_modal.name_label') }}</Label>
                         <div class="relative">
@@ -124,7 +116,7 @@ watch(
 
             <DialogFooter class="flex justify-between">
                 <Button variant="outline" size="lg" @click="closeModal">{{ t('common.cancel') }}</Button>
-                <Button :disabled="isSubmitting || limitReached" size="lg" @click="submit">
+                <Button :disabled="isSubmitting" size="lg" @click="submit">
                     <LoaderCircle v-if="isSubmitting" class="me-2 h-4 w-4 animate-spin" />
                     <Plus v-else class="me-2 h-4 w-4" />
                     {{ t('agents.create_modal.title') }}

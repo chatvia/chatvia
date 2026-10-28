@@ -79,10 +79,10 @@ export interface SharedData extends PageProps {
     // Whether this install has an Enterprise key: Security and Governance
     // unlock their Enterprise features with it.
     enterprise: boolean;
-    // Whether this install holds any license key, and the free-use limits that
-    // apply without one (null = no limit). Null when nobody is signed in.
+    // Whether this install holds any license key, and the free-use limit that
+    // applies without one (null = no limit). Null when nobody is signed in.
     // Read through useLicense().
-    license: { licensed: boolean; limits: { workspaces: number | null; agents: number | null; messages: number | null } } | null;
+    license: { licensed: boolean; limits: { workspaces: number | null } } | null;
     // The knowledge file types this install accepts (admin Settings →
     // Ingestion), each with its extensions. Read through useKnowledgeFileTypes().
     knowledgeFileTypes: Partial<Record<Domain.Knowledge.Source.File.Enums.KnowledgeFileType, string[]>>;

@@ -40,17 +40,8 @@ it('shows this month\'s numbers, the limit and the tool calls', function (): voi
         ->assertSeeInOrder(['Tool calls', '7']);
 });
 
-it('says when a workspace has no message limit', function (): void {
-    withLicense();
-
+it('says when a workspace has no message limit, also without a license key', function (): void {
     Livewire::actingAs($this->admin, 'admin')
         ->test(WorkspaceStatsOverview::class, ['record' => $this->workspace])
         ->assertSee('No limit');
-});
-
-it('shows the free-use cap without a license key', function (): void {
-    Livewire::actingAs($this->admin, 'admin')
-        ->test(WorkspaceStatsOverview::class, ['record' => $this->workspace])
-        ->assertSee('Message limit (free plan)')
-        ->assertSee('0 / 10,000');
 });

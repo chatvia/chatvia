@@ -4446,8 +4446,6 @@
         "hide": "ステップを非表示"
     },
     "license": {
-        "agents_of_limit": "{count} / {limit} エージェント",
-        "agents_body": "このワークスペースのエージェントは {limit} 個までです。追加するには管理者にお問い合わせください。",
         "unavailable_title": "この機能は利用できません",
         "unavailable_body": "管理者にお問い合わせください。",
         "unavailable": "この機能は利用できません。管理者にお問い合わせください。"

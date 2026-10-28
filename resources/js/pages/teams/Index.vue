@@ -23,7 +23,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useDateFormat } from '@/composables/useDateFormat';
-import { useLicense } from '@/composables/useLicense';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { destroy as destroyTeam, leave as leaveTeamRoute, show as showTeam } from '@/routes/teams';
 import { type BreadcrumbItem } from '@/types';
@@ -32,7 +31,6 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 const { formatDate } = useDateFormat();
-const { licensed } = useLicense();
 
 type Team = Domain.Membership.Team.Data.Resources.Team.TeamListItemData;
 
@@ -110,7 +108,7 @@ const formatRole = (role: string) =>
                     <h1 class="text-xl font-semibold">{{ t('teams.index.heading') }}</h1>
                     <p class="text-muted-foreground text-sm">{{ t('teams.index.subtitle') }}</p>
                 </div>
-                <Button v-if="licensed" @click="isCreateDialogOpen = true">
+                <Button @click="isCreateDialogOpen = true">
                     <Plus class="me-1 h-4 w-4" />
                     {{ t('teams.index.create_team') }}
                 </Button>
@@ -126,7 +124,7 @@ const formatRole = (role: string) =>
                 <Users class="text-muted-foreground h-12 w-12 opacity-50" />
                 <h3 class="mt-4 text-xl font-medium">{{ t('teams.index.empty_title') }}</h3>
                 <p class="text-muted-foreground mt-2 text-center">{{ t('teams.index.empty_description') }}</p>
-                <Button v-if="licensed" size="lg" class="mt-6 flex items-center gap-2" @click="isCreateDialogOpen = true">
+                <Button size="lg" class="mt-6 flex items-center gap-2" @click="isCreateDialogOpen = true">
                     <Plus class="h-4 w-4" />
                     {{ t('teams.index.create_team') }}
                 </Button>
@@ -248,6 +246,6 @@ const formatRole = (role: string) =>
             </AlertDialogContent>
         </AlertDialog>
 
-        <CreateTeamDialog v-if="licensed" v-model:open="isCreateDialogOpen" />
+        <CreateTeamDialog v-model:open="isCreateDialogOpen" />
     </AppLayout>
 </template>

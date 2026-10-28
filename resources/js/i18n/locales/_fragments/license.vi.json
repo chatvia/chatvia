@@ -2,8 +2,6 @@
     "license": {
         "unavailable_title": "Tính năng này không khả dụng",
         "unavailable_body": "Vui lòng liên hệ quản trị viên của bạn.",
-        "unavailable": "Tính năng này không khả dụng. Vui lòng liên hệ quản trị viên của bạn.",
-        "agents_of_limit": "{count} trên {limit} trợ lý",
-        "agents_body": "Không gian làm việc này có thể có {limit} trợ lý. Vui lòng liên hệ quản trị viên của bạn để thêm."
+        "unavailable": "Tính năng này không khả dụng. Vui lòng liên hệ quản trị viên của bạn."
     }
 }

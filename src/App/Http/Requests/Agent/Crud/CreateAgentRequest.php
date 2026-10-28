@@ -4,14 +4,11 @@ namespace App\Http\Requests\Agent\Crud;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Data\Account\CreateAgentData;
-use Domain\Agent\Exceptions\AgentLimitReachedException;
 use Domain\Agent\Models\Agent;
-use Domain\Agent\Services\AgentAllowance;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Validation\Validator;
 
 /**
  * Validates a new agent's name and builds {@see CreateAgentData} for the team
@@ -35,28 +32,6 @@ class CreateAgentRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-        ];
-    }
-
-    /**
-     * Without a license key a workspace holds ten agents (a free-use limit):
-     * the eleventh is refused here with a clear message, before the action's
-     * own check.
-     *
-     * @return list<\Closure(Validator): void>
-     */
-    public function after(): array
-    {
-        return [
-            function (Validator $validator): void {
-                /** @var User $user */
-                $user = $this->user();
-                $allowance = app(AgentAllowance::class);
-
-                if (! $allowance->canCreate($user->workspace())) {
-                    $validator->errors()->add('name', AgentLimitReachedException::make((int) $allowance->limit())->getMessage());
-                }
-            },
         ];
     }
 

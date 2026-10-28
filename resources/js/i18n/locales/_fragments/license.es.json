@@ -2,8 +2,6 @@
     "license": {
         "unavailable_title": "Esta función no está disponible",
         "unavailable_body": "Ponte en contacto con tu administrador.",
-        "unavailable": "Esta función no está disponible. Ponte en contacto con tu administrador.",
-        "agents_of_limit": "{count} de {limit} agentes",
-        "agents_body": "Este espacio de trabajo puede tener {limit} agentes. Ponte en contacto con tu administrador para añadir más."
+        "unavailable": "Esta función no está disponible. Ponte en contacto con tu administrador."
     }
 }

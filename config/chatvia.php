@@ -43,8 +43,8 @@ return [
     |
     | `licensed` says whether the install holds any valid key. Without one
     | the free-use limits apply (Support\License\FreeTier: one workspace,
-    | ten agents, 10,000 replies a month, no API, voice, capabilities or
-    | forms, default splitting). SettingsConfig works it out too.
+    | no API, voice, live chat, capabilities or forms, default splitting).
+    | SettingsConfig works it out too.
     |
     | `public_key` checks the keys. It is fixed here, never in .env or the
     | admin panel, because whoever sets it could sign their own keys. While

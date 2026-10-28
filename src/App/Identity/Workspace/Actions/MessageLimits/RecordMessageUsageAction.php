@@ -17,8 +17,7 @@ use App\Identity\Workspace\Services\MessageAllowance;
  * decides from the stored period, so two replies at once never both restart
  * the month or lose a count, and the returned values tell whether this
  * message reached the limit. For a workspace, the one message that lands on
- * 80% of the limit in force (its own, or the free-use cap without a license
- * key), and the one that lands on it, also tell the owner
+ * 80% of its limit, and the one that lands on it, also tell the owner
  * ({@see MessageLimitThresholdReached}).
  */
 class RecordMessageUsageAction
@@ -54,7 +53,7 @@ class RecordMessageUsageAction
 
         // Below the limit the cached "may send" stays; the message that
         // reaches it drops the cache so the next turn is refused.
-        if ($this->allowance->reached($limit)) {
+        if ($limit->reached()) {
             $this->allowance->forgetLimit($limit);
         }
 
@@ -64,7 +63,7 @@ class RecordMessageUsageAction
     private function announceThreshold(MessageLimit $limit): void
     {
         $used = (int) $limit->messages_used;
-        $monthly = (int) $this->allowance->effectiveLimit($limit);
+        $monthly = (int) $limit->monthly_limit;
 
         if ($limit->workspace_id === null || $monthly <= 0) {
             return;

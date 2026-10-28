@@ -6,7 +6,6 @@ use Domain\Agent\Jobs\PurgeAgentJob;
 use Domain\Agent\Models\Agent;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Str;
-use Support\License\FreeTier;
 
 /**
  * The agents list (each row with the workspace's member count), creating an
@@ -67,22 +66,19 @@ it('refuses an agent name longer than the column holds', function (): void {
     expect($this->owner->workspace()->agents()->count())->toBe(2);
 });
 
-it('refuses an agent past the free limit with a message on the name field', function (): void {
-    foreach (range(1, FreeTier::AGENTS - 2) as $n) {
+it('creates an eleventh agent without a license key', function (): void {
+    withoutLicense();
+
+    foreach (range(1, 8) as $n) {
         createAgent($this->owner, ['name' => "Bot {$n}"]);
     }
 
     $this->actingAs($this->owner)
-        ->postJson(route('agents.store'), ['name' => 'Eleventh'])
-        ->assertJsonValidationErrors(['name' => 'Please contact your administrator to add more']);
-
-    withLicense();
-
-    $this->actingAs($this->owner)
         ->post(route('agents.store'), ['name' => 'Eleventh'])
-        ->assertRedirect();
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
 
-    expect($this->owner->workspace()->agents()->count())->toBe(FreeTier::AGENTS + 1);
+    expect($this->owner->workspace()->agents()->count())->toBe(11);
 });
 
 it('deletes the agent and goes back to the list', function (): void {

@@ -4446,8 +4446,6 @@
         "hide": "Adımları gizle"
     },
     "license": {
-        "agents_of_limit": "{limit} asistandan {count} tanesi",
-        "agents_body": "Bu çalışma alanında en fazla {limit} asistan olabilir. Daha fazlasını eklemek için lütfen yöneticinizle iletişime geçin.",
         "unavailable_title": "Bu özellik kullanılamıyor",
         "unavailable_body": "Lütfen yöneticinizle iletişime geçin.",
         "unavailable": "Bu özellik kullanılamıyor. Lütfen yöneticinizle iletişime geçin."

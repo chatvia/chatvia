@@ -544,8 +544,6 @@
     "Analytics needs pg_partman to split its message log by month.": "Analityka potrzebuje pg_partman, aby dzielić dziennik wiadomości według miesięcy.",
     "Read more": "Więcej informacji",
     "The API needs a ChatVia.ai license key.": "API wymaga klucza licencyjnego ChatVia.ai.",
-    "This workspace can have :limit agents. Please contact your administrator to add more.": "Ten obszar roboczy może mieć :limit agentów. Aby dodać więcej, skontaktuj się z administratorem.",
-    "More teams need a ChatVia.ai license key.": "Kolejne zespoły wymagają klucza licencyjnego ChatVia.ai.",
     "Every 6 hours": "Co 6 godzin",
     "Every 12 hours": "Co 12 godzin",
     "Every 24 hours": "Co 24 godziny",

@@ -4518,8 +4518,6 @@
         "hide": "Skjul trin"
     },
     "license": {
-        "agents_of_limit": "{count} af {limit} agenter",
-        "agents_body": "Dette workspace kan have {limit} agenter. Kontakt din administrator for at tilføje flere.",
         "unavailable_title": "Denne funktion er ikke tilgængelig",
         "unavailable_body": "Kontakt din administrator.",
         "unavailable": "Denne funktion er ikke tilgængelig. Kontakt din administrator."

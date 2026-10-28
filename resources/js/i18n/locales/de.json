@@ -4518,8 +4518,6 @@
         "hide": "Schritte ausblenden"
     },
     "license": {
-        "agents_of_limit": "{count} von {limit} Agenten",
-        "agents_body": "Dieser Workspace kann {limit} Agenten haben. Bitte wende dich an deinen Administrator, um weitere hinzuzufügen.",
         "unavailable_title": "Diese Funktion ist nicht verfügbar",
         "unavailable_body": "Bitte wende dich an deinen Administrator.",
         "unavailable": "Diese Funktion ist nicht verfügbar. Bitte wende dich an deinen Administrator."

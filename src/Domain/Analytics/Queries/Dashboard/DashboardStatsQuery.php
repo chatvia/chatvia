@@ -2,10 +2,8 @@
 
 namespace Domain\Analytics\Queries\Dashboard;
 
-use App\Identity\Workspace\Models\MessageLimit;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\Workspace;
-use App\Identity\Workspace\Services\MessageAllowance;
 use Carbon\Carbon;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Data\Dashboard\AgentCountData;
@@ -48,7 +46,6 @@ class DashboardStatsQuery
     public function __construct(
         private readonly AnalyticsDatabase $analytics,
         private readonly AnalyticsCache $cache,
-        private readonly MessageAllowance $allowance,
     ) {}
 
     public function get(User $user, ?Team $team): DashboardStatsData
@@ -110,14 +107,13 @@ class DashboardStatsQuery
     /**
      * `total` is this month's count of the workspace's message limit when it
      * has one, otherwise this month's agent replies from the analytics rollup.
-     * `limit` is the limit in force: the workspace's own or, without a
-     * license key, the free-use cap, whichever is smaller.
+     * `limit` is the workspace's own limit, if an admin set one.
      */
     private function messagesPanel(Workspace $workspace, ?Team $team, DashboardActivityData $activity): MessagesPanelData
     {
         $limit = $workspace->messageLimit;
         $used = $limit?->usedThisMonth() ?? $activity->repliesThisMonth;
-        $inForce = $limit instanceof MessageLimit ? $this->allowance->effectiveLimit($limit) : $this->allowance->workspaceCap();
+        $inForce = $limit?->monthly_limit;
 
         return new MessagesPanelData(
             total: $used,

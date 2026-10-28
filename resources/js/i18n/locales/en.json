@@ -4518,8 +4518,6 @@
         "hide": "Hide steps"
     },
     "license": {
-        "agents_of_limit": "{count} of {limit} agents",
-        "agents_body": "This workspace can have {limit} agents. Please contact your administrator to add more.",
         "unavailable_title": "This feature is unavailable",
         "unavailable_body": "Please contact your administrator.",
         "unavailable": "This feature is unavailable. Please contact your administrator."

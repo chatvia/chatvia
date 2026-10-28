@@ -15,7 +15,6 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { getInitials } from '@/composables/useInitials';
-import { useLicense } from '@/composables/useLicense';
 import { index as teamsIndex, switchMethod as switchTeamRoute } from '@/routes/teams';
 import type { Auth } from '@/types';
 import { Link, router, usePage } from '@inertiajs/vue3';
@@ -31,7 +30,6 @@ const currentTeam = computed(() => page.props.currentTeam);
 // Teammates are blocked from the teams-management routes by the backend
 // `DenyIfTeammate` middleware, so they must not see Manage/Create here.
 const isTeammate = computed(() => auth.value.is_workspace_owner !== true);
-const { licensed } = useLicense();
 
 const isOpen = ref(false);
 const isCreateDialogOpen = ref(false);
@@ -126,7 +124,7 @@ const openCreateDialog = () => {
                             {{ t('team_switcher.manage_teams') }}
                         </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem v-if="licensed" class="cursor-pointer gap-2" @click="openCreateDialog">
+                    <DropdownMenuItem class="cursor-pointer gap-2" @click="openCreateDialog">
                         <Plus class="size-4" />
                         {{ t('teams.index.create_team') }}
                     </DropdownMenuItem>
@@ -135,6 +133,6 @@ const openCreateDialog = () => {
         </DropdownMenu>
 
         <!-- Clearing the list makes the next open refetch it, new team included. -->
-        <CreateTeamDialog v-if="licensed" v-model:open="isCreateDialogOpen" @created="teams = []" />
+        <CreateTeamDialog v-model:open="isCreateDialogOpen" @created="teams = []" />
     </div>
 </template>

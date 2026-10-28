@@ -44,16 +44,6 @@ it('creates a team in the workspace and answers with its public id', function ()
     expect(Team::where('external_id', $id)->firstOrFail()->workspace_id)->toBe($this->owner->workspace()->id);
 });
 
-it('refuses to create a team without a license key', function (): void {
-    saveLicenseKey('');
-
-    $this->withToken($this->token)
-        ->postJson('/api/v1/teams', ['name' => 'Acme Support'])
-        ->assertForbidden();
-
-    expect($this->owner->workspace()->teams()->count())->toBe(1);
-});
-
 it('shows a team with its roles and agents nested', function (): void {
     $this->withToken($this->token)
         ->getJson("/api/v1/teams/{$this->team->external_id}")

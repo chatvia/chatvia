@@ -23,7 +23,8 @@ use Throwable;
  * when its schema checksum no longer matches. PostgreSQL copies a database
  * only while nothing is connected to it, so every connection of this
  * process is closed first; if another session still has it open, the
- * worker builds its own database from the migrations instead.
+ * worker builds its own database from the migrations instead, and so do
+ * the workers after it, without waiting for the copy again.
  *
  * Laravel runs it for each worker in the main process, before the workers
  * start (`ParallelTesting::setUpProcess()` in AppServiceProvider), so no
@@ -36,6 +37,9 @@ final class ParallelTestDatabases
     public const array CONNECTIONS_ON_THE_TESTING_DATABASE = ['analytics', 'pulse', 'spectra'];
 
     private const int COPY_ATTEMPTS = 5;
+
+    /** Another session held the testing database open during this run, so copies are not tried again. */
+    private static bool $copyRefused = false;
 
     /** The worker's database, named the way Laravel names it: `{testing}_test_{token}`. */
     public static function workerDatabase(string $database, string $token): string
@@ -89,7 +93,7 @@ final class ParallelTestDatabases
     private static function copy(Repository $config, string $connection, string $template, string $worker): void
     {
         // A database is dropped and copied from another one: `postgres`.
-        for ($attempt = 1; $attempt <= self::COPY_ATTEMPTS; $attempt++) {
+        for ($attempt = 1; ! self::$copyRefused && $attempt <= self::COPY_ATTEMPTS; $attempt++) {
             $copied = self::using($config, $connection, 'postgres', function () use ($template, $worker): bool {
                 DB::connection('parallel-testing')->statement("DROP DATABASE IF EXISTS \"{$worker}\"");
                 DB::connection('parallel-testing')->statement("CREATE DATABASE \"{$worker}\" TEMPLATE \"{$template}\"");
@@ -102,6 +106,11 @@ final class ParallelTestDatabases
             }
 
             Sleep::for($attempt)->seconds();
+        }
+
+        if (! self::$copyRefused) {
+            self::$copyRefused = true;
+            fwrite(STDERR, "Another session has the \"{$template}\" database open, so the worker databases are built from the migrations (slower).\n");
         }
 
         self::build($config, $connection, $worker);

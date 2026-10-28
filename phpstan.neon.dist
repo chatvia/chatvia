@@ -11,6 +11,10 @@ parameters:
 
     treatPhpDocTypesAsCertain: false
 
+    # A cache per checkout: the default system temp folder is shared by every
+    # copy of the repo, and one copy's cache then points at another's phpstan.phar.
+    tmpDir: storage/framework/cache/phpstan
+
     # Larastan treats every `belongsTo` / `hasOne` return as non-null, even
     # when the FK column is nullable — so `$model->relation?->field ?? fallback`
     # patterns we keep for genuine runtime safety look "redundant" to phpstan.

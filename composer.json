@@ -124,9 +124,8 @@
         ],
         "test": [
             "Composer\\Config::disableProcessTimeout",
-            "@putenv APP_ENV=testing",
             "@php artisan config:clear --ansi",
-            "@php -d memory_limit=2G artisan test --parallel --max-processes=8"
+            "@php -d memory_limit=2G artisan test --parallel --max-processes=8 --compact"
         ],
         "format": "vendor/bin/pint",
         "format:check": "vendor/bin/pint --test",
@@ -147,14 +146,14 @@
             "@composer validate --strict",
             "@composer audit",
             "npm audit --omit=dev",
-            "@refactor",
+            "vendor/bin/rector process --no-diffs",
             "@format",
             "@analyse",
             "@php artisan wayfinder:generate --skip-actions",
-            "npm run format",
+            "npm run format -- --log-level=warn",
             "npm run lint",
             "npm run typecheck",
-            "npm run test",
+            "npm run test -- --reporter=dot",
             "npm run i18n:check",
             "@test"
         ]

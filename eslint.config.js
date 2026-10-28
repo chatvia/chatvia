@@ -12,6 +12,15 @@ export default defineConfig(
     tseslint.configs.recommended,
     vue.configs['flat/essential'],
     {
+        // Pinned, so the agent worktrees under .claude/ (each a copy of the
+        // repo with its own tsconfig.json) are not candidate project roots.
+        languageOptions: {
+            parserOptions: {
+                tsconfigRootDir: import.meta.dirname,
+            },
+        },
+    },
+    {
         // vue-eslint-parser hands <script lang="ts"> blocks to the TypeScript
         // parser, and the core rules TypeScript already checks are off, as
         // they are for .ts files.
@@ -28,6 +37,8 @@ export default defineConfig(
         ignores: [
             'vendor',
             'node_modules',
+            // Agent worktrees: whole copies of the repo.
+            '.claude',
             'public',
             // App data, and the copy of the chat widget that
             // `npm run shakomako:build` builds (storage/framework/shakomako).
@@ -86,8 +97,9 @@ export default defineConfig(
         },
     },
     {
-        // Node CLI scripts and the Vite config report progress on the terminal.
-        files: ['scripts/**', 'vite.config.ts'],
+        // Node CLI scripts, the load-test mock and the Vite config report
+        // progress on the terminal.
+        files: ['scripts/**', 'docker/load/**', 'vite.config.ts'],
         rules: {
             'no-console': 'off',
         },

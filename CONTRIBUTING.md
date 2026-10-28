@@ -415,8 +415,22 @@ There are two Composer scripts. Both are defined in `composer.json`.
 
 ### `composer ci:check`: the read-only gate
 
-This is exactly what CI runs (`.github/workflows/tests.yml`). It **never
-changes a file**. It runs, in this order, and stops at the first failure:
+CI runs exactly these gates. It **never changes a file**. Locally it runs
+them in this order and stops at the first failure. In CI every gate is a job
+of its own, named after its tool, and all of them run side by side, so one run
+shows every gate that fails:
+
+- `security.yml`: Composer audit, npm audit (steps 2 and 3). It also runs
+  every morning, because new advisories appear without a push.
+- `php-quality.yml`: Composer validate, Pint, Rector, PHPStan (steps 1, 4, 5
+  and 6).
+- `frontend.yml`: Prettier, ESLint, TypeScript, Vitest, Translations, Build
+  (steps 7 to 11, plus `npm run build`).
+- `tests.yml`: Pest (step 12).
+
+The jobs share their setup through `.github/actions/setup-php-app` and
+`.github/actions/setup-frontend`. When you add a gate, add it to both
+`composer.json` and its workflow.
 
 | Step | Command | What it checks |
 |---|---|---|
@@ -433,7 +447,7 @@ changes a file**. It runs, in this order, and stops at the first failure:
 | 11 | `npm run i18n:check` | Every static `t('…')` key exists in `en.json`, and every locale's messages compile. |
 | 12 | `composer test` | The Pest suite (Unit, Feature, Architecture, Eval). |
 
-CI also checks the shell scripts and workflows in two small jobs of their
+CI also checks the shell scripts and workflows in `scripts.yml`, in two jobs of their
 own: that `install.sh` is built from `installer/`, ShellCheck on the
 installer, `docker/manage` and the scripts in the image, actionlint on
 `.github/workflows`, and a parse of `install.sh` and `docker/manage` with

@@ -1,0 +1,20 @@
+name: Set up the frontend
+description: The PHP app (for the Wayfinder route helpers the frontend imports, which are not committed), Node.js 22 and the npm dependencies. Run after actions/checkout.
+
+runs:
+  using: composite
+  steps:
+    - name: Set up the PHP app
+      uses: ./.github/actions/setup-php-app
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v7
+      with:
+        node-version: '22'
+        cache: 'npm'
+
+    - name: Install npm dependencies and write the route helpers
+      shell: bash
+      run: |
+        npm ci
+        php artisan wayfinder:generate --skip-actions

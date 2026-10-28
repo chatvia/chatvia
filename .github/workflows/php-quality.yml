@@ -1,0 +1,64 @@
+name: PHP quality
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_call:
+  workflow_dispatch:
+
+# Read-only token, and no secrets anywhere in this workflow, so it runs the same
+# for pull requests from forks.
+permissions:
+  contents: read
+
+# A new push to the same pull request cancels its older run. A run on a branch
+# gets a group of its own, so it is never cancelled and never waits for an
+# older run to finish.
+concurrency:
+  group: php-quality-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# One job per tool, side by side, so each passes or fails on its own. None of
+# them changes files.
+jobs:
+  composer-validate:
+    name: Composer validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-php-app
+      - name: Composer validate
+        run: composer validate --strict
+
+  pint:
+    name: Pint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-php-app
+      - name: Pint
+        run: composer format:check
+
+  rector:
+    name: Rector
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-php-app
+      - name: Rector
+        run: composer refactor:check
+
+  phpstan:
+    name: PHPStan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-php-app
+      - name: PHPStan
+        run: composer analyse

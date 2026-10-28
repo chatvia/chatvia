@@ -27,6 +27,8 @@ env:
   IMAGE: ghcr.io/${{ github.repository }}
 
 jobs:
+  # Every check a push to main runs, so no image is published that would
+  # fail one of them.
   tests:
     name: Tests
     uses: ./.github/workflows/tests.yml
@@ -35,9 +37,33 @@ jobs:
       contents: read
       packages: read
 
+  php-quality:
+    name: PHP quality
+    uses: ./.github/workflows/php-quality.yml
+    permissions:
+      contents: read
+
+  frontend:
+    name: Frontend
+    uses: ./.github/workflows/frontend.yml
+    permissions:
+      contents: read
+
+  security:
+    name: Security audit
+    uses: ./.github/workflows/security.yml
+    permissions:
+      contents: read
+
+  scripts:
+    name: Scripts
+    uses: ./.github/workflows/scripts.yml
+    permissions:
+      contents: read
+
   image:
     name: Build and push
-    needs: tests
+    needs: [tests, php-quality, frontend, security, scripts]
     runs-on: ubuntu-latest
 
     permissions:

@@ -1,0 +1,36 @@
+name: Set up the PHP app
+description: PHP 8.5, Composer dependencies from the cache, the testing environment file and an app key. Run after actions/checkout.
+
+runs:
+  using: composite
+  steps:
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.5'
+        extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, pdo_pgsql, intl, gd, exif, iconv, fileinfo, redis
+        coverage: none
+        tools: composer:v2
+
+    - name: Get Composer cache directory
+      id: composer-cache
+      shell: bash
+      run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+    - name: Cache Composer dependencies
+      uses: actions/cache@v6
+      with:
+        path: ${{ steps.composer-cache.outputs.dir }}
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+        restore-keys: ${{ runner.os }}-composer-
+
+    # Without a database service the app still boots: the connection is
+    # refused at once and nothing waits on it.
+    - name: Install Composer dependencies
+      shell: bash
+      run: |
+        mkdir -p storage/framework/{cache,sessions,views,testing} storage/logs bootstrap/cache
+        cp .env.testing .env
+        composer install --prefer-dist --no-interaction --no-progress --optimize-autoloader
+        php artisan key:generate --force
+        php artisan key:generate --force --env=testing

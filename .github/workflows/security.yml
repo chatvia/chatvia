@@ -1,0 +1,57 @@
+name: Security audit
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+  # Advisories are published without any push: check the locked packages
+  # every morning too.
+  schedule:
+    - cron: '17 5 * * *'
+  workflow_call:
+  workflow_dispatch:
+
+# Read-only token, and no secrets anywhere in this workflow, so it runs the same
+# for pull requests from forks.
+permissions:
+  contents: read
+
+# A new push to the same pull request cancels its older run. A run on a branch
+# gets a group of its own, so it is never cancelled and never waits for an
+# older run to finish.
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# Both read only the lock files: nothing is installed.
+jobs:
+  composer-audit:
+    name: Composer audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+      - name: Composer audit
+        run: composer audit --locked
+
+  npm-audit:
+    name: npm audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - name: npm audit
+        run: npm audit --omit=dev

@@ -12,7 +12,7 @@ on:
   workflow_call:
   workflow_dispatch:
 
-# Read-only token, and no secrets anywhere in this workflow, so it runs the same
+# The Pest suite. Read-only token, and no secrets anywhere in this workflow, so it runs the same
 # for pull requests from forks. `packages: read` pulls the Postgres image from
 # the GitHub Container Registry.
 permissions:
@@ -28,14 +28,9 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  tests:
-    name: Tests
+  pest:
+    name: Pest
     runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        php: ['8.5']
 
     services:
       postgres:
@@ -67,25 +62,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php }}
-          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, pdo_pgsql, intl, gd, exif, iconv, fileinfo, redis
-          coverage: none
-          tools: composer:v2
-
-      - name: Get Composer cache directory
-        id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
-
-      - name: Cache Composer dependencies
-        uses: actions/cache@v6
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
 
       # The programs Chatvia reads knowledge files with, as the Dockerfile
       # installs them. The tests that need one skip without it, so without
@@ -126,85 +102,14 @@ jobs:
           path: ~/apt-archives
           key: ${{ steps.apt-cache.outputs.cache-primary-key }}
 
-      - name: Create storage directories
-        run: |
-          mkdir -p storage/framework/cache
-          mkdir -p storage/framework/sessions
-          mkdir -p storage/framework/views
-          mkdir -p storage/framework/testing
-          mkdir -p storage/logs
-          mkdir -p bootstrap/cache
+      - name: Set up the PHP app
+        uses: ./.github/actions/setup-php-app
 
-      - name: Copy environment file
-        run: cp .env.testing .env
-
-      - name: Install Composer dependencies
-        run: composer install --prefer-dist --no-interaction --no-progress --optimize-autoloader
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
-        with:
-         node-version: '22'
-         cache: 'npm'
-
-      - name: Install NPM dependencies
-        run: npm ci
-
-      - name: Prepare Laravel Application
-        run: |
-          php artisan key:generate --force
-          php artisan key:generate --force --env=testing
-
-      # Every gate a maintainer runs locally before a push: composer
-      # validate + audit, npm audit, Pint, Rector, PHPStan, Prettier, ESLint,
-      # vue-tsc, Vitest, the i18n check and the Pest suite. It never changes files. The
-      # test run installs the Postgres extensions, migrates and seeds the
+      # The test run installs the Postgres extensions, migrates and seeds the
       # `testing` database by itself, so there is no separate migrate step.
       # The suite runs in parallel, one process per core; each process tests
-      # against its own copy of `testing` (testing_test_1, …).
-      - name: Run CI checks
-        run: composer ci:check
-
-      - name: Build assets
-        run: npm run build
-
-  scripts:
-    name: Shell scripts and workflows
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-
-      # install.sh is built from installer/src and installer/templates: the
-      # committed file must be what they build.
-      - name: Installer is built
-        run: installer/build --check
-
-      # The installer, its build script and the auto-update script it writes,
-      # the management tool it copies next to an install, and the scripts
-      # inside the image. ShellCheck comes with the runner.
-      - name: ShellCheck
-        run: shellcheck install.sh installer/build installer/templates/chatvia-auto-update.sh docker/manage docker/app/bin/* docker/app/entrypoint.d/*.sh
-
-      # The workflow files themselves: expressions, job references and the
-      # shell in each run step.
-      - name: actionlint
-        run: docker run --rm -v "$PWD:/repo" --workdir /repo rhysd/actionlint:1.7.12 -color
-
-  bash-3:
-    name: Installer on bash 3.2
-    runs-on: macos-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-
-      # macOS still ships bash 3.2 as /bin/bash, and the installer and the
-      # management tool run on it there. This only parses them: it catches
-      # syntax that needs a newer bash, not every runtime difference.
-      - name: Parse with bash 3.2
-        run: |
-          /bin/bash --version
-          /bin/bash -n install.sh
-          /bin/bash -n docker/manage
+      # against its own copy of `testing` (testing_test_1, …). Pint, Rector,
+      # PHPStan, the audits and the frontend checks are jobs of their own in
+      # the other workflows, side by side with this one.
+      - name: Pest
+        run: composer test

@@ -1,0 +1,67 @@
+name: Scripts
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_call:
+  workflow_dispatch:
+
+# Read-only token, and no secrets anywhere in this workflow, so it runs the same
+# for pull requests from forks.
+permissions:
+  contents: read
+
+# A new push to the same pull request cancels its older run. A run on a branch
+# gets a group of its own, so it is never cancelled and never waits for an
+# older run to finish.
+concurrency:
+  group: scripts-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  scripts:
+    name: Shell scripts and workflows
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      # install.sh is built from installer/src and installer/templates: the
+      # committed file must be what they build.
+      - name: Installer is built
+        run: installer/build --check
+
+      # The installer, its build script and the auto-update script it writes,
+      # the management tool it copies next to an install, and the scripts
+      # inside the image. ShellCheck comes with the runner.
+      - name: ShellCheck
+        run: shellcheck install.sh installer/build installer/templates/chatvia-auto-update.sh docker/manage docker/app/bin/* docker/app/entrypoint.d/*.sh
+
+      # The workflow files themselves: expressions, job references and the
+      # shell in each run step.
+      - name: actionlint
+        run: docker run --rm -v "$PWD:/repo" --workdir /repo rhysd/actionlint:1.7.12 -color
+
+  bash-3:
+    name: Installer on bash 3.2
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      # macOS still ships bash 3.2 as /bin/bash, and the installer and the
+      # management tool run on it there. This only parses them: it catches
+      # syntax that needs a newer bash, not every runtime difference.
+      - name: Parse with bash 3.2
+        run: |
+          /bin/bash --version
+          /bin/bash -n install.sh
+          /bin/bash -n docker/manage

@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+#
+# Builds install.sh from installer/src/*.sh, joined in name order, with each
+# `#@include templates/NAME` line replaced by that file. install.sh stays one
+# file, so `curl | bash`, ./manage upgrade and chatvia-auto-update keep
+# downloading just it.
+#
+#   installer/build          write install.sh
+#   installer/build --check  fail when install.sh is not what the parts build
+
+set -euo pipefail
+
+DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+TARGET="$(dirname "$DIR")/install.sh"
+
+fail() {
+    printf 'installer/build: %s\n' "$*" >&2
+    exit 1
+}
+
+# include NAME: the template, as it is. Each one sits in a quoted heredoc
+# that ends at a line "EOF", so a line like that inside would end it early.
+include() {
+    local file="$DIR/$1"
+    case $1 in templates/*) ;; *) fail "#@include takes templates/NAME, not $1" ;; esac
+    [ -f "$file" ] || fail "$1 does not exist"
+    [ -s "$file" ] && [ -z "$(tail -c 1 "$file")" ] || fail "$1 must end with a newline"
+    if grep -qx 'EOF' "$file"; then fail "$1 has a line EOF, which would end the heredoc around it"; fi
+    cat "$file"
+}
+
+# Every part after the first starts with a marker line, so a line number in
+# install.sh (from ShellCheck, say) leads back to its part.
+build() {
+    local part line first=1
+    for part in "$DIR"/src/*.sh; do
+        if [ "$first" = 0 ]; then printf '# --- installer/src/%s ---\n' "${part##*/}"; fi
+        first=0
+        while IFS= read -r line || [ -n "$line" ]; do
+            case $line in
+                '#@include '*) include "${line#'#@include '}" ;;
+                *) printf '%s\n' "$line" ;;
+            esac
+        done <"$part"
+    done
+}
+
+TMP=$(mktemp)
+trap 'rm -f "$TMP"' EXIT
+build >"$TMP"
+
+case ${1:-} in
+    --check)
+        cmp -s "$TMP" "$TARGET" || fail 'install.sh is out of date: run installer/build'
+        echo 'install.sh is up to date.'
+        ;;
+    '')
+        chmod 755 "$TMP"
+        mv "$TMP" "$TARGET"
+        echo 'Built install.sh.'
+        ;;
+    *) fail "unknown option: $1 (use --check, or nothing)" ;;
+esac

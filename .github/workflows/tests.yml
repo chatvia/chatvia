@@ -176,10 +176,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
 
-      # The installer, the management tool it copies next to an install, and
-      # the scripts inside the image. ShellCheck comes with the runner.
+      # install.sh is built from installer/src and installer/templates: the
+      # committed file must be what they build.
+      - name: Installer is built
+        run: installer/build --check
+
+      # The installer, its build script and the auto-update script it writes,
+      # the management tool it copies next to an install, and the scripts
+      # inside the image. ShellCheck comes with the runner.
       - name: ShellCheck
-        run: shellcheck install.sh docker/manage docker/app/bin/* docker/app/entrypoint.d/*.sh
+        run: shellcheck install.sh installer/build installer/templates/chatvia-auto-update.sh docker/manage docker/app/bin/* docker/app/entrypoint.d/*.sh
 
       # The workflow files themselves: expressions, job references and the
       # shell in each run step.

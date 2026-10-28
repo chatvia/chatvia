@@ -81,6 +81,9 @@
 #
 # Everything runs inside main(), called on the last line, so a download that
 # stops half way runs nothing.
+#
+# install.sh is built from the files in installer/src by installer/build:
+# change those, then run installer/build. It stays one file to download.
 
 set -euo pipefail
 # For *([0-9;]) and +([ /]): stripping color codes, deleting a word.
@@ -132,6 +135,7 @@ readonly MIN_NODE_VERSION="22.18.0"
 # (up to 3 GB) may run out next to the running app.
 readonly SWAP_BELOW_KB=6000000
 
+# --- installer/src/10-ui.sh ---
 #------------------------------------------------------------------------------
 # Output
 #
@@ -808,6 +812,7 @@ confirm() {
     [ "$yes" = 1 ]
 }
 
+# --- installer/src/20-helpers.sh ---
 #------------------------------------------------------------------------------
 # Answer checks: return 1 with the reason in INVALID
 #------------------------------------------------------------------------------
@@ -1090,6 +1095,7 @@ docker_is_running() {
     docker_cmd info >/dev/null 2>&1
 }
 
+# --- installer/src/30-docker.sh ---
 #------------------------------------------------------------------------------
 # Docker
 #------------------------------------------------------------------------------
@@ -1824,6 +1830,7 @@ show_finish() {
     outro "$(dim "Guide: $CHATVIA_DOCS")"
 }
 
+# --- installer/src/31-docker-upgrade.sh ---
 #------------------------------------------------------------------------------
 # Existing install
 #------------------------------------------------------------------------------
@@ -1945,30 +1952,7 @@ do_upgrade() {
     outro "Open $(accent "$APP_URL")"
 }
 
-#------------------------------------------------------------------------------
-# Which install
-#------------------------------------------------------------------------------
-
-# MODE: docker, or complete (everything directly on this server). An option
-# that only means something for Docker (--dir, --port, ...) picks Docker, so
-# ./manage upgrade, which passes --dir, never asks. A server with a complete
-# installation goes on with it: to upgrade it, or to finish it.
-choose_mode() {
-    if [ -n "$MODE" ]; then return; fi
-    if [ "$OS" = macos ] || [ "$DOCKER_OPTIONS" = 1 ]; then
-        MODE=docker
-    elif [ -f "$NATIVE_CONF" ] || [ -n "${CHATVIA_DB_HOST:-}" ]; then
-        MODE=complete
-    elif [ "$INTERACTIVE" = 0 ]; then
-        MODE=docker
-    else
-        choose 'How do you want to install ChatVia.ai?' \
-            'With Docker  — everything in containers, easy to move and remove' \
-            "Complete installation  — everything directly on this server (Ubuntu $NATIVE_UBUNTU)"
-        if [ "$CHOICE" = 0 ]; then MODE=docker; else MODE=complete; fi
-    fi
-}
-
+# --- installer/src/40-complete.sh ---
 #------------------------------------------------------------------------------
 # Complete installation: everything directly on this server, without Docker
 #
@@ -2361,6 +2345,333 @@ native_check_fresh() {
     fi
 }
 
+native_collect_settings() {
+    SERVER_IP=$(server_ip)
+    if [ "$DATABASE" = existing ]; then native_database_settings; fi
+    if [ "$INTERACTIVE" = 0 ]; then
+        ADMIN_EMAIL=${CHATVIA_ADMIN_EMAIL:-}
+        [ -n "$ADMIN_EMAIL" ] || die 'Set the admin e-mail: --email you@example.com (or CHATVIA_ADMIN_EMAIL).'
+        valid_email "$ADMIN_EMAIL" || die "$INVALID"
+        ADMIN_PASS=${CHATVIA_ADMIN_PASSWORD:-}
+        if [ -z "$ADMIN_PASS" ]; then
+            ADMIN_PASS=$(random_password)
+            PASSWORD_GENERATED=1
+        fi
+        DOMAIN=$(printf '%s' "${CHATVIA_DOMAIN:-$SERVER_IP}" | tr '[:upper:]' '[:lower:]')
+        [ -n "$DOMAIN" ] || die 'Set the address: --domain chat.example.com (or CHATVIA_DOMAIN).'
+        valid_host "$DOMAIN" || die "$INVALID"
+        case ${CHATVIA_HTTPS:-yes} in no | false | 0) HTTPS=no ;; *) HTTPS=yes ;; esac
+        if is_ip "$DOMAIN"; then HTTPS=no; fi
+        if ! native_check_dns && [ "$HTTPS" = yes ]; then
+            info 'Without it, the HTTPS certificate fails, and ChatVia.ai runs on HTTP until you'
+            info 'get one (run this installer again then).'
+        fi
+        case ${CHATVIA_FIREWALL:-yes} in no | false | 0) FIREWALL=no ;; *) FIREWALL=yes ;; esac
+        case ${CHATVIA_AUTO_UPDATE:-yes} in no | false | 0) AUTO_UPDATE=no ;; *) AUTO_UPDATE=yes ;; esac
+        case ${CHATVIA_SWAP:-auto} in
+            yes | true | 1) SWAP=yes ;;
+            no | false | 0) SWAP=no ;;
+            *) if needs_swap; then SWAP=yes; else SWAP=no; fi ;;
+        esac
+        EMBEDDING_TYPE=${CHATVIA_EMBEDDING_TYPE:-halfvec}
+        EMBEDDING_DIMENSIONS=${CHATVIA_EMBEDDING_DIMENSIONS:-1024}
+        EMBEDDING_INDEX=${CHATVIA_EMBEDDING_INDEX:-binary}
+        case $EMBEDDING_TYPE in halfvec | vector) ;; *) die 'CHATVIA_EMBEDDING_TYPE must be halfvec or vector.' ;; esac
+        [[ $EMBEDDING_DIMENSIONS =~ ^[0-9]+$ ]] || die 'CHATVIA_EMBEDDING_DIMENSIONS must be a number.'
+        case $EMBEDDING_INDEX in binary | full) ;; *) die 'CHATVIA_EMBEDDING_INDEX must be binary or full.' ;; esac
+    else
+        native_domain_notice
+        ask_admin
+        native_ask_domain
+        HTTPS=no
+        if ! is_ip "$DOMAIN"; then
+            choose 'HTTPS' \
+                "Get a free certificate from Let's Encrypt  — renews by itself (recommended)" \
+                'No HTTPS for now  — you can get a certificate later'
+            if [ "$CHOICE" = 0 ]; then HTTPS=yes; fi
+            if [ "$HTTPS" = yes ] && [ "$DNS_READY" = 0 ]; then
+                info 'The certificate needs the A record. If it does not work yet when the'
+                info 'installer gets there, ChatVia.ai runs on HTTP until you run the installer again.'
+            fi
+        fi
+        FIREWALL=no
+        if confirm "Turn on the firewall? Only SSH, HTTP and HTTPS can come in." y; then FIREWALL=yes; fi
+        SWAP=no
+        if needs_swap; then
+            info "This server has $(awk -v kb="$(meminfo_kb MemTotal)" 'BEGIN { printf "%.1f GB", kb / 1048576 }') of memory and no swap."
+            if confirm 'Add 4 GB of swap, so building ChatVia.ai does not run out of memory?' y; then SWAP=yes; fi
+        fi
+        ask_setup
+    fi
+
+    if is_ip "$DOMAIN"; then HTTPS=no; fi
+    if [ "$HTTPS" = yes ]; then APP_URL="https://$DOMAIN"; else APP_URL="http://$DOMAIN"; fi
+    native_resolve_version
+    # Automatic updates follow releases: a branch has none.
+    if [ -n "$CHATVIA_BRANCH" ]; then
+        AUTO_UPDATE=no
+    elif [ "$INTERACTIVE" = 1 ]; then
+        native_ask_auto_update
+    fi
+}
+
+native_ask_auto_update() {
+    block text
+    info 'Automatic updates: once a night, the server looks for a newer release of the'
+    info 'major version it runs (1.4 goes to 1.5, never to 2.0). When there is one, it'
+    info 'backs up the database and deploys it. A deploy that fails changes nothing.'
+    AUTO_UPDATE=no
+    if confirm 'Update ChatVia.ai automatically?' y; then AUTO_UPDATE=yes; fi
+}
+
+# Shown before the questions: a new DNS record can take a while to work, so
+# it can be added now, while the other questions are answered.
+native_domain_notice() {
+    section 'Before you start: point your domain at this server'
+    info 'At your DNS provider, add an A record for the domain people will open'
+    if [ -n "$SERVER_IP" ]; then
+        info "(like chat.example.com) with the value $(bold "$SERVER_IP"), the IP address of this server."
+    else
+        info '(like chat.example.com) with the public IP address of this server as its value.'
+    fi
+    info 'The installer checks it in a moment. No domain yet? Use the IP address for now.'
+}
+
+# Asks for the domain and checks its A record. When it does not point here,
+# the person can check again, use another address, go on anyway (a proxy or
+# CDN in front, or a record that needs more time) or stop.
+native_ask_domain() {
+    DNS_READY=1
+    while true; do
+        ask DOMAIN 'Domain name or IP address' --default "${DOMAIN:-${CHATVIA_DOMAIN:-}}" --placeholder 'chat.example.com' \
+            --hint "Where people open ChatVia.ai. Its A record must point at this server${SERVER_IP:+ ($SERVER_IP)}." \
+            --check valid_host
+        DOMAIN=$(printf '%s' "$DOMAIN" | tr '[:upper:]' '[:lower:]')
+        while ! native_check_dns; do
+            choose "$DOMAIN does not point at this server yet" \
+                'Check again  — after you add or change the A record' \
+                'Continue anyway  — a proxy or CDN is in front, or the record needs more time' \
+                'Use another domain or the IP address' \
+                'Stop for now  — run the installer again once the record works'
+            case $CHOICE in
+                0) flush_dns ;;
+                1)
+                    DNS_READY=0
+                    return
+                    ;;
+                2) continue 2 ;;
+                *)
+                    outro 'Nothing was changed.'
+                    exit 0
+                    ;;
+            esac
+        done
+        return
+    done
+}
+
+# Let's Encrypt checks that the domain points at this server. Behind a proxy
+# or CDN it may point elsewhere and still work, so this only warns. Returns 1
+# when it does not point here.
+native_check_dns() {
+    if is_ip "$DOMAIN"; then return 0; fi
+    local addresses
+    addresses=$(dns_addresses "$DOMAIN")
+    if [ -n "$addresses" ] && grep -qFxf <(server_addresses) <<<"$addresses"; then
+        ok "$DOMAIN points at this server"
+        return 0
+    fi
+    if [ -z "$addresses" ]; then
+        warn "$DOMAIN has no A record yet."
+    else
+        warn "$DOMAIN points at $(printf '%s' "$addresses" | paste -sd ' ' - | sed 's/ /, /g'), not at this server${SERVER_IP:+ ($SERVER_IP)}."
+    fi
+    info "Add an A record for it that points at ${SERVER_IP:-this server}, unless a proxy or CDN is in front."
+    return 1
+}
+
+native_show_summary() {
+    local password='the one you typed' address version storage index firewall swap code email kind updates database
+    local rows=()
+    if [ "$PASSWORD_GENERATED" = 1 ]; then password='a new random one, shown at the end'; fi
+    kv_to kind 'Install' 'Complete, directly on this server'
+    if [ "$HTTPS" = yes ]; then
+        kv_to address 'Address' "$APP_URL  $(dim '(HTTPS certificate from Let'\''s Encrypt)')"
+    else
+        kv_to address 'Address' "$APP_URL"
+    fi
+    kv_to email 'Admin e-mail' "$ADMIN_EMAIL"
+    kv_to password 'Admin password' "$password"
+    kv_to version 'Version' "$(native_version_text)"
+    kv_to storage 'Search storage' "$EMBEDDING_TYPE, $EMBEDDING_DIMENSIONS dimensions $(dim '(permanent)')"
+    kv_to index 'Search index' "$EMBEDDING_INDEX $(dim '(can be changed later)')"
+    kv_to code 'Code' "$NATIVE_ROOT, run by the user $NATIVE_USER"
+    if [ "$DATABASE" = existing ]; then
+        kv_to database 'Database' "your PostgreSQL at $DB_HOST:$DB_PORT, user $DB_USER $(dim "($DB_NAME, $DB_ANALYTICS, $DB_PULSE, $DB_SPECTRA)")"
+    else
+        kv_to database 'Database' "PostgreSQL $NATIVE_PG, installed on this server"
+    fi
+    rows=("$kind" "$address" "$email" "$password" "$version" "$storage" "$index" "$code" "$database")
+    if [ "$FIREWALL" = yes ]; then
+        kv_to firewall 'Firewall' "on: SSH (port $(ssh_ports | paste -sd, - | sed 's/,/, /g')), HTTP and HTTPS"
+    else
+        kv_to firewall 'Firewall' 'left as it is'
+    fi
+    rows+=("$firewall")
+    if [ "$AUTO_UPDATE" = yes ]; then
+        kv_to updates 'Updates' "automatic, once a night $(dim '(new releases of the same major version)')"
+    else
+        kv_to updates 'Updates' "by hand $(dim '(run this installer again)')"
+    fi
+    rows+=("$updates")
+    if [ "$SWAP" = yes ]; then
+        kv_to swap 'Swap' '4 GB, in /swapfile'
+        rows+=("$swap")
+    fi
+    note 'Check your settings' "${rows[@]}"
+    if [ "$HTTPS" = yes ]; then
+        local notice="Let's Encrypt sends expiry notices to $ADMIN_EMAIL. Getting the certificate"
+        info "$(dim "$notice")"
+        info "$(dim 'means you accept its Subscriber Agreement: https://letsencrypt.org/repository/')"
+    fi
+}
+
+native_save_settings() {
+    install -d -m 755 "$(dirname "$NATIVE_CONF")"
+    (
+        umask 077
+        cat >"$NATIVE_CONF" <<EOF
+# The answers of the Chatvia complete installation, saved by the installer
+# on $(date '+%Y-%m-%d'). It reads them when it runs again: to finish an install
+# that stopped, or to upgrade. The secrets are in $NATIVE_ROOT/shared/.env.
+CHATVIA_DOMAIN=$DOMAIN
+APP_URL=$APP_URL
+HTTPS=$HTTPS
+ADMIN_EMAIL=$ADMIN_EMAIL
+EMBEDDING_VECTOR_TYPE=$EMBEDDING_TYPE
+EMBEDDING_DIMENSIONS=$EMBEDDING_DIMENSIONS
+EMBEDDING_INDEX=$EMBEDDING_INDEX
+CHATVIA_REPO=$CHATVIA_REPO
+CHATVIA_RELEASE=$CHATVIA_RELEASE
+CHATVIA_BRANCH=$CHATVIA_BRANCH
+FIREWALL=$FIREWALL
+SWAP=$SWAP
+AUTO_UPDATE=$AUTO_UPDATE
+DATABASE=$DATABASE
+DB_HOST=$DB_HOST
+DB_PORT=$DB_PORT
+DB_DATABASE=$DB_NAME
+DB_USERNAME=$DB_USER
+DB_ANALYTICS_DATABASE=$DB_ANALYTICS
+DB_PULSE_DATABASE=$DB_PULSE
+DB_SPECTRA_DATABASE=$DB_SPECTRA
+DB_SERVER_MAJOR=$DB_MAJOR
+EOF
+    )
+    # The existing user's password is a secret, so it waits in the shared
+    # .env, where the step that writes the rest of it keeps it.
+    if [ "$DATABASE" = existing ]; then
+        install -d -m 755 "$NATIVE_ROOT" "$NATIVE_ROOT/shared"
+        (umask 077 && printf "DB_PASSWORD='%s'\n" "$DB_PASS" >"$NATIVE_ROOT/shared/.env")
+    fi
+}
+
+native_load_settings() {
+    DOMAIN=$(conf_value CHATVIA_DOMAIN)
+    APP_URL=$(conf_value APP_URL)
+    HTTPS=$(conf_value HTTPS)
+    ADMIN_EMAIL=$(conf_value ADMIN_EMAIL)
+    EMBEDDING_TYPE=$(conf_value EMBEDDING_VECTOR_TYPE)
+    EMBEDDING_DIMENSIONS=$(conf_value EMBEDDING_DIMENSIONS)
+    EMBEDDING_INDEX=$(conf_value EMBEDDING_INDEX)
+    EMBEDDING_INDEX=${EMBEDDING_INDEX:-binary}
+    CHATVIA_REPO=$(conf_value CHATVIA_REPO)
+    CHATVIA_RELEASE=$(conf_value CHATVIA_RELEASE)
+    CHATVIA_BRANCH=$(conf_value CHATVIA_BRANCH)
+    FIREWALL=$(conf_value FIREWALL)
+    SWAP=$(conf_value SWAP)
+    AUTO_UPDATE=$(conf_value AUTO_UPDATE)
+    AUTO_UPDATE=${AUTO_UPDATE:-no}
+    CHATVIA_REPO=${CHATVIA_REPO:-$NATIVE_REPO}
+    # Installs from before the existing-PostgreSQL choice made their own.
+    DATABASE=$(conf_value DATABASE)
+    DATABASE=${DATABASE:-local}
+    if [ "$DATABASE" = existing ]; then
+        DB_HOST=$(conf_value DB_HOST)
+        DB_PORT=$(conf_value DB_PORT)
+        DB_NAME=$(conf_value DB_DATABASE)
+        DB_USER=$(conf_value DB_USERNAME)
+        DB_ANALYTICS=$(conf_value DB_ANALYTICS_DATABASE)
+        DB_PULSE=$(conf_value DB_PULSE_DATABASE)
+        DB_SPECTRA=$(conf_value DB_SPECTRA_DATABASE)
+        DB_MAJOR=$(conf_value DB_SERVER_MAJOR)
+        DB_PASS=$(native_db_password)
+    fi
+}
+
+native_failed() {
+    die 'The installation stopped.' "See why: $LOG" \
+        'Fix the cause, then run the installer again: it goes on where it stopped.'
+}
+
+# Every step of the install, in order. Each one is safe to repeat.
+native_run_steps() {
+    if [ "$SWAP" = yes ]; then
+        run_step 'Adding 4 GB of swap' native_add_swap || native_failed
+    fi
+    run_step 'Updating the system packages' native_update_system || native_failed
+    run_step 'Looking for a newer Redis at packages.redis.io' native_add_redis_repo || native_failed
+    run_step 'Adding ppa:ondrej/php for the newest PHP' native_add_php_repo || native_failed
+    if [ "$DATABASE" = existing ]; then
+        run_step 'Installing PHP, Redis, nginx and the other packages' native_install_packages || native_failed
+        run_step 'Installing Node.js 22' native_install_node || native_failed
+    else
+        run_step 'Installing PHP, PostgreSQL, Redis, nginx and the other packages' native_install_packages || native_failed
+        run_step 'Installing Node.js 22' native_install_node || native_failed
+        run_step 'Installing the search extensions for PostgreSQL' native_install_extensions || native_failed
+        if [ "$DRY_RUN" = 1 ]; then
+            section 'PostgreSQL settings' "/etc/postgresql/$NATIVE_PG/main/conf.d/chatvia.conf"
+            native_postgres_conf | quote
+        fi
+        run_step 'Setting up PostgreSQL' native_configure_postgres || native_failed
+    fi
+    run_step "Creating the $NATIVE_USER user" native_create_user || native_failed
+    run_step 'Setting up PHP-FPM' native_configure_php || native_failed
+    run_step 'Setting up nginx' native_configure_nginx || native_failed
+    if [ "$HTTPS" != no ]; then native_https; fi
+    run_step "Saving the settings to $NATIVE_ROOT/shared/.env" native_write_env || native_failed
+    if [ "$DATABASE" = existing ]; then
+        run_step "Preparing the databases on $DB_HOST" native_prepare_database || native_failed
+    else
+        run_step 'Creating the database' native_setup_database || native_failed
+    fi
+    run_step 'Setting up Redis' native_configure_redis || native_failed
+    run_step 'Installing Deployer' native_install_deployer || native_failed
+    run_step "Deploying ChatVia.ai $(native_version_text) (5 to 15 minutes)" native_first_deploy || native_failed
+    run_step 'Sizing the queue workers to this server' native_tune_workers || native_failed
+    run_step 'Starting Horizon, Reverb and Pulse' native_configure_supervisor || native_failed
+    run_step 'Starting the scheduler' native_configure_cron || native_failed
+    run_step "$(native_auto_update_step)" native_configure_auto_update || native_failed
+    run_step 'Creating the admin account' native_create_admin || native_failed
+    native_read_admin_result
+    if [ "$FIREWALL" = yes ]; then
+        run_step 'Turning on the firewall' native_configure_firewall || native_failed
+    fi
+    run_step 'Banning addresses that keep failing SSH (fail2ban)' native_configure_fail2ban || native_failed
+    if ! run_step 'Waiting for the web app' wait_until 120 native_app_is_up; then
+        info "The admin account is ready: $(bold "$ADMIN_EMAIL"), password $(admin_password_text)"
+        die 'The web app did not answer within 2 minutes.' \
+            "See why: sudo tail -n 50 $NATIVE_ROOT/shared/storage/logs/laravel-$(date +%F).log" \
+            'Then run this installer again to finish.'
+    fi
+    run_step 'Checking that every part runs' native_check_parts || native_failed
+    if [ "$DRY_RUN" = 0 ]; then
+        printf '\n# Install finished on %s.\n' "$(date '+%Y-%m-%d')" >>"$NATIVE_CONF"
+    fi
+    native_show_finish
+}
+
+# --- installer/src/41-complete-database.sh ---
 #------------------------------------------------------------------------------
 # An existing PostgreSQL server
 #
@@ -2741,331 +3052,10 @@ native_prepare_database() {
     db_psql "$DB_NAME" -Atc "SELECT extname || ' ' || extversion FROM pg_extension ORDER BY 1"
 }
 
-native_collect_settings() {
-    SERVER_IP=$(server_ip)
-    if [ "$DATABASE" = existing ]; then native_database_settings; fi
-    if [ "$INTERACTIVE" = 0 ]; then
-        ADMIN_EMAIL=${CHATVIA_ADMIN_EMAIL:-}
-        [ -n "$ADMIN_EMAIL" ] || die 'Set the admin e-mail: --email you@example.com (or CHATVIA_ADMIN_EMAIL).'
-        valid_email "$ADMIN_EMAIL" || die "$INVALID"
-        ADMIN_PASS=${CHATVIA_ADMIN_PASSWORD:-}
-        if [ -z "$ADMIN_PASS" ]; then
-            ADMIN_PASS=$(random_password)
-            PASSWORD_GENERATED=1
-        fi
-        DOMAIN=$(printf '%s' "${CHATVIA_DOMAIN:-$SERVER_IP}" | tr '[:upper:]' '[:lower:]')
-        [ -n "$DOMAIN" ] || die 'Set the address: --domain chat.example.com (or CHATVIA_DOMAIN).'
-        valid_host "$DOMAIN" || die "$INVALID"
-        case ${CHATVIA_HTTPS:-yes} in no | false | 0) HTTPS=no ;; *) HTTPS=yes ;; esac
-        if is_ip "$DOMAIN"; then HTTPS=no; fi
-        if ! native_check_dns && [ "$HTTPS" = yes ]; then
-            info 'Without it, the HTTPS certificate fails, and ChatVia.ai runs on HTTP until you'
-            info 'get one (run this installer again then).'
-        fi
-        case ${CHATVIA_FIREWALL:-yes} in no | false | 0) FIREWALL=no ;; *) FIREWALL=yes ;; esac
-        case ${CHATVIA_AUTO_UPDATE:-yes} in no | false | 0) AUTO_UPDATE=no ;; *) AUTO_UPDATE=yes ;; esac
-        case ${CHATVIA_SWAP:-auto} in
-            yes | true | 1) SWAP=yes ;;
-            no | false | 0) SWAP=no ;;
-            *) if needs_swap; then SWAP=yes; else SWAP=no; fi ;;
-        esac
-        EMBEDDING_TYPE=${CHATVIA_EMBEDDING_TYPE:-halfvec}
-        EMBEDDING_DIMENSIONS=${CHATVIA_EMBEDDING_DIMENSIONS:-1024}
-        EMBEDDING_INDEX=${CHATVIA_EMBEDDING_INDEX:-binary}
-        case $EMBEDDING_TYPE in halfvec | vector) ;; *) die 'CHATVIA_EMBEDDING_TYPE must be halfvec or vector.' ;; esac
-        [[ $EMBEDDING_DIMENSIONS =~ ^[0-9]+$ ]] || die 'CHATVIA_EMBEDDING_DIMENSIONS must be a number.'
-        case $EMBEDDING_INDEX in binary | full) ;; *) die 'CHATVIA_EMBEDDING_INDEX must be binary or full.' ;; esac
-    else
-        native_domain_notice
-        ask_admin
-        native_ask_domain
-        HTTPS=no
-        if ! is_ip "$DOMAIN"; then
-            choose 'HTTPS' \
-                "Get a free certificate from Let's Encrypt  — renews by itself (recommended)" \
-                'No HTTPS for now  — you can get a certificate later'
-            if [ "$CHOICE" = 0 ]; then HTTPS=yes; fi
-            if [ "$HTTPS" = yes ] && [ "$DNS_READY" = 0 ]; then
-                info 'The certificate needs the A record. If it does not work yet when the'
-                info 'installer gets there, ChatVia.ai runs on HTTP until you run the installer again.'
-            fi
-        fi
-        FIREWALL=no
-        if confirm "Turn on the firewall? Only SSH, HTTP and HTTPS can come in." y; then FIREWALL=yes; fi
-        SWAP=no
-        if needs_swap; then
-            info "This server has $(awk -v kb="$(meminfo_kb MemTotal)" 'BEGIN { printf "%.1f GB", kb / 1048576 }') of memory and no swap."
-            if confirm 'Add 4 GB of swap, so building ChatVia.ai does not run out of memory?' y; then SWAP=yes; fi
-        fi
-        ask_setup
-    fi
-
-    if is_ip "$DOMAIN"; then HTTPS=no; fi
-    if [ "$HTTPS" = yes ]; then APP_URL="https://$DOMAIN"; else APP_URL="http://$DOMAIN"; fi
-    native_resolve_version
-    # Automatic updates follow releases: a branch has none.
-    if [ -n "$CHATVIA_BRANCH" ]; then
-        AUTO_UPDATE=no
-    elif [ "$INTERACTIVE" = 1 ]; then
-        native_ask_auto_update
-    fi
-}
-
-native_ask_auto_update() {
-    block text
-    info 'Automatic updates: once a night, the server looks for a newer release of the'
-    info 'major version it runs (1.4 goes to 1.5, never to 2.0). When there is one, it'
-    info 'backs up the database and deploys it. A deploy that fails changes nothing.'
-    AUTO_UPDATE=no
-    if confirm 'Update ChatVia.ai automatically?' y; then AUTO_UPDATE=yes; fi
-}
-
-# Shown before the questions: a new DNS record can take a while to work, so
-# it can be added now, while the other questions are answered.
-native_domain_notice() {
-    section 'Before you start: point your domain at this server'
-    info 'At your DNS provider, add an A record for the domain people will open'
-    if [ -n "$SERVER_IP" ]; then
-        info "(like chat.example.com) with the value $(bold "$SERVER_IP"), the IP address of this server."
-    else
-        info '(like chat.example.com) with the public IP address of this server as its value.'
-    fi
-    info 'The installer checks it in a moment. No domain yet? Use the IP address for now.'
-}
-
-# Asks for the domain and checks its A record. When it does not point here,
-# the person can check again, use another address, go on anyway (a proxy or
-# CDN in front, or a record that needs more time) or stop.
-native_ask_domain() {
-    DNS_READY=1
-    while true; do
-        ask DOMAIN 'Domain name or IP address' --default "${DOMAIN:-${CHATVIA_DOMAIN:-}}" --placeholder 'chat.example.com' \
-            --hint "Where people open ChatVia.ai. Its A record must point at this server${SERVER_IP:+ ($SERVER_IP)}." \
-            --check valid_host
-        DOMAIN=$(printf '%s' "$DOMAIN" | tr '[:upper:]' '[:lower:]')
-        while ! native_check_dns; do
-            choose "$DOMAIN does not point at this server yet" \
-                'Check again  — after you add or change the A record' \
-                'Continue anyway  — a proxy or CDN is in front, or the record needs more time' \
-                'Use another domain or the IP address' \
-                'Stop for now  — run the installer again once the record works'
-            case $CHOICE in
-                0) flush_dns ;;
-                1)
-                    DNS_READY=0
-                    return
-                    ;;
-                2) continue 2 ;;
-                *)
-                    outro 'Nothing was changed.'
-                    exit 0
-                    ;;
-            esac
-        done
-        return
-    done
-}
-
-# Let's Encrypt checks that the domain points at this server. Behind a proxy
-# or CDN it may point elsewhere and still work, so this only warns. Returns 1
-# when it does not point here.
-native_check_dns() {
-    if is_ip "$DOMAIN"; then return 0; fi
-    local addresses
-    addresses=$(dns_addresses "$DOMAIN")
-    if [ -n "$addresses" ] && grep -qFxf <(server_addresses) <<<"$addresses"; then
-        ok "$DOMAIN points at this server"
-        return 0
-    fi
-    if [ -z "$addresses" ]; then
-        warn "$DOMAIN has no A record yet."
-    else
-        warn "$DOMAIN points at $(printf '%s' "$addresses" | paste -sd ' ' - | sed 's/ /, /g'), not at this server${SERVER_IP:+ ($SERVER_IP)}."
-    fi
-    info "Add an A record for it that points at ${SERVER_IP:-this server}, unless a proxy or CDN is in front."
-    return 1
-}
-
-native_show_summary() {
-    local password='the one you typed' address version storage index firewall swap code email kind updates database
-    local rows=()
-    if [ "$PASSWORD_GENERATED" = 1 ]; then password='a new random one, shown at the end'; fi
-    kv_to kind 'Install' 'Complete, directly on this server'
-    if [ "$HTTPS" = yes ]; then
-        kv_to address 'Address' "$APP_URL  $(dim '(HTTPS certificate from Let'\''s Encrypt)')"
-    else
-        kv_to address 'Address' "$APP_URL"
-    fi
-    kv_to email 'Admin e-mail' "$ADMIN_EMAIL"
-    kv_to password 'Admin password' "$password"
-    kv_to version 'Version' "$(native_version_text)"
-    kv_to storage 'Search storage' "$EMBEDDING_TYPE, $EMBEDDING_DIMENSIONS dimensions $(dim '(permanent)')"
-    kv_to index 'Search index' "$EMBEDDING_INDEX $(dim '(can be changed later)')"
-    kv_to code 'Code' "$NATIVE_ROOT, run by the user $NATIVE_USER"
-    if [ "$DATABASE" = existing ]; then
-        kv_to database 'Database' "your PostgreSQL at $DB_HOST:$DB_PORT, user $DB_USER $(dim "($DB_NAME, $DB_ANALYTICS, $DB_PULSE, $DB_SPECTRA)")"
-    else
-        kv_to database 'Database' "PostgreSQL $NATIVE_PG, installed on this server"
-    fi
-    rows=("$kind" "$address" "$email" "$password" "$version" "$storage" "$index" "$code" "$database")
-    if [ "$FIREWALL" = yes ]; then
-        kv_to firewall 'Firewall' "on: SSH (port $(ssh_ports | paste -sd, - | sed 's/,/, /g')), HTTP and HTTPS"
-    else
-        kv_to firewall 'Firewall' 'left as it is'
-    fi
-    rows+=("$firewall")
-    if [ "$AUTO_UPDATE" = yes ]; then
-        kv_to updates 'Updates' "automatic, once a night $(dim '(new releases of the same major version)')"
-    else
-        kv_to updates 'Updates' "by hand $(dim '(run this installer again)')"
-    fi
-    rows+=("$updates")
-    if [ "$SWAP" = yes ]; then
-        kv_to swap 'Swap' '4 GB, in /swapfile'
-        rows+=("$swap")
-    fi
-    note 'Check your settings' "${rows[@]}"
-    if [ "$HTTPS" = yes ]; then
-        local notice="Let's Encrypt sends expiry notices to $ADMIN_EMAIL. Getting the certificate"
-        info "$(dim "$notice")"
-        info "$(dim 'means you accept its Subscriber Agreement: https://letsencrypt.org/repository/')"
-    fi
-}
-
-native_save_settings() {
-    install -d -m 755 "$(dirname "$NATIVE_CONF")"
-    (
-        umask 077
-        cat >"$NATIVE_CONF" <<EOF
-# The answers of the Chatvia complete installation, saved by the installer
-# on $(date '+%Y-%m-%d'). It reads them when it runs again: to finish an install
-# that stopped, or to upgrade. The secrets are in $NATIVE_ROOT/shared/.env.
-CHATVIA_DOMAIN=$DOMAIN
-APP_URL=$APP_URL
-HTTPS=$HTTPS
-ADMIN_EMAIL=$ADMIN_EMAIL
-EMBEDDING_VECTOR_TYPE=$EMBEDDING_TYPE
-EMBEDDING_DIMENSIONS=$EMBEDDING_DIMENSIONS
-EMBEDDING_INDEX=$EMBEDDING_INDEX
-CHATVIA_REPO=$CHATVIA_REPO
-CHATVIA_RELEASE=$CHATVIA_RELEASE
-CHATVIA_BRANCH=$CHATVIA_BRANCH
-FIREWALL=$FIREWALL
-SWAP=$SWAP
-AUTO_UPDATE=$AUTO_UPDATE
-DATABASE=$DATABASE
-DB_HOST=$DB_HOST
-DB_PORT=$DB_PORT
-DB_DATABASE=$DB_NAME
-DB_USERNAME=$DB_USER
-DB_ANALYTICS_DATABASE=$DB_ANALYTICS
-DB_PULSE_DATABASE=$DB_PULSE
-DB_SPECTRA_DATABASE=$DB_SPECTRA
-DB_SERVER_MAJOR=$DB_MAJOR
-EOF
-    )
-    # The existing user's password is a secret, so it waits in the shared
-    # .env, where the step that writes the rest of it keeps it.
-    if [ "$DATABASE" = existing ]; then
-        install -d -m 755 "$NATIVE_ROOT" "$NATIVE_ROOT/shared"
-        (umask 077 && printf "DB_PASSWORD='%s'\n" "$DB_PASS" >"$NATIVE_ROOT/shared/.env")
-    fi
-}
-
-native_load_settings() {
-    DOMAIN=$(conf_value CHATVIA_DOMAIN)
-    APP_URL=$(conf_value APP_URL)
-    HTTPS=$(conf_value HTTPS)
-    ADMIN_EMAIL=$(conf_value ADMIN_EMAIL)
-    EMBEDDING_TYPE=$(conf_value EMBEDDING_VECTOR_TYPE)
-    EMBEDDING_DIMENSIONS=$(conf_value EMBEDDING_DIMENSIONS)
-    EMBEDDING_INDEX=$(conf_value EMBEDDING_INDEX)
-    EMBEDDING_INDEX=${EMBEDDING_INDEX:-binary}
-    CHATVIA_REPO=$(conf_value CHATVIA_REPO)
-    CHATVIA_RELEASE=$(conf_value CHATVIA_RELEASE)
-    CHATVIA_BRANCH=$(conf_value CHATVIA_BRANCH)
-    FIREWALL=$(conf_value FIREWALL)
-    SWAP=$(conf_value SWAP)
-    AUTO_UPDATE=$(conf_value AUTO_UPDATE)
-    AUTO_UPDATE=${AUTO_UPDATE:-no}
-    CHATVIA_REPO=${CHATVIA_REPO:-$NATIVE_REPO}
-    # Installs from before the existing-PostgreSQL choice made their own.
-    DATABASE=$(conf_value DATABASE)
-    DATABASE=${DATABASE:-local}
-    if [ "$DATABASE" = existing ]; then
-        DB_HOST=$(conf_value DB_HOST)
-        DB_PORT=$(conf_value DB_PORT)
-        DB_NAME=$(conf_value DB_DATABASE)
-        DB_USER=$(conf_value DB_USERNAME)
-        DB_ANALYTICS=$(conf_value DB_ANALYTICS_DATABASE)
-        DB_PULSE=$(conf_value DB_PULSE_DATABASE)
-        DB_SPECTRA=$(conf_value DB_SPECTRA_DATABASE)
-        DB_MAJOR=$(conf_value DB_SERVER_MAJOR)
-        DB_PASS=$(native_db_password)
-    fi
-}
-
-native_failed() {
-    die 'The installation stopped.' "See why: $LOG" \
-        'Fix the cause, then run the installer again: it goes on where it stopped.'
-}
-
-# Every step of the install, in order. Each one is safe to repeat.
-native_run_steps() {
-    if [ "$SWAP" = yes ]; then
-        run_step 'Adding 4 GB of swap' native_add_swap || native_failed
-    fi
-    run_step 'Updating the system packages' native_update_system || native_failed
-    run_step 'Looking for a newer Redis at packages.redis.io' native_add_redis_repo || native_failed
-    run_step 'Adding ppa:ondrej/php for the newest PHP' native_add_php_repo || native_failed
-    if [ "$DATABASE" = existing ]; then
-        run_step 'Installing PHP, Redis, nginx and the other packages' native_install_packages || native_failed
-        run_step 'Installing Node.js 22' native_install_node || native_failed
-    else
-        run_step 'Installing PHP, PostgreSQL, Redis, nginx and the other packages' native_install_packages || native_failed
-        run_step 'Installing Node.js 22' native_install_node || native_failed
-        run_step 'Installing the search extensions for PostgreSQL' native_install_extensions || native_failed
-        if [ "$DRY_RUN" = 1 ]; then
-            section 'PostgreSQL settings' "/etc/postgresql/$NATIVE_PG/main/conf.d/chatvia.conf"
-            native_postgres_conf | quote
-        fi
-        run_step 'Setting up PostgreSQL' native_configure_postgres || native_failed
-    fi
-    run_step "Creating the $NATIVE_USER user" native_create_user || native_failed
-    run_step 'Setting up PHP-FPM' native_configure_php || native_failed
-    run_step 'Setting up nginx' native_configure_nginx || native_failed
-    if [ "$HTTPS" != no ]; then native_https; fi
-    run_step "Saving the settings to $NATIVE_ROOT/shared/.env" native_write_env || native_failed
-    if [ "$DATABASE" = existing ]; then
-        run_step "Preparing the databases on $DB_HOST" native_prepare_database || native_failed
-    else
-        run_step 'Creating the database' native_setup_database || native_failed
-    fi
-    run_step 'Setting up Redis' native_configure_redis || native_failed
-    run_step 'Installing Deployer' native_install_deployer || native_failed
-    run_step "Deploying ChatVia.ai $(native_version_text) (5 to 15 minutes)" native_first_deploy || native_failed
-    run_step 'Sizing the queue workers to this server' native_tune_workers || native_failed
-    run_step 'Starting Horizon, Reverb and Pulse' native_configure_supervisor || native_failed
-    run_step 'Starting the scheduler' native_configure_cron || native_failed
-    run_step "$(native_auto_update_step)" native_configure_auto_update || native_failed
-    run_step 'Creating the admin account' native_create_admin || native_failed
-    native_read_admin_result
-    if [ "$FIREWALL" = yes ]; then
-        run_step 'Turning on the firewall' native_configure_firewall || native_failed
-    fi
-    run_step 'Banning addresses that keep failing SSH (fail2ban)' native_configure_fail2ban || native_failed
-    if ! run_step 'Waiting for the web app' wait_until 120 native_app_is_up; then
-        info "The admin account is ready: $(bold "$ADMIN_EMAIL"), password $(admin_password_text)"
-        die 'The web app did not answer within 2 minutes.' \
-            "See why: sudo tail -n 50 $NATIVE_ROOT/shared/storage/logs/laravel-$(date +%F).log" \
-            'Then run this installer again to finish.'
-    fi
-    run_step 'Checking that every part runs' native_check_parts || native_failed
-    if [ "$DRY_RUN" = 0 ]; then
-        printf '\n# Install finished on %s.\n' "$(date '+%Y-%m-%d')" >>"$NATIVE_CONF"
-    fi
-    native_show_finish
-}
+# --- installer/src/42-complete-steps.sh ---
+#------------------------------------------------------------------------------
+# Complete installation: the install steps, and what they write
+#------------------------------------------------------------------------------
 
 # The certificate, when the answers ask for one (or an earlier attempt could
 # not get it). Without it, Chatvia runs on HTTP: the next run of the
@@ -4240,6 +4230,11 @@ native_check_parts() {
     echo 'Every part runs.'
 }
 
+# --- installer/src/43-complete-upgrade.sh ---
+#------------------------------------------------------------------------------
+# Complete installation: the finish, and running the installer again
+#------------------------------------------------------------------------------
+
 native_show_finish() {
     local title open admin email password saved='' n=1
     if [ "$DRY_RUN" = 1 ]; then
@@ -4490,6 +4485,31 @@ native_switch_to_https() {
     conf_set APP_URL "$APP_URL"
     as_chatvia "$NATIVE_ROOT/current" php artisan optimize
     as_chatvia "$NATIVE_ROOT/current" php artisan reload
+}
+
+# --- installer/src/90-main.sh ---
+#------------------------------------------------------------------------------
+# Which install
+#------------------------------------------------------------------------------
+
+# MODE: docker, or complete (everything directly on this server). An option
+# that only means something for Docker (--dir, --port, ...) picks Docker, so
+# ./manage upgrade, which passes --dir, never asks. A server with a complete
+# installation goes on with it: to upgrade it, or to finish it.
+choose_mode() {
+    if [ -n "$MODE" ]; then return; fi
+    if [ "$OS" = macos ] || [ "$DOCKER_OPTIONS" = 1 ]; then
+        MODE=docker
+    elif [ -f "$NATIVE_CONF" ] || [ -n "${CHATVIA_DB_HOST:-}" ]; then
+        MODE=complete
+    elif [ "$INTERACTIVE" = 0 ]; then
+        MODE=docker
+    else
+        choose 'How do you want to install ChatVia.ai?' \
+            'With Docker  — everything in containers, easy to move and remove' \
+            "Complete installation  — everything directly on this server (Ubuntu $NATIVE_UBUNTU)"
+        if [ "$CHOICE" = 0 ]; then MODE=docker; else MODE=complete; fi
+    fi
 }
 
 #------------------------------------------------------------------------------

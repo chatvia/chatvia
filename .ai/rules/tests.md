@@ -6,6 +6,11 @@ paths:
 
 # Tests
 
+## What earns a test
+Test the feature through its entry point and check what the user or operator gets. That covers the Action, DTO and form request behind it. Add a unit test only for a critical rule (tenancy and permissions, sign-in, license and usage limits, outside input and SSRF, signatures and webhooks, guardrails, tool approval, data erasure and retention, secrets) or for logic with real branches (parsers, stream decoders, chunkers, scorers), with one case per branch.
+
+Don't test labels and copy, translated strings, prompt wording, the exact output of a formatter or payload builder, DTO shape, config defaults, enum lists, service-provider bindings, listener registration, "the event or job was dispatched" with no effect checked, or framework behaviour (casts, `required`, Filament rendering a field). Write one validation case per form request, not one per field. A dataset holds distinct branches only. On a page, assert the data or the saved setting, not `assertSee('Some label')`.
+
 ## Pest style
 Write `it('refuses the last link of a file and changes nothing', function (): void { … })` with `expect()` chains joined by `->and()`. No `test()`, no PHPUnit classes, no `$this->assertX()`. Start the file with a short docblock that says which behaviour it covers. Use `describe()` only when one file covers several subjects.
 
@@ -17,11 +22,11 @@ A test name says what happens and what should result, never "works". Split a tes
 
 `tests/Feature/…` goes through an entry point the outside world uses: an HTTP route, a Filament/Livewire page, an artisan command or broadcasting auth. Put it at that entry point's path: `tests/Feature/App/Http/Controllers/…/{Controller}Test.php`, `tests/Feature/App/Admin/{Pages,Resources,…}/…`, `tests/Feature/App/Console/Commands/{Ns}/{Command}Test.php`. A flow across several entry points is named for its behaviour and sits in their nearest common folder. A file that makes no request is a unit test. Never write a `*JobTest.php`.
 
-## Test Actions directly
-Build the DTO, call `app(XAction::class)->execute(…)`, then check the returned value, the database and the side effects. Include at least one refusal path and check that nothing changed: `expect(fn () => …)->toThrow(X::class)` plus a state check.
+## Test an Action directly only when it earns it
+When an Action needs its own test (see above), build the DTO, call `app(XAction::class)->execute(…)`, then check the returned value, the database and the side effects. Include at least one refusal path and check that nothing changed: `expect(fn () => …)->toThrow(X::class)` plus a state check.
 
 ## Test controllers through HTTP
-Check the status, redirect, Inertia component and props (`assertInertia()`), or JSON with `assertJsonPath()`. Test validation by posting to the endpoint (`assertSessionHasErrors()`, `assertJsonValidationErrors()`); don't call `rules()` directly. Prefer named routes (`route('…')`).
+Check the status, redirect, Inertia component and props (`assertInertia()`), or JSON with `assertJsonPath()`. Test validation by posting to the endpoint once, with input that is refused (`assertSessionHasErrors()`, `assertJsonValidationErrors()`); don't call `rules()` directly. Prefer named routes (`route('…')`).
 
 ## Arrange, act, assert
 Keep the three parts as blocks separated by blank lines, with no `// Arrange` comments. Assert only what this behaviour changes, not a whole `toArray()` or the exact JSON.
@@ -48,7 +53,7 @@ Don't write `*JobTest.php` files; test the Action. To check a dispatch, use `Bus
 Move time with `$this->travelTo()`, `$this->travel()` or `$this->freezeTime()`, not `Carbon::setTestNow()`. Run one check over many inputs with a labelled dataset (`->with([...])`).
 
 ## Prove tenancy and permissions
-A teammate without the permission gets 403; another workspace's record gets 404.
+A teammate without the permission gets 403; another workspace's record gets 404. `CrossWorkspaceRouteTest`, `WorkspacePermissionRouteTest`, `AgentPermissionRouteTest` and `ApiPermissionTest` sweep every route, so a controller test adds at most one case of each, for a rule the sweeps can't see.
 
 ## Architecture tests
 Add a structural rule as a plain `it()` in `tests/Architecture/ConventionsTest.php` that scans files without booting the app; don't use Pest's `arch()`. The allowlists there only shrink: fix an offender, then remove its entry. Counts too large for an allowlist live in `tests/Architecture/baselines/*.json`; after fixing calls, lower them with `CONVENTIONS_BASELINE_WRITE=1 vendor/bin/pest tests/Architecture`.

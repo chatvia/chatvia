@@ -103,7 +103,6 @@ locators there; use constructor injection instead.
 | Test | What it checks |
 |---|---|
 | `tests/Architecture/ConventionsTest.php` | Domain does not use `Illuminate\Http\Request` (except the two bridges); Domain uses App only through `App\Identity`; Integration does not use Conversation; Support has no code reference to Domain or App (these read the code, not comments, so a fully-qualified name counts); Actions (in every layer, the admin panel's too) use `execute()` (never `handle()`), never return `redirect`, never use the `Auth` facade, never send notifications; Jobs have no transactions or row locks; listeners have no `Listener` suffix; Domain models have no `...Request` names; controllers never call `$request->validate()`; `external_id` lookups of conversations and sessions, on one line or split over several, go through `WidgetVerification` (an allowlist names the others and why each is safe); form requests use `WorkspaceRule` for `exists`/`unique` (shrink-only allowlist for install-wide values); every listener is passed to `Event::listen()`/`Event::subscribe()` in a service provider; every test file starts with a docblock, and tests use `it()`, never `test('…')`; plain PHP file, process, time, number and string calls are refused outside short allowlists; `array_map`/`array_filter`/`array_column` and `json_*` calls without `JSON_THROW_ON_ERROR` are pinned by shrink-only baselines in `tests/Architecture/baselines/` (rewrite with `CONVENTIONS_BASELINE_WRITE=1`). |
-| `tests/Architecture/ActionsHaveTestsTest.php` | Every Action is named in the code of a test file (not a comment or a `use` line, not a helper in `tests/Pest.php` or `tests/Support/`), or is on a shrink-only allowlist. Prints the coverage. |
 | `tests/Architecture/ClassesHaveDocblocksTest.php` | Every class, interface, trait and enum under `src/` has a docblock with at least one sentence of prose, or its file is on a shrink-only allowlist. Prints the coverage. |
 | `tests/Architecture/FrontendConventionsTest.php` | Frontend rules: no `hsl(var(--x))`, no third-party icon CDN or Google Fonts, no `console.log`, `safeStorage` on the boot and hosted-chat paths, one shared Echo connection, `AlertDialog` for delete confirmations. |
 | `tests/Architecture/Psr4PathCaseTest.php` | Every class file git tracks under `src/` has the exact case of its namespace and class name, as Linux autoloading needs (macOS forgives a wrong case). |
@@ -1309,7 +1308,7 @@ See the widget's README for embed options.
 
 | Suite | Folder | Notes |
 |---|---|---|
-| Unit | `tests/Unit/` | Actions, services, DTOs, at the path of the class they test (`tests/Unit/Domain/Agent/Actions/Account/CreateAgentActionTest.php` for `src/Domain/Agent/Actions/Account/CreateAgentAction.php`; App code under `tests/Unit/App/…`). A test of behaviour across several classes sits in its context's folder. |
+| Unit | `tests/Unit/` | Critical rules and branchy logic (see "What earns a test" below), at the path of the class they test (`tests/Unit/Domain/Agent/Actions/Account/CreateAgentActionTest.php` for `src/Domain/Agent/Actions/Account/CreateAgentAction.php`; App code under `tests/Unit/App/…`). A test of behaviour across several classes sits in its context's folder. |
 | Feature | `tests/Feature/` | Tests through an entry point (an HTTP route, an admin page, an artisan command, broadcasting auth), at the path of that entry point: `tests/Feature/App/Http/Controllers/…/{Controller}Test.php`, `tests/Feature/App/Admin/…`, `tests/Feature/App/Console/Commands/{Ns}/…`. A flow across several entry points is named for its behaviour in their nearest common folder (`tests/Feature/App/Http/CrossWorkspaceRouteTest.php`). Tests of files outside `src/` sit in `tests/Feature/{Bootstrap,Database,Routes}`. |
 | Architecture | `tests/Architecture/` | Framework-free rules (section 2). |
 | Eval | `tests/Eval/` | Quality checks with real models (group `eval`). They skip themselves without an API key. |
@@ -1319,9 +1318,6 @@ See the widget's README for embed options.
   its own `testing` database: on the first run it installs the extensions,
   migrates and seeds; when migrations change it rebuilds the schema. Each
   test runs in a transaction.
-- Every Action that has behaviour (a branch, a transaction, an event, an
-  outside call) gets a unit test: build the DTO, call `execute()`, check the
-  result and the events with `Event::fake()`.
 - Tests never call real outside services. Use `Http::fake()` and the fakes in
   `tests/Support/` (embeddings, reranker, channel clients). `TestCase` calls
   `Http::preventStrayRequests()`, so a request no fake answers fails the test,
@@ -1331,20 +1327,52 @@ See the widget's README for embed options.
   `teammateWithPermissions()`, …) and the model factories. A helper declared
   in a test file is a global function, so it gets a short per-file prefix.
 
+### What earns a test
+
+A test is worth its upkeep when it guards something a user, an operator or an
+attacker would notice. Tests of copy and wiring break on every harmless change
+and catch nothing.
+
+1. **Test the feature through its entry point.** One feature test per route,
+   admin page or command, checking what the user or operator gets: the saved
+   record, the response, the queued job, the email, the streamed reply. That
+   test also covers the Action, DTO and form request behind it, so they need
+   no test of their own.
+2. **Write a unit test only for** a critical rule or for logic with real
+   branches. Critical rules: tenancy and permissions, sign-in and sessions,
+   license and usage limits, outside input and SSRF, signatures and webhooks,
+   guardrails, tool approval, data erasure and retention, secrets. Branchy
+   logic: parsers, stream decoders, chunkers, scorers. Give it one case per
+   branch, not one per input.
+3. **Don't test** labels and copy, translated strings, prompt wording, the
+   exact output of a formatter or payload builder, DTO shape, config
+   defaults, enum lists, service-provider bindings, listener registration,
+   "the event or job was dispatched" with no effect checked, or framework
+   behaviour (casts, `required`, Filament rendering a field).
+4. **One validation case per form request**, showing that bad input is
+   refused. Not one case per field.
+5. **At most one tenancy case and one permission case per controller.**
+   `CrossWorkspaceRouteTest`, `WorkspacePermissionRouteTest`,
+   `AgentPermissionRouteTest` and `ApiPermissionTest` already sweep every
+   route.
+6. **A dataset holds distinct branches only.** Five rows that hit the same
+   branch are one row.
+7. **Assert state, not text.** On a page, check the data or the saved
+   setting, not `assertSee('Some label')`.
+
 ### The ratchets
 
-`ActionsHaveTestsTest` and `ClassesHaveDocblocksTest` each have an allowlist
-for the files that do not follow the rule yet. Both lists are empty today:
-every Action has a test and every class has a docblock. The lists may only
-shrink:
+`ClassesHaveDocblocksTest` has an allowlist for the files that do not follow
+the rule yet. The list is empty today: every class has a docblock. The list
+may only shrink:
 
-- a new Action without a test, or a new class without a docblock, fails. The
-  allowlist is the explicit way out, and it shows up in code review;
+- a new class without a docblock fails. The allowlist is the explicit way
+  out, and it shows up in code review;
 - an allowlisted entry that now follows the rule also fails, so you remove it
   from the list.
 
-Both tests print the live ratio on every run, in the form
-`Action test coverage: <tested>/<total> (<percent>) tested, <n> allowlisted`.
+The test prints the live ratio on every run, in the form
+`Class docblock coverage: <documented>/<total> (<percent>) documented, <n> files allowlisted`.
 
 ---
 
@@ -1352,7 +1380,7 @@ Both tests print the live ratio on every run, in the form
 
 | You are adding ... | Put it in |
 |---|---|
-| A new state change | an Action in `src/Domain/{Context}/Actions/{Feature}/`, a DTO in `Data/{Feature}/`, a form request with `toData()`, a thin controller method, a unit test |
+| A new state change | an Action in `src/Domain/{Context}/Actions/{Feature}/`, a DTO in `Data/{Feature}/`, a form request with `toData()`, a thin controller method, a feature test through its route |
 | A new page | a controller in `src/App/Http/Controllers/{Area}/`, a route, a Vue page in `resources/js/pages/`, API calls in `resources/js/api/` |
 | A side effect (e-mail, broadcast, push) | an event in `{Context}/Events/`, a listener in `{Context}/Listeners/`, **registered** in `DomainServiceProvider::registerEventListeners()` |
 | Background work | a job that calls an Action, on the right queue (`config/horizon.php`) |

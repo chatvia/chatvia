@@ -11,8 +11,8 @@ use Illuminate\Support\Str;
  * here it fails CI instead, so the layering can't silently erode.
  *
  * Lives in the Architecture suite, which runs framework-free (no app container,
- * no DB) — so source files are located by path relative to this file, exactly
- * like ActionsHaveTestsTest.
+ * no DB) — so source files are located by path relative to this file, like
+ * the other architecture tests.
  */
 
 /** @return list<string> absolute paths of every .php file under src/<relativeDir>. */
@@ -242,7 +242,7 @@ it('Domain models do not carry HTTP-leakage Request names', function (): void {
 /**
  * Controllers MUST use FormRequest + ->toData() instead of inline
  * `$request->validate(...)`. This is a shrink-only allowlist (matching the
- * pattern used by ActionsHaveTestsTest): the list pins the *current* set of
+ * pattern used by ClassesHaveDocblocksTest): the list pins the *current* set of
  * offenders so any NEW controller method calling `$request->validate(` fails
  * the test, and once a listed file is migrated it must be removed (or the
  * "drift down" branch flags it).

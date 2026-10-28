@@ -19,8 +19,8 @@ use Illuminate\Support\Str;
  *  - an allowlisted file that is documented now, or no longer exists, also
  *    fails the test, so its row is removed and the list keeps getting shorter.
  *
- * The live coverage ratio is printed to STDERR on every run, like
- * ActionsHaveTestsTest does, so no comment can go stale.
+ * The live coverage ratio is printed to STDERR on every run, so no comment
+ * can go stale.
  *
  * Framework-free (Architecture suite): files are found relative to this file
  * and read with PHP's tokenizer, so no class is loaded.

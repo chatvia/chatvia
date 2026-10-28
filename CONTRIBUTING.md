@@ -530,16 +530,19 @@ then tag the widget release: every build takes the newest release.
   vendor/bin/pest tests/Architecture        # fast: no app, no database
   ```
 
-- Every Action that has real behaviour (a branch, a transaction, an event, an
-  external call) needs a unit test: build the DTO, call `execute()`, and check
-  the result and the dispatched events (`Event::fake()`).
-- Two architecture tests keep **shrink-only allowlists** (both are empty
-  today): `ActionsHaveTestsTest` (every Action has a test) and
-  `ClassesHaveDocblocksTest` (every class has a docblock with at least one
-  sentence of prose before its `@` tags). A new Action without a test, or a
-  new class without a docblock, fails. When you fix an allowlisted entry, the
-  test fails until you remove it from the list. Both print their coverage on
-  every run.
+- Test a feature through its entry point (a route, an admin page, a
+  command), and check what the user gets: the saved record, the response,
+  the queued job. Write a unit test only for a critical rule (tenancy,
+  permissions, sign-in, limits, SSRF, signatures, guardrails, tool approval,
+  data erasure, secrets) or for logic with real branches (parsers, decoders,
+  chunkers), with one case per branch. Don't test labels, copy, prompt
+  wording, DTO shape, config defaults or wiring.
+  [ARCHITECTURE.md](ARCHITECTURE.md#what-earns-a-test) has the full list.
+- `ClassesHaveDocblocksTest` keeps a **shrink-only allowlist** (empty today):
+  every class has a docblock with at least one sentence of prose before its
+  `@` tags. A new class without a docblock fails. When you fix an
+  allowlisted entry, the test fails until you remove it from the list. It
+  prints its coverage on every run.
 - Fix the code, not the test. Do not weaken an assertion to make a test pass.
 - Tests must not call real external services. Use `Http::fake()` and the fakes
   in `tests/Support/`. `TestCase` calls `Http::preventStrayRequests()`, so a

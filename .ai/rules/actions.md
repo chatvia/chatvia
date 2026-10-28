@@ -30,5 +30,5 @@ An Action that needs another Action or a service injects it as a promoted `priva
 ## Run in the background through a Job
 To run an Action on the queue, write a thin `{Verb}{Noun}Job` that receives models or the DTO and calls the Action from `handle()`. Don't add a queueable-action package.
 
-## Every Action has a test
-Test it directly, with no HTTP: `app(CreateAgentAction::class)->execute(new CreateAgentData(…))`, then check the returned value, the database and the side effects. Cover at least one refusal path and check that nothing changed. `ActionsHaveTestsTest` fails for an Action without a test.
+## Test the Action through its entry point
+The feature test of the route, page or command that calls the Action covers it. Give an Action its own unit test only when it holds a critical rule (tenancy, limits, erasure, signatures, tool approval) or branches the feature test can't reach easily, as `.ai/rules/tests.md` explains.

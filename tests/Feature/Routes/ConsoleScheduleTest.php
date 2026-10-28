@@ -75,8 +75,12 @@ it('syncs the models\' facts daily in the 5 o\'clock hour, at a minute of the in
     expect(csExpressionOf('chatvia:llm:sync-facts'))->toMatch('/^[1-5]?[0-9] 5 \* \* \*$/');
 });
 
+it('looks for a newer release daily in the 7 o\'clock hour, at a minute of the install\'s own', function (): void {
+    expect(csExpressionOf('chatvia:update:check'))->toMatch('/^[1-5]?[0-9] 7 \* \* \*$/');
+});
+
 it('schedules nothing the tests above do not name', function (): void {
-    $named = [...array_column(csScheduled(), 0), 'chatvia:license:check', 'chatvia:llm:sync-facts'];
+    $named = [...array_column(csScheduled(), 0), 'chatvia:license:check', 'chatvia:llm:sync-facts', 'chatvia:update:check'];
 
     $unnamed = collect(app(Schedule::class)->events())
         ->reject(fn (Event $event): bool => collect($named)->contains(fn (string $command): bool => csRuns($event, $command)))

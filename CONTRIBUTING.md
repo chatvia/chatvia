@@ -399,8 +399,8 @@ your machine. After you change `.env`, run `vendor/bin/sail restart`.
 
 1. Make the change. Keep each commit focused on **one** thing.
 2. Add or update tests (see [Tests](#tests)).
-3. Run the checks (see [Checks](#checks)): `composer ci` while you work,
-   `composer ci:check` before you push.
+3. Run the checks (see [Checks](#checks)): `composer ci:check` before you
+   push.
 4. Add a line to the `Unreleased` section of [CHANGELOG.md](CHANGELOG.md) when
    users or self-hosters will notice the change.
 5. Go through the [change checklist](#change-checklist).
@@ -411,14 +411,17 @@ the change comes from an issue, close it from the commit ("Closes #123").
 
 ## Checks
 
-There are two Composer scripts. Both are defined in `composer.json`.
+One Composer script, defined in `composer.json`, runs every gate.
 
-### `composer ci:check`: the read-only gate
+### `composer ci:check`: fix, then check
 
-CI runs exactly these gates. It **never changes a file**. Locally it runs
-them in this order and stops at the first failure. In CI every gate is a job
-of its own, named after its tool, and all of them run side by side, so one run
-shows every gate that fails:
+It runs the CI gates in this order and stops at the first failure. Where a
+tool can fix what it finds (Rector, Pint, Prettier, ESLint), it **fixes the
+files** instead of only checking them, so look at `git diff` afterwards and
+commit the fixes you want. CI runs the check-only form of each gate, which
+never changes a file. In CI every gate is a job of its own, named after its
+tool, and all of them run side by side, so one run shows every gate that
+fails:
 
 - `security.yml`: Composer audit, npm audit (steps 2 and 3). It also runs
   every morning, because new advisories appear without a push.
@@ -437,11 +440,11 @@ The jobs share their setup through `.github/actions/setup-php-app` and
 | 1 | `composer validate --strict` | `composer.json` is valid. |
 | 2 | `composer audit` | No known security problems in PHP packages. |
 | 3 | `npm audit --omit=dev` | No known security problems in production npm packages. |
-| 4 | `composer format:check` (`pint --test`) | PHP code style. |
-| 5 | `composer refactor:check` (`rector process --dry-run`) | Rector would not change anything (PHP 8.5 and Laravel 13 rules, types, dead code). |
+| 4 | `composer refactor` (`rector process`) | Applies Rector (PHP 8.5 and Laravel 13 rules, types, dead code). CI: `composer refactor:check`. |
+| 5 | `composer format` (`pint`) | Fixes PHP code style. CI: `composer format:check`. |
 | 6 | `composer analyse` (`phpstan analyse`) | PHPStan with Larastan on `src/` (`phpstan.neon.dist`). |
-| 7 | `npm run format:check` (`prettier --check resources/`) | Frontend code style. |
-| 8 | `npm run lint:check` (`eslint .`) | ESLint rules for Vue and TypeScript. |
+| 7 | `npm run format` (`prettier --write resources/`) | Fixes frontend code style. CI: `npm run format:check`. |
+| 8 | `npm run lint` (`eslint . --fix`) | ESLint rules for Vue and TypeScript; fails on what it cannot fix. CI: `npm run lint:check`. |
 | 9 | `npm run typecheck` (`vue-tsc --noEmit`) | TypeScript types in the frontend. |
 | 10 | `npm run test` (`vitest run`) | The frontend unit tests: `*.test.ts` files next to the code they test. |
 | 11 | `npm run i18n:check` | Every static `t('…')` key exists in `en.json`, and every locale's messages compile. |
@@ -463,19 +466,6 @@ shellcheck install.sh installer/build installer/templates/chatvia-auto-update.sh
 /bin/bash -n install.sh && /bin/bash -n docker/manage   # bash 3.2 on macOS
 actionlint                                                # brew install actionlint
 ```
-
-### `composer ci`: fix, then check
-
-`composer ci` first fixes what tools can fix, then runs `composer ci:check`:
-
-1. `npm run format` (`prettier --write resources/`)
-2. `npm run lint` (`eslint . --fix`)
-3. `composer format` (`pint`)
-4. `composer refactor` (`rector process`)
-5. `composer ci:check`
-
-It changes files, so look at `git diff` afterwards and commit the fixes you
-want.
 
 ### Running one tool
 

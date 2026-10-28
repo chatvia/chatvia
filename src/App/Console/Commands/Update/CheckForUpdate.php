@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands\Update;
 
 use App\Admin\Update\Actions\CheckForUpdateAction;
+use App\Admin\Update\Data\ReleaseData;
 use App\Admin\Update\Services\InstalledVersion;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -22,7 +23,7 @@ class CheckForUpdate extends Command
     {
         $release = $checkForUpdate->execute();
 
-        if ($release !== null) {
+        if ($release instanceof ReleaseData) {
             $this->warn("ChatVia.ai {$release->version} is available (this install runs {$installed->version()}): {$release->url}");
         } else {
             $this->info("No newer release found. This install runs {$installed->version()}.");

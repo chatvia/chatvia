@@ -133,14 +133,6 @@
         "analyse": "vendor/bin/phpstan analyse --memory-limit=2G",
         "refactor": "vendor/bin/rector process",
         "refactor:check": "vendor/bin/rector process --dry-run",
-        "ci": [
-            "Composer\\Config::disableProcessTimeout",
-            "npm run format",
-            "npm run lint",
-            "@format",
-            "@refactor",
-            "@ci:check"
-        ],
         "ci:frontend": [
             "npm audit --omit=dev",
             "@format:check",
@@ -155,12 +147,12 @@
             "@composer validate --strict",
             "@composer audit",
             "npm audit --omit=dev",
-            "@format:check",
-            "@refactor:check",
+            "@refactor",
+            "@format",
             "@analyse",
             "@php artisan wayfinder:generate --skip-actions",
-            "npm run format:check",
-            "npm run lint:check",
+            "npm run format",
+            "npm run lint",
             "npm run typecheck",
             "npm run test",
             "npm run i18n:check",
@@ -175,8 +167,7 @@
         "analyse": "Run PHPStan (Larastan) static analysis.",
         "refactor": "Apply Rector refactorings.",
         "refactor:check": "Show pending Rector refactorings without changing files.",
-        "ci": "Auto-fix formatting, lint and Rector findings, then run ci:check.",
-        "ci:check": "Run every CI gate without changing tracked files: composer validate + audit, npm audit (production deps), Pint, Rector, PHPStan, Wayfinder routes, Prettier, ESLint, vue-tsc, the frontend tests (Vitest), i18n check and the test suite."
+        "ci:check": "Run every CI gate locally, fixing what tools can fix: composer validate + audit, npm audit (production deps), Rector and Pint (fix), PHPStan, Wayfinder routes, Prettier and ESLint (fix), vue-tsc, the frontend tests (Vitest), i18n check and the test suite."
     },
     "extra": {
         "laravel": {

@@ -31,6 +31,7 @@ it('applies the free-use limits without a key', function (): void {
         ->and($entitlements->voice())->toBeFalse()
         ->and($entitlements->handoff())->toBeFalse()
         ->and($entitlements->capabilities())->toBeFalse()
+        ->and($entitlements->advancedAnalytics())->toBeFalse()
         ->and($entitlements->customSplitting())->toBeFalse();
 });
 
@@ -44,5 +45,6 @@ it('lifts every free-use limit with a key', function (): void {
         ->and($entitlements->voice())->toBeTrue()
         ->and($entitlements->handoff())->toBeTrue()
         ->and($entitlements->capabilities())->toBeTrue()
+        ->and($entitlements->advancedAnalytics())->toBeTrue()
         ->and($entitlements->customSplitting())->toBeTrue();
 });

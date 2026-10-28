@@ -148,6 +148,8 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         Route::get('home', AgentManagerController::class)->name('manager');
         // Analytics pages and their data — each gated by its own analytics
         // permission, the same one the agent menu uses to show the page.
+        // Sentiment, tone, topics and sources data also need a license key
+        // (`license.analytics`); their pages open and show the lock.
         Route::middleware('agent.permission:agent.analytics.chats')->group(function (): void {
             Route::get('analytics', AgentAnalyticsController::class)->name('analytics');
             Route::get('analytics/data', AgentAnalyticsDataController::class)->name('analytics.data');
@@ -155,27 +157,27 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         });
         Route::middleware('agent.permission:agent.analytics.sentiment')->group(function (): void {
             Route::get('analytics/sentiment', AgentSentimentController::class)->name('analytics.sentiment');
-            Route::get('analytics/sentiment/data', AgentSentimentDataController::class)->name('sentiment.data');
+            Route::get('analytics/sentiment/data', AgentSentimentDataController::class)->middleware('license.analytics')->name('sentiment.data');
         });
         Route::middleware('agent.permission:agent.analytics.tone')->group(function (): void {
             Route::get('analytics/tone', AgentToneController::class)->name('analytics.tone');
-            Route::get('analytics/tone/data', AgentToneDataController::class)->name('tone.data');
+            Route::get('analytics/tone/data', AgentToneDataController::class)->middleware('license.analytics')->name('tone.data');
         });
         Route::middleware('agent.permission:agent.analytics.topics')->group(function (): void {
             Route::get('analytics/topics', AgentTopicController::class)->name('analytics.topics');
-            Route::get('analytics/topics/data', AgentTopicsDataController::class)->name('topics.data');
+            Route::get('analytics/topics/data', AgentTopicsDataController::class)->middleware('license.analytics')->name('topics.data');
 
             // Emergent (discovered) topic suggestions — surfaced from the consolidated
             // analysis pass; promotion turns one into a real, agent-attached topic.
-            Route::get('analytics/topics/suggestions', SuggestedTopicsDataController::class)->name('topics.suggestions');
+            Route::get('analytics/topics/suggestions', SuggestedTopicsDataController::class)->middleware('license.analytics')->name('topics.suggestions');
         });
-        Route::middleware('agent.permission:agent.topics.manage')->group(function (): void {
+        Route::middleware(['agent.permission:agent.topics.manage', 'license.analytics'])->group(function (): void {
             Route::post('analytics/topics/suggestions/promote', PromoteSuggestedTopicController::class)->name('topics.suggestions.promote');
             Route::delete('analytics/topics/suggestions', DismissSuggestedTopicController::class)->name('topics.suggestions.dismiss');
         });
         Route::middleware('agent.permission:agent.analytics.sources')->group(function (): void {
             Route::get('analytics/sources', AgentSourceController::class)->name('analytics.sources');
-            Route::get('analytics/sources/data', AgentSourcesDataController::class)->name('analytics.sources.data');
+            Route::get('analytics/sources/data', AgentSourcesDataController::class)->middleware('license.analytics')->name('analytics.sources.data');
         });
 
         // Topics Management.

@@ -66,6 +66,17 @@ final readonly class Entitlements
         return $this->licensed();
     }
 
+    /**
+     * Whether the sentiment, tone, topics and sources analytics pages show
+     * their data. The chat log and the Chats page stay free, and the analysis
+     * keeps running (the chat log's pulse uses it), so the history is there
+     * once a key is added.
+     */
+    public function advancedAnalytics(): bool
+    {
+        return $this->licensed();
+    }
+
     /** Whether agents may serve their Hosted Chat on a custom domain. */
     public function customDomains(): bool
     {

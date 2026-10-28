@@ -9,6 +9,9 @@ use Domain\Conversation\Topic\Models\ConversationTopic;
  * of the agent. Which conversation rows it converts is in
  * PromoteSuggestedTopicActionTest.
  */
+// Topic analytics need a license key; EnsureAnalyticsLicenseTest covers the gate.
+beforeEach(fn () => withLicense());
+
 it('promotes a suggestion to a topic of the agent', function (): void {
     $owner = User::factory()->create();
     $agent = createAgent($owner);

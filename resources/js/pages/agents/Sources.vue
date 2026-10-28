@@ -1,13 +1,16 @@
 <script lang="ts" setup>
 /**
  * Source-usage analytics: which knowledge sources, functions and MCP tools the
- * agent used, how often and when last, in three tabs.
+ * agent used, how often and when last, in three tabs. Needs a license key;
+ * without one the page shows the lock and loads nothing.
  */
 import { errorMessage } from '@/api/http';
 import { fetchSourceUsage, type FunctionUsageItem, type KnowledgeUsageItem, type McpToolUsageItem } from '@/api/sourceUsage';
+import LicenseNotice from '@/components/license/LicenseNotice.vue';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useLicense } from '@/composables/useLicense';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Database, FileText, Globe, LoaderCircle, Plug, Type, Wrench } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
@@ -20,6 +23,8 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+const { licensed } = useLicense();
 
 type KnowledgeItem = KnowledgeUsageItem;
 type FunctionItem = FunctionUsageItem;
@@ -99,7 +104,9 @@ const subKindIcon = (subKind: string) => {
 };
 
 onMounted(() => {
-    fetchData();
+    if (licensed.value) {
+        fetchData();
+    }
 });
 </script>
 
@@ -107,7 +114,9 @@ onMounted(() => {
     <AgentLayout :agent="agent" :title="t('agents.usage.title')" :description="t('agents.usage.description')">
         <div class="flex justify-center">
             <div class="w-full max-w-6xl">
-                <div v-if="loading" class="flex items-center justify-center py-12">
+                <LicenseNotice v-if="!licensed" />
+
+                <div v-else-if="loading" class="flex items-center justify-center py-12">
                     <LoaderCircle class="text-muted-foreground h-8 w-8 animate-spin" />
                 </div>
 

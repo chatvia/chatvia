@@ -13,6 +13,9 @@ use Illuminate\Support\Str;
  * attaches example conversations: the grouped shape, the per-label cap, and
  * one query for the examples of every label.
  */
+// Topic analytics need a license key; EnsureAnalyticsLicenseTest covers the gate.
+beforeEach(fn () => withLicense());
+
 function stdConversation(Agent $agent, string $title): Conversation
 {
     return Conversation::factory()->withTitle($title)->create(['agent_id' => $agent->id, 'source' => ConversationSource::Widget]);

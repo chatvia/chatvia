@@ -1,10 +1,12 @@
 <script setup lang="ts">
 /**
- * Shows an analytics page's content only when it may be shown: the "turned
- * off" screen (with its enable switch) when the owner or the chat log has it
- * off, else the default slot.
+ * Shows an analytics page's content only when it may be shown: the license
+ * lock when the install has no key, the "turned off" screen (with its enable
+ * switch) when the owner or the chat log has it off, else the default slot.
  */
 import AnalyticsDisabled from '@/components/AnalyticsDisabled.vue';
+import LicenseNotice from '@/components/license/LicenseNotice.vue';
+import { useLicense } from '@/composables/useLicense';
 
 interface Props {
     enabled: boolean;
@@ -18,12 +20,16 @@ interface Props {
 defineProps<Props>();
 
 const emit = defineEmits<{ enable: [] }>();
+
+const { licensed } = useLicense();
 </script>
 
 <template>
+    <LicenseNotice v-if="!licensed" />
+
     <!-- The owner switched it off for this agent, or the chat log is off -->
     <AnalyticsDisabled
-        v-if="!chatlogEnabled || !enabled"
+        v-else-if="!chatlogEnabled || !enabled"
         :title="disabledTitle"
         :description="disabledDescription"
         :can-enable="chatlogEnabled"

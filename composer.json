@@ -194,7 +194,10 @@
             "php-http/discovery": true
         },
         "audit": {
-            "abandoned": "report"
+            "abandoned": "report",
+            "ignore-abandoned": {
+                "symplify/rule-doc-generator-contracts": "Dev-only, pulled in by driftingly/rector-laravel (latest still requires it); interfaces only."
+            }
         }
     },
     "minimum-stability": "stable",

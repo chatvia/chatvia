@@ -87,7 +87,7 @@ To work on the code, read [ARCHITECTURE.md](ARCHITECTURE.md) and
 - ChatVia.ai is free and source-available under the [ChatVia.ai License](LICENSE),
   for individuals and companies. You may use, change and run it. Three
   [license keys](https://chatvia.ai/license) add more:
-  - **Pro** ($399, one time): lifts the free-use limits (one workspace, no
+  - **Pro** ($199 a year): lifts the free-use limits (one workspace, no
     API, voice, live chat, capabilities or forms) and hides the "Powered by
     ChatVia.ai" credit. Agents, teams and replies have no limit, with or
     without a key. Without a key, the limits apply and the credit must stay

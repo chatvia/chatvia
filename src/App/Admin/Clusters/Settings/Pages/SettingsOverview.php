@@ -136,7 +136,7 @@ class SettingsOverview extends Page
         }
 
         return Callout::make('Support ChatVia.ai')
-            ->description('ChatVia.ai is free to use. A Pro license ($399, one time) lets you remove the "Powered by ChatVia.ai" credit from your chats. An Enterprise license ($1,490 a year) also turns on the Enterprise security features: network rules, custom data retention, SIEM delivery and audit-log export. Both support my work on ChatVia.ai.')
+            ->description('ChatVia.ai is free to use. A Pro license ($199 a year) lets you remove the "Powered by ChatVia.ai" credit from your chats. An Enterprise license ($1,490 a year) also turns on the Enterprise security features: network rules, custom data retention, SIEM delivery and audit-log export. Both support my work on ChatVia.ai.')
             ->icon(Heroicon::OutlinedHeart)
             ->color('primary')
             ->extraAttributes(['class' => 'cv-link-dividers'])

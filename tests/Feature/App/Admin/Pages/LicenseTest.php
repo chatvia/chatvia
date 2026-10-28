@@ -151,7 +151,7 @@ it('says when the saved key is an Enterprise license', function (): void {
 it('offers to buy or manage a license while there is none', function (): void {
     adminPage(License::class, $this->admin)
         ->assertSee('Hiding the credit needs a license')
-        ->assertSee('A Pro license costs $399, one time, and never expires.')
+        ->assertSee('A Pro license costs $199 a year.')
         ->assertSee('Buy a license')
         ->assertSee('Manage license');
 });

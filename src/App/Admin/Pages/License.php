@@ -160,7 +160,7 @@ class License extends AdminSettingsPage
                 LicenseStatus::Valid => $this->licenseType() === 'Enterprise'
                     ? 'You can hide the credit, and the Enterprise features are on. It renews every year at chatvia.ai.'
                     : 'You can hide the credit.',
-                LicenseStatus::Missing => 'A Pro license costs $399, one time, and never expires. An Enterprise license costs $1,490 a year: it also hides the credit and turns on the Enterprise security features.',
+                LicenseStatus::Missing => 'A Pro license costs $199 a year. An Enterprise license costs $1,490 a year: it also hides the credit and turns on the Enterprise security features.',
                 LicenseStatus::Invalid => 'The saved key is not valid. The credit stays on until you add a valid key.',
                 LicenseStatus::Expired => "It ended on {$this->license()->read($this->savedKey())?->expires}, so the free limits and the credit are back. Renew it with Manage license: it works again after the next daily check, or right away when you save the key again.",
                 default => 'Paste your license key below and save to activate it. The credit stays on until then.',

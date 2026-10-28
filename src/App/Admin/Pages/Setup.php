@@ -1463,7 +1463,7 @@ class Setup extends SimplePage
             ->description(fn (): string => match (true) {
                 $this->licenseStatus() === LicenseStatus::Valid => 'Every feature is on. You can hide the credit on the License page.',
                 $this->runsOnLocalAddress() => "{$limits} A key works for one domain at a time, so it is best added once ChatVia.ai runs at its real address.",
-                default => $limits.' A license key turns these on and lets you hide the credit. A Pro license costs $399, one time, and never expires.',
+                default => $limits.' A license key turns these on and lets you hide the credit. A Pro license costs $199 a year.',
             })
             ->icon(fn (): Heroicon => $this->licenseStatus() === LicenseStatus::Valid ? Heroicon::OutlinedCheckBadge : Heroicon::OutlinedSparkles)
             ->status(fn (): string => $this->licenseStatus() === LicenseStatus::Valid ? 'success' : 'info')

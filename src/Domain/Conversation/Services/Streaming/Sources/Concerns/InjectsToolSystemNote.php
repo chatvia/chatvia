@@ -27,7 +27,7 @@ trait InjectsToolSystemNote
      */
     private function injectToolSystemNote(array &$llmMessages, bool $approvalEnabled): void
     {
-        $note = Str::trim(prompt('tools/approval', ['approval' => $approvalEnabled]));
+        $note = Str::trim(prompt('Conversation/tools/approval', ['approval' => $approvalEnabled]));
         if ($note === '') {
             return;
         }

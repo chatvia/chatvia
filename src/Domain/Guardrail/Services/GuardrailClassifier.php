@@ -27,7 +27,7 @@ use Throwable;
  * enabled are put in the schema, so the model stays focused and the response is
  * minimal. It also names the text's language, so a refusal can be shown in it.
  * Same mechanism as the Evals judge (json_schema response_format). The prompts
- * live in resources/prompts/guardrails.
+ * live in resources/prompts/Guardrail.
  *
  * The text and the earlier messages are untrusted, so they go inside
  * `<text>` / `<conversation>` tags that the system prompt marks as data; any
@@ -68,7 +68,7 @@ class GuardrailClassifier
             $reply = $this->completion->sendAsync(new ChatRequestData(
                 model: $this->models->model(LlmTask::Guardrails),
                 messages: [
-                    ChatMessageData::system(Str::trim(prompt('guardrails/classifier-system'))),
+                    ChatMessageData::system(Str::trim(prompt('Guardrail/classifier-system'))),
                     ChatMessageData::user($this->userPrompt($text, $options)),
                 ],
                 tag: AiCallTag::Guardrails,
@@ -125,7 +125,7 @@ class GuardrailClassifier
             array_keys($options->blockedTopics),
         ), "\n");
 
-        return Str::rtrim(prompt('guardrails/classifier-user', [
+        return Str::rtrim(prompt('Guardrail/classifier-user', [
             'checkTopic' => $options->checkTopic,
             'allowedScope' => $scope !== '' ? $scope : '(no explicit scope — judge off_topic only by the blocked list)',
             'blockedTopics' => $blocked !== '' ? $blocked : '(none)',

@@ -40,19 +40,19 @@ it('creates a missing temp subdirectory', function (): void {
 it('renders a prompt by its slash-style name', function (string $name, array $data, string $expected): void {
     expect(prompt($name, $data))->toContain($expected);
 })->with([
-    'a prompt' => ['knowledge/system', [], '### Role'],
-    'a prompt in a nested folder' => ['business/profile', ['email' => 'hi@example.com', 'phone' => null, 'website' => null, 'address' => null, 'opening_hours' => null], 'hi@example.com'],
+    'a prompt' => ['Knowledge/system', [], '### Role'],
+    'a prompt in a nested folder' => ['Conversation/business/profile', ['email' => 'hi@example.com', 'phone' => null, 'website' => null, 'address' => null, 'opening_hours' => null], 'hi@example.com'],
 ]);
 
 it('puts variables into a prompt without HTML-escaping them', function (): void {
-    $rendered = prompt('knowledge/rewrite-query-user', ['conversation' => 'Visitor: <b>hi</b> & co', 'message' => 'and the price?']);
+    $rendered = prompt('Knowledge/rewrite-query-user', ['conversation' => 'Visitor: <b>hi</b> & co', 'message' => 'and the price?']);
 
     expect($rendered)->toContain('<b>hi</b> & co');
 });
 
 it('has a file for every prompt the code renders', function (): void {
     $used = collect(File::allFiles(base_path('src')))
-        ->flatMap(fn (SplFileInfo $file): array => Str::matchAll("/\\bprompt\\('([a-z0-9\\/._-]+)'/", File::get($file->getPathname()))->all())
+        ->flatMap(fn (SplFileInfo $file): array => Str::matchAll("/\\bprompt\\('([A-Za-z0-9\\/._-]+)'/", File::get($file->getPathname()))->all())
         ->map(fn (string $name): string => Str::replace('.', '/', $name))
         ->unique()
         ->values();

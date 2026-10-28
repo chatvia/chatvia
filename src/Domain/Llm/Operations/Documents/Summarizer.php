@@ -35,7 +35,7 @@ class Summarizer
      */
     public function summarize(string $documentUrl, ?string $language = null): ChatResponseData
     {
-        $prompt = prompt('summarization/system', [
+        $prompt = prompt('Llm/summarization/system', [
             'language' => $language !== null ? Locale::getDisplayLanguage($language, 'en') : null,
         ]);
 

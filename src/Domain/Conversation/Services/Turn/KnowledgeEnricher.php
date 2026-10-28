@@ -249,7 +249,7 @@ class KnowledgeEnricher
             return $context;
         }
 
-        return $this->withMessageForLlm($context, prompt('knowledge/no-match', [
+        return $this->withMessageForLlm($context, prompt('Knowledge/no-match', [
             'question' => $context->payload->message_for_llm ?? '',
             'clarifyingQuestion' => $clarifyingQuestion,
             'scope' => $scope,
@@ -300,7 +300,7 @@ class KnowledgeEnricher
      */
     private function referenceMaterial(string $question, Collection $sources): string
     {
-        return prompt('knowledge/reference-material', [
+        return prompt('Knowledge/reference-material', [
             'question' => $question,
             'hasImages' => $sources->contains(static fn (RetrievedSourceData $source): bool => $source->images !== []),
             'items' => $sources->values()->map(fn (RetrievedSourceData $source, int $index): array => [

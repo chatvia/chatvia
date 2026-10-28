@@ -206,7 +206,7 @@ final readonly class VoiceToolRunner
             $context->setQaMatch($lookup->qaMatch);
             $context->setConfidenceScore($lookup->qaMatch->confidenceScore);
 
-            return prompt('voice/knowledge-result', ['query' => $query, 'answer' => $lookup->qaMatch->answer, 'items' => []]);
+            return prompt('Conversation/voice/knowledge-result', ['query' => $query, 'answer' => $lookup->qaMatch->answer, 'items' => []]);
         }
 
         $sources = $context->sources
@@ -221,7 +221,7 @@ final readonly class VoiceToolRunner
             $context->setConfidenceScore($this->knowledge->confidence($sources));
         }
 
-        return prompt('voice/knowledge-result', [
+        return prompt('Conversation/voice/knowledge-result', [
             'query' => $query,
             'answer' => null,
             'items' => $lookup->sources->values()->map(static fn (RetrievedSourceData $source, int $index): array => [

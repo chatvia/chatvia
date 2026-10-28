@@ -52,8 +52,8 @@ class StarterGenerator
             $reply = $this->completion->send(new ChatRequestData(
                 model: $model,
                 messages: [
-                    ChatMessageData::system(prompt('starters/generate', ['count' => $count])),
-                    ChatMessageData::user(prompt('starters/content', [
+                    ChatMessageData::system(prompt('Llm/starters/generate', ['count' => $count])),
+                    ChatMessageData::user(prompt('Llm/starters/content', [
                         'content' => Collection::make($content)->take(40)->implode("\n---\n"),
                     ])),
                 ],

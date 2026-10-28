@@ -33,9 +33,9 @@ class Chunker
      */
     public function enhancePage(PageData $page, ?PageData $previousPage = null, ?PageData $nextPage = null): ChunkEnhancementData
     {
-        $systemPrompt = prompt('chunking/document-chunking-system');
+        $systemPrompt = prompt('Knowledge/chunking/document-chunking-system');
 
-        $userPrompt = prompt('chunking/document-chunking-user', [
+        $userPrompt = prompt('Knowledge/chunking/document-chunking-user', [
             'previous_page' => $previousPage?->content,
             'target_page' => $page->content,
             'next_page' => $nextPage?->content,

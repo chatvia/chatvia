@@ -39,7 +39,7 @@ class TitleGenerator
         return self::clean($this->chat->send(new ChatRequestData(
             model: $this->models->model(LlmTask::Titles),
             messages: [
-                ChatMessageData::system(prompt('conversation/title')),
+                ChatMessageData::system(prompt('Llm/conversation/title')),
                 ChatMessageData::user("The text is: {$messages}"),
             ],
             tag: AiCallTag::ConversationTitle,

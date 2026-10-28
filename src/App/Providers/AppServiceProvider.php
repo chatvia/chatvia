@@ -92,7 +92,7 @@ class AppServiceProvider extends ServiceProvider
     }
 
     // Prompts are Blade views (markdown + Blade) loaded via the `prompt()`
-    // helper, e.g. prompt('knowledge/system') → resources/prompts/knowledge/system.blade.php.
+    // helper, e.g. prompt('Knowledge/system') → resources/prompts/Knowledge/system.blade.php.
     private function registerPromptViewNamespace(): void
     {
         View::addNamespace('prompts', resource_path('prompts'));

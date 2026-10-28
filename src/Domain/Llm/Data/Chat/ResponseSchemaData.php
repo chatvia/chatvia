@@ -42,7 +42,7 @@ final class ResponseSchemaData extends Data
     /** The schema as a prompt instruction, for a model that cannot be held to it. */
     public function instruction(): string
     {
-        return Str::trim(prompt('json/schema-reply', [
+        return Str::trim(prompt('Llm/json/schema-reply', [
             'schema' => json_encode($this->schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
         ]));
     }

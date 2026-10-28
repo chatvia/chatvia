@@ -71,7 +71,7 @@ class SystemPromptBuilder
         $marker = $data->guardrailsEnabled ? $this->guardrails->leakMarker($agent) : null;
 
         return $this->withCallerAndBusiness(
-            ($marker !== null ? Str::trim(prompt('guardrails/leak-marker', ['marker' => $marker]))."\n\n" : '')
+            ($marker !== null ? Str::trim(prompt('Guardrail/leak-marker', ['marker' => $marker]))."\n\n" : '')
                 .Str::rtrim($agent->resolveSystemInstructions())."\n\n{$this->answeringRules($data, $language)}",
             $agent,
             $data->chatterName,
@@ -92,10 +92,10 @@ class SystemPromptBuilder
         ];
 
         if (! $this->knowledgeSearch->for($agent)) {
-            return prompt('knowledge/tools-only', $languages);
+            return prompt('Knowledge/tools-only', $languages);
         }
 
-        return prompt('knowledge/grounding', [
+        return prompt('Knowledge/grounding', [
             ...$languages,
             'cite' => $agent->citesSources() && CitationMarkers::shownOn($data),
         ]);
@@ -113,13 +113,13 @@ class SystemPromptBuilder
     public function voicePrompt(Agent $agent, ?string $chatterName, array $history): string
     {
         $prompt = $this->withCallerAndBusiness(
-            Str::rtrim($agent->resolveSystemInstructions())."\n\n".prompt('voice/system', ['knowledge' => $this->knowledgeSearch->for($agent)]),
+            Str::rtrim($agent->resolveSystemInstructions())."\n\n".prompt('Conversation/voice/system', ['knowledge' => $this->knowledgeSearch->for($agent)]),
             $agent,
             $chatterName,
         );
 
         if ($history !== []) {
-            $prompt .= "\n\n".prompt('voice/history', ['messages' => $history]);
+            $prompt .= "\n\n".prompt('Conversation/voice/history', ['messages' => $history]);
         }
 
         return $prompt;
@@ -132,13 +132,13 @@ class SystemPromptBuilder
         // address them by name. Public agents serve anonymous visitors — the
         // name is left out there even when a chatter happens to be signed in.
         if (! $agent->is_public && filled($chatterName)) {
-            $prompt .= "\n\n".prompt('chatter/identity', ['name' => $chatterName]);
+            $prompt .= "\n\n".prompt('Conversation/chatter/identity', ['name' => $chatterName]);
         }
 
         $business = array_filter($agent->settings('business')->toArray(), filled(...));
 
         if ($business !== []) {
-            $prompt .= "\n\n".prompt('business/profile', [
+            $prompt .= "\n\n".prompt('Conversation/business/profile', [
                 'email' => $business['email'] ?? null,
                 'phone' => $business['phone'] ?? null,
                 'website' => $business['website'] ?? null,

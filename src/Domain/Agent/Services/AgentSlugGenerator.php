@@ -80,7 +80,7 @@ class AgentSlugGenerator
         try {
             return $this->chat->send(new ChatRequestData(
                 model: $this->models->model(LlmTask::ChatAddress),
-                messages: [ChatMessageData::user(prompt('agent-slug/generate'))],
+                messages: [ChatMessageData::user(prompt('Agent/slug/generate'))],
                 tag: AiCallTag::ChatAddress,
                 maxTokens: self::MAX_TOKENS,
             ))->content;

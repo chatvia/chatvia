@@ -353,7 +353,7 @@ class Agent extends Model
     {
         return $this->agentPrompt?->prompt
             ?? $this->system_instructions
-            ?? prompt('knowledge/system');
+            ?? prompt('Knowledge/system');
     }
 
     /**

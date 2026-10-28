@@ -23,7 +23,7 @@ use Throwable;
  * agent's answer, given the case's grading criteria (and an optional reference
  * answer). Uses the provider's json_schema response format, so the verdict
  * comes back as `{verdict, score, rationale}`. Temperature 0 for
- * repeatability. The prompts live in resources/prompts/evals.
+ * repeatability. The prompts live in resources/prompts/Evaluation.
  *
  * A failed/garbled judge call fails the case (rather than silently passing) so a
  * provider outage can never be mistaken for a green eval.
@@ -47,7 +47,7 @@ class LlmJudgeScorer implements Scorer
             $data = $this->completion->send(new ChatRequestData(
                 model: $this->models->model(LlmTask::EvalJudge),
                 messages: [
-                    ChatMessageData::system(Str::trim(prompt('evals/judge-system'))),
+                    ChatMessageData::system(Str::trim(prompt('Evaluation/judge-system'))),
                     ChatMessageData::user($this->userPrompt($case, $criteria, $result->answer)),
                 ],
                 tag: AiCallTag::EvaluationJudge,
@@ -70,7 +70,7 @@ class LlmJudgeScorer implements Scorer
 
     private function userPrompt(EvalCase $case, string $criteria, string $answer): string
     {
-        return Str::rtrim(prompt('evals/judge-user', [
+        return Str::rtrim(prompt('Evaluation/judge-user', [
             'question' => $case->input,
             'criteria' => $criteria,
             'reference' => Str::trim($case->expected_output ?? ''),

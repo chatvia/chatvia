@@ -39,7 +39,7 @@ class Tables
         return $this->chat->send(new ChatRequestData(
             model: $this->models->model(LlmTask::Tables),
             messages: [
-                ChatMessageData::user(prompt('tables/describe', ['tables' => Arr::join($tables, "\n\n")])),
+                ChatMessageData::user(prompt('Llm/tables/describe', ['tables' => Arr::join($tables, "\n\n")])),
             ],
             tag: AiCallTag::TableDescription,
             temperature: 0.0,

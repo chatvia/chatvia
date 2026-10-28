@@ -27,7 +27,7 @@ use Illuminate\Support\Str;
  * every existing topic that applies + emergent suggestions, plus sentiment,
  * tone and language. Uses the provider's json_schema response format, which
  * keeps sentiment/tone inside their enums when the model follows the schema.
- * The prompts live in resources/prompts/analytics.
+ * The prompts live in resources/prompts/Analytics.
  *
  * When the response cannot be parsed (empty, cut off, not JSON, or an HTTP
  * error from the provider) both methods return null instead of a guessed
@@ -84,7 +84,7 @@ class ConversationAnalyzer
         $data = $this->ask(new ChatRequestData(
             model: $this->models->model(LlmTask::ConversationAnalysis),
             messages: [
-                ChatMessageData::system(Str::trim(prompt('analytics/message-analysis'))),
+                ChatMessageData::system(Str::trim(prompt('Analytics/message-analysis'))),
                 ChatMessageData::user($text),
             ],
             tag: AiCallTag::ConversationAnalysis,
@@ -129,7 +129,7 @@ class ConversationAnalyzer
             ? '(none configured)'
             : $topics->map(fn (Topic $topic): string => "  {$topic->id}: {$topic->topic}".($topic->description ? " — {$topic->description}" : ''))->implode("\n");
 
-        return Str::trim(prompt('analytics/conversation-analysis', [
+        return Str::trim(prompt('Analytics/conversation-analysis', [
             'topicList' => $topicList,
             'pendingLabels' => $pendingLabels === [] ? '(none)' : Arr::join($pendingLabels, ', '),
         ]));

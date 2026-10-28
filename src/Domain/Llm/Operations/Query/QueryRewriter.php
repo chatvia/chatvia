@@ -79,10 +79,10 @@ class QueryRewriter
             $reply = $this->chat->sendAsync(new ChatRequestData(
                 model: $this->models->model(LlmTask::FollowUp),
                 messages: [
-                    ChatMessageData::system(prompt('knowledge/rewrite-query', [
+                    ChatMessageData::system(prompt('Knowledge/rewrite-query', [
                         'clarify' => filter_var(config('chatvia.ai.query.rewriter.clarify'), FILTER_VALIDATE_BOOL),
                     ])),
-                    ChatMessageData::user(prompt('knowledge/rewrite-query-user', [
+                    ChatMessageData::user(prompt('Knowledge/rewrite-query-user', [
                         'conversation' => $conversation,
                         'message' => $message,
                     ])),

@@ -299,7 +299,7 @@ class AnalyticsChatRunner
 
     private function systemPrompt(Workspace $workspace): string
     {
-        return Str::trim(prompt('analytics/chat-system', [
+        return Str::trim(prompt('Analytics/chat-system', [
             'workspace' => $workspace->name,
             'today' => now()->toFormattedDateString(),
         ]));

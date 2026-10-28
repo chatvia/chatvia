@@ -42,7 +42,7 @@ class Vision
         $description = $this->chat->send(new ChatRequestData(
             model: $this->models->model(LlmTask::Images),
             messages: [
-                ChatMessageData::userWithAttachment(prompt('image/describe'), [
+                ChatMessageData::userWithAttachment(prompt('Llm/image/describe'), [
                     'type' => 'image_url',
                     'image_url' => ['url' => $image],
                 ]),

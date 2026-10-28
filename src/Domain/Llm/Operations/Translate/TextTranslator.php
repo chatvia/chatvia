@@ -41,7 +41,7 @@ class TextTranslator
         $reply = $this->completion->send(new ChatRequestData(
             model: $this->models->model(LlmTask::Translation),
             messages: [
-                ChatMessageData::system(prompt('translate/strings')),
+                ChatMessageData::system(prompt('Llm/translate/strings')),
                 ChatMessageData::user(json_encode(
                     ['fields' => $fields, 'languages' => $languages],
                     JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE,

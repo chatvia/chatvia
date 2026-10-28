@@ -35,7 +35,7 @@ describe('system instructions', function (): void {
     it('falls back to the built-in default when neither is set', function (): void {
         $agent = Agent::factory()->create(['system_instructions' => null, 'agent_prompt_id' => null]);
 
-        expect($agent->resolveSystemInstructions())->toBe(prompt('knowledge/system'));
+        expect($agent->resolveSystemInstructions())->toBe(prompt('Knowledge/system'));
     });
 });
 

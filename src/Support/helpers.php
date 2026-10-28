@@ -146,8 +146,8 @@ if (! function_exists('prompt')) {
     /**
      * Render a prompt Blade view (markdown + Blade) to a string.
      *
-     * Accepts slash- or dot-style names: prompt('business/profile')
-     * resolves resources/prompts/business/profile.blade.php via the
+     * Accepts slash- or dot-style names: prompt('Conversation/business/profile')
+     * resolves resources/prompts/Conversation/business/profile.blade.php via the
      * `prompts::` view namespace. Pass variables as the second argument; use
      * {!! $var !!} in the prompt file so text isn't HTML-escaped.
      *

@@ -26,7 +26,7 @@ use Throwable;
  * call. The score is the share of supported citations; the case passes at
  * `scorer_config.min_supported` (0.8 by default). An answer that cites
  * nothing fails: this case is about citing. The prompts live in
- * resources/prompts/evals.
+ * resources/prompts/Evaluation.
  */
 class CitationScorer implements Scorer
 {
@@ -111,8 +111,8 @@ class CitationScorer implements Scorer
         $data = $this->completion->send(new ChatRequestData(
             model: $this->models->model(LlmTask::EvalJudge),
             messages: [
-                ChatMessageData::system(Str::trim(prompt('evals/citations-system'))),
-                ChatMessageData::user(Str::rtrim(prompt('evals/citations-user', ['blocks' => $result->blocks, 'claims' => $claims]), "\n")),
+                ChatMessageData::system(Str::trim(prompt('Evaluation/citations-system'))),
+                ChatMessageData::user(Str::rtrim(prompt('Evaluation/citations-user', ['blocks' => $result->blocks, 'claims' => $claims]), "\n")),
             ],
             tag: AiCallTag::EvaluationJudge,
             temperature: 0,

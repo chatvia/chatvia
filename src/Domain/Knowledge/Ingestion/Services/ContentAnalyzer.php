@@ -39,7 +39,7 @@ class ContentAnalyzer
         $reply = $this->completion->send(new ChatRequestData(
             model: $this->models->model(),
             messages: [
-                ChatMessageData::userWithAttachment(prompt('summarization/system'), [
+                ChatMessageData::userWithAttachment(prompt('Llm/summarization/system'), [
                     'type' => 'document_url',
                     'document_url' => $documentUrl,
                 ]),

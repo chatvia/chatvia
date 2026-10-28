@@ -651,7 +651,7 @@ final class VoiceCallSession implements RealtimeCallHandler
         $this->send([
             'type' => 'response.create',
             'response' => [
-                'instructions' => prompt('voice/say', ['text' => $text]),
+                'instructions' => prompt('Conversation/voice/say', ['text' => $text]),
                 'tool_choice' => 'none',
                 'metadata' => ['notice' => '1'],
             ],
@@ -673,7 +673,7 @@ final class VoiceCallSession implements RealtimeCallHandler
             'response' => [
                 'conversation' => 'none',
                 'input' => [],
-                'instructions' => prompt('voice/filler', ['question' => $question]),
+                'instructions' => prompt('Conversation/voice/filler', ['question' => $question]),
                 'tool_choice' => 'none',
                 'metadata' => ['notice' => '1', 'filler' => '1'],
             ],

@@ -54,7 +54,7 @@ command bar, messaging apps and a REST API.
 | `config/` | Laravel config plus `chatvia.php` (product settings), `connectors.php` (the list of connector classes), `team-permissions.php`. |
 | `database/` | Migrations, factories, seeders. |
 | `resources/js/` | The Vue frontend (dashboard and hosted chat). |
-| `resources/prompts/` | LLM prompt templates (Blade files, loaded with `prompt('folder/name')`). |
+| `resources/prompts/` | LLM prompt templates (Blade files), one folder per Domain context, loaded with `prompt('Context/name')` (e.g. `prompt('Knowledge/system')`). |
 | `resources/views/` | Blade views: e-mails, PDF exports, the app shell. |
 | `resources/types/generated.d.ts` | TypeScript types generated from PHP classes. |
 | `lang/` | Server-side translations (e-mails, flash messages, validation). |

@@ -14,10 +14,11 @@
 #   to upgrade. .env always names one exact version, like 1.4.2: the
 #   installer looks up which release "latest" (or 1.4) is and saves that.
 #
-# - Complete installation: everything directly on a fresh Ubuntu 26.04
-#   server, without Docker. It installs and sets up PostgreSQL with the
-#   search extensions, Redis, PHP-FPM, nginx, a Let's Encrypt certificate,
-#   Supervisor, cron and the firewall, creates the `chatvia` user, and
+# - Complete installation: everything directly on a fresh Ubuntu server
+#   (24.04 LTS or newer), without Docker. It installs and sets up
+#   PostgreSQL with the search extensions, Redis, PHP-FPM, nginx, a Let's
+#   Encrypt certificate, Supervisor, cron and the firewall, creates the
+#   `chatvia` user, and
 #   deploys the newest release with Deployer into /var/www/chatvia. Unless
 #   you turn it off, chatvia-auto-update then deploys each newer release of
 #   that major version by itself, once a night, after a database backup. It
@@ -102,7 +103,8 @@ readonly NEWS_EMAIL_URL="https://chatvia.ai/api/subscribers"
 
 # The complete installation.
 readonly NATIVE_DOCS="https://chatvia.ai/docs/guide/installation/ubuntu"
-readonly NATIVE_UBUNTU="26.04"
+# The oldest Ubuntu release the complete installation runs on.
+readonly NATIVE_UBUNTU="24.04"
 readonly NATIVE_REPO="https://github.com/chatvia/chatvia.git"
 readonly NATIVE_USER="chatvia"
 readonly NATIVE_HOME="/home/chatvia"
@@ -122,6 +124,10 @@ readonly NATIVE_MIN_PHP="8.5.12"
 readonly PHP_PPA_URL="https://ppa.launchpadcontent.net/ondrej/php/ubuntu"
 readonly PHP_PPA_KEY="B8DC7E53946656EFBCE4C1DD71DAEAAB4AD4CAB6"
 readonly NATIVE_PG="18"
+# Ubuntu releases older than 26.04 have no PostgreSQL 18 of their own: it
+# comes from the PostgreSQL archive there.
+readonly PGDG_URL="https://apt.postgresql.org/pub/repos/apt"
+readonly PGDG_KEY_URL="https://www.postgresql.org/media/keys/ACCC4CF8.asc"
 # An existing PostgreSQL server must be this version or newer: the one the
 # complete installation sets up, and the oldest pg_textsearch builds for.
 readonly NATIVE_MIN_PG="18"
@@ -130,6 +136,9 @@ readonly NATIVE_MIN_PG="18"
 readonly APP_EXTENSIONS="pg_stat_statements pg_trgm btree_gin btree_gist vector pg_textsearch"
 readonly PG_TEXTSEARCH_RELEASES="https://github.com/timescale/pg_textsearch/releases"
 readonly DEPLOYER_VERSION="^8.0"
+# Ubuntu's Composer package when it is this version or newer; otherwise
+# (24.04 has 2.7, older than PHP 8.4) the current one from getcomposer.org.
+readonly MIN_COMPOSER_VERSION="2.8.0"
 readonly MIN_NODE_VERSION="22.18.0"
 # Less memory than this (a 4 GB server), and no swap: the frontend build
 # (up to 3 GB) may run out next to the running app.
@@ -1956,11 +1965,11 @@ do_upgrade() {
 #------------------------------------------------------------------------------
 # Complete installation: everything directly on this server, without Docker
 #
-# Ubuntu 26.04 LTS on a fresh server. It does what the guides "Install on
-# Ubuntu" and "Deploy with Deployer" describe: PostgreSQL 18 with the search
-# extensions, Redis, PHP-FPM behind nginx, a Let's Encrypt certificate,
-# Horizon, Reverb and Pulse under Supervisor, the scheduler in cron, and the
-# firewall. One system user, chatvia, owns the code and runs every part of
+# Ubuntu 24.04 LTS or newer on a fresh server. It does what the guides
+# "Install on Ubuntu" and "Deploy with Deployer" describe: PostgreSQL 18
+# with the search extensions, Redis, PHP-FPM behind nginx, a Let's Encrypt
+# certificate, Horizon, Reverb and Pulse under Supervisor, the scheduler in
+# cron, and the firewall. One system user, chatvia, owns the code and runs every part of
 # the app. Deployer, installed for that user, deploys each release into its
 # own folder under /var/www/chatvia and switches over in one step, so an
 # upgrade has no downtime, and a failed one changes nothing that runs.
@@ -2168,13 +2177,14 @@ native_check_system() {
         codename=$(. /etc/os-release && printf '%s' "${VERSION_CODENAME:-}")
     fi
     name=${name:-$(uname -s)}
-    if [ "$OS" != linux ] || [ "$id" != ubuntu ] || [ "$version" != "$NATIVE_UBUNTU" ]; then
+    if [ "$OS" != linux ] || [ "$id" != ubuntu ] || [ -z "$version" ] ||
+        ! version_at_least "$version" "$NATIVE_UBUNTU"; then
         if [ "$DRY_RUN" = 1 ]; then
-            warn "This is $name, not Ubuntu $NATIVE_UBUNTU: a real install stops here. $(dim '(dry run)')"
+            warn "This is $name, not Ubuntu $NATIVE_UBUNTU or newer: a real install stops here. $(dim '(dry run)')"
             return
         fi
-        die "The complete installation needs Ubuntu $NATIVE_UBUNTU LTS. This is $name." \
-            "Use a fresh Ubuntu $NATIVE_UBUNTU server, or install with Docker (--docker)."
+        die "The complete installation needs Ubuntu $NATIVE_UBUNTU LTS or newer. This is $name." \
+            "Use a fresh Ubuntu $NATIVE_UBUNTU (or newer) server, or install with Docker (--docker)."
     fi
     arch=$(dpkg --print-architecture)
     case $arch in
@@ -2191,11 +2201,11 @@ native_check_system() {
     fi
     if ! php_ppa_carries "$codename"; then
         if [ "$DRY_RUN" = 1 ]; then
-            warn "ppa:ondrej/php has no packages for Ubuntu $NATIVE_UBUNTU yet: a real install stops here. $(dim '(dry run)')"
+            warn "ppa:ondrej/php has no packages for Ubuntu $version yet: a real install stops here. $(dim '(dry run)')"
             return
         fi
-        die "ChatVia.ai needs PHP $NATIVE_MIN_PHP or newer, from ppa:ondrej/php. It has no packages for Ubuntu $NATIVE_UBUNTU ($codename) yet, or this server cannot reach it." \
-            "Install with Docker (--docker) for now, or run this installer again once the PPA carries Ubuntu $NATIVE_UBUNTU."
+        die "ChatVia.ai needs PHP $NATIVE_MIN_PHP or newer, from ppa:ondrej/php. It has no packages for Ubuntu $version ($codename) yet, or this server cannot reach it." \
+            "Install with Docker (--docker) for now, or run this installer again once the PPA carries Ubuntu $version."
     fi
     ok "$name $(dim "($arch)")"
 }
@@ -2622,6 +2632,7 @@ native_run_steps() {
     run_step 'Updating the system packages' native_update_system || native_failed
     run_step 'Looking for a newer Redis at packages.redis.io' native_add_redis_repo || native_failed
     run_step 'Adding ppa:ondrej/php for the newest PHP' native_add_php_repo || native_failed
+    run_step "Looking for PostgreSQL $DB_MAJOR packages" native_add_postgres_repo || native_failed
     if [ "$DATABASE" = existing ]; then
         run_step 'Installing PHP, Redis, nginx and the other packages' native_install_packages || native_failed
         run_step 'Installing Node.js 22' native_install_node || native_failed
@@ -2978,9 +2989,10 @@ native_check_database() {
     done
 
     # Backups (and the backup before each upgrade) need a pg_dump of the
-    # server's version or newer.
+    # server's version or newer: from Ubuntu, or from the PostgreSQL archive,
+    # which the install adds when Ubuntu lacks it.
     if command -v apt-cache >/dev/null 2>&1 && [ ! -x "/usr/lib/postgresql/$DB_MAJOR/bin/pg_dump" ] &&
-        ! apt-cache policy "postgresql-client-$DB_MAJOR" 2>/dev/null | grep -q 'Candidate: [0-9]'; then
+        ! apt_has_candidate "postgresql-client-$DB_MAJOR" && ! pgdg_carries_this_release; then
         problems+=("There is no package postgresql-client-$DB_MAJOR for backups of PostgreSQL $DB_MAJOR. Add the"
             'PostgreSQL apt repository (https://wiki.postgresql.org/wiki/Apt), then run the installer again.')
     fi
@@ -3052,6 +3064,12 @@ native_prepare_database() {
     db_psql "$DB_NAME" -Atc "SELECT extname || ' ' || extversion FROM pg_extension ORDER BY 1"
 }
 
+pgdg_carries_this_release() {
+    local release
+    # shellcheck source=/dev/null
+    release=$(. /etc/os-release 2>/dev/null && printf '%s' "${VERSION_CODENAME:-}")
+    [ -n "$release" ] && curl -fsI --max-time 10 "$PGDG_URL/dists/$release-pgdg/Release" >/dev/null 2>&1
+}
 # --- installer/src/42-complete-steps.sh ---
 #------------------------------------------------------------------------------
 # Complete installation: the install steps, and what they write
@@ -3092,7 +3110,8 @@ native_update_system() {
 }
 
 # The newest Redis comes from packages.redis.io when it carries this Ubuntu
-# release; otherwise Ubuntu's own redis-server stays (26.04 ships Redis 8).
+# release; otherwise Ubuntu's own redis-server stays (26.04 ships Redis 8,
+# 24.04 Redis 7).
 # Best effort on purpose: any miss leaves the system repositories as they
 # are, and the install goes on.
 native_add_redis_repo() {
@@ -3131,6 +3150,29 @@ native_add_php_repo() {
     apt_get update
 }
 
+# Ubuntu 26.04 has PostgreSQL 18 in its own archive. Older releases get it,
+# and the pg_dump that backs up an existing server, from the PostgreSQL
+# archive (apt.postgresql.org). Nothing is added when Ubuntu has them.
+native_add_postgres_repo() {
+    local release keyring=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+    if apt_has_candidate "postgresql-client-$DB_MAJOR" &&
+        { [ "$DATABASE" = existing ] || apt_has_candidate "postgresql-$NATIVE_PG"; }; then
+        echo "Ubuntu has the PostgreSQL $DB_MAJOR packages."
+        return 0
+    fi
+    # shellcheck source=/dev/null
+    release=$(. /etc/os-release && printf '%s' "${VERSION_CODENAME:-}")
+    install -d "$(dirname "$keyring")"
+    curl -fsSL --max-time 30 "$PGDG_KEY_URL" -o "$keyring" || return
+    printf 'deb [signed-by=%s] %s %s-pgdg main\n' "$keyring" "$PGDG_URL" "$release" \
+        >/etc/apt/sources.list.d/pgdg.list
+    apt_get update
+}
+
+apt_has_candidate() {
+    apt-cache policy "$1" 2>/dev/null | grep -q 'Candidate: [0-9]'
+}
+
 native_php_packages() {
     local php=php$NATIVE_PHP
     printf '%s\n' "$php-fpm" "$php-cli" "$php-pgsql" "$php-redis" "$php-intl" "$php-mbstring" \
@@ -3157,14 +3199,43 @@ native_install_packages() {
     # shellcheck disable=SC2046
     apt_get install \
         git curl unzip ca-certificates cron ufw \
-        $(native_php_packages) composer \
+        $(native_php_packages) $(native_composer_package) \
         nginx redis-server supervisor certbot python3-certbot-nginx fail2ban \
         $(native_postgres_packages) \
         $(native_backup_packages) \
         poppler-utils pandoc catdoc ffmpeg weasyprint fonts-noto-core fonts-noto-cjk || return
     native_check_php || return
     native_check_backup_programs || return
+    native_install_composer || return
     composer --version
+}
+
+# Ubuntu's Composer, when it is new enough.
+native_composer_package() {
+    local candidate
+    candidate=$(apt-cache policy composer 2>/dev/null | sed -n 's/^ *Candidate: *//p')
+    candidate=${candidate#*:}
+    case $candidate in
+        [0-9]*) if version_at_least "${candidate%%[-+~]*}" "$MIN_COMPOSER_VERSION"; then echo composer; fi ;;
+    esac
+}
+
+# Otherwise the current Composer from getcomposer.org, its installer checked
+# against the published hash.
+native_install_composer() {
+    local have setup="$WORK_DIR/composer-setup.php" expected
+    have=$(composer --no-ansi --version 2>/dev/null | sed -n 's/^Composer version \([0-9.]*\).*/\1/p')
+    if [ -n "$have" ] && version_at_least "$have" "$MIN_COMPOSER_VERSION"; then return 0; fi
+    expected=$(curl -fsSL --max-time 30 https://composer.github.io/installer.sig) || return
+    curl -fsSL --max-time 30 https://getcomposer.org/installer -o "$setup" || return
+    if [ "$(sha384sum "$setup" | cut -d' ' -f1)" != "$expected" ]; then
+        rm -f "$setup"
+        echo 'The Composer installer from getcomposer.org does not match its published hash.'
+        return 1
+    fi
+    "php$NATIVE_PHP" "$setup" --quiet --install-dir=/usr/local/bin --filename=composer || return
+    rm -f "$setup"
+    hash -r
 }
 
 # PostgreSQL with pgvector, and pg_partman, which splits the analytics event
@@ -3258,7 +3329,8 @@ node_can_build() {
 
 # pg_textsearch (BM25 keyword search) comes as a package from its newest
 # GitHub release (GitHub redirects releases/latest to its tag, with no API
-# rate limit); pgvector and pg_partman come from Ubuntu.
+# rate limit); pgvector and pg_partman come from Ubuntu (or the PostgreSQL
+# archive, where it was added).
 native_install_extensions() {
     local arch dir="$WORK_DIR/debs" file url version
     arch=$(dpkg --print-architecture)
@@ -4507,7 +4579,7 @@ choose_mode() {
     else
         choose 'How do you want to install ChatVia.ai?' \
             'With Docker  — everything in containers, easy to move and remove' \
-            "Complete installation  — everything directly on this server (Ubuntu $NATIVE_UBUNTU)"
+            "Complete installation  — everything directly on this server (Ubuntu $NATIVE_UBUNTU or newer)"
         if [ "$CHOICE" = 0 ]; then MODE=docker; else MODE=complete; fi
     fi
 }

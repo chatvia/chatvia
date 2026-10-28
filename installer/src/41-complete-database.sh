@@ -304,9 +304,10 @@ native_check_database() {
     done
 
     # Backups (and the backup before each upgrade) need a pg_dump of the
-    # server's version or newer.
+    # server's version or newer: from Ubuntu, or from the PostgreSQL archive,
+    # which the install adds when Ubuntu lacks it.
     if command -v apt-cache >/dev/null 2>&1 && [ ! -x "/usr/lib/postgresql/$DB_MAJOR/bin/pg_dump" ] &&
-        ! apt-cache policy "postgresql-client-$DB_MAJOR" 2>/dev/null | grep -q 'Candidate: [0-9]'; then
+        ! apt_has_candidate "postgresql-client-$DB_MAJOR" && ! pgdg_carries_this_release; then
         problems+=("There is no package postgresql-client-$DB_MAJOR for backups of PostgreSQL $DB_MAJOR. Add the"
             'PostgreSQL apt repository (https://wiki.postgresql.org/wiki/Apt), then run the installer again.')
     fi
@@ -378,3 +379,9 @@ native_prepare_database() {
     db_psql "$DB_NAME" -Atc "SELECT extname || ' ' || extversion FROM pg_extension ORDER BY 1"
 }
 
+pgdg_carries_this_release() {
+    local release
+    # shellcheck source=/dev/null
+    release=$(. /etc/os-release 2>/dev/null && printf '%s' "${VERSION_CODENAME:-}")
+    [ -n "$release" ] && curl -fsI --max-time 10 "$PGDG_URL/dists/$release-pgdg/Release" >/dev/null 2>&1
+}

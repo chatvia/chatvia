@@ -609,8 +609,9 @@ After a change:
 ### Test the complete installation
 
 The complete installation (`install.sh --complete`) sets up a whole Ubuntu
-26.04 server. A throwaway VPS is the real test. On your machine, a container
-with systemd stands in for one:
+server (24.04 LTS or newer). A throwaway VPS is the real test: try 24.04,
+which takes PostgreSQL and Composer from elsewhere, as well as 26.04. On
+your machine, a container with systemd stands in for one:
 
 1. Build an image with systemd, from a folder with this `Dockerfile`:
 

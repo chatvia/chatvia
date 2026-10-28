@@ -14,10 +14,11 @@
 #   to upgrade. .env always names one exact version, like 1.4.2: the
 #   installer looks up which release "latest" (or 1.4) is and saves that.
 #
-# - Complete installation: everything directly on a fresh Ubuntu 26.04
-#   server, without Docker. It installs and sets up PostgreSQL with the
-#   search extensions, Redis, PHP-FPM, nginx, a Let's Encrypt certificate,
-#   Supervisor, cron and the firewall, creates the `chatvia` user, and
+# - Complete installation: everything directly on a fresh Ubuntu server
+#   (24.04 LTS or newer), without Docker. It installs and sets up
+#   PostgreSQL with the search extensions, Redis, PHP-FPM, nginx, a Let's
+#   Encrypt certificate, Supervisor, cron and the firewall, creates the
+#   `chatvia` user, and
 #   deploys the newest release with Deployer into /var/www/chatvia. Unless
 #   you turn it off, chatvia-auto-update then deploys each newer release of
 #   that major version by itself, once a night, after a database backup. It
@@ -102,7 +103,8 @@ readonly NEWS_EMAIL_URL="https://chatvia.ai/api/subscribers"
 
 # The complete installation.
 readonly NATIVE_DOCS="https://chatvia.ai/docs/guide/installation/ubuntu"
-readonly NATIVE_UBUNTU="26.04"
+# The oldest Ubuntu release the complete installation runs on.
+readonly NATIVE_UBUNTU="24.04"
 readonly NATIVE_REPO="https://github.com/chatvia/chatvia.git"
 readonly NATIVE_USER="chatvia"
 readonly NATIVE_HOME="/home/chatvia"
@@ -122,6 +124,10 @@ readonly NATIVE_MIN_PHP="8.5.12"
 readonly PHP_PPA_URL="https://ppa.launchpadcontent.net/ondrej/php/ubuntu"
 readonly PHP_PPA_KEY="B8DC7E53946656EFBCE4C1DD71DAEAAB4AD4CAB6"
 readonly NATIVE_PG="18"
+# Ubuntu releases older than 26.04 have no PostgreSQL 18 of their own: it
+# comes from the PostgreSQL archive there.
+readonly PGDG_URL="https://apt.postgresql.org/pub/repos/apt"
+readonly PGDG_KEY_URL="https://www.postgresql.org/media/keys/ACCC4CF8.asc"
 # An existing PostgreSQL server must be this version or newer: the one the
 # complete installation sets up, and the oldest pg_textsearch builds for.
 readonly NATIVE_MIN_PG="18"
@@ -130,6 +136,9 @@ readonly NATIVE_MIN_PG="18"
 readonly APP_EXTENSIONS="pg_stat_statements pg_trgm btree_gin btree_gist vector pg_textsearch"
 readonly PG_TEXTSEARCH_RELEASES="https://github.com/timescale/pg_textsearch/releases"
 readonly DEPLOYER_VERSION="^8.0"
+# Ubuntu's Composer package when it is this version or newer; otherwise
+# (24.04 has 2.7, older than PHP 8.4) the current one from getcomposer.org.
+readonly MIN_COMPOSER_VERSION="2.8.0"
 readonly MIN_NODE_VERSION="22.18.0"
 # Less memory than this (a 4 GB server), and no swap: the frontend build
 # (up to 3 GB) may run out next to the running app.

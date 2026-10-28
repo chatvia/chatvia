@@ -37,7 +37,8 @@ native_update_system() {
 }
 
 # The newest Redis comes from packages.redis.io when it carries this Ubuntu
-# release; otherwise Ubuntu's own redis-server stays (26.04 ships Redis 8).
+# release; otherwise Ubuntu's own redis-server stays (26.04 ships Redis 8,
+# 24.04 Redis 7).
 # Best effort on purpose: any miss leaves the system repositories as they
 # are, and the install goes on.
 native_add_redis_repo() {
@@ -76,6 +77,29 @@ native_add_php_repo() {
     apt_get update
 }
 
+# Ubuntu 26.04 has PostgreSQL 18 in its own archive. Older releases get it,
+# and the pg_dump that backs up an existing server, from the PostgreSQL
+# archive (apt.postgresql.org). Nothing is added when Ubuntu has them.
+native_add_postgres_repo() {
+    local release keyring=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+    if apt_has_candidate "postgresql-client-$DB_MAJOR" &&
+        { [ "$DATABASE" = existing ] || apt_has_candidate "postgresql-$NATIVE_PG"; }; then
+        echo "Ubuntu has the PostgreSQL $DB_MAJOR packages."
+        return 0
+    fi
+    # shellcheck source=/dev/null
+    release=$(. /etc/os-release && printf '%s' "${VERSION_CODENAME:-}")
+    install -d "$(dirname "$keyring")"
+    curl -fsSL --max-time 30 "$PGDG_KEY_URL" -o "$keyring" || return
+    printf 'deb [signed-by=%s] %s %s-pgdg main\n' "$keyring" "$PGDG_URL" "$release" \
+        >/etc/apt/sources.list.d/pgdg.list
+    apt_get update
+}
+
+apt_has_candidate() {
+    apt-cache policy "$1" 2>/dev/null | grep -q 'Candidate: [0-9]'
+}
+
 native_php_packages() {
     local php=php$NATIVE_PHP
     printf '%s\n' "$php-fpm" "$php-cli" "$php-pgsql" "$php-redis" "$php-intl" "$php-mbstring" \
@@ -102,14 +126,43 @@ native_install_packages() {
     # shellcheck disable=SC2046
     apt_get install \
         git curl unzip ca-certificates cron ufw \
-        $(native_php_packages) composer \
+        $(native_php_packages) $(native_composer_package) \
         nginx redis-server supervisor certbot python3-certbot-nginx fail2ban \
         $(native_postgres_packages) \
         $(native_backup_packages) \
         poppler-utils pandoc catdoc ffmpeg weasyprint fonts-noto-core fonts-noto-cjk || return
     native_check_php || return
     native_check_backup_programs || return
+    native_install_composer || return
     composer --version
+}
+
+# Ubuntu's Composer, when it is new enough.
+native_composer_package() {
+    local candidate
+    candidate=$(apt-cache policy composer 2>/dev/null | sed -n 's/^ *Candidate: *//p')
+    candidate=${candidate#*:}
+    case $candidate in
+        [0-9]*) if version_at_least "${candidate%%[-+~]*}" "$MIN_COMPOSER_VERSION"; then echo composer; fi ;;
+    esac
+}
+
+# Otherwise the current Composer from getcomposer.org, its installer checked
+# against the published hash.
+native_install_composer() {
+    local have setup="$WORK_DIR/composer-setup.php" expected
+    have=$(composer --no-ansi --version 2>/dev/null | sed -n 's/^Composer version \([0-9.]*\).*/\1/p')
+    if [ -n "$have" ] && version_at_least "$have" "$MIN_COMPOSER_VERSION"; then return 0; fi
+    expected=$(curl -fsSL --max-time 30 https://composer.github.io/installer.sig) || return
+    curl -fsSL --max-time 30 https://getcomposer.org/installer -o "$setup" || return
+    if [ "$(sha384sum "$setup" | cut -d' ' -f1)" != "$expected" ]; then
+        rm -f "$setup"
+        echo 'The Composer installer from getcomposer.org does not match its published hash.'
+        return 1
+    fi
+    "php$NATIVE_PHP" "$setup" --quiet --install-dir=/usr/local/bin --filename=composer || return
+    rm -f "$setup"
+    hash -r
 }
 
 # PostgreSQL with pgvector, and pg_partman, which splits the analytics event
@@ -203,7 +256,8 @@ node_can_build() {
 
 # pg_textsearch (BM25 keyword search) comes as a package from its newest
 # GitHub release (GitHub redirects releases/latest to its tag, with no API
-# rate limit); pgvector and pg_partman come from Ubuntu.
+# rate limit); pgvector and pg_partman come from Ubuntu (or the PostgreSQL
+# archive, where it was added).
 native_install_extensions() {
     local arch dir="$WORK_DIR/debs" file url version
     arch=$(dpkg --print-architecture)

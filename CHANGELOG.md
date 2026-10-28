@@ -414,17 +414,19 @@ theme.
   now rebuilds the vector indexes too.
 - **Complete installation without Docker.** On Linux, `install.sh` now asks
   how to install: with Docker, as before, or everything directly on a fresh
-  Ubuntu 26.04 LTS server (`--complete`). It installs and sets up PostgreSQL
-  18 with the search extensions and the Pulse and Spectra databases, Redis
-  with a password, PHP-FPM behind nginx, Node.js 22, a Let's Encrypt
-  certificate, Horizon, Reverb and Pulse under Supervisor, the scheduler in
-  cron, and the firewall (the SSH ports stay open), creates the `chatvia`
-  user, and deploys the release with Deployer into its own folder under
-  `/var/www/chatvia`. It asks you to point the domain at the server first,
-  checks its A record (check again, use another address, go on anyway or
-  stop), warns that it takes over the whole server, checks
-  at the end that every part runs, and runs again to upgrade (after a
-  database backup, without downtime) or to finish an install that stopped.
+  Ubuntu 24.04 LTS (or newer) server (`--complete`). On releases older than
+  26.04 it takes PostgreSQL 18 from the PostgreSQL archive
+  (apt.postgresql.org) and Composer from getcomposer.org. It installs and sets
+  up PostgreSQL 18 with the search extensions and the Pulse and Spectra
+  databases, Redis with a password, PHP-FPM behind nginx, Node.js 22, a Let's
+  Encrypt certificate, Horizon, Reverb and Pulse under Supervisor, the
+  scheduler in cron, and the firewall (the SSH ports stay open), creates the
+  `chatvia` user, and deploys the release with Deployer into its own folder
+  under `/var/www/chatvia`. It asks you to point the domain at the server
+  first, checks its A record (check again, use another address, go on anyway
+  or stop), warns that it takes over the whole server, checks at the end that
+  every part runs, and runs again to upgrade (after a database backup, without
+  downtime) or to finish an install that stopped.
 - **Automatic updates on the complete installation.** The installer asks
   (yes by default; `--no-auto-update` or `CHATVIA_AUTO_UPDATE=no` to skip)
   and installs `chatvia-auto-update`: once a night it looks for a newer

@@ -17,7 +17,7 @@ choose_mode() {
     else
         choose 'How do you want to install ChatVia.ai?' \
             'With Docker  — everything in containers, easy to move and remove' \
-            "Complete installation  — everything directly on this server (Ubuntu $NATIVE_UBUNTU)"
+            "Complete installation  — everything directly on this server (Ubuntu $NATIVE_UBUNTU or newer)"
         if [ "$CHOICE" = 0 ]; then MODE=docker; else MODE=complete; fi
     fi
 }

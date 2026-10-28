@@ -1,11 +1,11 @@
 #------------------------------------------------------------------------------
 # Complete installation: everything directly on this server, without Docker
 #
-# Ubuntu 26.04 LTS on a fresh server. It does what the guides "Install on
-# Ubuntu" and "Deploy with Deployer" describe: PostgreSQL 18 with the search
-# extensions, Redis, PHP-FPM behind nginx, a Let's Encrypt certificate,
-# Horizon, Reverb and Pulse under Supervisor, the scheduler in cron, and the
-# firewall. One system user, chatvia, owns the code and runs every part of
+# Ubuntu 24.04 LTS or newer on a fresh server. It does what the guides
+# "Install on Ubuntu" and "Deploy with Deployer" describe: PostgreSQL 18
+# with the search extensions, Redis, PHP-FPM behind nginx, a Let's Encrypt
+# certificate, Horizon, Reverb and Pulse under Supervisor, the scheduler in
+# cron, and the firewall. One system user, chatvia, owns the code and runs every part of
 # the app. Deployer, installed for that user, deploys each release into its
 # own folder under /var/www/chatvia and switches over in one step, so an
 # upgrade has no downtime, and a failed one changes nothing that runs.
@@ -213,13 +213,14 @@ native_check_system() {
         codename=$(. /etc/os-release && printf '%s' "${VERSION_CODENAME:-}")
     fi
     name=${name:-$(uname -s)}
-    if [ "$OS" != linux ] || [ "$id" != ubuntu ] || [ "$version" != "$NATIVE_UBUNTU" ]; then
+    if [ "$OS" != linux ] || [ "$id" != ubuntu ] || [ -z "$version" ] ||
+        ! version_at_least "$version" "$NATIVE_UBUNTU"; then
         if [ "$DRY_RUN" = 1 ]; then
-            warn "This is $name, not Ubuntu $NATIVE_UBUNTU: a real install stops here. $(dim '(dry run)')"
+            warn "This is $name, not Ubuntu $NATIVE_UBUNTU or newer: a real install stops here. $(dim '(dry run)')"
             return
         fi
-        die "The complete installation needs Ubuntu $NATIVE_UBUNTU LTS. This is $name." \
-            "Use a fresh Ubuntu $NATIVE_UBUNTU server, or install with Docker (--docker)."
+        die "The complete installation needs Ubuntu $NATIVE_UBUNTU LTS or newer. This is $name." \
+            "Use a fresh Ubuntu $NATIVE_UBUNTU (or newer) server, or install with Docker (--docker)."
     fi
     arch=$(dpkg --print-architecture)
     case $arch in
@@ -236,11 +237,11 @@ native_check_system() {
     fi
     if ! php_ppa_carries "$codename"; then
         if [ "$DRY_RUN" = 1 ]; then
-            warn "ppa:ondrej/php has no packages for Ubuntu $NATIVE_UBUNTU yet: a real install stops here. $(dim '(dry run)')"
+            warn "ppa:ondrej/php has no packages for Ubuntu $version yet: a real install stops here. $(dim '(dry run)')"
             return
         fi
-        die "ChatVia.ai needs PHP $NATIVE_MIN_PHP or newer, from ppa:ondrej/php. It has no packages for Ubuntu $NATIVE_UBUNTU ($codename) yet, or this server cannot reach it." \
-            "Install with Docker (--docker) for now, or run this installer again once the PPA carries Ubuntu $NATIVE_UBUNTU."
+        die "ChatVia.ai needs PHP $NATIVE_MIN_PHP or newer, from ppa:ondrej/php. It has no packages for Ubuntu $version ($codename) yet, or this server cannot reach it." \
+            "Install with Docker (--docker) for now, or run this installer again once the PPA carries Ubuntu $version."
     fi
     ok "$name $(dim "($arch)")"
 }
@@ -667,6 +668,7 @@ native_run_steps() {
     run_step 'Updating the system packages' native_update_system || native_failed
     run_step 'Looking for a newer Redis at packages.redis.io' native_add_redis_repo || native_failed
     run_step 'Adding ppa:ondrej/php for the newest PHP' native_add_php_repo || native_failed
+    run_step "Looking for PostgreSQL $DB_MAJOR packages" native_add_postgres_repo || native_failed
     if [ "$DATABASE" = existing ]; then
         run_step 'Installing PHP, Redis, nginx and the other packages' native_install_packages || native_failed
         run_step 'Installing Node.js 22' native_install_node || native_failed

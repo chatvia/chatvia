@@ -136,3 +136,12 @@ it('keeps a PDF as Mistral\'s own document part', function (): void {
 
     expect($recorder->body()['messages'][0]['content'][1])->toBe(hookPdfTurn()[0]['content'][1]);
 });
+
+it('lets OpenRouter stream the thinking back only for a turn that shows it', function (): void {
+    $recorder = GuzzleRecorder::answering(new Response(200, [], "data: [DONE]\n\n"));
+
+    hookClient(OpenRouter::class)->stream('deepseek/deepseek-r1', [['role' => 'user', 'content' => 'hi']], ['reasoning_effort' => 'high', 'show_reasoning' => true]);
+
+    expect($recorder->body()['reasoning'])->toBe(['effort' => 'high'])
+        ->and($recorder->body())->not->toHaveKey('show_reasoning');
+});

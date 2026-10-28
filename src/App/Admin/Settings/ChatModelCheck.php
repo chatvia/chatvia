@@ -42,10 +42,10 @@ final readonly class ChatModelCheck
     private const int REPLY_MAX_TOKENS = 200;
 
     /** The picture the image check shows: a cartoon cat. */
-    private const string IMAGE = 'images/setup/test-cat.png';
+    private const string IMAGE = 'admin/samples/setup/test-cat.png';
 
     /** The file the PDF check sends: one small page about a bakery. */
-    private const string PDF = 'checks/chat-file.pdf';
+    private const string PDF = 'admin/samples/checks/chat-file.pdf';
 
     private const int MAX_REASON_LENGTH = 300;
 

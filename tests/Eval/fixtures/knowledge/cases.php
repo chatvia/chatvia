@@ -16,7 +16,7 @@ declare(strict_types=1);
  *   question joins facts that sit in different chunks; a global one asks
  *   about the whole collection, so the facts are spread wide.
  *
- * The documents are resources/chunking/{markdown.md,text.txt,transcript.txt}
+ * The documents are resources/admin/samples/chunking/{markdown.md,text.txt,transcript.txt}
  * and fixtures/knowledge/{arabic.md,catalogue.md,terms.txt,trips.md,riyadh.md}:
  * one made-up outdoor shop, so questions can join facts across documents.
  */

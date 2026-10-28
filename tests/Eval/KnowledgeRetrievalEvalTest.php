@@ -128,9 +128,9 @@ function retrievalEvalChunkLine(): string
 function retrievalEvalDocuments(): array
 {
     return [
-        resource_path('chunking/markdown.md') => ContentKind::Markdown,
-        resource_path('chunking/text.txt') => ContentKind::Text,
-        resource_path('chunking/transcript.txt') => ContentKind::Transcript,
+        resource_path('admin/samples/chunking/markdown.md') => ContentKind::Markdown,
+        resource_path('admin/samples/chunking/text.txt') => ContentKind::Text,
+        resource_path('admin/samples/chunking/transcript.txt') => ContentKind::Transcript,
         __DIR__.'/fixtures/knowledge/arabic.md' => ContentKind::Markdown,
         __DIR__.'/fixtures/knowledge/catalogue.md' => ContentKind::Markdown,
         __DIR__.'/fixtures/knowledge/terms.txt' => ContentKind::Text,

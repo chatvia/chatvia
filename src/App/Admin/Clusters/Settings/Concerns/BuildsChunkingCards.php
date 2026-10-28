@@ -48,14 +48,14 @@ trait BuildsChunkingCards
     private const int PREVIEW_LIMIT = 12;
 
     /**
-     * The sample of each kind of content the preview offers, in resources/:
+     * The sample of each kind of content the preview offers, in resources/admin/samples/:
      * the same fictional shop as a help centre in Markdown (about 2,000
      * tokens), a typed policy text, and a video transcript.
      */
     private const array SAMPLES = [
-        'markdown' => 'chunking/markdown.md',
-        'text' => 'chunking/text.txt',
-        'transcript' => 'chunking/transcript.txt',
+        'markdown' => 'admin/samples/chunking/markdown.md',
+        'text' => 'admin/samples/chunking/text.txt',
+        'transcript' => 'admin/samples/chunking/transcript.txt',
     ];
 
     /**

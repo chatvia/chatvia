@@ -77,7 +77,7 @@ class MistralOcr
                 'model' => (string) config('services.mistral.ocr_model'),
                 'document' => [
                     'type' => 'image_url',
-                    'image_url' => 'data:image/png;base64,'.base64_encode(File::get(resource_path('checks/document-reader.png'))),
+                    'image_url' => 'data:image/png;base64,'.base64_encode(File::get(resource_path('admin/samples/checks/document-reader.png'))),
                 ],
             ]));
     }

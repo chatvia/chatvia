@@ -4,4 +4,4 @@ resources/js/routes/*
 resources/js/wayfinder/*
 resources/views/mail/*
 # Chunking samples: the evals look for their exact text.
-resources/chunking/*
+resources/admin/samples/chunking/*

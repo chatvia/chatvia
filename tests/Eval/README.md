@@ -148,7 +148,7 @@ checkpoint, but a starved tool can't be called at all.
 `KnowledgeRetrievalEvalTest.php` measures the agent's knowledge search
 (`HybridChunkSearch` → relevance check → `KnowledgeBase::search`). Each run it
 splits and embeds eight documents of one made-up outdoor shop for a fresh
-agent — the three chunking samples in `resources/chunking/`, a product
+agent — the three chunking samples in `resources/admin/samples/chunking/`, a product
 catalogue, terms of sale, a trips and courses guide, and two Arabic pages in
 [`fixtures/knowledge/`](fixtures/knowledge/) (46 chunks at the default size) —
 then asks the labelled questions in

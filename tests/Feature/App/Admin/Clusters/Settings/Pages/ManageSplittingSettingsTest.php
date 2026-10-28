@@ -204,18 +204,18 @@ it('starts the preview with the sample help centre, split as Markdown', function
         ->assertSchemaStateSet([
             'chunk_unit' => 'tokens',
             'preview_kind' => 'markdown',
-            'preview_text' => File::get(resource_path('chunking/markdown.md')),
+            'preview_text' => File::get(resource_path('admin/samples/chunking/markdown.md')),
         ]);
 });
 
 it('shows the sample of the kind to split as', function (): void {
     adminPage(ManageSplittingSettings::class, $this->admin)
         ->fillForm(['preview_kind' => 'transcript'])
-        ->assertSchemaStateSet(['preview_text' => File::get(resource_path('chunking/transcript.txt'))])
+        ->assertSchemaStateSet(['preview_text' => File::get(resource_path('admin/samples/chunking/transcript.txt'))])
         ->fillForm(['preview_kind' => 'text'])
-        ->assertSchemaStateSet(['preview_text' => File::get(resource_path('chunking/text.txt'))])
+        ->assertSchemaStateSet(['preview_text' => File::get(resource_path('admin/samples/chunking/text.txt'))])
         ->fillForm(['preview_kind' => 'markdown'])
-        ->assertSchemaStateSet(['preview_text' => File::get(resource_path('chunking/markdown.md'))]);
+        ->assertSchemaStateSet(['preview_text' => File::get(resource_path('admin/samples/chunking/markdown.md'))]);
 });
 
 it('keeps the admin\'s own text when the kind changes, and clears the last result', function (): void {

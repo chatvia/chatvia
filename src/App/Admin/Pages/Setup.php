@@ -1707,7 +1707,7 @@ class Setup extends SimplePage
                     ->reject(fn (array $section): bool => $section['rows'] === [])
                     ->values()
                     ->all(),
-                'image' => collect($sections)->containsStrict(self::TEST_IMAGES) ? 'data:image/png;base64,'.base64_encode(File::get(resource_path('images/setup/test-cat.png'))) : null,
+                'image' => collect($sections)->containsStrict(self::TEST_IMAGES) ? 'data:image/png;base64,'.base64_encode(File::get(resource_path('admin/samples/setup/test-cat.png'))) : null,
                 'onFailure' => $onFailure,
             ]));
     }

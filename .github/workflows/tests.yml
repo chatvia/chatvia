@@ -19,11 +19,12 @@ permissions:
   contents: read
   packages: read
 
-# A new push to the same pull request cancels its older run. Runs on branches
-# are never cancelled. The group includes the caller's workflow name, so a run
+# A new push to the same pull request cancels its older run. A run on a branch
+# gets a group of its own, so it is never cancelled and never waits for an
+# older run to finish. The group includes the caller's workflow name, so a run
 # started through workflow_call never cancels a normal run.
 concurrency:
-  group: tests-${{ github.workflow }}-${{ github.ref }}
+  group: tests-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -88,11 +89,42 @@ jobs:
 
       # The programs Chatvia reads knowledge files with, as the Dockerfile
       # installs them. The tests that need one skip without it, so without
-      # this step CI would never run them.
+      # this step CI would never run them. The Ubuntu mirror is sometimes very
+      # slow (91 MB once took 38 minutes), so the downloaded packages are
+      # cached per runner image. apt then fetches only what a package update
+      # changed.
+      - name: Get runner image version
+        id: runner-image
+        run: echo "version=$ImageVersion" >> "$GITHUB_OUTPUT"
+
+      - name: Restore file reader packages
+        id: apt-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/apt-archives
+          key: ${{ runner.os }}-${{ runner.arch }}-apt-file-readers-${{ steps.runner-image.outputs.version }}
+          restore-keys: ${{ runner.os }}-${{ runner.arch }}-apt-file-readers-
+
       - name: Install file readers
+        timeout-minutes: 15
         run: |
+          mkdir -p ~/apt-archives/partial
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends poppler-utils pandoc catdoc ffmpeg
+          sudo apt-get install -y --no-install-recommends \
+            -o Dir::Cache::Archives="$HOME/apt-archives" \
+            -o APT::Keep-Downloaded-Packages=true \
+            poppler-utils pandoc catdoc ffmpeg
+          sudo rm -rf ~/apt-archives/partial ~/apt-archives/lock
+          sudo chown -R "$USER" ~/apt-archives
+
+      # Saved right away rather than at the end of the job, so a run whose
+      # checks fail still keeps the packages for the next one.
+      - name: Save file reader packages
+        if: steps.apt-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ~/apt-archives
+          key: ${{ steps.apt-cache.outputs.cache-primary-key }}
 
       - name: Create storage directories
         run: |

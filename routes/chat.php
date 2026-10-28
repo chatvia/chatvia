@@ -120,7 +120,9 @@ Route::prefix('chat/{agentSlug}')
             Route::post('calendar/{bookingInstance}/book', BookMeetingController::class)
                 ->middleware(['license.capabilities', 'throttle:chat-stream'])->name('chat.calendar.book');
 
-            Route::post('conversations/create', ConversationCreateController::class)->name('conversations.create');
+            // Opening a conversation stores its first message, which the next
+            // turn sends to the model, so it is paced like a turn.
+            Route::post('conversations/create', ConversationCreateController::class)->middleware('throttle:chat-stream')->name('conversations.create');
             Route::get('conversations/{conversationId}/messages', ConversationMessageController::class)->name('conversations.messages');
             // The images and audio made in a conversation, asked for while one
             // is still being made and no live update has come.

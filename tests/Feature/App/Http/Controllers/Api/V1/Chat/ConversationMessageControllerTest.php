@@ -11,6 +11,7 @@ use Domain\Conversation\Jobs\GenerateConversationTitleJob;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Str;
 use Illuminate\Support\Uri;
 use Tests\Support\Api\ActsAsApiOwner;
 use Tests\Support\Http\BufferedSseResponder;
@@ -93,6 +94,15 @@ it('never takes a message into a conversation that was not opened over the API',
 
     expect(Message::query()->where('chat_conversation_id', $conversation->id)->exists())->toBeFalse();
 })->with([ConversationSource::Widget, ConversationSource::HostedChat]);
+
+it("refuses a message longer than the install's longest-message setting", function (): void {
+    config(['chatvia.guardrails.max_message_chars' => 20]);
+
+    $this->withToken($this->token)
+        ->postJson($this->base.'/conversations/'.cmcConversation()->external_id.'/messages', ['message' => Str::repeat('a', 21)])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['message']);
+});
 
 it('answers 429 message_limit_reached once the workspace used its monthly messages', function (): void {
     MessageLimit::factory()->forWorkspace($this->owner->workspace())->reached()->create();

@@ -36,8 +36,9 @@ class SendApiMessageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // The message text to send to the agent.
-            'message' => ['required', 'string', 'max:32000'],
+            // The message text to send to the agent. The longest message is
+            // the install's setting (Settings → Security), as in every chat.
+            'message' => ['required', 'string', 'max:'.config('chatvia.guardrails.max_message_chars')],
             // `true` streams the reply as server-sent events. Sending an
             // `Accept: text/event-stream` header does the same.
             'stream' => ['sometimes', 'boolean'],

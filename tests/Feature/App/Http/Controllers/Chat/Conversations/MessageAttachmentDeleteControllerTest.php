@@ -9,12 +9,12 @@ use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Illuminate\Support\Facades\Storage;
+use Tests\Support\Conversation\HostedChatVisitor;
 
 /**
- * Deleting the file of a sent message, with its stored copy. The route names
- * the conversation, so on a protected agent the chat middleware checks the
- * visitor owns it; the controller also checks the file belongs to that
- * conversation of this agent.
+ * Deleting the file of a sent message, with its stored copy. The conversation
+ * must be in the caller's own chat session of this agent, on a public agent
+ * too; the file must belong to the conversation the address names.
  */
 beforeEach(function (): void {
     Storage::fake(Attachment::DISK);
@@ -24,9 +24,24 @@ beforeEach(function (): void {
 function madcAttachment(Session $session): Attachment
 {
     $conversation = Conversation::factory()->inSession($session)->hostedChat()->create();
+
+    return madcAttachmentIn($conversation);
+}
+
+/** A sent message's stored file in the given conversation. */
+function madcAttachmentIn(Conversation $conversation): Attachment
+{
     $message = Message::factory()->fromUser()->create(['chat_conversation_id' => $conversation->id]);
 
     return Attachment::factory()->forMessage($message)->stored()->create();
+}
+
+/** A sent message's stored file in a conversation of this test's browser session. */
+function madcOwnAttachment(Agent $agent): Attachment
+{
+    $conversationId = HostedChatVisitor::startConversation($agent);
+
+    return madcAttachmentIn(Conversation::query()->where('external_id', $conversationId)->sole());
 }
 
 function madcUrl(Agent $agent, Attachment $attachment, ?Conversation $conversation = null): string
@@ -38,7 +53,7 @@ function madcUrl(Agent $agent, Attachment $attachment, ?Conversation $conversati
 
 it('deletes a sent message\'s file on a public agent, keeping the message', function (): void {
     $agent = Agent::factory()->create(['is_public' => true]);
-    $attachment = madcAttachment(Session::factory()->create(['agent_id' => $agent->id]));
+    $attachment = madcOwnAttachment($agent);
 
     $this->delete(madcUrl($agent, $attachment))->assertNoContent();
 
@@ -48,12 +63,24 @@ it('deletes a sent message\'s file on a public agent, keeping the message', func
     Storage::disk(Attachment::DISK)->assertMissing($attachment->filepath);
 });
 
-it('refuses when the address names another conversation than the file\'s', function (): void {
+it('answers 404 for another visitor\'s file on a public agent and keeps it', function (): void {
     $agent = Agent::factory()->create(['is_public' => true]);
     $attachment = madcAttachment(Session::factory()->create(['agent_id' => $agent->id]));
-    $otherConversation = Conversation::factory()->forAgent($agent)->hostedChat()->create();
 
-    $this->delete(madcUrl($agent, $attachment, $otherConversation))->assertForbidden();
+    $this->delete(madcUrl($agent, $attachment))->assertNotFound();
+
+    expect(Attachment::find($attachment->id))->not->toBeNull();
+    Storage::disk(Attachment::DISK)->assertExists($attachment->filepath);
+});
+
+it('answers 404 when the address names another conversation than the file\'s', function (): void {
+    $agent = Agent::factory()->create(['is_public' => true]);
+    $attachment = madcOwnAttachment($agent);
+    $otherConversation = Conversation::query()
+        ->where('external_id', HostedChatVisitor::startConversation($agent))
+        ->sole();
+
+    $this->delete(madcUrl($agent, $attachment, $otherConversation))->assertNotFound();
 
     expect(Attachment::find($attachment->id))->not->toBeNull();
     Storage::disk(Attachment::DISK)->assertExists($attachment->filepath);

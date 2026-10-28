@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Chat\Conversations;
 
 use App\Http\Chat\HostedChatAgent;
+use App\Http\Chat\HostedChatSession;
 use App\Http\Controllers\Chat\Messages\AttachmentDeleteController;
-use App\Http\Middleware\Chat\EnsureChatIsAccessible;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Attachment;
+use Domain\Conversation\Models\Conversation;
 use Illuminate\Http\Response;
 
 /**
@@ -14,13 +15,10 @@ use Illuminate\Http\Response;
  * from {@see AttachmentDeleteController},
  * which handles the composer-stage (unsent) case under different rules.
  *
- * Authorization comes from {@see EnsureChatIsAccessible}:
- * the route carries `{conversationId}` so the middleware enforces
- * `ChatCache::isOwnedBy()` for authenticated chatters on protected agents.
- * The inline check below is a defense-in-depth tie between the URL's
- * conversation id, the row's conversation, and the request's resolved agent
- * so a captured external_id from another conversation/agent can't be wiped
- * via this endpoint.
+ * The conversation must be in the CALLER's chat session of this agent, like
+ * every other conversation route, so nobody can wipe another visitor's file
+ * by its ids, on a public agent included. The address, the file's row and
+ * the request's agent must all name the same conversation.
  *
  * The deleting hook on {@see Attachment::booted()} wipes the underlying S3
  * object. Later turns no longer send the file to the document LLM — that's
@@ -29,15 +27,17 @@ use Illuminate\Http\Response;
  */
 class MessageAttachmentDeleteController
 {
-    public function __invoke(string $conversationId, Attachment $attachment, #[HostedChatAgent] Agent $agent): Response
-    {
-        $conversation = $attachment->conversation;
-        if ($conversation === null
-            || $conversation->external_id !== $conversationId
-            || $conversation->session?->agent_id !== $agent->id
-        ) {
-            abort(403);
-        }
+    public function __invoke(
+        string $conversationId,
+        Attachment $attachment,
+        #[HostedChatAgent] Agent $agent,
+        HostedChatSession $session,
+    ): Response {
+        Conversation::query()
+            ->inSession($session->find($agent) ?? abort(404), $agent->id)
+            ->where('external_id', $conversationId)
+            ->whereKey($attachment->chat_conversation_id)
+            ->firstOrFail();
 
         $attachment->delete();
 

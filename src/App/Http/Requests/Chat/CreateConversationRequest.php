@@ -10,7 +10,8 @@ use Illuminate\Support\Str;
 
 /**
  * Validates a hosted-chat visitor's first message, which opens a new
- * conversation.
+ * conversation. It is capped like every later message (the admin's longest
+ * message setting), as the next turn sends it to the model as history.
  */
 class CreateConversationRequest extends FormRequest
 {
@@ -25,7 +26,7 @@ class CreateConversationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'message' => ['required', 'string'],
+            'message' => ['required', 'string', 'max:'.config('chatvia.guardrails.max_message_chars')],
             // Frontend sends the full AttachmentData objects it got from
             // the upload endpoint. We only need the `id`s server-side to
             // claim the orphan rows.

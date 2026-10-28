@@ -73,7 +73,21 @@ class EnsureChatIsAccessible
             $this->authorizeSignedInAccount($request, $agent, $account);
         }
 
+        // One chat cookie serves every hosted chat of the install. An account
+        // of another workspace is a stranger on this public agent: it chats
+        // as a guest, since no session of this workspace can be its own.
+        if (! $isProtected && $account !== null && ! $this->belongsToWorkspace($account, $agent)) {
+            HostedChatViewer::signOut();
+        }
+
         return $next($request);
+    }
+
+    private function belongsToWorkspace(Chatter|User $account, Agent $agent): bool
+    {
+        $workspaceId = $account instanceof Chatter ? $account->workspace_id : $account->workspace()->id;
+
+        return $workspaceId === $agent->workspace_id;
     }
 
     private function authorizeSignedInAccount(Request $request, Agent $agent, Chatter|User $account): void

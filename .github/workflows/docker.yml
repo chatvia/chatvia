@@ -44,7 +44,7 @@ jobs:
       contents: read
 
   frontend:
-    name: Frontend
+    name: Frontend quality
     uses: ./.github/workflows/frontend.yml
     permissions:
       contents: read

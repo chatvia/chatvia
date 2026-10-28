@@ -6,6 +6,7 @@ use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Data\McpToolDefinitionData;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Models\ConnectorTool;
+use Domain\Integration\Mcp\Models\McpServerTool;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -50,7 +51,10 @@ class UpsertConnectorToolsAction
      * Race-safe by (connector_slug, name): two workspaces connecting the same
      * connector at once converge on one row. Scope and default permission are
      * facts about the tool and re-sync every time; a workspace's own choice
-     * lives on its membership row.
+     * lives on its membership row. Once the tool changed (its description,
+     * input or scope), every workspace's choice goes back to the default,
+     * a block excepted: a tool allowed as a harmless search must not quietly
+     * become something else.
      */
     private function upsert(string $connectorSlug, McpToolDefinitionData $tool, McpToolPermission $defaultPermission): ConnectorTool
     {
@@ -72,6 +76,10 @@ class UpsertConnectorToolsAction
             return $row;
         }
 
+        $changed = $row->description !== $tool->description
+            || $row->input_schema != $tool->inputSchema
+            || $row->scope !== $tool->scope();
+
         if ($row->description !== $tool->description) {
             $row->embedding = null;
             $row->search_text = null;
@@ -80,6 +88,13 @@ class UpsertConnectorToolsAction
         $row->fill($attributes);
         if ($row->isDirty()) {
             $row->save();
+        }
+
+        if ($changed) {
+            McpServerTool::query()
+                ->where('connector_tool_id', $row->id)
+                ->where('permission', '!=', McpToolPermission::Blocked->value)
+                ->update(['permission' => $defaultPermission->value]);
         }
 
         return $row;

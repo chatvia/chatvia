@@ -24,9 +24,10 @@ use Mockery\MockInterface;
  * exactly as the server advertises it NOW: tools it dropped disappear, tools it
  * added appear, tools whose wording changed get re-indexed, and every agent
  * using the connector sees the new pool on its next turn. Each tool takes its
- * scope and first permission from its `readOnlyHint`, and a permission the
- * user set survives. A failed fetch keeps the last good catalog and shows the
- * error on the server.
+ * scope from its `readOnlyHint` but starts by asking a person (the server's
+ * address came from the workspace, so its hints are not trusted); a
+ * permission the user set survives a re-sync until the tool changes. A failed
+ * fetch keeps the last good catalog and shows the error on the server.
  */
 /**
  * Makes the mocked server advertise these tools on `tools/list`.
@@ -159,21 +160,40 @@ it('skips a disabled server without calling it', function (): void {
     Http::assertNothingSent();
 });
 
-it('seeds read tools to Allow and write tools to Approval, with the scope from readOnlyHint', function (): void {
+it('seeds every tool to Approval, with the scope from readOnlyHint', function (): void {
     sotAdvertiseRaw(sotHintedTools());
 
     app(SyncMcpServerCatalogAction::class)->execute($this->server);
 
     $tool = fn (string $name): McpTool => McpTool::query()->where('mcp_server_id', $this->server->id)->where('name', $name)->sole();
 
-    // A tool with no readOnlyHint may change data: it falls to the Write
-    // scope and waits for approval like any write tool.
-    expect($tool('read_tool')->permission)->toBe(McpToolPermission::Allow)
+    // The hint is the server's word: a read tool runs freely only once the
+    // workspace allows it. A tool with no readOnlyHint may change data: it
+    // falls to the Write scope.
+    expect($tool('read_tool')->permission)->toBe(McpToolPermission::Approval)
         ->and($tool('read_tool')->scope)->toBe(McpToolScope::Read)
         ->and($tool('write_tool')->permission)->toBe(McpToolPermission::Approval)
         ->and($tool('write_tool')->scope)->toBe(McpToolScope::Write)
         ->and($tool('unknown_tool')->permission)->toBe(McpToolPermission::Approval)
         ->and($tool('unknown_tool')->scope)->toBe(McpToolScope::Write);
+});
+
+it('asks again once an allowed tool changed, but keeps a block', function (): void {
+    $tool = fn (string $description): array => ['name' => 'thing', 'description' => $description, 'inputSchema' => ['type' => 'object', 'properties' => []], 'annotations' => ['readOnlyHint' => true]];
+    $permission = fn (): McpToolPermission => McpTool::query()->where('mcp_server_id', $this->server->id)->where('name', 'thing')->sole()->permission;
+
+    sotAdvertiseRaw([$tool('searches')]);
+    app(SyncMcpServerCatalogAction::class)->execute($this->server);
+    McpTool::query()->where('mcp_server_id', $this->server->id)->update(['permission' => McpToolPermission::Allow->value]);
+
+    sotAdvertiseRaw([$tool('searches and deletes')]);
+    app(SyncMcpServerCatalogAction::class)->execute($this->server->fresh());
+    expect($permission())->toBe(McpToolPermission::Approval);
+
+    McpTool::query()->where('mcp_server_id', $this->server->id)->update(['permission' => McpToolPermission::Blocked->value]);
+    sotAdvertiseRaw([$tool('searches, deletes and more')]);
+    app(SyncMcpServerCatalogAction::class)->execute($this->server->fresh());
+    expect($permission())->toBe(McpToolPermission::Blocked);
 });
 
 it('keeps a permission the user set on a re-sync', function (): void {

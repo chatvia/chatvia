@@ -5,6 +5,7 @@ namespace Domain\Integration\Mcp\Actions\Catalog;
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Data\McpToolDefinitionData;
+use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\ConnectorTool;
 use Domain\Integration\Mcp\Models\McpServerTool;
@@ -157,8 +158,12 @@ class SyncMcpServerCatalogAction
     }
 
     /**
-     * The permission is seeded on first sight only — a re-sync never
-     * overwrites the workspace's choice. A changed description re-embeds.
+     * The server's address came from the workspace, not the catalog, so its
+     * hints decide nothing: every tool asks a person first until the
+     * workspace allows it, and asks again once the tool changed (a tool
+     * allowed as a harmless search must not quietly become something else).
+     * Otherwise a re-sync never overwrites the workspace's choice, a block
+     * included. A changed description re-embeds.
      */
     private function storeOwnTool(AgentMcpServer $server, McpToolDefinitionData $definition): void
     {
@@ -167,9 +172,17 @@ class SyncMcpServerCatalogAction
             'name' => $definition->name,
         ]);
 
-        if (! $tool->exists) {
-            $tool->permission = $definition->defaultPermission();
-        } elseif ($tool->description !== $definition->description) {
+        $changed = $tool->exists && (
+            $tool->description !== $definition->description
+            || $tool->input_schema != $definition->inputSchema
+            || $tool->scope !== $definition->scope()
+        );
+
+        if (! $tool->exists || ($changed && $tool->permission !== McpToolPermission::Blocked)) {
+            $tool->permission = McpToolPermission::Approval;
+        }
+
+        if ($tool->exists && $tool->description !== $definition->description) {
             $tool->embedding = null;
             $tool->search_text = null;
         }

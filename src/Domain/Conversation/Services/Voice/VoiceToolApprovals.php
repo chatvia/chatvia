@@ -15,8 +15,8 @@ use Illuminate\Support\Str;
  * makes sure a person spoke in between. Whatever the visitor says after
  * that drops the hold: an old question is never taken as answered.
  *
- * Whether the visitor's words were a yes is the model's call; the words are
- * kept in the audit as the record of it.
+ * Whether the visitor's words were a yes is {@see SpokenYes}' call, made
+ * when the repeat comes in; the words are kept in the audit as the record.
  */
 final class VoiceToolApprovals
 {

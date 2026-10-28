@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
+use Domain\Integration\Mcp\Actions\Catalog\ReconcileToolMembershipsAction;
 use Domain\Integration\Mcp\Actions\Catalog\UpsertConnectorToolsAction;
 use Domain\Integration\Mcp\Data\McpToolDefinitionData;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Enums\McpToolScope;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\ConnectorTool;
+use Domain\Integration\Mcp\Models\McpServerTool;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 
 /**
@@ -62,4 +65,27 @@ it('clears the embedding only when the description changes', function (): void {
         ['name' => 'read_thing', 'description' => 'reads, now worded differently', 'annotations' => ['readOnlyHint' => true]],
     ]));
     expect($read->fresh()->embedding)->toBeNull();
+});
+
+it('asks every workspace again once a tool changed, but keeps a block', function (): void {
+    $server = AgentMcpServer::factory()->preset('weather')->create();
+    $tools = app(UpsertConnectorToolsAction::class)->execute('weather', uctDefinitions());
+    app(ReconcileToolMembershipsAction::class)->execute($server, $tools);
+    $permission = fn (int $tool): McpToolPermission => McpServerTool::where('mcp_server_id', $server->id)->where('connector_tool_id', $tools[$tool]->id)->sole()->permission;
+    McpServerTool::where('mcp_server_id', $server->id)->update(['permission' => McpToolPermission::Allow->value]);
+
+    // The read tool keeps its wording: the workspace's choice stays. The
+    // write tool now does more: it waits for approval again.
+    app(UpsertConnectorToolsAction::class)->execute('weather', McpToolDefinitionData::listFrom([
+        ['name' => 'read_thing', 'description' => 'reads', 'annotations' => ['readOnlyHint' => true]],
+        ['name' => 'write_thing', 'description' => 'writes and deletes'],
+    ]));
+    expect($permission(0))->toBe(McpToolPermission::Allow)
+        ->and($permission(1))->toBe(McpToolPermission::Approval);
+
+    McpServerTool::where('mcp_server_id', $server->id)->update(['permission' => McpToolPermission::Blocked->value]);
+    app(UpsertConnectorToolsAction::class)->execute('weather', McpToolDefinitionData::listFrom([
+        ['name' => 'write_thing', 'description' => 'writes, deletes and more'],
+    ]));
+    expect($permission(1))->toBe(McpToolPermission::Blocked);
 });

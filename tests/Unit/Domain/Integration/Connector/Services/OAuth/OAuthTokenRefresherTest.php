@@ -58,7 +58,8 @@ it('swaps in a new access token and keeps the rotated refresh token', function (
 
     Http::assertSent(fn (ClientRequest $request): bool => $request['grant_type'] === 'refresh_token'
         && $request['refresh_token'] === 'old-refresh'
-        && $request['client_id'] === 'client-123');
+        && $request['client_id'] === 'client-123'
+        && $request['resource'] === 'https://mcp.example.test/rpc');
 });
 
 it('skips the refresh when another worker refreshed while it waited for the lock', function (): void {

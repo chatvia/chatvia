@@ -21,7 +21,8 @@ use Throwable;
  * published, not from a value we checked when the user typed it. Every
  * request therefore re-checks it is a public address and refuses redirects,
  * so a malicious server cannot point the credential-bearing POST at cloud
- * metadata, loopback or private ranges.
+ * metadata, loopback or private ranges. Every request names the MCP server
+ * as the `resource` (RFC 8707), as the authorize step did.
  */
 class OAuthTokenClient
 {
@@ -43,18 +44,20 @@ class OAuthTokenClient
             'redirect_uri' => $this->registrar->redirectUri(),
             'client_id' => $pending->clientId,
             'code_verifier' => $pending->codeVerifier,
+            'resource' => $pending->mcpUrl,
         ], $pending->clientSecret));
     }
 
     /**
-     * Mint a new access token from a refresh token.
+     * Mint a new access token from a refresh token, for the MCP server at $mcpUrl.
      */
-    public function refresh(string $tokenEndpoint, string $refreshToken, ConnectorOAuthClient $client): OAuthTokenSetData
+    public function refresh(string $tokenEndpoint, string $refreshToken, ConnectorOAuthClient $client, string $mcpUrl): OAuthTokenSetData
     {
         return $this->request(OAuthGrant::RefreshToken, $tokenEndpoint, $this->withSecret([
             'grant_type' => OAuthGrant::RefreshToken->value,
             'refresh_token' => $refreshToken,
             'client_id' => $client->client_id,
+            'resource' => $mcpUrl,
         ], $client->client_secret));
     }
 

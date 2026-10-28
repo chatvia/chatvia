@@ -25,8 +25,9 @@ use Tests\Support\Conversation\Voice\VoiceCalls;
  * An action that needs approval in a voice call: the call holds it and has
  * the model ask first, runs it when the model repeats it after the visitor's
  * spoken yes (audited with their words), waits for the yes to be written
- * down, and tells the call view how each held action ended. Which repeat
- * counts as a yes is VoiceToolApprovals' rule.
+ * down, drops it when the answer was not a yes, and tells the call view how
+ * each held action ended. Which repeat counts as an answer is
+ * VoiceToolApprovals' rule; what counts as a yes is SpokenYes'.
  */
 beforeEach(function (): void {
     Queue::fake();
@@ -111,6 +112,22 @@ it('runs it when the model repeats it after the visitor\'s yes, and audits their
         && $event->gated
         && $event->decidedAt !== null
         && $event->decisionNote === 'Yes, send it.');
+});
+
+it('drops it when the visitor\'s answer was not a yes, audited as denied with their words', function (): void {
+    $this->dispatcher->shouldNotReceive('dispatch');
+
+    RealtimeEvents::visitorSays($this->session, 'item_1', 'Send Stripe a thank-you note.');
+    $this->session->received(RealtimeEvents::toolCall('resp_1', $this->tool, '{"feedback":"Thank you!"}'));
+    RealtimeEvents::visitorSays($this->session, 'item_2', 'No, leave it.');
+    $this->session->received(RealtimeEvents::toolCall('resp_2', $this->tool, '{"feedback":"Thank you!"}', 'fc_2', 'item_2'));
+
+    $output = array_last($this->connection->ofType('conversation.item.create'))['item'];
+    expect($output)->toMatchArray(['call_id' => 'fc_2', 'output' => VoiceToolRunner::DECLINED_RESULT])
+        ->and($output['id'])->toStartWith('tool_cancelled_');
+    Event::assertDispatched(ToolCallCompleted::class, fn (ToolCallCompleted $event): bool => $event->approvalOutcome === 'denied'
+        && $event->gated
+        && $event->decisionNote === 'No, leave it.');
 });
 
 it('waits for the yes to be written down before it runs', function (): void {

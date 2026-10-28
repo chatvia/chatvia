@@ -44,6 +44,7 @@ it('falls back to the conventional path when www-authenticate is absent', functi
     Http::fake([
         'mcp.example.test/rpc' => Http::response('', 401),
         'mcp.example.test/.well-known/oauth-protected-resource' => Http::response([
+            'resource' => 'https://mcp.example.test/rpc',
             'authorization_servers' => ['https://auth.example.test'],
         ]),
         'auth.example.test/.well-known/oauth-authorization-server' => Http::response([
@@ -67,6 +68,18 @@ it('throws when no authorization server is advertised', function (): void {
 
     expect(fn (): OAuthServerMetadataData => (new McpOAuthDiscoverer)->discover('https://mcp.example.test/rpc'))
         ->toThrow(McpOAuthException::class, 'did not list authorization_servers');
+});
+
+it('refuses metadata that names no resource for a server at an address the workspace typed', function (): void {
+    Http::fake([
+        'mcp.example.test/rpc' => Http::response('', 401),
+        'mcp.example.test/.well-known/*' => Http::response([
+            'authorization_servers' => ['https://auth.example.test'],
+        ]),
+    ]);
+
+    expect(fn (): OAuthServerMetadataData => (new McpOAuthDiscoverer)->discover('https://mcp.example.test/rpc'))
+        ->toThrow(McpOAuthException::class, 'does not say which address it protects');
 });
 
 it('rejects protected resource metadata for another address', function (): void {
@@ -126,6 +139,7 @@ it('keeps the last transport failure as the previous exception', function (): vo
     Http::fake([
         'mcp.example.test/rpc' => Http::response('', 401),
         'mcp.example.test/.well-known/*' => Http::response([
+            'resource' => 'https://mcp.example.test/rpc',
             'authorization_servers' => ['https://auth.example.test'],
         ]),
         'auth.example.test/*' => fn () => throw new ConnectionException('connection refused'),

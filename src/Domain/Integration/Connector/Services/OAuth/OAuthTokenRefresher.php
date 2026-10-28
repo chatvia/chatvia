@@ -71,6 +71,7 @@ class OAuthTokenRefresher implements AccessTokenRefresher
             $server->oauth_token_endpoint,
             $server->oauth_refresh_token,
             $this->clientFor($server),
+            $server->url,
         );
 
         $server->forceFill([

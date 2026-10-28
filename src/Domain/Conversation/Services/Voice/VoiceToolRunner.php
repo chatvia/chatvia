@@ -48,6 +48,9 @@ final readonly class VoiceToolRunner
     /** A tool that started needing approval after the call checked it. */
     public const string NEEDS_APPROVAL_RESULT = 'This action needs the user\'s OK and was not run. Ask the user whether to go ahead.';
 
+    /** Told to the model when the visitor's answer to its question was not a yes. */
+    public const string DECLINED_RESULT = 'Not done: the user did not say yes. Do not call it again unless they ask for it.';
+
     /** The answer to a search with an empty query: small talk needs no knowledge. */
     public const string SMALL_TALK_RESULT = 'No search was needed. Reply to the user naturally and briefly.';
 
@@ -135,6 +138,27 @@ final readonly class VoiceToolRunner
         $call = $this->pendingCall($turn->context->requestData->agent, $callId, $name, $arguments, ToolAccessDecision::RequiresApproval);
 
         return $this->dispatch($turn, $call, ToolCallOutcome::Approved, $turn->words);
+    }
+
+    /**
+     * Drop a call the visitor did not say yes to. It is audited as denied by
+     * a person, with their words as the record, and the model is told so.
+     */
+    public function runDeclined(VoiceTurn $turn, string $callId, string $name, string $arguments): VoiceToolResultData
+    {
+        $context = $turn->context;
+        $call = $this->pendingCall($context->requestData->agent, $callId, $name, $arguments, ToolAccessDecision::RequiresApproval);
+
+        $this->audit->record(
+            $context,
+            $call,
+            ToolCallOutcome::Denied,
+            ToolDispatchResultData::error(self::DECLINED_RESULT),
+            decidedByPerson: true,
+            decisionNote: $turn->words,
+        );
+
+        return new VoiceToolResultData(self::DECLINED_RESULT, VoiceToolOutcome::Cancelled);
     }
 
     private function dispatch(VoiceTurn $turn, PendingToolCallData $call, ToolCallOutcome $outcome, ?string $decisionNote = null): VoiceToolResultData

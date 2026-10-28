@@ -54,7 +54,9 @@ it('returns the authorize URL with PKCE and caches the encrypted, bound state', 
         ->and($query->get('code_challenge_method'))->toBe('S256')
         ->and($query->get('redirect_uri'))->toBe('https://chatvia.test/connectors/oauth/callback')
         ->and($query->get('state'))->not->toBeEmpty()
-        ->and($query->get('code_challenge'))->not->toBeEmpty();
+        ->and($query->get('code_challenge'))->not->toBeEmpty()
+        // RFC 8707: the token is bound to this MCP server.
+        ->and($query->get('resource'))->toBe('https://mcp.example.test/rpc');
 
     $cached = PendingConnectorOAuth::sealedFor($url);
     $pending = PendingConnectorOAuth::fromAuthorizeUrl($url);

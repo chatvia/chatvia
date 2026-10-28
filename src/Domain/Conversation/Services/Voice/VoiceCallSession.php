@@ -467,7 +467,9 @@ final class VoiceCallSession implements RealtimeCallHandler
 
     /**
      * Run one call. One that needs a person's approval is held, and the
-     * model asks, unless it repeats a held call the visitor said yes to.
+     * model asks, unless it repeats a held call in the reply to the
+     * visitor's answer: the server reads that answer itself, and runs the
+     * call on a yes or drops it on anything else.
      *
      * @param  array{call_id: string, name: string, arguments: string}  $call
      */
@@ -485,6 +487,10 @@ final class VoiceCallSession implements RealtimeCallHandler
 
         $this->approvals->release($call['name'], $call['arguments']);
 
+        if (! SpokenYes::in($turn->words)) {
+            return $this->toolRunner->runDeclined($turn, $call['call_id'], $call['name'], $call['arguments']);
+        }
+
         return $this->toolRunner->runApproved($turn, $call['call_id'], $call['name'], $call['arguments']);
     }
 
@@ -496,7 +502,7 @@ final class VoiceCallSession implements RealtimeCallHandler
 
     /**
      * Whether the call repeats a held one in the reply to the visitor's
-     * answer (whether that answer was a yes is the model's call).
+     * answer (whether that answer was a yes is {@see SpokenYes}' call).
      *
      * @param  array{call_id: string, name: string, arguments: string}  $call
      */

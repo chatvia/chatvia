@@ -20,7 +20,9 @@ use Throwable;
  *      `WWW-Authenticate: Bearer resource_metadata="<url>"` (RFC 9728).
  *   2. Fetch that protected-resource metadata document → it lists one or
  *      more `authorization_servers`. Its `resource` field must name the MCP
- *      URL (or a parent path on the same origin).
+ *      URL (or a parent path on the same origin); a server at an address
+ *      the workspace typed must have one, or its metadata could borrow
+ *      another service's authorization server for a token meant for it.
  *   3. For each one, fetch `<auth_server>/.well-known/oauth-authorization-server`
  *      (RFC 8414) and return the parsed metadata.
  *
@@ -32,7 +34,7 @@ class McpOAuthDiscoverer
 {
     public function discover(string $mcpUrl, ?ConnectorData $connector = null): OAuthServerMetadataData
     {
-        $authServers = $this->fetchProtectedResource($mcpUrl, $this->resourceMetadataCandidates($mcpUrl));
+        $authServers = $this->fetchProtectedResource($mcpUrl, $this->resourceMetadataCandidates($mcpUrl), requireResource: $connector === null);
 
         if ($authServers === []) {
             throw new McpOAuthException('The MCP server did not advertise any authorization servers.');
@@ -103,7 +105,7 @@ class McpOAuthDiscoverer
      * @param  array<int, string>  $candidateUrls
      * @return array<int, string>
      */
-    private function fetchProtectedResource(string $mcpUrl, array $candidateUrls): array
+    private function fetchProtectedResource(string $mcpUrl, array $candidateUrls, bool $requireResource): array
     {
         $lastError = 'Could not fetch protected-resource metadata.';
         $lastFailure = null;
@@ -133,6 +135,12 @@ class McpOAuthDiscoverer
 
             if (filled($body['resource'] ?? null) && ! $this->resourceMatches($body['resource'], $mcpUrl)) {
                 $lastError = 'The server\'s OAuth metadata describes a different address, so it cannot be trusted for this connection.';
+
+                continue;
+            }
+
+            if ($requireResource && blank($body['resource'] ?? null)) {
+                $lastError = 'The server\'s OAuth metadata does not say which address it protects, so it cannot be trusted for this connection.';
 
                 continue;
             }

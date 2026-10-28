@@ -11,6 +11,7 @@ use Domain\Integration\Mcp\Enums\McpAuthType;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\Http;
 use Tests\Support\Integration\Connector\PendingConnectorOAuth;
 
@@ -106,6 +107,8 @@ it('uses a state once: the same callback cannot complete twice', function (): vo
         ->toThrow(McpOAuthException::class, 'expired or was already used');
 
     Http::assertSentCount(1);
+    // RFC 8707: the code is traded for a token bound to this MCP server.
+    Http::assertSent(fn (ClientRequest $request): bool => $request['resource'] === 'https://mcp.example.test/rpc');
 });
 
 it('saves a custom server under its carried name and slug', function (): void {

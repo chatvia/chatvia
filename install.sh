@@ -4314,7 +4314,7 @@ native_auto_update_step() {
 native_auto_update_file() {
     sed -e "s|__CONF__|$NATIVE_CONF|" -e "s|__CRON__|$NATIVE_AUTO_UPDATE_CRON|" \
         -e "s|__LOG__|$NATIVE_AUTO_UPDATE_LOG|" -e "s|__INSTALL_LOG__|$NATIVE_LOG|" \
-        -e "s|__INSTALLER_URL__|${CHATVIA_INSTALLER_URL:-$INSTALLER_URL}|" \
+        -e "s|__INSTALLER_URL__|${CHATVIA_INSTALLER_URL:-}|" \
         -e "s|__SELF__|$NATIVE_AUTO_UPDATE|g" -e "s|__DOCS__|$NATIVE_DOCS|" <<'EOF'
 #!/usr/bin/env bash
 #
@@ -4324,9 +4324,11 @@ native_auto_update_file() {
 # While they are on, cron runs `chatvia-auto-update run` once a night. It
 # looks for a newer release of the major version installed here: 1.4.2 goes
 # to 1.5.0, but never to 2.0.0, as a new major version may need steps of
-# its own. When there is one, it runs the installer's upgrade: a backup of
-# the database first, then a deploy with Deployer, which switches over only
-# when every step worked. A failed update leaves the running version alone.
+# its own. When there is one, it runs that release's installer, taken from
+# the repository itself (the place the code comes from, so no other site
+# decides what runs as root here): a backup of the database first, then a
+# deploy with Deployer, which switches over only when every step worked. A
+# failed update leaves the running version alone.
 #
 #   sudo chatvia-auto-update status   on or off, the version, the last runs
 #   sudo chatvia-auto-update run      look for a newer release now
@@ -4342,6 +4344,8 @@ CONF=__CONF__
 CRON=__CRON__
 LOG=__LOG__
 INSTALL_LOG=__INSTALL_LOG__
+# Set when the install was made with CHATVIA_INSTALLER_URL: then every
+# update takes its installer from there instead of the release.
 INSTALLER_URL=__INSTALLER_URL__
 
 conf_value() {
@@ -4362,6 +4366,25 @@ releases() {
         sed 's#.*refs/tags/##' | { grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' || true; } | sort -V
 }
 
+# installer_url RELEASE: where the installer of that release is read from:
+# the repository on GitHub at that release's tag, unless the install named a
+# place of its own. A repository elsewhere than GitHub has no such address,
+# so its installs must name one.
+installer_url() {
+    local repo
+    if [ -n "$INSTALLER_URL" ]; then
+        printf '%s' "$INSTALLER_URL"
+        return 0
+    fi
+    repo=$(conf_value CHATVIA_REPO)
+    case $repo in
+        https://github.com/*) repo=${repo#https://github.com/} ;;
+        git@github.com:*) repo=${repo#git@github.com:} ;;
+        *) return 1 ;;
+    esac
+    printf 'https://raw.githubusercontent.com/%s/%s/install.sh' "${repo%.git}" "$1"
+}
+
 # newer A B: A is a later version than B.
 newer() {
     [ "$1" != "$2" ] && [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | tail -n 1)" = "$1" ]
@@ -4373,7 +4396,7 @@ schedule() {
 }
 
 run() {
-    local installed major tags latest newest status=0
+    local installed major tags latest newest url status=0
     if [ -t 1 ]; then
         exec > >(tee -a "$LOG") 2>&1
     else
@@ -4415,10 +4438,14 @@ run() {
     fi
 
     echo "Updating ChatVia.ai $installed to $latest."
+    if ! url=$(installer_url "$latest"); then
+        echo "The repository $(conf_value CHATVIA_REPO) is not on GitHub, so the installer has no address: install with CHATVIA_INSTALLER_URL set."
+        return 1
+    fi
     INSTALLER=$(mktemp)
     trap 'rm -f "$INSTALLER"' EXIT
-    if ! curl -fsSL --max-time 120 "$INSTALLER_URL" -o "$INSTALLER" || ! bash -n "$INSTALLER"; then
-        echo "Could not download the installer from $INSTALLER_URL. Trying again next time."
+    if ! curl -fsSL --max-time 120 "$url" -o "$INSTALLER" || ! bash -n "$INSTALLER"; then
+        echo "Could not download the installer from $url. Trying again next time."
         return 1
     fi
     NO_COLOR=1 TERM=dumb bash "$INSTALLER" --complete --upgrade --yes --version "$latest" </dev/null || status=$?

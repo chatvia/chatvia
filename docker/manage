@@ -30,7 +30,10 @@ set -euo pipefail
 shopt -s extglob
 
 readonly CHATVIA_DOCS="https://chatvia.ai/docs/guide/installation/manage"
-readonly DEFAULT_INSTALLER_URL="https://chatvia.ai/install.sh"
+# The installer of a release is read from the repository itself, at that
+# release's tag: the place the code comes from, so no other site decides
+# what runs here. CHATVIA_INSTALLER_URL names another place instead.
+readonly DEFAULT_INSTALLER_REPO="https://raw.githubusercontent.com/chatvia/chatvia"
 readonly DEFAULT_IMAGE="ghcr.io/chatvia/chatvia"
 readonly MIN_PASSWORD=12
 
@@ -2041,7 +2044,7 @@ cmd_upgrade() {
     local args=(--upgrade --version "$target")
     if [ "$no_pull" = 1 ]; then args+=(--no-pull); fi
     if [ "$INTERACTIVE" = 0 ]; then args+=(--yes); fi
-    if ! run_installer "${args[@]}"; then
+    if ! run_installer "$target" "${args[@]}"; then
         upgrade_failed "$current" "$target"
     fi
 
@@ -2094,13 +2097,26 @@ find_version() {
     fi
 }
 
-# run_installer ARGS...: the newest installer, on this folder. It shares this
-# command's lock, and replaces compose.yaml and this tool (with a rename, so
-# this run keeps reading its own copy).
+# installer_url VERSION: where the installer that takes this folder to
+# VERSION is read from: the newer of that version and the one running here,
+# as a newer installer knows every option of an older one but not the other
+# way round.
+installer_url() {
+    local version=$1 current
+    current=$(env_value CHATVIA_VERSION)
+    if is_exact_version "$current" && version_at_least "$current" "$version"; then version=$current; fi
+    printf '%s' "${CHATVIA_INSTALLER_URL:-$DEFAULT_INSTALLER_REPO/v$version/install.sh}"
+}
+
+# run_installer VERSION ARGS...: the installer for VERSION, on this folder.
+# It shares this command's lock, and replaces compose.yaml and this tool
+# (with a rename, so this run keeps reading its own copy).
 run_installer() {
-    local installer="$WORK_DIR/install.sh"
-    run_step 'Downloading the installer' curl -fsSL "${CHATVIA_INSTALLER_URL:-$DEFAULT_INSTALLER_URL}" -o "$installer" ||
-        die 'Could not download the installer.' "From: ${CHATVIA_INSTALLER_URL:-$DEFAULT_INSTALLER_URL}"
+    local version=$1 installer="$WORK_DIR/install.sh" url
+    shift
+    url=$(installer_url "$version")
+    run_step 'Downloading the installer' curl -fsSL "$url" -o "$installer" ||
+        die 'Could not download the installer.' "From: $url"
     outro 'The installer takes over.'
     keys_off
     bash "$installer" --dir "$DIR" "$@"
@@ -2219,7 +2235,7 @@ do_rollback() {
     local file=$1 version=$2 holds=$3 args=(--upgrade --version "$2" --no-start)
     if docker_cmd image inspect "$(image_name):$version" >/dev/null 2>&1; then args+=(--no-pull); fi
     if [ "$INTERACTIVE" = 0 ]; then args+=(--yes); fi
-    run_installer "${args[@]}" ||
+    run_installer "$version" "${args[@]}" ||
         die "Could not get version $version ready. Your data was not touched." \
             "See why: $(pretty_path "$DIR")/install.log"
     intro 'Restore' "$(pretty_path "$DIR")"

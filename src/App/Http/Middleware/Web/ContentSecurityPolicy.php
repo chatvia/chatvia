@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
+use Illuminate\Support\Uri;
 use Support\Http\SafeUrl;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -140,16 +141,25 @@ class ContentSecurityPolicy
     }
 
     /**
-     * HSTS: browsers use HTTPS for the host and its subdomains for two years.
-     * Only on a secure request in production, so a plain-HTTP install (a first
-     * Docker run on localhost) or local development never gets it, as a
-     * browser would then refuse that address over HTTP.
+     * HSTS: browsers use HTTPS for the install's host and its subdomains for
+     * two years. Only on a secure request in production, so a plain-HTTP
+     * install (a first Docker run on localhost) or local development never
+     * gets it, as a browser would then refuse that address over HTTP. Only
+     * on the install's own host: a customer's custom domain is theirs, and a
+     * header pinning it (and every name under it) for two years is not the
+     * install's to send.
      */
     public static function applyHsts(Request $request, Response $response): void
     {
-        if ($request->secure() && app()->isProduction()) {
+        if ($request->secure() && app()->isProduction() && self::isOwnHost($request)) {
             $response->headers->set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains');
         }
+    }
+
+    /** Whether the request came to APP_URL's host. */
+    private static function isOwnHost(Request $request): bool
+    {
+        return Str::lower($request->getHost()) === Str::lower((string) Uri::of((string) config('app.url'))->host());
     }
 
     /**

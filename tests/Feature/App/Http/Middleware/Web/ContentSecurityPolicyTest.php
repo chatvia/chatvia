@@ -153,6 +153,12 @@ describe('report-only mode', function (): void {
 
         $this->get('http://localhost/_csp-probe')->assertHeaderMissing('Strict-Transport-Security');
     });
+
+    it("sends no HSTS on a customer's custom domain, whose policy is theirs", function (): void {
+        app()['env'] = 'production';
+
+        $this->get('https://help.example.com/_csp-probe')->assertHeaderMissing('Strict-Transport-Security');
+    });
 });
 
 it('only sends the framing and HSTS headers when switched off', function (): void {

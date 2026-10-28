@@ -792,7 +792,7 @@ native_auto_update_step() {
 native_auto_update_file() {
     sed -e "s|__CONF__|$NATIVE_CONF|" -e "s|__CRON__|$NATIVE_AUTO_UPDATE_CRON|" \
         -e "s|__LOG__|$NATIVE_AUTO_UPDATE_LOG|" -e "s|__INSTALL_LOG__|$NATIVE_LOG|" \
-        -e "s|__INSTALLER_URL__|${CHATVIA_INSTALLER_URL:-$INSTALLER_URL}|" \
+        -e "s|__INSTALLER_URL__|${CHATVIA_INSTALLER_URL:-}|" \
         -e "s|__SELF__|$NATIVE_AUTO_UPDATE|g" -e "s|__DOCS__|$NATIVE_DOCS|" <<'EOF'
 #@include templates/chatvia-auto-update.sh
 EOF

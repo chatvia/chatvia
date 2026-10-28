@@ -128,6 +128,24 @@ Changes are listed in [CHANGELOG.md](CHANGELOG.md).
 Found a security problem? Please report it privately. [SECURITY.md](SECURITY.md)
 explains how.
 
+## What the install sends out
+
+ChatVia.ai runs on your server and keeps your data there. It talks to the
+outside only for what you set up (AI providers, e-mail, social sign-in,
+messaging channels, web crawling) and for these:
+
+- **Update check.** Once a day the admin panel reads the list of releases
+  from the repository on GitHub, to tell you when a newer version is out.
+  Nothing about your install is sent. Switch it off in Settings → Platform.
+- **License check.** With a license key, once a day the install sends the
+  key's id and its own domain to chatvia.ai, to see whether the key is
+  still valid. An install without a key sends nothing.
+- **Installer and `./manage`.** When they check whether your domain points
+  at this server, they ask api.ipify.org for the server's public address.
+  The installer also offers to count your install (the install kind and
+  the operating system) and to add your e-mail to the newsletter; both are
+  off unless you say yes.
+
 ## License
 
 ChatVia.ai is free and source-available under the
@@ -136,6 +154,10 @@ use, change, copy and run it.
 
 The license has a few conditions: the "Powered by ChatVia.ai" credit stays
 under every chat, some features need a license key, and running ChatVia.ai
-as a hosted service for others needs a SaaS key. License keys, and what each
-one unlocks, are explained at
+as a hosted service for others needs a SaaS key. Without a key an install
+holds one workspace and has no API, no voice conversations, no live chat,
+no capabilities (charts, calendar booking, forms and leads, image, audio and
+video generation), no custom domains, the default Splitting settings and no
+sentiment, tone, topics or sources analytics (condition 4 of the license).
+License keys, and what each one unlocks, are explained at
 **[chatvia.ai/license](https://chatvia.ai/license)**.

@@ -41,9 +41,11 @@ subject to the following conditions:
       person), or the built-in capabilities (charts, calendar booking, forms
       and leads, image generation, audio generation and video generation);
    d. serve an agent's hosted chat on a custom domain (a domain other than
-      the install's own); or
+      the install's own);
    e. change the options of how texts are split into chunks (the Splitting
-      settings).
+      settings); or
+   f. read the sentiment, tone, topics and sources analytics of its
+      conversations.
 
    You may not change the Software, by any means, to go past these limits
    without a license key.

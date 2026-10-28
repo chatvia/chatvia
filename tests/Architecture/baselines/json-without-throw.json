@@ -58,7 +58,6 @@
     "tests/Feature/App/Http/CrossWorkspaceRouteTest.php": 1,
     "tests/Feature/App/Http/Middleware/Auth/VerifyInternalMcpRequestTest.php": 1,
     "tests/Feature/App/Mcp/Servers/BuiltinToolContractTest.php": 1,
-    "tests/Support/Admin/ChartData.php": 1,
     "tests/Support/Channel/MetaWebhook.php": 1,
     "tests/Support/Conversation/OpenAiStream.php": 1,
     "tests/Support/Llm/CannedLlmProvider.php": 1,

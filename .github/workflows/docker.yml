@@ -119,6 +119,7 @@ jobs:
           push: true
           build-args: |
             SHAKOMAKO_VERSION=${{ steps.widget.outputs.version }}
+            CHATVIA_VERSION=${{ steps.meta.outputs.version }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           # Attached to the image for scanners: how it was built (provenance)

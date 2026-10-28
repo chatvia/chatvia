@@ -83,6 +83,14 @@ Schedule::command('chatvia:license:check')
     ->withoutOverlapping()
     ->onOneServer();
 
+// Looks for a newer ChatVia.ai release, for the admin dashboard's notice
+// (Settings → Platform → Updates). Spread over the hour like the license
+// check.
+Schedule::command('chatvia:update:check')
+    ->dailyAt(sprintf('07:%02d', crc32((string) config('app.url')) % 60))
+    ->withoutOverlapping()
+    ->onOneServer();
+
 // Updates each model's facts (reasoning, effort values, temperature) from the
 // models.dev catalog, fetched only when it changed. Spread over the hour like
 // the license check.

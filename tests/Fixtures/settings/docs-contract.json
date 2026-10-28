@@ -342,6 +342,9 @@
     "settings/platform#tracking-code": [
         "Code"
     ],
+    "settings/platform#updates": [
+        "Check for updates"
+    ],
     "settings/search#ambiguous-questions": [
         "Understand follow-up questions",
         "Ask back when a message is unclear",

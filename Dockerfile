@@ -26,6 +26,10 @@ ARG NODE_IMAGE=node:22-trixie-slim
 # Docker would reuse that step from its cache and keep an old widget.
 ARG SHAKOMAKO_REPO=https://github.com/chatvia/shakomako.git
 ARG SHAKOMAKO_VERSION
+# The ChatVia.ai release this image holds, like 1.4.2. The release workflow
+# passes it in; a build without it shows "dev" in the admin panel and never
+# looks for updates.
+ARG CHATVIA_VERSION=dev
 
 #-------------------------------------------------------------------------------
 # PHP packages. Plain PHP files, so this stage runs on the build machine's own
@@ -199,6 +203,10 @@ COPY --from=assets /app/public/build ./public/build
 COPY --from=widget /shakomako/dist ./public/shakomako
 # Production defaults. Real environment variables always win over this file.
 COPY docker/app/production.env ./.env
+# The release the admin panel shows and compares with the newest one. The
+# complete installation's deploy writes the same file.
+ARG CHATVIA_VERSION
+RUN printf '%s\n' "${CHATVIA_VERSION#v}" > VERSION
 
 # composer dump-autoload runs the package scripts (package discovery and the
 # Filament assets). They boot the app, which has no Reverb keys yet (those are
@@ -236,7 +244,10 @@ USER www-data
 # (CHATVIA_STREAM_WORKERS, docker/app/php-fpm/chatvia-streams.conf), which
 # each keep a worker busy until they end. A busy worker also holds one
 # PostgreSQL connection, so 48 fit next to Horizon in the default 100.
-ENV AUTORUN_ENABLED=false \
+# CHATVIA_INSTALL tells the admin panel how this install upgrades
+# (./manage upgrade), for its update notice.
+ENV CHATVIA_INSTALL=docker \
+    AUTORUN_ENABLED=false \
     SHOW_WELCOME_MESSAGE=false \
     PHP_OPCACHE_ENABLE=1 \
     PHP_OPCACHE_MAX_ACCELERATED_FILES=65407 \

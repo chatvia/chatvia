@@ -11,6 +11,7 @@ use App\Admin\Widgets\PlatformStatsOverview;
 use App\Admin\Widgets\ServiceStatusBanner;
 use App\Admin\Widgets\TopAgentsTable;
 use App\Admin\Widgets\TopWorkspacesTable;
+use App\Admin\Widgets\UpdateBanner;
 use App\Identity\Workspace\Models\Workspace;
 use Domain\Analytics\Enums\AnalyticsPeriod;
 use Filament\Forms\Components\DatePicker;
@@ -95,6 +96,7 @@ class Dashboard extends BaseDashboard
         $wholePlatform = DashboardFilters::workspaceId($this->filters) === null;
 
         return array_values(array_filter([
+            UpdateBanner::class,
             ServiceStatusBanner::class,
             PlatformStatsOverview::class,
             MessagesChart::class,

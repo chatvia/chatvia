@@ -13,6 +13,8 @@ use App\Admin\Settings\PdfMakerCheck;
 use App\Admin\Settings\PlatformSettings;
 use App\Admin\Settings\ServerProgram;
 use App\Admin\Settings\ServerProgramFinder;
+use App\Admin\Update\Services\AvailableUpdate;
+use App\Admin\Update\Services\InstalledVersion;
 use BackedEnum;
 use Closure;
 use Filament\Actions\Action;
@@ -28,9 +30,10 @@ use Illuminate\Support\Str;
 
 /**
  * Install-wide options: the app's name, default language, the tracking code,
- * visitor location, alerts, error reports to Sentry, what makes PDFs, the
- * number of queue workers, where the programs that read files are, and the
- * panel's Logs page. The chat widget's options are on Settings → Widget.
+ * visitor location, alerts, error reports to Sentry, what makes PDFs, update
+ * checks, the number of queue workers, where the programs that read files
+ * are, and the panel's Logs page. The chat widget's options are on
+ * Settings → Widget.
  */
 class ManagePlatformSettings extends AdminSettingsPage
 {
@@ -88,7 +91,7 @@ class ManagePlatformSettings extends AdminSettingsPage
 
     public static function description(): string
     {
-        return 'App name, language, tracking code, visitor location, Sentry, PDF maker, queue workers, programs and logs.';
+        return 'App name, language, tracking code, visitor location, Sentry, PDF maker, updates, queue workers, programs and logs.';
     }
 
     /**
@@ -160,6 +163,11 @@ class ManagePlatformSettings extends AdminSettingsPage
             ])->properties('pdf_maker', ...array_merge(...array_values(self::PDF_MAKER_SETTINGS)))
                 ->summary(fn (): string => $this->pdfMakerSummary())
                 ->tone(fn (): string => $this->pdfMakerMissing() === [] ? 'gray' : 'warning'),
+            SettingsCard::make('updates', __('Updates'), __('The version this install runs. The dashboard says when a newer release is out.'), Heroicon::OutlinedArrowUpCircle, fn (): array => [
+                $this->toggle('update_check_enabled', __('Check for updates'),
+                    help: __('Once a day, reads the list of ChatVia.ai releases on GitHub. Nothing about this install is sent.')),
+            ])->summary(fn (): string => $this->updatesSummary())
+                ->tone(fn (): string => app(AvailableUpdate::class)->get() !== null ? 'warning' : 'gray'),
             SettingsCard::make('queue_workers', 'Queue workers', 'How many background jobs run at once. Each worker uses about 80 MB of memory. Save, then restart the queue.', Heroicon::OutlinedCog8Tooth, fn (): array => [
                 $this->integer('chat_workers', 'Chat', help: 'For replies on messaging channels, sending emails and other quick jobs.', min: 2, max: 200),
                 $this->integer('ingestion_workers', 'Files and websites', help: 'For reading the files and websites you add as knowledge, and for exports.', min: 1, max: 200),
@@ -194,6 +202,19 @@ class ManagePlatformSettings extends AdminSettingsPage
             ])->summary(fn (): string => $this->valueInUse('logs_page_enabled') === true ? __('Logs page on') : __('Logs page off'))
                 ->advanced(),
         ];
+    }
+
+    /** The version that runs, then whether a newer one is out. */
+    private function updatesSummary(): string
+    {
+        $installed = app(InstalledVersion::class);
+        $release = app(AvailableUpdate::class)->get();
+
+        return match (true) {
+            $this->valueInUse('update_check_enabled') !== true => __('Version :version · checks off', ['version' => $installed->version()]),
+            $release !== null => __('Version :version · :latest is out', ['version' => $installed->version(), 'latest' => $release->version]),
+            default => __('Version :version', ['version' => $installed->version()]),
+        };
     }
 
     /** Which errors the Sentry card sends: a DSN each for the server and the browser. */

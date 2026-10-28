@@ -474,6 +474,9 @@ native_write_env() {
 
 APP_NAME=Chatvia
 APP_ENV=production
+# How this server upgrades (run the installer again), for the admin
+# panel's update notice.
+CHATVIA_INSTALL=complete
 APP_DEBUG=false
 # Encrypts the secrets in the database. Keep a copy somewhere safe, and
 # never change it: without it, they cannot be read.

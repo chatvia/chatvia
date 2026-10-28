@@ -195,6 +195,28 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Version and Updates
+    |--------------------------------------------------------------------------
+    |
+    | `version_file` holds the release this install runs, like 1.4.2: the
+    | Docker build and the complete installation's deploy write it. Without
+    | it (a git checkout) the version is "dev". `install` is how the install
+    | upgrades: "docker" (set by the image) or "complete" (set by the
+    | installer); empty for any other install. `check` looks for a newer
+    | release once a day, in the tags of `repository` (Settings → Platform →
+    | Updates).
+    |
+    */
+
+    'updates' => [
+        'version_file' => base_path('VERSION'),
+        'install' => env('CHATVIA_INSTALL'),
+        'check' => true,
+        'repository' => 'https://github.com/chatvia/chatvia',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Pulse and Spectra
     |--------------------------------------------------------------------------
     |

@@ -1,6 +1,9 @@
 {{--
     The admin panel's logo: the ChatVia.ai mark on an ink tile (as in the
-    favicon), the app's name (Settings → Platform) and an "Admin" tag. The mark uses the same paths
+    favicon), the app's name (Settings → Platform) and an "Admin" tag. Signed-in
+    staff also see the version that runs, marked when a newer one is out
+    ({@see \App\Admin\Update\Services\AvailableUpdate}); the sign-in page
+    does not tell visitors the version. The mark uses the same paths
     as resources/js/components/AppLogoIcon.vue. Styled by the panel theme
     (resources/css/filament/admin/theme.css), so it follows dark mode.
 --}}
@@ -14,4 +17,11 @@
     </span>
     <span class="cv-brand__name">{{ config('app.name') }}</span>
     <span class="cv-brand__tag">Admin</span>
+    @auth('admin')
+        @php($update = app(\App\Admin\Update\Services\AvailableUpdate::class)->get())
+        <span
+            @class(['cv-brand__version', 'cv-brand__version--update' => $update !== null])
+            @if ($update !== null) title="{{ __(':version is out', ['version' => $update->version]) }}" @endif
+        >{{ app(\App\Admin\Update\Services\InstalledVersion::class)->version() }}</span>
+    @endauth
 </span>

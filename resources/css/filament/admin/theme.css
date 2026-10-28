@@ -1293,6 +1293,26 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     color: var(--cv-text-muted);
 }
 
+/* The version that runs, after the "Admin" tag, with a dot while a newer
+ * release is out. */
+.cv-brand__version {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: var(--cv-text-muted);
+}
+
+.cv-brand__version--update::after {
+    content: '';
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 999px;
+    background-color: var(--warning-500);
+}
+
 /* The setup's mark stands on the dotted page above the card, drawn in the
  * brand colour with no tile, and the card starts right below it. */
 .cv-setup-mark {
@@ -3612,6 +3632,7 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
 }
 
 .cv-state--warning,
+.cv-status-alert--warning,
 .cv-status-summary--warning,
 .cv-env__value--warning {
     --cv-tone: var(--warning-500);

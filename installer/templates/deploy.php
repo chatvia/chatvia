@@ -69,12 +69,21 @@ task('chatvia:widget:publish', function () {
     run('cd {{current_path}}/.shakomako && for file in *; do [ -f "$file" ] || continue; cp "$file" "{{deploy_path}}/shared/shakomako/.$file.tmp" && mv -f "{{deploy_path}}/shared/shakomako/.$file.tmp" "{{deploy_path}}/shared/shakomako/$file"; done');
 });
 
+// The release the admin panel shows and compares with the newest one: the
+// tag without its "v", or for a branch its name and commit (not a release,
+// so the panel looks for no updates). The Docker image writes the same file.
+desc('Saves the version of this release in its VERSION file');
+task('chatvia:version', function () {
+    run('cd {{release_path}} && case {{target}} in v[0-9]*) version={{target}}; version=${version#v} ;; *) version="{{target}}@$(cut -c1-7 REVISION)" ;; esac && printf \'%s\\n\' "$version" > VERSION');
+});
+
 // In place of the recipe's plain migrate: chatvia:deploy:migrate creates the
 // analytics, Pulse and Spectra databases, migrates, checks the embedding
 // settings and adds the built-in tools, the same steps the Docker image runs.
 desc('Migrates the database and runs the checks that go with it');
 task('artisan:migrate', artisan('chatvia:deploy:migrate --no-interaction', ['skipIfNoEnv', 'showOutput']));
 
+after('deploy:update_code', 'chatvia:version');
 after('deploy:shared', 'chatvia:storage');
 after('deploy:vendors', 'chatvia:build');
 after('chatvia:build', 'chatvia:widget');

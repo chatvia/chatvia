@@ -36,6 +36,10 @@ Schedule::command('chatvia:prune:tool-approvals')->dailyAt('03:45')->withoutOver
 // longer be claimed and hold no captured answers, so they only bloat the table.
 Schedule::command('chatvia:prune:forms')->everyTenMinutes()->withoutOverlapping(10)->onOneServer();
 
+// Checks agents' custom domains: new ones until they reach this install,
+// verified ones daily, so a domain that moved away stops serving the chat.
+Schedule::command('chatvia:check:agent-domains')->everyTenMinutes()->withoutOverlapping(10)->onOneServer();
+
 // Governance audit retention: trims tool-call audit rows in `agent_activity`
 // past config('chatvia.governance.retention_days') (default 90).
 Schedule::command('chatvia:prune:agent-activity')->dailyAt('04:00')->withoutOverlapping()->onOneServer();

@@ -2292,7 +2292,35 @@
             "toggle_surface": "Diese Oberfläche aktivieren oder deaktivieren",
             "surface_enabled": "Oberfläche aktiviert",
             "surface_disabled": "Oberfläche deaktiviert – sie ist nicht erreichbar",
-            "surface_error": "Aktualisierung fehlgeschlagen – bitte versuchen Sie es erneut"
+            "surface_error": "Aktualisierung fehlgeschlagen – bitte versuchen Sie es erneut",
+            "custom_domain": {
+                "title": "Eigene Domain",
+                "description": "Zeigen Sie diesen Chat unter einer eigenen Adresse, z. B. help.yourshop.com.",
+                "placeholder": "help.yourshop.com",
+                "saved": "Domain gespeichert. Wir prüfen sie jetzt.",
+                "removed": "Domain entfernt.",
+                "remove": "Entfernen",
+                "check_again": "Erneut prüfen",
+                "off_title": "Eigene Domains sind ausgeschaltet",
+                "off_body": "Bitten Sie Ihren Administrator, eigene Domains auf diesem Server einzuschalten.",
+                "active_body": "Ihr Chat läuft jetzt unter dieser Domain.",
+                "waiting_body": "Fügen Sie den Eintrag unten hinzu. Wir prüfen die Domain alle paar Minuten. Nach dem Hinzufügen kann es bis zu einer Stunde dauern.",
+                "dns_title": "Fügen Sie diesen Eintrag bei Ihrem Domain-Anbieter hinzu",
+                "dns_type": "Typ",
+                "dns_name": "Name",
+                "dns_value": "Zeigt auf",
+                "status": {
+                    "waiting": "Wartet auf DNS",
+                    "active": "Aktiv",
+                    "problem": "Funktioniert noch nicht"
+                },
+                "check": {
+                    "no_certificate": "Ihre Domain zeigt hierher, aber dieser Server hat noch kein Zertifikat dafür. Bitten Sie Ihren Administrator, Zertifikate für eigene Domains einzurichten.",
+                    "points_elsewhere": "Ihre Domain antwortet, aber nicht von diesem Server. Prüfen Sie, ob der Eintrag auf {target} zeigt.",
+                    "not_reached": "Wir erreichen Ihre Domain noch nicht. Prüfen Sie, ob der Eintrag auf {target} zeigt, und warten Sie ein paar Minuten.",
+                    "private_address": "Ihre Domain zeigt auf eine private Netzwerkadresse. Lassen Sie sie auf {target} zeigen."
+                }
+            }
         },
         "chatters": {
             "title": "Chatter",
@@ -4518,8 +4546,6 @@
         "hide": "Schritte ausblenden"
     },
     "license": {
-        "agents_of_limit": "{count} von {limit} Agenten",
-        "agents_body": "Dieser Workspace kann {limit} Agenten haben. Bitte wende dich an deinen Administrator, um weitere hinzuzufügen.",
         "unavailable_title": "Diese Funktion ist nicht verfügbar",
         "unavailable_body": "Bitte wende dich an deinen Administrator.",
         "unavailable": "Diese Funktion ist nicht verfügbar. Bitte wende dich an deinen Administrator."

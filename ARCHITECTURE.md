@@ -221,6 +221,15 @@ the viewer. Chat code uses the default guard, never `guard('web')`. Sign-ins tha
 (magic links with two-factor, invitations, dashboard previews) reach the chat
 with a one-time, agent-bound `?auth_token=` (`ChatterAuthTokens`).
 
+An agent's custom domain (`AgentDomain`, license key + Settings → Platform →
+Custom domains) serves only that agent's chat: `ServeCustomDomain` (global
+middleware) sends `/` to `/chat/{slug}` on the same host and 404s everything
+else. The web server gets its certificate on demand and first asks
+`GET /custom-domains` (`CustomDomainLookupController`) whether the name is a
+saved domain; `chatvia:check:agent-domains` probes each domain
+(`CustomDomainProbe`, through `SafeUrl`) and `AgentUrlBuilder` uses it once
+it is verified.
+
 ### `App\Mcp`: built-in MCP servers
 
 ChatVia.ai offers some tools of its own (charts, inline forms, a booking

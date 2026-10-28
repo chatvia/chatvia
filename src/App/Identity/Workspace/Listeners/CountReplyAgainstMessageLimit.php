@@ -22,6 +22,6 @@ class CountReplyAgainstMessageLimit
 
     public function handle(AssistantReplyCompleted $event): void
     {
-        $this->recordUsage->execute($this->allowance->countingLimitFor($event->workspaceId));
+        $this->recordUsage->execute($this->allowance->limitFor($event->workspaceId));
     }
 }

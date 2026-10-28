@@ -35,6 +35,7 @@ function csScheduled(): array
         ['chatvia:prune:conversations', '30 3 * * *'],
         ['chatvia:prune:tool-approvals', '45 3 * * *'],
         ['chatvia:prune:forms', '*/10 * * * *'],
+        ['chatvia:check:agent-domains', '*/10 * * * *'],
         ['chatvia:prune:agent-activity', '0 4 * * *'],
         ['chatvia:prune:guardrail-events', '15 4 * * *'],
         ['chatvia:prune:visitor-blocks', '20 4 * * *'],

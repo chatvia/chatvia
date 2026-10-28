@@ -122,7 +122,7 @@ class HandleInertiaRequests extends Middleware
             // Governance pages lock their Enterprise features without one.
             'enterprise' => $user instanceof User && $this->entitlements->enterprise(),
             // Whether this install holds any license key; without one the
-            // free-use limits apply and the pages say what is locked.
+            // pages say what is locked.
             'license' => $user instanceof User ? $this->license($this->entitlements) : null,
             // The knowledge file types this install accepts (Settings →
             // Ingestion), each with the extensions this server can read, for
@@ -179,7 +179,7 @@ class HandleInertiaRequests extends Middleware
     }
 
     /**
-     * @return array{licensed: bool, limits: array{workspaces: ?int, agents: ?int, messages: ?int}}
+     * @return array{licensed: bool, limits: array{workspaces: ?int}}
      */
     private function license(Entitlements $entitlements): array
     {
@@ -187,8 +187,6 @@ class HandleInertiaRequests extends Middleware
             'licensed' => $entitlements->licensed(),
             'limits' => [
                 'workspaces' => $entitlements->workspaceLimit(),
-                'agents' => $entitlements->agentLimit(),
-                'messages' => $entitlements->monthlyMessageLimit(),
             ],
         ];
     }

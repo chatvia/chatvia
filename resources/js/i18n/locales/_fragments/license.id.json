@@ -2,8 +2,6 @@
     "license": {
         "unavailable_title": "Fitur ini tidak tersedia",
         "unavailable_body": "Silakan hubungi administrator Anda.",
-        "unavailable": "Fitur ini tidak tersedia. Silakan hubungi administrator Anda.",
-        "agents_of_limit": "{count} dari {limit} agen",
-        "agents_body": "Workspace ini dapat memiliki {limit} agen. Silakan hubungi administrator Anda untuk menambah lebih banyak."
+        "unavailable": "Fitur ini tidak tersedia. Silakan hubungi administrator Anda."
     }
 }

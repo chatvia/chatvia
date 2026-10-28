@@ -2292,7 +2292,35 @@
             "toggle_surface": "Activar o desactivar esta superficie",
             "surface_enabled": "Superficie activada",
             "surface_disabled": "Superficie desactivada: no será accesible",
-            "surface_error": "No se pudo actualizar. Por favor, inténtalo de nuevo"
+            "surface_error": "No se pudo actualizar. Por favor, inténtalo de nuevo",
+            "custom_domain": {
+                "title": "Dominio propio",
+                "description": "Muestra este chat en una dirección propia, como help.yourshop.com.",
+                "placeholder": "help.yourshop.com",
+                "saved": "Dominio guardado. Lo estamos comprobando.",
+                "removed": "Dominio eliminado.",
+                "remove": "Eliminar",
+                "check_again": "Comprobar de nuevo",
+                "off_title": "Los dominios propios están desactivados",
+                "off_body": "Pide a tu administrador que active los dominios propios en este servidor.",
+                "active_body": "Tu chat ya funciona en este dominio.",
+                "waiting_body": "Añade el registro de abajo. Comprobamos el dominio cada pocos minutos y puede tardar hasta una hora después de añadir el registro.",
+                "dns_title": "Añade este registro en tu proveedor de dominio",
+                "dns_type": "Tipo",
+                "dns_name": "Nombre",
+                "dns_value": "Apunta a",
+                "status": {
+                    "waiting": "Esperando al DNS",
+                    "active": "Activo",
+                    "problem": "Aún no funciona"
+                },
+                "check": {
+                    "no_certificate": "Tu dominio apunta aquí, pero este servidor aún no tiene un certificado para él. Pide a tu administrador que configure los certificados para dominios propios.",
+                    "points_elsewhere": "Tu dominio responde, pero no desde este servidor. Comprueba que el registro apunte a {target}.",
+                    "not_reached": "Aún no podemos llegar a tu dominio. Comprueba que el registro apunte a {target} y espera unos minutos.",
+                    "private_address": "Tu dominio apunta a una dirección de red privada. Haz que apunte a {target}."
+                }
+            }
         },
         "chatters": {
             "title": "Usuarios",
@@ -4518,8 +4546,6 @@
         "hide": "Ocultar pasos"
     },
     "license": {
-        "agents_of_limit": "{count} de {limit} agentes",
-        "agents_body": "Este espacio de trabajo puede tener {limit} agentes. Ponte en contacto con tu administrador para añadir más.",
         "unavailable_title": "Esta función no está disponible",
         "unavailable_body": "Ponte en contacto con tu administrador.",
         "unavailable": "Esta función no está disponible. Ponte en contacto con tu administrador."

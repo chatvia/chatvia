@@ -544,8 +544,6 @@
     "Analytics needs pg_partman to split its message log by month.": "Analytiikka tarvitsee pg_partmanin jakaakseen viestilokinsa kuukausittain.",
     "Read more": "Lue lisää",
     "The API needs a ChatVia.ai license key.": "API vaatii ChatVia.ai-lisenssiavaimen.",
-    "This workspace can have :limit agents. Please contact your administrator to add more.": "Tässä työtilassa voi olla :limit agenttia. Ota yhteyttä järjestelmänvalvojaasi, jos tarvitset lisää.",
-    "More teams need a ChatVia.ai license key.": "Lisää tiimejä vaatii ChatVia.ai-lisenssiavaimen.",
     "Every 6 hours": "6 tunnin välein",
     "Every 12 hours": "12 tunnin välein",
     "Every 24 hours": "24 tunnin välein",
@@ -563,5 +561,12 @@
     "Your admin does not let agents offer a choice of models.": "Ylläpitäjäsi ei salli agenttien tarjota mallien valintaa.",
     "Your admin does not let chatters pick a model.": "Ylläpitäjäsi ei salli keskustelijoiden valita mallia.",
     "This form is managed by a capability and cannot be changed.": "Tätä lomaketta hallitsee ominaisuus, eikä sitä voi muuttaa.",
-    "Connect :name first.": "Yhdistä ensin :name."
+    "Connect :name first.": "Yhdistä ensin :name.",
+    "Custom domains": "Omat verkkotunnukset",
+    "Lets agents show their Hosted Chat on a domain of their own, such as help.yourshop.com. Needs a license key.": "Agentit voivat näyttää isännöidyn chattinsa omassa verkkotunnuksessa, esimerkiksi help.yourshop.com. Vaatii lisenssiavaimen.",
+    "Turn this on only when your web server gets a certificate for each new domain by itself, for example Caddy with on-demand TLS. Without one, visitors see a security warning.": "Ota tämä käyttöön vain, kun verkkopalvelimesi hakee itse varmenteen jokaiselle uudelle verkkotunnukselle, esimerkiksi Caddy ja on-demand TLS. Ilman sitä kävijät näkevät tietoturvavaroituksen.",
+    "How to set up": "Näin otat sen käyttöön",
+    "Use a domain of your own, not the address of this server.": "Käytä omaa verkkotunnustasi, älä tämän palvelimen osoitetta.",
+    "Enter a domain name, such as help.yourshop.com.": "Kirjoita verkkotunnus, esimerkiksi help.yourshop.com.",
+    "Another agent already uses this domain.": "Toinen agentti käyttää jo tätä verkkotunnusta."
 }

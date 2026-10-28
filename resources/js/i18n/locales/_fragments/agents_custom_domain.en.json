@@ -1,0 +1,34 @@
+{
+    "agents": {
+        "deploy": {
+            "custom_domain": {
+                "title": "Custom domain",
+                "description": "Show this chat at an address of your own, such as help.yourshop.com.",
+                "placeholder": "help.yourshop.com",
+                "saved": "Domain saved. We are checking it now.",
+                "removed": "Domain removed.",
+                "remove": "Remove",
+                "check_again": "Check again",
+                "off_title": "Custom domains are off",
+                "off_body": "Ask your administrator to turn on custom domains for this server.",
+                "active_body": "Your chat is live at this domain.",
+                "waiting_body": "Add the record below. We check the domain every few minutes, and it can take up to an hour after you add the record.",
+                "dns_title": "Add this record at your domain provider",
+                "dns_type": "Type",
+                "dns_name": "Name",
+                "dns_value": "Points to",
+                "status": {
+                    "waiting": "Waiting for DNS",
+                    "active": "Active",
+                    "problem": "Not working yet"
+                },
+                "check": {
+                    "no_certificate": "Your domain points here, but this server has no certificate for it yet. Ask your administrator to set up certificates for custom domains.",
+                    "points_elsewhere": "Your domain answers, but not from this server. Check that the record points to {target}.",
+                    "not_reached": "We cannot reach your domain yet. Check that the record points to {target}, then wait a few minutes.",
+                    "private_address": "Your domain points to a private network address. Point it to {target}."
+                }
+            }
+        }
+    }
+}

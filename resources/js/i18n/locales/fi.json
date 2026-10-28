@@ -2292,7 +2292,35 @@
             "toggle_surface": "Ota tämä pinta käyttöön tai poista käytöstä",
             "surface_enabled": "Pinta otettu käyttöön",
             "surface_disabled": "Pinta poistettu käytöstä — se ei ole tavoitettavissa",
-            "surface_error": "Päivitys epäonnistui — yritä uudelleen"
+            "surface_error": "Päivitys epäonnistui — yritä uudelleen",
+            "custom_domain": {
+                "title": "Oma verkkotunnus",
+                "description": "Näytä tämä chat omassa osoitteessasi, esimerkiksi help.yourshop.com.",
+                "placeholder": "help.yourshop.com",
+                "saved": "Verkkotunnus tallennettu. Tarkistamme sen nyt.",
+                "removed": "Verkkotunnus poistettu.",
+                "remove": "Poista",
+                "check_again": "Tarkista uudelleen",
+                "off_title": "Omat verkkotunnukset ovat pois päältä",
+                "off_body": "Pyydä ylläpitäjää ottamaan omat verkkotunnukset käyttöön tällä palvelimella.",
+                "active_body": "Chattisi toimii nyt tässä verkkotunnuksessa.",
+                "waiting_body": "Lisää alla oleva tietue. Tarkistamme verkkotunnuksen muutaman minuutin välein, ja lisäämisen jälkeen voi kestää jopa tunnin.",
+                "dns_title": "Lisää tämä tietue verkkotunnuksesi palveluntarjoajalle",
+                "dns_type": "Tyyppi",
+                "dns_name": "Nimi",
+                "dns_value": "Osoittaa kohteeseen",
+                "status": {
+                    "waiting": "Odottaa DNS:ää",
+                    "active": "Käytössä",
+                    "problem": "Ei vielä toimi"
+                },
+                "check": {
+                    "no_certificate": "Verkkotunnuksesi osoittaa tänne, mutta palvelimella ei vielä ole sille varmennetta. Pyydä ylläpitäjää ottamaan varmenteet käyttöön omille verkkotunnuksille.",
+                    "points_elsewhere": "Verkkotunnuksesi vastaa, mutta ei tältä palvelimelta. Tarkista, että tietue osoittaa kohteeseen {target}.",
+                    "not_reached": "Emme vielä tavoita verkkotunnustasi. Tarkista, että tietue osoittaa kohteeseen {target}, ja odota muutama minuutti.",
+                    "private_address": "Verkkotunnuksesi osoittaa yksityiseen verkko-osoitteeseen. Ohjaa se kohteeseen {target}."
+                }
+            }
         },
         "chatters": {
             "title": "Chatterit",
@@ -4518,8 +4546,6 @@
         "hide": "Piilota vaiheet"
     },
     "license": {
-        "agents_of_limit": "{count}/{limit} agenttia",
-        "agents_body": "Tässä työtilassa voi olla {limit} agenttia. Ota yhteyttä järjestelmänvalvojaasi, jos tarvitset lisää.",
         "unavailable_title": "Tämä ominaisuus ei ole käytettävissä",
         "unavailable_body": "Ota yhteyttä järjestelmänvalvojaasi.",
         "unavailable": "Tämä ominaisuus ei ole käytettävissä. Ota yhteyttä järjestelmänvalvojaasi."

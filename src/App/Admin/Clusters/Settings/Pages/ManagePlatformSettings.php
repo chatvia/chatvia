@@ -178,6 +178,16 @@ class ManagePlatformSettings extends AdminSettingsPage
             ))->summary(fn (): string => $this->programsSummary())
                 ->tone(fn (): string => $this->programsLosingWork() === [] ? 'gray' : 'warning')
                 ->advanced(),
+            SettingsCard::make('custom_domains', __('Custom domains'), __('Lets agents show their Hosted Chat on a domain of their own, such as help.yourshop.com. Needs a license key.'), Heroicon::OutlinedGlobeAlt, fn (): array => [
+                $this->toggle('custom_domains_enabled', __('Custom domains'),
+                    help: __('Turn this on only when your web server gets a certificate for each new domain by itself, for example Caddy with on-demand TLS. Without one, visitors see a security warning.'))
+                    ->hintAction(Action::make('customDomainsDocs')
+                        ->label(__('How to set up'))
+                        ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
+                        ->iconPosition('after')
+                        ->url(config('chatvia.docs_url').'/guide/installation/custom-domains', shouldOpenInNewTab: true)),
+            ])->summary(fn (): string => $this->valueInUse('custom_domains_enabled') === true ? __('On') : __('Off'))
+                ->advanced(),
             SettingsCard::make('development', __('Development'), __('Tools for finding problems in this install.'), Heroicon::OutlinedCodeBracket, fn (): array => [
                 $this->toggle('logs_page_enabled', __('Logs page'),
                     help: __('Shows Logs in the sidebar, where admins read and clear the log files of this install. Off hides the page and blocks its address.')),

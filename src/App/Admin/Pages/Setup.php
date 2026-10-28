@@ -102,12 +102,10 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\HtmlString;
-use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Async;
 use Livewire\Attributes\Renderless;
-use Support\License\FreeTier;
 use Support\License\LicenseFeature;
 
 /**
@@ -1454,8 +1452,8 @@ class Setup extends SimplePage
      */
     private function licenseCallout(): Callout
     {
-        $limits = 'A free install has one workspace, '.FreeTier::AGENTS.' agents, one team and '.Number::format(FreeTier::MONTHLY_MESSAGES).' agent replies a month, '
-            .'with no API, voice conversations, live chat, capabilities or forms, and the "Powered by ChatVia.ai" credit under every chat.';
+        $limits = 'A free install has one workspace, with no limits on agents, teams or replies. '
+            .'It has no API, voice conversations, live chat, capabilities or forms, and the "Powered by ChatVia.ai" credit shows under every chat.';
 
         return Callout::make(fn (): string => match ($this->licenseStatus()) {
             LicenseStatus::Valid => "{$this->licenseType()} license, licensed to ".$this->license()->read($this->savedLicenseKey())?->licensee,
@@ -1463,9 +1461,9 @@ class Setup extends SimplePage
             default => 'The saved license is not active here',
         })
             ->description(fn (): string => match (true) {
-                $this->licenseStatus() === LicenseStatus::Valid => 'The free limits are lifted. You can hide the credit on the License page.',
+                $this->licenseStatus() === LicenseStatus::Valid => 'Every feature is on. You can hide the credit on the License page.',
                 $this->runsOnLocalAddress() => "{$limits} A key works for one domain at a time, so it is best added once ChatVia.ai runs at its real address.",
-                default => $limits.' A license key lifts every limit and lets you hide the credit. A Pro license costs $399, one time, and never expires.',
+                default => $limits.' A license key turns these on and lets you hide the credit. A Pro license costs $399, one time, and never expires.',
             })
             ->icon(fn (): Heroicon => $this->licenseStatus() === LicenseStatus::Valid ? Heroicon::OutlinedCheckBadge : Heroicon::OutlinedSparkles)
             ->status(fn (): string => $this->licenseStatus() === LicenseStatus::Valid ? 'success' : 'info')
@@ -1528,7 +1526,7 @@ class Setup extends SimplePage
     {
         $host = Str::trim($this->license()->host(), '[]');
 
-        return in_array($host, ['', 'localhost', '::1'], true)
+        return collect(['', 'localhost', '::1'])->containsStrict($host)
             || Str::endsWith($host, '.localhost') || Str::startsWith($host, '127.');
     }
 

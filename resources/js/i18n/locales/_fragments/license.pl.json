@@ -2,8 +2,6 @@
     "license": {
         "unavailable_title": "Ta funkcja jest niedostępna",
         "unavailable_body": "Skontaktuj się z administratorem.",
-        "unavailable": "Ta funkcja jest niedostępna. Skontaktuj się z administratorem.",
-        "agents_of_limit": "{count} z {limit} agentów",
-        "agents_body": "Ten obszar roboczy może mieć {limit} agentów. Aby dodać więcej, skontaktuj się z administratorem."
+        "unavailable": "Ta funkcja jest niedostępna. Skontaktuj się z administratorem."
     }
 }

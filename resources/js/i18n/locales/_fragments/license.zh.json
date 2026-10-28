@@ -2,8 +2,6 @@
     "license": {
         "unavailable_title": "此功能不可用",
         "unavailable_body": "请联系你的管理员。",
-        "unavailable": "此功能不可用。请联系你的管理员。",
-        "agents_of_limit": "{count} / {limit} 个智能体",
-        "agents_body": "此工作区最多可有 {limit} 个智能体。如需添加更多，请联系你的管理员。"
+        "unavailable": "此功能不可用。请联系你的管理员。"
     }
 }

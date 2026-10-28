@@ -43,8 +43,8 @@ return [
     |
     | `licensed` says whether the install holds any valid key. Without one
     | the free-use limits apply (Support\License\FreeTier: one workspace,
-    | ten agents, 10,000 replies a month, no API, voice, capabilities or
-    | forms, default splitting). SettingsConfig works it out too.
+    | no API, voice, live chat, capabilities or forms, default splitting).
+    | SettingsConfig works it out too.
     |
     | `public_key` checks the keys. It is fixed here, never in .env or the
     | admin panel, because whoever sets it could sign their own keys. While
@@ -174,6 +174,23 @@ return [
     'admin' => [
         'setup_status' => null,
         'logs_page_enabled' => false,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Custom Domains
+    |--------------------------------------------------------------------------
+    |
+    | `enabled` lets agents serve their Hosted Chat on a domain of their own
+    | (help.yourshop.com, a CNAME to this install). It needs a license key
+    | and a web server in front that gets a certificate for each new domain
+    | (Caddy's on-demand TLS asks /custom-domains first). Saved by the admin
+    | panel (Settings → Platform → Custom domains).
+    |
+    */
+
+    'custom_domains' => [
+        'enabled' => false,
     ],
 
     /*

@@ -2,8 +2,6 @@
     "license": {
         "unavailable_title": "Este recurso não está disponível",
         "unavailable_body": "Entre em contato com o seu administrador.",
-        "unavailable": "Este recurso não está disponível. Entre em contato com o seu administrador.",
-        "agents_of_limit": "{count} de {limit} agentes",
-        "agents_body": "Este espaço de trabalho pode ter {limit} agentes. Entre em contato com o seu administrador para adicionar mais."
+        "unavailable": "Este recurso não está disponível. Entre em contato com o seu administrador."
     }
 }

@@ -59,7 +59,7 @@ it('removes the limit when null is given, keeping this month\'s count', function
 
     $this->action->execute($this->workspace, null);
 
-    // The row stays to count replies against the free-use cap.
+    // The row stays with this month's count.
     $limit = MessageLimit::query()->where('workspace_id', $this->workspace->id)->sole();
 
     expect($limit->monthly_limit)->toBeNull()

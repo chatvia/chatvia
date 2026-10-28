@@ -8,8 +8,10 @@ use App\Identity\Chatter\Services\ChatterAuthTokens;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AgentLocator;
+use Domain\Agent\Services\AgentUrlBuilder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Uri;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -35,6 +37,7 @@ final class ChatHandoffController
 
         $token = $tokens->generateToken($agent, $user, 5);
 
-        return redirect(route('chat.home', ['agentSlug' => $agentSlug, 'auth_token' => $token], absolute: false));
+        // Absolute: the chat may live on the agent's custom domain.
+        return redirect((string) Uri::of(AgentUrlBuilder::chatUrl($agent))->withQuery(['auth_token' => $token]));
     }
 }

@@ -2292,7 +2292,35 @@
             "toggle_surface": "Bật hoặc tắt bề mặt này",
             "surface_enabled": "Đã bật bề mặt",
             "surface_disabled": "Đã tắt bề mặt — sẽ không thể truy cập được",
-            "surface_error": "Không thể cập nhật — vui lòng thử lại"
+            "surface_error": "Không thể cập nhật — vui lòng thử lại",
+            "custom_domain": {
+                "title": "Tên miền riêng",
+                "description": "Hiển thị cuộc trò chuyện này tại địa chỉ của riêng bạn, ví dụ help.yourshop.com.",
+                "placeholder": "help.yourshop.com",
+                "saved": "Đã lưu tên miền. Chúng tôi đang kiểm tra.",
+                "removed": "Đã xóa tên miền.",
+                "remove": "Xóa",
+                "check_again": "Kiểm tra lại",
+                "off_title": "Tên miền riêng đang tắt",
+                "off_body": "Hãy nhờ quản trị viên bật tên miền riêng trên máy chủ này.",
+                "active_body": "Cuộc trò chuyện của bạn đang chạy trên tên miền này.",
+                "waiting_body": "Hãy thêm bản ghi bên dưới. Chúng tôi kiểm tra tên miền vài phút một lần, và có thể mất tới một giờ sau khi bạn thêm bản ghi.",
+                "dns_title": "Thêm bản ghi này tại nhà cung cấp tên miền của bạn",
+                "dns_type": "Loại",
+                "dns_name": "Tên",
+                "dns_value": "Trỏ tới",
+                "status": {
+                    "waiting": "Đang chờ DNS",
+                    "active": "Đang hoạt động",
+                    "problem": "Chưa hoạt động"
+                },
+                "check": {
+                    "no_certificate": "Tên miền của bạn trỏ tới đây, nhưng máy chủ này chưa có chứng chỉ cho nó. Hãy nhờ quản trị viên thiết lập chứng chỉ cho tên miền riêng.",
+                    "points_elsewhere": "Tên miền của bạn có phản hồi, nhưng không phải từ máy chủ này. Hãy kiểm tra bản ghi trỏ tới {target}.",
+                    "not_reached": "Chúng tôi chưa thể kết nối tới tên miền của bạn. Hãy kiểm tra bản ghi trỏ tới {target}, rồi đợi vài phút.",
+                    "private_address": "Tên miền của bạn trỏ tới một địa chỉ mạng riêng. Hãy trỏ nó tới {target}."
+                }
+            }
         },
         "chatters": {
             "title": "Người dùng",
@@ -4446,8 +4474,6 @@
         "hide": "Ẩn các bước"
     },
     "license": {
-        "agents_of_limit": "{count} trên {limit} trợ lý",
-        "agents_body": "Không gian làm việc này có thể có {limit} trợ lý. Vui lòng liên hệ quản trị viên của bạn để thêm.",
         "unavailable_title": "Tính năng này không khả dụng",
         "unavailable_body": "Vui lòng liên hệ quản trị viên của bạn.",
         "unavailable": "Tính năng này không khả dụng. Vui lòng liên hệ quản trị viên của bạn."

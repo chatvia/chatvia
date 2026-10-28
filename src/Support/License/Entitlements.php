@@ -12,7 +12,7 @@ use Illuminate\Contracts\Config\Repository as Config;
  * SettingsConfig works out from the saved key, so a removed or lapsed key
  * locks the features again on the next request or job.
  *
- * Without any valid key the {@see FreeTier} limits apply; a limit method
+ * Without any valid key the {@see FreeTier} limit applies; the limit method
  * returns null when there is none.
  */
 final readonly class Entitlements
@@ -34,23 +34,6 @@ final readonly class Entitlements
     public function workspaceLimit(): ?int
     {
         return $this->licensed() ? null : FreeTier::WORKSPACES;
-    }
-
-    public function agentLimit(): ?int
-    {
-        return $this->licensed() ? null : FreeTier::AGENTS;
-    }
-
-    /** Teams a workspace may hold; without a key only the one it starts with. */
-    public function teamLimit(): ?int
-    {
-        return $this->licensed() ? null : FreeTier::TEAMS;
-    }
-
-    /** The monthly cap on a workspace's agent replies, on top of any limit an admin set. */
-    public function monthlyMessageLimit(): ?int
-    {
-        return $this->licensed() ? null : FreeTier::MONTHLY_MESSAGES;
     }
 
     /** Whether the public API answers. */
@@ -79,6 +62,12 @@ final readonly class Entitlements
      * forms and leads, image, audio and video generation).
      */
     public function capabilities(): bool
+    {
+        return $this->licensed();
+    }
+
+    /** Whether agents may serve their Hosted Chat on a custom domain. */
+    public function customDomains(): bool
     {
         return $this->licensed();
     }

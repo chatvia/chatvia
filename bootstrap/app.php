@@ -6,6 +6,7 @@ use App\Http\Middleware\Access\EnsureApiLicense;
 use App\Http\Middleware\Access\EnsureApiWorkspaceOwner;
 use App\Http\Middleware\Access\EnsureCanAccessDashboard;
 use App\Http\Middleware\Access\EnsureCapabilityLicense;
+use App\Http\Middleware\Access\EnsureCustomDomainsAvailable;
 use App\Http\Middleware\Access\EnsureEnterpriseLicense;
 use App\Http\Middleware\Access\EnsureHandoffLicense;
 use App\Http\Middleware\Access\EnsureTeamPermission;
@@ -24,6 +25,7 @@ use App\Http\Middleware\Chat\UseSignedInChatGuard;
 use App\Http\Middleware\Web\ContentSecurityPolicy;
 use App\Http\Middleware\Web\HandleAppearance;
 use App\Http\Middleware\Web\HandleInertiaRequests;
+use App\Http\Middleware\Web\ServeCustomDomain;
 use App\Http\Middleware\Web\SetLocale;
 use App\Http\Middleware\Web\UseAppUrlForUnknownHosts;
 use Domain\Conversation\Exceptions\ConversationNotHeldException;
@@ -83,6 +85,8 @@ $app = Application::configure(basePath: dirname(__DIR__))
         // host, so a forged Host header cannot
         // move an e-mailed sign-in link to another site. Appended: it runs
         // after TrustProxies has settled which host the request is for.
+        // An agent's custom domain serves only that agent's Hosted Chat.
+        $middleware->append(ServeCustomDomain::class);
         $middleware->append(UseAppUrlForUnknownHosts::class);
 
         $middleware->web(append: [
@@ -128,6 +132,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'license.capabilities' => EnsureCapabilityLicense::class,
             'license.handoff' => EnsureHandoffLicense::class,
             'license.enterprise' => EnsureEnterpriseLicense::class,
+            'license.custom-domains' => EnsureCustomDomainsAvailable::class,
         ]);
 
         // A chat session that was ended (AuthenticateSession) goes back to

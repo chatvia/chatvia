@@ -6,8 +6,10 @@ use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Chatter\Services\ChatterAuthTokens;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Agent\Services\AgentUrlBuilder;
 use Illuminate\Contracts\Auth\Factory as AuthFactory;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Uri;
 
 /**
  * The last step of the sign-in paths that do not go through Fortify's login
@@ -80,7 +82,7 @@ final readonly class TwoFactorAwareSignIn
 
         $token = $this->chatTokens->generateToken($agent, $user, 5);
 
-        return redirect(route('chat.home', ['agentSlug' => $slug, 'auth_token' => $token], absolute: false));
+        return redirect($this->chatHome($agent, $token));
     }
 
     /**
@@ -98,6 +100,15 @@ final readonly class TwoFactorAwareSignIn
 
         $token = $this->chatTokens->generateToken($agent, $chatter, 5);
 
-        return redirect(route('chat.home', ['agentSlug' => $slug, 'auth_token' => $token], absolute: false));
+        return redirect($this->chatHome($agent, $token));
+    }
+
+    /**
+     * The chat's home page with the one-time token, absolute: the sign-in
+     * runs on APP_URL, and the chat may live on the agent's custom domain.
+     */
+    private function chatHome(Agent $agent, string $token): string
+    {
+        return (string) Uri::of(AgentUrlBuilder::chatUrl($agent))->withQuery(['auth_token' => $token]);
     }
 }

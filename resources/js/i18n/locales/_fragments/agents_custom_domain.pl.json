@@ -1,0 +1,34 @@
+{
+    "agents": {
+        "deploy": {
+            "custom_domain": {
+                "title": "Własna domena",
+                "description": "Pokaż ten czat pod własnym adresem, np. help.yourshop.com.",
+                "placeholder": "help.yourshop.com",
+                "saved": "Domena zapisana. Sprawdzamy ją teraz.",
+                "removed": "Domena usunięta.",
+                "remove": "Usuń",
+                "check_again": "Sprawdź ponownie",
+                "off_title": "Własne domeny są wyłączone",
+                "off_body": "Poproś administratora o włączenie własnych domen na tym serwerze.",
+                "active_body": "Twój czat działa już pod tą domeną.",
+                "waiting_body": "Dodaj poniższy rekord. Sprawdzamy domenę co kilka minut, a po dodaniu rekordu może to potrwać do godziny.",
+                "dns_title": "Dodaj ten rekord u dostawcy domeny",
+                "dns_type": "Typ",
+                "dns_name": "Nazwa",
+                "dns_value": "Wskazuje na",
+                "status": {
+                    "waiting": "Czeka na DNS",
+                    "active": "Aktywna",
+                    "problem": "Jeszcze nie działa"
+                },
+                "check": {
+                    "no_certificate": "Twoja domena wskazuje tutaj, ale ten serwer nie ma jeszcze dla niej certyfikatu. Poproś administratora o skonfigurowanie certyfikatów dla własnych domen.",
+                    "points_elsewhere": "Twoja domena odpowiada, ale nie z tego serwera. Sprawdź, czy rekord wskazuje na {target}.",
+                    "not_reached": "Nie możemy jeszcze połączyć się z Twoją domeną. Sprawdź, czy rekord wskazuje na {target}, i poczekaj kilka minut.",
+                    "private_address": "Twoja domena wskazuje na adres sieci prywatnej. Skieruj ją na {target}."
+                }
+            }
+        }
+    }
+}

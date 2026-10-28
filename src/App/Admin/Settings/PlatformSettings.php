@@ -11,7 +11,8 @@ use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
  * language, the tracking code, visitor location, where Horizon sends
  * alerts, how many queue workers it may run, where the programs that read
  * files are, whether the panel shows its Logs page, and when the admin
- * setup of the install was completed.
+ * setup of the install was completed, and whether agents may use custom
+ * domains.
  */
 class PlatformSettings extends AdminSettings
 {
@@ -127,6 +128,11 @@ class PlatformSettings extends AdminSettings
     // out of the panel until an admin turns it on.
     #[ConfigKey('chatvia.admin.logs_page_enabled')]
     public ?bool $logs_page_enabled = null;
+
+    // Off until the web server in front gets certificates for new domains:
+    // a domain without one shows browsers a certificate error.
+    #[ConfigKey('chatvia.custom_domains.enabled')]
+    public ?bool $custom_domains_enabled = null;
 
     public static function group(): string
     {

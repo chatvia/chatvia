@@ -15,10 +15,9 @@ use Illuminate\Support\Carbon;
  * A monthly message limit on one account. On a workspace (`workspace_id`) it
  * counts every agent reply of the workspace (a platform admin sets it); on a
  * chatter (`chatter_id`) it counts the chatter's own messages (the
- * workspace sets it). Exactly one of the two is set. No row means no limit.
- * A workspace row with no `monthly_limit` only counts: an install without a
- * license key keeps the count for the free-use cap, which applies on top of
- * any limit an admin set ({@see MessageAllowance}).
+ * workspace sets it). Exactly one of the two is set. No row means no limit,
+ * and a row with no `monthly_limit` only keeps this month's count
+ * ({@see MessageAllowance}).
  *
  * `messages_used` counts from `period_starts_at`, the first day of a month.
  * When a new month starts the count restarts on the next message, so no
@@ -53,24 +52,10 @@ class MessageLimit extends Model
         return $this->isCurrentPeriod() ? $this->messages_used : 0;
     }
 
-    /**
-     * The limit in force: the smaller of the one set on this row and $cap
-     * (the free-use cap, for a workspace without a license key). Null when
-     * neither is set.
-     */
-    public function effectiveLimit(?int $cap = null): ?int
+    /** Whether this month's messages have reached the limit. */
+    public function reached(): bool
     {
-        $limits = array_filter([$this->monthly_limit, $cap], fn (?int $limit): bool => $limit !== null);
-
-        return $limits === [] ? null : min($limits);
-    }
-
-    /** Whether this month's messages have reached the limit in force. */
-    public function reached(?int $cap = null): bool
-    {
-        $limit = $this->effectiveLimit($cap);
-
-        return $limit !== null && $this->usedThisMonth() >= $limit;
+        return $this->monthly_limit !== null && $this->usedThisMonth() >= $this->monthly_limit;
     }
 
     /**

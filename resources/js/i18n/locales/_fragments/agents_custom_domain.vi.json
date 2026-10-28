@@ -1,0 +1,34 @@
+{
+    "agents": {
+        "deploy": {
+            "custom_domain": {
+                "title": "Tên miền riêng",
+                "description": "Hiển thị cuộc trò chuyện này tại địa chỉ của riêng bạn, ví dụ help.yourshop.com.",
+                "placeholder": "help.yourshop.com",
+                "saved": "Đã lưu tên miền. Chúng tôi đang kiểm tra.",
+                "removed": "Đã xóa tên miền.",
+                "remove": "Xóa",
+                "check_again": "Kiểm tra lại",
+                "off_title": "Tên miền riêng đang tắt",
+                "off_body": "Hãy nhờ quản trị viên bật tên miền riêng trên máy chủ này.",
+                "active_body": "Cuộc trò chuyện của bạn đang chạy trên tên miền này.",
+                "waiting_body": "Hãy thêm bản ghi bên dưới. Chúng tôi kiểm tra tên miền vài phút một lần, và có thể mất tới một giờ sau khi bạn thêm bản ghi.",
+                "dns_title": "Thêm bản ghi này tại nhà cung cấp tên miền của bạn",
+                "dns_type": "Loại",
+                "dns_name": "Tên",
+                "dns_value": "Trỏ tới",
+                "status": {
+                    "waiting": "Đang chờ DNS",
+                    "active": "Đang hoạt động",
+                    "problem": "Chưa hoạt động"
+                },
+                "check": {
+                    "no_certificate": "Tên miền của bạn trỏ tới đây, nhưng máy chủ này chưa có chứng chỉ cho nó. Hãy nhờ quản trị viên thiết lập chứng chỉ cho tên miền riêng.",
+                    "points_elsewhere": "Tên miền của bạn có phản hồi, nhưng không phải từ máy chủ này. Hãy kiểm tra bản ghi trỏ tới {target}.",
+                    "not_reached": "Chúng tôi chưa thể kết nối tới tên miền của bạn. Hãy kiểm tra bản ghi trỏ tới {target}, rồi đợi vài phút.",
+                    "private_address": "Tên miền của bạn trỏ tới một địa chỉ mạng riêng. Hãy trỏ nó tới {target}."
+                }
+            }
+        }
+    }
+}

@@ -2,8 +2,6 @@
     "license": {
         "unavailable_title": "Tämä ominaisuus ei ole käytettävissä",
         "unavailable_body": "Ota yhteyttä järjestelmänvalvojaasi.",
-        "unavailable": "Tämä ominaisuus ei ole käytettävissä. Ota yhteyttä järjestelmänvalvojaasi.",
-        "agents_of_limit": "{count}/{limit} agenttia",
-        "agents_body": "Tässä työtilassa voi olla {limit} agenttia. Ota yhteyttä järjestelmänvalvojaasi, jos tarvitset lisää."
+        "unavailable": "Tämä ominaisuus ei ole käytettävissä. Ota yhteyttä järjestelmänvalvojaasi."
     }
 }

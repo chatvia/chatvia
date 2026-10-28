@@ -6,7 +6,6 @@ namespace App\Identity\Workspace\Notifications;
 
 use App\Identity\Workspace\Models\MessageLimit;
 use App\Identity\Workspace\Models\User;
-use App\Identity\Workspace\Services\MessageAllowance;
 use Domain\Notification\Data\NotificationContentData;
 use Domain\Notification\Data\NotificationMessageData;
 use Domain\Notification\Enums\NotificationKind;
@@ -33,7 +32,7 @@ class MessageLimitNotification extends InboxNotification
     {
         return $this->message(new NotificationContentData(
             url: route('dashboard', absolute: false),
-            subject: (string) app(MessageAllowance::class)->effectiveLimit($this->limit),
+            subject: (string) $this->limit->monthly_limit,
             detail: (string) $this->percent,
         ));
     }

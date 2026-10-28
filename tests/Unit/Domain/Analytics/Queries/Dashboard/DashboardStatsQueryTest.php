@@ -9,7 +9,6 @@ use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Support\License\FreeTier;
 
 /**
  * DashboardStatsQuery aggregates the whole dashboard payload from the
@@ -111,7 +110,6 @@ it('counts no knowledge sources while no agent has one', function (): void {
 });
 
 it('returns a zeroed trend and member count when no team is passed', function (): void {
-    withLicense();
     $owner = User::factory()->create();
 
     $stats = app(DashboardStatsQuery::class)->get($owner, null)->toArray();
@@ -127,7 +125,6 @@ it('returns a zeroed trend and member count when no team is passed', function ()
 });
 
 it('counts this month\'s replies from the rollup when the workspace has no limit', function (): void {
-    withLicense();
     $owner = User::factory()->create();
     $agent = createAgent($owner);
 
@@ -139,15 +136,6 @@ it('counts this month\'s replies from the rollup when the workspace has no limit
 
     expect($stats['messages']['total'])->toBe(4)
         ->and($stats['messages']['limit'])->toBeNull();
-});
-
-it('shows the free-use cap as the limit without a license key', function (): void {
-    $owner = User::factory()->create();
-
-    $stats = app(DashboardStatsQuery::class)->get($owner, null)->toArray();
-
-    expect($stats['messages']['limit'])->toBe(FreeTier::MONTHLY_MESSAGES)
-        ->and($stats['messages']['available'])->toBe(FreeTier::MONTHLY_MESSAGES);
 });
 
 it('counts only the sessions that sent a message as active', function (): void {

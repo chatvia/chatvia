@@ -323,7 +323,7 @@ it('encourages a license on the step before the last, and activates a typed key 
     Http::fake(['licenses.test/api/licenses/activate' => Http::response(['key' => LicenseKeys::activatedFor('chat.acme.com')])]);
 
     setupAppStep($this->admin)
-        ->assertSeeInOrder(['App name', 'License (optional)', 'Get the most out of ChatVia.ai', '10,000 agent replies a month', 'Buy a license'])
+        ->assertSeeInOrder(['App name', 'License (optional)', 'Get the most out of ChatVia.ai', 'no limits on agents, teams or replies', 'Buy a license'])
         ->assertFormFieldVisible('license_key')
         ->fillForm(['license_key' => LicenseKeys::BOUGHT_KEY])
         ->goToWizardStep(10)
@@ -381,7 +381,7 @@ it('shows who a saved license key is licensed to, and asks for no other', functi
     saveSettings(BrandSettings::class, ['license_key' => LicenseKeys::activatedFor('chat.acme.com')]);
 
     setupAppStep($this->admin)
-        ->assertSee(['Pro license, licensed to Acme Ltd', 'The free limits are lifted.'])
+        ->assertSee(['Pro license, licensed to Acme Ltd', 'Every feature is on.'])
         ->assertDontSee('Buy a license')
         ->assertFormFieldHidden('license_key');
 });

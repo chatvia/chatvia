@@ -3,11 +3,16 @@
 namespace App\Http\Controllers\Agent\Setup;
 
 use App\Identity\Chatter\Services\ChatterAuthTokens;
+use Domain\Agent\Data\Resources\Account\AgentDomainResourceData;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
+use Domain\Agent\Data\Resources\Account\CustomDomainOptionsData;
 use Domain\Agent\Models\Agent;
+use Domain\Agent\Models\AgentDomain;
+use Domain\Agent\Services\CustomDomainLookup;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Support\License\Entitlements;
 
 /**
  * Deploy — the single home for putting an agent on the web. Surfaces the three
@@ -17,8 +22,10 @@ use Inertia\Response;
  */
 class AgentDeployController
 {
-    public function __invoke(Request $request, Agent $agent, ChatterAuthTokens $authTokens): Response
+    public function __invoke(Request $request, Agent $agent, ChatterAuthTokens $authTokens, CustomDomainLookup $domains, Entitlements $entitlements): Response
     {
+        $domain = $agent->domain()->first();
+
         return Inertia::render('agents/Deploy', [
             'agent' => AgentResourceData::fromModel($agent),
             // Private agents embed with a server-minted JWT — the snippets show a
@@ -33,6 +40,14 @@ class AgentDeployController
             'defaultBar' => config('model-settings.defaults.'.Agent::class.'.bar'),
             // Per-surface on/off state, so each section can show an enable toggle.
             'surfaces' => $agent->settings('surfaces'),
+            // Hosted Chat → Custom domain: the saved domain, if any, and
+            // whether this install offers custom domains at all.
+            'customDomain' => $domain instanceof AgentDomain ? AgentDomainResourceData::fromModel($domain) : null,
+            'customDomainOptions' => new CustomDomainOptionsData(
+                is_licensed: $entitlements->customDomains(),
+                is_enabled: config('chatvia.custom_domains.enabled') === true,
+                cname_target: $domains->cnameTarget(),
+            ),
         ]);
     }
 }

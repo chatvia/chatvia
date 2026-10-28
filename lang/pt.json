@@ -544,8 +544,6 @@
     "Analytics needs pg_partman to split its message log by month.": "A análise precisa do pg_partman para dividir o registo de mensagens por mês.",
     "Read more": "Saber mais",
     "The API needs a ChatVia.ai license key.": "A API precisa de uma chave de licença do ChatVia.ai.",
-    "This workspace can have :limit agents. Please contact your administrator to add more.": "Este espaço de trabalho pode ter :limit agentes. Contacte o seu administrador para adicionar mais.",
-    "More teams need a ChatVia.ai license key.": "Mais equipes precisam de uma chave de licença do ChatVia.ai.",
     "Every 6 hours": "A cada 6 horas",
     "Every 12 hours": "A cada 12 horas",
     "Every 24 hours": "A cada 24 horas",
@@ -563,5 +561,12 @@
     "Your admin does not let agents offer a choice of models.": "O seu administrador não permite que os agentes ofereçam uma escolha de modelos.",
     "Your admin does not let chatters pick a model.": "O seu administrador não permite que os utilizadores do chat escolham um modelo.",
     "This form is managed by a capability and cannot be changed.": "Este formulário é gerido por uma funcionalidade e não pode ser alterado.",
-    "Connect :name first.": "Conecte :name primeiro."
+    "Connect :name first.": "Conecte :name primeiro.",
+    "Custom domains": "Domínios próprios",
+    "Lets agents show their Hosted Chat on a domain of their own, such as help.yourshop.com. Needs a license key.": "Permite que os agentes mostrem o chat alojado num domínio próprio, como help.yourshop.com. Precisa de uma chave de licença.",
+    "Turn this on only when your web server gets a certificate for each new domain by itself, for example Caddy with on-demand TLS. Without one, visitors see a security warning.": "Ligue isto apenas quando o seu servidor web obtiver por si um certificado para cada domínio novo, por exemplo o Caddy com TLS a pedido. Sem ele, os visitantes veem um aviso de segurança.",
+    "How to set up": "Como configurar",
+    "Use a domain of your own, not the address of this server.": "Use um domínio seu, não o endereço deste servidor.",
+    "Enter a domain name, such as help.yourshop.com.": "Escreva um nome de domínio, como help.yourshop.com.",
+    "Another agent already uses this domain.": "Outro agente já usa este domínio."
 }

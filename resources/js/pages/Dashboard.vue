@@ -7,7 +7,6 @@
  */
 import { type DashboardStats, fetchDashboardStats } from '@/api/dashboard';
 import CreateAgentModal from '@/components/CreateAgentModal.vue';
-import { useLicense } from '@/composables/useLicense';
 import DashboardTour from '@/components/onboarding/DashboardTour.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -61,10 +60,6 @@ const activityPeriod = ref<'week' | 'month'>('week');
 
 const page = usePage();
 const loading = ref(true);
-
-// Without a license key a workspace holds a set number of agents.
-const { agentLimit } = useLicense();
-const agentLimitReached = computed(() => agentLimit.value !== null && dashboardData.value.agents.total >= agentLimit.value);
 
 // Modal state
 const showCreateAgentModal = ref(false);
@@ -163,9 +158,6 @@ const formatNumber = (num: number): string => {
                             <div v-if="loading" class="bg-muted h-8 w-16 animate-pulse rounded"></div>
                             <div v-else>
                                 <div class="text-2xl font-bold">{{ dashboardData.agents.total }}</div>
-                                <p v-if="agentLimit !== null" class="text-muted-foreground text-xs">
-                                    {{ t('license.agents_of_limit', { count: dashboardData.agents.total, limit: agentLimit }) }}
-                                </p>
                             </div>
                         </CardContent>
                     </Card>
@@ -279,7 +271,7 @@ const formatNumber = (num: number): string => {
         </div>
 
         <!-- Create Agent Modal -->
-        <CreateAgentModal v-model:open="showCreateAgentModal" :limit-reached="agentLimitReached" @agent-created="refreshDashboardData" />
+        <CreateAgentModal v-model:open="showCreateAgentModal" @agent-created="refreshDashboardData" />
 
         <DashboardTour ref="dashboardTour" :can-create-agent="canCreateAgent" @create-agent="showCreateAgentModal = true" />
     </AppLayout>

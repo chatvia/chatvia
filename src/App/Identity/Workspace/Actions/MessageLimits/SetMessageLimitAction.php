@@ -9,8 +9,8 @@ use App\Identity\Workspace\Services\MessageAllowance;
 
 /**
  * Sets or clears the monthly message limit of a workspace or a chatter. Null
- * removes the limit; a workspace keeps its row and this month's count, which
- * the free-use cap still reads without a license key. A number keeps what was
+ * removes the limit; a workspace keeps its row and this month's count, so
+ * setting a limit again later in the month starts from it. A number keeps what was
  * already used this month, so lowering the limit can block the account right
  * away.
  */

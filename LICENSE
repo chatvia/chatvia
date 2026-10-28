@@ -36,15 +36,13 @@ subject to the following conditions:
    key for its domain (https://chatvia.ai/license), it may not:
 
    a. create a workspace when it already has one;
-   b. create an agent in a workspace that already has ten agents;
-   c. create a team in a workspace that already has one;
-   d. send more than 10,000 agent replies in a calendar month from one
-      workspace;
-   e. use the Software's API;
-   f. use voice conversations, live chat (handing a chat from an agent to a
+   b. use the Software's API;
+   c. use voice conversations, live chat (handing a chat from an agent to a
       person), or the built-in capabilities (charts, calendar booking, forms
-      and leads, image generation, audio generation and video generation); or
-   g. change the options of how texts are split into chunks (the Splitting
+      and leads, image generation, audio generation and video generation);
+   d. serve an agent's hosted chat on a custom domain (a domain other than
+      the install's own); or
+   e. change the options of how texts are split into chunks (the Splitting
       settings).
 
    You may not change the Software, by any means, to go past these limits

@@ -2,8 +2,6 @@
     "license": {
         "unavailable_title": "Denne funksjonen er ikke tilgjengelig",
         "unavailable_body": "Kontakt administratoren din.",
-        "unavailable": "Denne funksjonen er ikke tilgjengelig. Kontakt administratoren din.",
-        "agents_of_limit": "{count} av {limit} agenter",
-        "agents_body": "Dette arbeidsområdet kan ha {limit} agenter. Kontakt administratoren din for å legge til flere."
+        "unavailable": "Denne funksjonen er ikke tilgjengelig. Kontakt administratoren din."
     }
 }

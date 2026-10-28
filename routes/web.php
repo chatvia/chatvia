@@ -15,6 +15,7 @@ use App\Http\Controllers\Auth\Social\Slack\SlackCallbackController;
 use App\Http\Controllers\Chat\Messages\AttachmentViewController;
 use App\Http\Controllers\Chat\Messages\GeneratedMediaViewController;
 use App\Http\Controllers\Connector\ConnectorOAuthCallbackController;
+use App\Http\Controllers\CustomDomains\CustomDomainLookupController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KnowledgeFiles\SourceFileViewController;
 use App\Http\Middleware\Web\ContentSecurityPolicy;
@@ -63,6 +64,12 @@ Route::get('media/attachments/{attachment}.{extension}', AttachmentViewControlle
 Route::get('media/{generatedMedia}.{extension}', GeneratedMediaViewController::class)
     ->middleware('signed:relative')
     ->name('generated-media.view');
+
+// Asked by a web server with on-demand certificates (Caddy) before it gets one
+// for a new domain: 200 only for an agent's saved custom domain.
+Route::get('custom-domains', CustomDomainLookupController::class)
+    ->middleware('throttle:120,1,custom-domains')
+    ->name('custom-domains.lookup');
 
 // A model maker's logo (models.dev), for the model pickers chatters see in
 // the hosted chat and the widget. Public: logos hold nothing of a workspace.

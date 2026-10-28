@@ -27,9 +27,6 @@ it('applies the free-use limits without a key', function (): void {
 
     expect($entitlements->licensed())->toBeFalse()
         ->and($entitlements->workspaceLimit())->toBe(FreeTier::WORKSPACES)
-        ->and($entitlements->agentLimit())->toBe(FreeTier::AGENTS)
-        ->and($entitlements->teamLimit())->toBe(FreeTier::TEAMS)
-        ->and($entitlements->monthlyMessageLimit())->toBe(FreeTier::MONTHLY_MESSAGES)
         ->and($entitlements->api())->toBeFalse()
         ->and($entitlements->voice())->toBeFalse()
         ->and($entitlements->handoff())->toBeFalse()
@@ -43,9 +40,6 @@ it('lifts every free-use limit with a key', function (): void {
     $entitlements = app(Entitlements::class);
 
     expect($entitlements->workspaceLimit())->toBeNull()
-        ->and($entitlements->agentLimit())->toBeNull()
-        ->and($entitlements->teamLimit())->toBeNull()
-        ->and($entitlements->monthlyMessageLimit())->toBeNull()
         ->and($entitlements->api())->toBeTrue()
         ->and($entitlements->voice())->toBeTrue()
         ->and($entitlements->handoff())->toBeTrue()

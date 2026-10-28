@@ -2,7 +2,7 @@
 // Says that something on this page is unavailable on this install (it needs
 // a license key or an Enterprise license). Staff cannot add a key from the
 // dashboard, so it sends them to their administrator. `body` replaces the
-// default line when the lock needs more words (the agent limit).
+// default line when the lock needs more words.
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Lock } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';

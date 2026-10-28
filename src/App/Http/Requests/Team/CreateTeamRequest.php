@@ -4,24 +4,17 @@ namespace App\Http\Requests\Team;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Data\CreateTeamData;
-use Domain\Membership\Team\Services\TeamAllowance;
-use Illuminate\Auth\Access\Response;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Creating a team from the Teams page. Without a license key the workspace
- * keeps only its first team, so the request is refused (403).
+ * Creating a team from the Teams page. Only the workspace owner reaches it:
+ * the route sits behind `DenyIfTeammate`.
  */
 class CreateTeamRequest extends FormRequest
 {
-    public function authorize(TeamAllowance $teams): Response
+    public function authorize(): bool
     {
-        /** @var User $user */
-        $user = $this->user();
-
-        return $teams->canCreate($user->workspace())
-            ? Response::allow()
-            : Response::deny(__('This feature is unavailable. Please contact your administrator.'));
+        return true;
     }
 
     /**

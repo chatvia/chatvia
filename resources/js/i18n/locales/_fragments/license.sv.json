@@ -2,8 +2,6 @@
     "license": {
         "unavailable_title": "Den här funktionen är inte tillgänglig",
         "unavailable_body": "Kontakta din administratör.",
-        "unavailable": "Den här funktionen är inte tillgänglig. Kontakta din administratör.",
-        "agents_of_limit": "{count} av {limit} agenter",
-        "agents_body": "Den här arbetsytan kan ha {limit} agenter. Kontakta din administratör för att lägga till fler."
+        "unavailable": "Den här funktionen är inte tillgänglig. Kontakta din administratör."
     }
 }

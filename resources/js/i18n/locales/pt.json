@@ -2292,7 +2292,35 @@
             "toggle_surface": "Ativar ou desativar esta superfície",
             "surface_enabled": "Superfície ativada",
             "surface_disabled": "Superfície desativada — deixará de estar acessível",
-            "surface_error": "Não foi possível atualizar — tente novamente"
+            "surface_error": "Não foi possível atualizar — tente novamente",
+            "custom_domain": {
+                "title": "Domínio próprio",
+                "description": "Mostre este chat num endereço seu, como help.yourshop.com.",
+                "placeholder": "help.yourshop.com",
+                "saved": "Domínio guardado. Estamos a verificá-lo agora.",
+                "removed": "Domínio removido.",
+                "remove": "Remover",
+                "check_again": "Verificar novamente",
+                "off_title": "Os domínios próprios estão desligados",
+                "off_body": "Peça ao seu administrador para ligar os domínios próprios neste servidor.",
+                "active_body": "O seu chat já está ativo neste domínio.",
+                "waiting_body": "Adicione o registo abaixo. Verificamos o domínio a cada poucos minutos, e pode demorar até uma hora depois de adicionar o registo.",
+                "dns_title": "Adicione este registo no seu fornecedor de domínio",
+                "dns_type": "Tipo",
+                "dns_name": "Nome",
+                "dns_value": "Aponta para",
+                "status": {
+                    "waiting": "À espera do DNS",
+                    "active": "Ativo",
+                    "problem": "Ainda não funciona"
+                },
+                "check": {
+                    "no_certificate": "O seu domínio aponta para aqui, mas este servidor ainda não tem um certificado para ele. Peça ao seu administrador para configurar certificados para domínios próprios.",
+                    "points_elsewhere": "O seu domínio responde, mas não a partir deste servidor. Verifique se o registo aponta para {target}.",
+                    "not_reached": "Ainda não conseguimos chegar ao seu domínio. Verifique se o registo aponta para {target} e aguarde alguns minutos.",
+                    "private_address": "O seu domínio aponta para um endereço de rede privada. Faça-o apontar para {target}."
+                }
+            }
         },
         "chatters": {
             "title": "Chatters",
@@ -4518,8 +4546,6 @@
         "hide": "Ocultar etapas"
     },
     "license": {
-        "agents_of_limit": "{count} de {limit} agentes",
-        "agents_body": "Este espaço de trabalho pode ter {limit} agentes. Entre em contato com o seu administrador para adicionar mais.",
         "unavailable_title": "Este recurso não está disponível",
         "unavailable_body": "Entre em contato com o seu administrador.",
         "unavailable": "Este recurso não está disponível. Entre em contato com o seu administrador."

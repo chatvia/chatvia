@@ -163,6 +163,12 @@ declare namespace Domain {
             }
             namespace Resources {
                 namespace Account {
+                    export type AgentDomainResourceData = {
+                        host: string;
+                        status: Domain.Agent.Enums.AgentDomainStatus;
+                        last_check: Domain.Agent.Enums.DomainCheck | null;
+                        last_checked_at: string | null;
+                    };
                     export type AgentResourceData = {
                         id: number;
                         external_id: string;
@@ -180,6 +186,11 @@ declare namespace Domain {
                         total_messages: number | null;
                         total_members: number | null;
                         forms_enabled: boolean;
+                    };
+                    export type CustomDomainOptionsData = {
+                        is_licensed: boolean;
+                        is_enabled: boolean;
+                        cname_target: string;
                     };
                 }
                 namespace Chat {
@@ -463,6 +474,8 @@ declare namespace Domain {
             }
         }
         namespace Enums {
+            export type AgentDomainStatus = 'waiting' | 'active' | 'problem';
+            export type DomainCheck = 'reached' | 'no_certificate' | 'points_elsewhere' | 'not_reached' | 'private_address';
             export type SourcesDisplay = 'hidden' | 'list' | 'citations';
         }
         namespace Prompt {

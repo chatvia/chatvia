@@ -1,0 +1,34 @@
+{
+    "agents": {
+        "deploy": {
+            "custom_domain": {
+                "title": "Eget domene",
+                "description": "Vis denne chatten på din egen adresse, for eksempel help.yourshop.com.",
+                "placeholder": "help.yourshop.com",
+                "saved": "Domenet er lagret. Vi sjekker det nå.",
+                "removed": "Domenet er fjernet.",
+                "remove": "Fjern",
+                "check_again": "Sjekk igjen",
+                "off_title": "Egne domener er slått av",
+                "off_body": "Be administratoren din om å slå på egne domener på denne serveren.",
+                "active_body": "Chatten din er nå live på dette domenet.",
+                "waiting_body": "Legg til oppføringen nedenfor. Vi sjekker domenet med noen minutters mellomrom, og det kan ta opptil en time etter at du har lagt den til.",
+                "dns_title": "Legg til denne oppføringen hos domeneleverandøren din",
+                "dns_type": "Type",
+                "dns_name": "Navn",
+                "dns_value": "Peker til",
+                "status": {
+                    "waiting": "Venter på DNS",
+                    "active": "Aktiv",
+                    "problem": "Virker ikke ennå"
+                },
+                "check": {
+                    "no_certificate": "Domenet ditt peker hit, men serveren har ikke et sertifikat for det ennå. Be administratoren din om å sette opp sertifikater for egne domener.",
+                    "points_elsewhere": "Domenet ditt svarer, men ikke fra denne serveren. Sjekk at oppføringen peker til {target}.",
+                    "not_reached": "Vi når ikke domenet ditt ennå. Sjekk at oppføringen peker til {target}, og vent noen minutter.",
+                    "private_address": "Domenet ditt peker til en privat nettverksadresse. La det peke til {target}."
+                }
+            }
+        }
+    }
+}

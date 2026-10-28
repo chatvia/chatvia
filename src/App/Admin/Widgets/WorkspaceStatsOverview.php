@@ -84,27 +84,24 @@ class WorkspaceStatsOverview extends StatsOverviewWidget
 
     /**
      * The limit's own count, the one that blocks replies, not the analytics
-     * total: it starts when the limit is set. Without a license key the
-     * free-use cap is shown when it is the smaller limit.
+     * total: it starts when the limit is set.
      */
     private function messageLimit(?MessageLimit $limit): Stat
     {
-        $allowance = app(MessageAllowance::class);
-        $inForce = $limit instanceof MessageLimit ? $allowance->effectiveLimit($limit) : $allowance->workspaceCap();
+        $inForce = $limit?->monthly_limit;
 
-        if ($inForce === null) {
+        if (! $limit instanceof MessageLimit || $inForce === null) {
             return Stat::make('Message limit', 'No limit')
                 ->icon(Heroicon::OutlinedAdjustmentsHorizontal)
                 ->description('Agent replies are not capped');
         }
 
-        $used = $limit?->usedThisMonth() ?? 0;
-        $reached = $limit instanceof MessageLimit && $allowance->reached($limit);
+        $used = $limit->usedThisMonth();
+        $reached = $limit->reached();
         $percent = Number::format($inForce > 0 ? $used / $inForce * 100 : 0, maxPrecision: 0);
         $restarts = now()->addMonthNoOverflow()->startOfMonth()->format('j F');
-        $label = $limit?->monthly_limit === $inForce ? 'Message limit' : 'Message limit (free plan)';
 
-        return Stat::make($label, Number::format($used).' / '.Number::format($inForce))
+        return Stat::make('Message limit', Number::format($used).' / '.Number::format($inForce))
             ->icon(Heroicon::OutlinedAdjustmentsHorizontal)
             ->description($reached
                 ? "Reached: agents stop replying until {$restarts}"

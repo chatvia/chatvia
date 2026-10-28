@@ -2292,7 +2292,35 @@
             "toggle_surface": "启用或停用此渠道入口",
             "surface_enabled": "渠道入口已启用",
             "surface_disabled": "渠道入口已停用——将无法访问",
-            "surface_error": "更新失败——请重试"
+            "surface_error": "更新失败——请重试",
+            "custom_domain": {
+                "title": "自定义域名",
+                "description": "在你自己的地址上展示此聊天，例如 help.yourshop.com。",
+                "placeholder": "help.yourshop.com",
+                "saved": "域名已保存。我们正在检查。",
+                "removed": "域名已移除。",
+                "remove": "移除",
+                "check_again": "再次检查",
+                "off_title": "自定义域名已关闭",
+                "off_body": "请让管理员在此服务器上开启自定义域名。",
+                "active_body": "你的聊天已在此域名上线。",
+                "waiting_body": "请添加下面的记录。我们每隔几分钟检查一次域名，添加记录后最多可能需要一小时。",
+                "dns_title": "在你的域名服务商处添加此记录",
+                "dns_type": "类型",
+                "dns_name": "名称",
+                "dns_value": "指向",
+                "status": {
+                    "waiting": "等待 DNS",
+                    "active": "已启用",
+                    "problem": "尚未生效"
+                },
+                "check": {
+                    "no_certificate": "你的域名已指向这里，但此服务器还没有它的证书。请让管理员为自定义域名设置证书。",
+                    "points_elsewhere": "你的域名有响应，但不是来自此服务器。请检查记录是否指向 {target}。",
+                    "not_reached": "我们还无法访问你的域名。请检查记录是否指向 {target}，然后等几分钟。",
+                    "private_address": "你的域名指向一个私有网络地址。请将它指向 {target}。"
+                }
+            }
         },
         "chatters": {
             "title": "访客",
@@ -4446,8 +4474,6 @@
         "hide": "隐藏步骤"
     },
     "license": {
-        "agents_of_limit": "{count} / {limit} 个智能体",
-        "agents_body": "此工作区最多可有 {limit} 个智能体。如需添加更多，请联系你的管理员。",
         "unavailable_title": "此功能不可用",
         "unavailable_body": "请联系你的管理员。",
         "unavailable": "此功能不可用。请联系你的管理员。"

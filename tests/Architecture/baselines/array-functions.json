@@ -331,7 +331,6 @@
     "tests/Unit/Config/ReverbConfigTest.php": 1,
     "tests/Unit/Domain/Agent/Actions/Analytics/BuildAgentStatsActionTest.php": 5,
     "tests/Unit/Domain/Agent/Actions/Settings/SetAgentStartersActionTest.php": 2,
-    "tests/Unit/Domain/Agent/Actions/Settings/SetWidgetBubblesActionTest.php": 1,
     "tests/Unit/Domain/Agent/Services/AgentSlugGeneratorTest.php": 1,
     "tests/Unit/Domain/Analytics/Queries/Dashboard/DashboardStatsQueryTest.php": 2,
     "tests/Unit/Domain/Analytics/Services/AnalyticsCacheTest.php": 2,
@@ -399,8 +398,5 @@
     "tests/Unit/Domain/Llm/Services/ModelPresetsTest.php": 3,
     "tests/Unit/Domain/Llm/Services/ProviderAdaptersTest.php": 1,
     "tests/Unit/Domain/Membership/Agent/Actions/AcceptAgentInvitationActionTest.php": 1,
-    "tests/Unit/Domain/Security/Actions/ExportSecurityAuditLogActionTest.php": 1,
-    "tests/Unit/Domain/Widget/Queries/ListWidgetConversationsQueryTest.php": 1,
-    "tests/Unit/Support/Localization/Country/Models/CountryTest.php": 1,
-    "tests/Unit/Support/ServerTranslationsTest.php": 2
+    "tests/Unit/Domain/Widget/Queries/ListWidgetConversationsQueryTest.php": 1
 }

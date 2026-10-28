@@ -69,7 +69,6 @@
     "tests/Unit/App/Admin/Settings/SettingsConfigTest.php": 2,
     "tests/Unit/App/Identity/Workspace/Listeners/RecordFailedLoginSecurityEventTest.php": 1,
     "tests/Unit/App/Providers/AdminSettingsServiceProviderTest.php": 1,
-    "tests/Unit/Database/Settings/MoveWidgetSettingsTest.php": 6,
     "tests/Unit/Domain/Agent/Services/AgentSlugGeneratorTest.php": 1,
     "tests/Unit/Domain/Analytics/Actions/Analysis/AnalyzeConversationActionTest.php": 4,
     "tests/Unit/Domain/Analytics/Actions/Analysis/AnalyzeMessageActionTest.php": 2,

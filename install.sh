@@ -24,6 +24,11 @@
 #   runs as root (it starts itself again with sudo). Run it again to upgrade,
 #   or to finish an install that stopped.
 #
+#   On a server that already runs PostgreSQL (or with --db-host), it uses
+#   that PostgreSQL instead: it asks for the connection details, checks that
+#   the server has pgvector, pg_textsearch and pg_partman, and stops when
+#   one is missing. It never installs PostgreSQL or changes its settings.
+#
 # Options (each also works as an environment variable):
 #   --docker            install with Docker, without asking  CHATVIA_INSTALL=docker
 #   --complete          complete installation, without asking CHATVIA_INSTALL=complete
@@ -52,11 +57,16 @@
 #   --no-firewall       leave the firewall (ufw) as it is        CHATVIA_FIREWALL=no
 #   --force             install on a server that is not fresh    CHATVIA_FORCE=1
 #   --no-auto-update    no automatic updates (once a night)      CHATVIA_AUTO_UPDATE=no
+#   --db-host HOST      use this PostgreSQL server, not a new one CHATVIA_DB_HOST
+#   --db-port PORT      its port                                 CHATVIA_DB_PORT (5432)
+#   --db-name NAME      the database                             CHATVIA_DB_DATABASE (chatvia)
+#   --db-user NAME      the database user                        CHATVIA_DB_USERNAME (chatvia)
 #   --version also takes a branch, like main, to install code that is not
 #   a release yet.
 #
 # Only as environment variables:
 #   CHATVIA_ADMIN_PASSWORD        the first admin's password (else a random one)
+#   CHATVIA_DB_PASSWORD           complete: the password of the existing database user
 #   CHATVIA_EMBEDDING_TYPE        halfvec (default) or vector
 #   CHATVIA_EMBEDDING_DIMENSIONS  1024 (default)
 #   CHATVIA_EMBEDDING_INDEX       binary (default) or full
@@ -109,6 +119,12 @@ readonly NATIVE_MIN_PHP="8.5.12"
 readonly PHP_PPA_URL="https://ppa.launchpadcontent.net/ondrej/php/ubuntu"
 readonly PHP_PPA_KEY="B8DC7E53946656EFBCE4C1DD71DAEAAB4AD4CAB6"
 readonly NATIVE_PG="18"
+# An existing PostgreSQL server must be this version or newer: the one the
+# complete installation sets up, and the oldest pg_textsearch builds for.
+readonly NATIVE_MIN_PG="18"
+# The extensions Chatvia's migrations create in the app's database, and the
+# one in the analytics database (in its own schema, partman).
+readonly APP_EXTENSIONS="pg_stat_statements pg_trgm btree_gin btree_gist vector pg_textsearch"
 readonly PG_TEXTSEARCH_RELEASES="https://github.com/timescale/pg_textsearch/releases"
 readonly DEPLOYER_VERSION="^8.0"
 readonly MIN_NODE_VERSION="22.18.0"
@@ -568,22 +584,31 @@ ask() {
     printf -v "$var" '%s' "$answer"
 }
 
-# ask_secret VAR "Question": a hidden password, typed twice.
+# ask_secret VAR "Question" [once]: a new hidden password, typed twice. With
+# "once": a password that exists already (a database user's), typed once,
+# of any length.
 ask_secret() {
-    local var=$1 label=$2 first='' second='' again=0 error='' sym rail border foot mask count again_note
-    local lines
+    local var=$1 label=$2 once=${3:-} first='' second='' again=0 error='' sym rail border foot mask count again_note
+    local lines min=$MIN_PASSWORD help="At least $MIN_PASSWORD characters, typed twice."
+    local short="Use at least $MIN_PASSWORD characters."
+    if [ "$once" = once ]; then min=1 help='Hidden as you type.' short='Type the password first.'; fi
     block question
 
     if [ "$FANCY" = 0 ]; then
         printf '  %s  %s\n' "$ACTIVE" "$label"
         while true; do
-            printf '  %s  At least %d characters (hidden): ' "$BAR" "$MIN_PASSWORD"
+            if [ "$once" = once ]; then
+                printf '  %s  (hidden): ' "$BAR"
+            else
+                printf '  %s  At least %d characters (hidden): ' "$BAR" "$min"
+            fi
             IFS= read -rs first </dev/tty || no_input
             printf '\n'
-            if [ "${#first}" -lt "$MIN_PASSWORD" ]; then
-                printf '  %s  Use at least %d characters.\n' "$WARN" "$MIN_PASSWORD"
+            if [ "${#first}" -lt "$min" ]; then
+                printf '  %s  %s\n' "$WARN" "$short"
                 continue
             fi
+            if [ "$once" = once ]; then break; fi
             printf '  %s  Type it again: ' "$BAR"
             IFS= read -rs second </dev/tty || no_input
             printf '\n'
@@ -602,15 +627,17 @@ ask_secret() {
         else
             sym=$ACTIVE rail=$ACTIVE_BAR border=$C_ACCENT foot="$ACTIVE_END  ${C_DIM}Enter to continue$C_RESET"
         fi
-        if [ "${#first}" -ge "$MIN_PASSWORD" ]; then
+        if [ "$once" = once ]; then
+            count=''
+        elif [ "${#first}" -ge "$min" ]; then
             count="$C_GREEN$S_OK$C_RESET"
         else
-            count="$C_DIM${#first}/$MIN_PASSWORD$C_RESET"
+            count="$C_DIM${#first}/$min$C_RESET"
         fi
 
         # One box per password; the first turns grey once it is typed. A long
         # password fills its box, and no more.
-        lines=("  $sym  $C_BOLD$label$C_RESET" "  $rail  ${C_DIM}At least $MIN_PASSWORD characters, typed twice.$C_RESET")
+        lines=("  $sym  $C_BOLD$label$C_RESET" "  $rail  $C_DIM$help$C_RESET")
         input_room "$count"
         repeat_to mask "$S_MASK" $((${#first} < ROOM ? ${#first} : ROOM - 1))
         if [ "$again" = 0 ]; then
@@ -648,8 +675,10 @@ ask_secret() {
             clear) if [ "$again" = 0 ]; then first=''; else second=''; fi ;;
             enter)
                 if [ "$again" = 0 ]; then
-                    if [ "${#first}" -lt "$MIN_PASSWORD" ]; then
-                        error="Use at least $MIN_PASSWORD characters."
+                    if [ "${#first}" -lt "$min" ]; then
+                        error=$short
+                    elif [ "$once" = once ]; then
+                        break
                     else
                         again=1 error=''
                     fi
@@ -1928,7 +1957,7 @@ choose_mode() {
     if [ -n "$MODE" ]; then return; fi
     if [ "$OS" = macos ] || [ "$DOCKER_OPTIONS" = 1 ]; then
         MODE=docker
-    elif [ -f "$NATIVE_CONF" ]; then
+    elif [ -f "$NATIVE_CONF" ] || [ -n "${CHATVIA_DB_HOST:-}" ]; then
         MODE=complete
     elif [ "$INTERACTIVE" = 0 ]; then
         MODE=docker
@@ -2250,6 +2279,7 @@ native_main() {
 }
 
 native_install() {
+    native_detect_database
     native_warning
     native_check_fresh
     native_collect_settings
@@ -2263,14 +2293,25 @@ native_install() {
 }
 
 native_warning() {
+    local question='Is this a fresh server that ChatVia.ai can have to itself?'
     warn "$(bold 'The complete installation sets up this whole server for ChatVia.ai.')"
-    info 'It installs PostgreSQL, Redis, PHP, nginx, Node.js, Supervisor (for'
-    info 'Horizon, Reverb and Pulse), cron (for the scheduler), Certbot and'
-    info 'Deployer, changes their settings for ChatVia.ai, takes over ports 80 and'
-    info '443, and turns on the firewall. Other sites, databases and programs on'
-    info 'this server may stop working, and none of it is easy to undo.'
-    info "$(bold 'We strongly recommend a fresh server or VPS with nothing else on it.')"
-    if [ "$INTERACTIVE" = 1 ] && ! confirm 'Is this a fresh server that ChatVia.ai can have to itself?' n; then
+    if [ "$DATABASE" = existing ]; then
+        info 'It installs Redis, PHP, nginx, Node.js, Supervisor (for Horizon, Reverb'
+        info 'and Pulse), cron (for the scheduler), Certbot and Deployer, changes their'
+        info 'settings for ChatVia.ai, takes over ports 80 and 443, and turns on the'
+        info 'firewall. Other sites and programs on this server may stop working, and'
+        info 'none of it is easy to undo. It uses your PostgreSQL server as it is.'
+        info "$(bold 'We strongly recommend a server with nothing else on it but PostgreSQL.')"
+        question='Can ChatVia.ai have this server to itself, apart from PostgreSQL?'
+    else
+        info 'It installs PostgreSQL, Redis, PHP, nginx, Node.js, Supervisor (for'
+        info 'Horizon, Reverb and Pulse), cron (for the scheduler), Certbot and'
+        info 'Deployer, changes their settings for ChatVia.ai, takes over ports 80 and'
+        info '443, and turns on the firewall. Other sites, databases and programs on'
+        info 'this server may stop working, and none of it is easy to undo.'
+        info "$(bold 'We strongly recommend a fresh server or VPS with nothing else on it.')"
+    fi
+    if [ "$INTERACTIVE" = 1 ] && ! confirm "$question" n; then
         outro 'Nothing was changed. On a server that runs other things, install with Docker.'
         exit 0
     fi
@@ -2284,7 +2325,10 @@ native_check_fresh() {
             if package_installed "$pkg"; then found+=("$pkg is installed"); fi
         done
     fi
-    if [ -n "$(ls -A /etc/postgresql 2>/dev/null)" ]; then found+=('PostgreSQL is installed'); fi
+    # An existing PostgreSQL is kept as it is, so it does not count.
+    if [ "$DATABASE" = local ] && [ -n "$(ls -A /etc/postgresql 2>/dev/null)" ]; then
+        found+=('PostgreSQL is installed')
+    fi
     for site in /etc/nginx/sites-enabled/*; do
         [ -e "$site" ] || continue
         case ${site##*/} in default | chatvia) continue ;; esac
@@ -2317,8 +2361,389 @@ native_check_fresh() {
     fi
 }
 
+#------------------------------------------------------------------------------
+# An existing PostgreSQL server
+#
+# A server that runs PostgreSQL already (or --db-host, for one on another
+# server) keeps it: the installer asks how to reach it, and checks that it
+# can hold Chatvia before anything changes. It never installs PostgreSQL or
+# changes its settings. It creates Chatvia's databases and extensions there
+# when the database user may; what the user may not do is printed as SQL for
+# a superuser to run, and the install stops until that is done.
+#------------------------------------------------------------------------------
+
+# DATABASE=existing for --db-host, a PostgreSQL installed on this server, or
+# one that listens on its port (in a container, say).
+native_detect_database() {
+    DATABASE=local
+    if [ -n "${CHATVIA_DB_HOST:-}" ] || [ -n "$(ls -A /etc/postgresql 2>/dev/null)" ]; then
+        DATABASE=existing
+    elif command -v ss >/dev/null 2>&1 && [ -n "$(ss -Hltn '( sport = :5432 )' 2>/dev/null)" ]; then
+        DATABASE=existing
+    fi
+}
+
+# The port of this server's PostgreSQL: its first running cluster's.
+local_pg_port() {
+    local port=''
+    if command -v pg_lsclusters >/dev/null 2>&1; then
+        port=$(pg_lsclusters -h 2>/dev/null | awk '$4 == "online" { print $3; exit }') || port=''
+    fi
+    printf '%s' "${port:-5432}"
+}
+
+valid_db_host() {
+    if [[ $1 =~ ^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$ ]] || [[ $1 =~ ^[0-9A-Fa-f:]*:[0-9A-Fa-f:]*$ ]]; then
+        return 0
+    fi
+    INVALID='Type a host name or an IP address, like 127.0.0.1 or db.example.com.'
+    return 1
+}
+
+valid_db_port() {
+    if [[ $1 =~ ^[0-9]{1,5}$ ]] && [ "$1" -ge 1 ] && [ "$1" -le 65535 ]; then return 0; fi
+    INVALID='Use a number from 1 to 65535.'
+    return 1
+}
+
+# At most 49 characters, so the name with _analytics still fits in 63.
+valid_db_name() {
+    if [[ $1 =~ ^[a-z_][a-z0-9_]{0,48}$ ]]; then return 0; fi
+    INVALID='Use lowercase letters, digits and _ (at most 49), starting with a letter or _.'
+    return 1
+}
+
+valid_db_user() {
+    if [[ $1 =~ ^[A-Za-z0-9_][A-Za-z0-9_.@-]{0,62}$ ]]; then return 0; fi
+    INVALID='Use letters, digits, _, ., @ and - only.'
+    return 1
+}
+
+# .env holds the password in single quotes, which cannot hold one itself.
+valid_db_password() {
+    if [[ $1 == *"'"* ]] || [[ $1 == *$'\n'* ]]; then
+        INVALID="The password has a ' in it, which .env cannot hold. Give the user another password."
+        return 1
+    fi
+    return 0
+}
+
+# The analytics, Pulse and Spectra databases are named after the app's, so
+# they do not meet another app's databases on a shared server.
+native_name_databases() {
+    DB_ANALYTICS="${DB_NAME}_analytics"
+    DB_PULSE="${DB_NAME}_pulse"
+    DB_SPECTRA="${DB_NAME}_spectra"
+}
+
+# db_psql DATABASE ARGS...: psql on the existing server, as the database
+# user. The password goes through the environment, never the command line.
+db_psql() {
+    local database=$1
+    shift
+    PGPASSWORD=$DB_PASS PGCONNECT_TIMEOUT=10 PGAPPNAME=chatvia-installer \
+        psql -X -q -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$database" "$@"
+}
+
+# db_dump DATABASE: a pg_dump of it, in PostgreSQL's custom format, on stdout.
+db_dump() {
+    PGPASSWORD=$DB_PASS PGCONNECT_TIMEOUT=10 \
+        pg_dump -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -Fc "$1"
+}
+
+# The password saved in the shared .env, without its quotes.
+native_db_password() {
+    local value
+    value=$(env_value DB_PASSWORD)
+    value=${value#\'}
+    printf '%s' "${value%\'}"
+}
+
+native_install_pg_client() {
+    apt_get update
+    apt_get install postgresql-client
+}
+
+native_database_settings() {
+    DB_HOST=${CHATVIA_DB_HOST:-127.0.0.1}
+    DB_PORT=${CHATVIA_DB_PORT:-}
+    if [ -z "$DB_PORT" ]; then
+        DB_PORT=5432
+        if [ -z "${CHATVIA_DB_HOST:-}" ]; then DB_PORT=$(local_pg_port); fi
+    fi
+    DB_NAME=${CHATVIA_DB_DATABASE:-chatvia}
+    DB_USER=${CHATVIA_DB_USERNAME:-chatvia}
+    DB_PASS=${CHATVIA_DB_PASSWORD:-}
+
+    if [ "$INTERACTIVE" = 0 ]; then
+        valid_db_host "$DB_HOST" || die "--db-host: $INVALID"
+        valid_db_port "$DB_PORT" || die "--db-port: $INVALID"
+        valid_db_name "$DB_NAME" || die "--db-name: $INVALID"
+        valid_db_user "$DB_USER" || die "--db-user: $INVALID"
+        [ -n "$DB_PASS" ] || die "Set the password of the database user $DB_USER: CHATVIA_DB_PASSWORD."
+        valid_db_password "$DB_PASS" || die "$INVALID"
+        native_name_databases
+        native_check_database || die "Could not connect to PostgreSQL at $DB_HOST:$DB_PORT as $DB_USER." "$DB_ERROR"
+        return
+    fi
+
+    section 'Your PostgreSQL server'
+    if [ -n "${CHATVIA_DB_HOST:-}" ]; then
+        info "ChatVia.ai uses the PostgreSQL server at $(bold "$DB_HOST"). It installs no PostgreSQL of its own."
+    else
+        info 'PostgreSQL runs on this server already, so ChatVia.ai uses it. It installs'
+        info 'no PostgreSQL of its own and leaves its settings as they are.'
+    fi
+    info "It needs PostgreSQL $NATIVE_MIN_PG or newer with pgvector, pg_textsearch and pg_partman."
+    while true; do
+        ask DB_HOST 'PostgreSQL host' --default "$DB_HOST" \
+            --hint '127.0.0.1 for the PostgreSQL on this server.' --check valid_db_host
+        ask DB_PORT 'PostgreSQL port' --default "$DB_PORT" --check valid_db_port
+        ask DB_NAME 'Database name' --default "$DB_NAME" --check valid_db_name \
+            --hint 'ChatVia.ai also uses three more next to it: NAME_analytics, NAME_pulse and NAME_spectra.'
+        ask DB_USER 'Database user' --default "$DB_USER" --check valid_db_user \
+            --hint 'A user that exists already. The databases are created for it when it may create databases.'
+        while true; do
+            ask_secret DB_PASS "Password of $DB_USER" once
+            valid_db_password "$DB_PASS" && break
+            warn "$INVALID"
+        done
+        native_name_databases
+        native_check_database && return
+        warn "Could not connect to PostgreSQL at $DB_HOST:$DB_PORT as $DB_USER."
+        printf '%s\n' "$DB_ERROR" | quote
+        choose 'What do you want to do?' \
+            'Type the details again' \
+            'Stop for now  — nothing was changed'
+        if [ "$CHOICE" != 0 ]; then
+            outro 'Nothing was changed.'
+            exit 0
+        fi
+    done
+}
+
+# Connects to the existing server and checks, without changing anything,
+# that it can hold Chatvia: its version, the extensions on it, pg_textsearch
+# loaded when it starts, and that the user may create what is missing. A
+# connection that fails returns 1, with psql's message in DB_ERROR. Anything
+# else that is wrong stops the install, with what to do about it.
+native_check_database() {
+    local facts version_num version super createdb connect_to='' database
+    local preload='' available='' trusted='' listed='' problems=() sql_dbs=() sql=() packages=() created=()
+    DB_ERROR=''
+
+    if ! command -v psql >/dev/null 2>&1; then
+        if [ "$DRY_RUN" = 1 ]; then
+            warn "psql is not installed, so the database is not checked. $(dim '(dry run)')"
+            return 0
+        fi
+        run_step 'Installing the PostgreSQL client (psql) to check the database' native_install_pg_client ||
+            die 'The PostgreSQL client could not be installed.' "See why: $LOG"
+    fi
+
+    # The app's database, or, while it does not exist, a database that is
+    # always there, to read the rest.
+    connect_to=$(native_db_reachable 2>&1) || {
+        DB_ERROR=$connect_to
+        return 1
+    }
+
+    facts=$(db_psql "$connect_to" -At -F '|' -c \
+        "SELECT current_setting('server_version_num'), current_setting('server_version'), rolsuper, rolcreatedb
+         FROM pg_roles WHERE rolname = current_user") || {
+        DB_ERROR='Could not read the server version and the rights of the user.'
+        return 1
+    }
+    IFS='|' read -r version_num version super createdb <<<"$facts"
+    version=${version%% *}
+    DB_MAJOR=$((version_num / 10000))
+    if [ "$DB_MAJOR" -lt "$NATIVE_MIN_PG" ]; then
+        die "The PostgreSQL server at $DB_HOST:$DB_PORT is version $version. ChatVia.ai needs PostgreSQL $NATIVE_MIN_PG or newer." \
+            'Upgrade it, or use another PostgreSQL server. Nothing was changed.'
+    fi
+    ok "PostgreSQL $version at $DB_HOST:$DB_PORT $(dim "(user $DB_USER)")"
+
+    # Which extensions the server has, and which of them a database owner
+    # may create without being a superuser (trusted).
+    available=$(db_psql "$connect_to" -At -F '|' -c \
+        "SELECT e.name, v.trusted FROM pg_available_extensions e
+         JOIN pg_available_extension_versions v ON v.name = e.name AND v.version = e.default_version") || available=''
+    local extension
+    for extension in $APP_EXTENSIONS pg_partman; do
+        if ! grep -q "^$extension|" <<<"$available"; then
+            case $extension in
+                vector) packages+=("pgvector  $(dim "(Ubuntu: postgresql-$DB_MAJOR-pgvector)")") ;;
+                pg_partman) packages+=("pg_partman  $(dim "(Ubuntu: postgresql-$DB_MAJOR-partman)")") ;;
+                pg_textsearch) packages+=("pg_textsearch  $(dim "($PG_TEXTSEARCH_RELEASES)")") ;;
+                *) packages+=("$extension  $(dim '(comes with PostgreSQL itself)')") ;;
+            esac
+        elif grep -q "^$extension|t$" <<<"$available"; then
+            trusted="$trusted $extension"
+        fi
+    done
+    if [ "${#packages[@]}" -gt 0 ]; then
+        problems+=('These extensions are not installed on the PostgreSQL server:')
+        for extension in "${packages[@]}"; do problems+=("  - $extension"); done
+    fi
+
+    # Only a superuser (or pg_read_all_settings) may read this. When it
+    # cannot be read, creating pg_textsearch tells.
+    preload=$(db_psql "$connect_to" -Atc "SELECT current_setting('shared_preload_libraries')" 2>/dev/null) || preload='?'
+    if [ "$preload" != '?' ] && ! tr ',' '\n' <<<"$preload" | tr -d ' "' | grep -qx pg_textsearch; then
+        problems+=('pg_textsearch is not loaded when PostgreSQL starts. Add it to shared_preload_libraries'
+            "in postgresql.conf (now: '${preload}'), then restart PostgreSQL.")
+    fi
+
+    # The databases: there already, or created for the user when it may.
+    listed=$(db_psql "$connect_to" -At -F '|' -c \
+        "SELECT datname, has_database_privilege(datname, 'CONNECT'), has_database_privilege(datname, 'CREATE')
+         FROM pg_database WHERE datname IN ('$DB_NAME', '$DB_ANALYTICS', '$DB_PULSE', '$DB_SPECTRA')") || listed=''
+    local row can_connect can_create details schema_ok installed tables chatvia_tables needed absent=() ext create_it
+    for database in "$DB_NAME" "$DB_ANALYTICS" "$DB_PULSE" "$DB_SPECTRA"; do
+        case $database in
+            "$DB_NAME") needed=$APP_EXTENSIONS ;;
+            "$DB_ANALYTICS") needed=pg_partman ;;
+            *) needed='' ;;
+        esac
+        row=$(grep "^$database|" <<<"$listed") || row=''
+        installed='' create_it=0
+        if [ -z "$row" ]; then
+            if [ "$super" = t ] || [ "$createdb" = t ]; then
+                create_it=1
+                can_create=t
+            else
+                sql_dbs+=("CREATE DATABASE $database OWNER \"$DB_USER\";")
+                can_create=f
+            fi
+        else
+            IFS='|' read -r _ can_connect can_create <<<"$row"
+            details=''
+            if [ "$can_connect" = t ]; then
+                details=$(db_psql "$database" -At -F '|' -c \
+                    "SELECT has_schema_privilege('public', 'CREATE'),
+                            (SELECT coalesce(string_agg(extname, ' '), '') FROM pg_extension),
+                            (SELECT count(*) FROM pg_tables WHERE schemaname = 'public'),
+                            to_regclass('public.agents') IS NOT NULL" 2>/dev/null) || details=''
+            fi
+            IFS='|' read -r schema_ok installed tables chatvia_tables <<<"$details"
+            if [ "$can_connect" != t ] || [ "$can_create" != t ] || [ "$schema_ok" != t ]; then
+                sql+=("ALTER DATABASE $database OWNER TO \"$DB_USER\";")
+                can_create=f
+            fi
+            if [ "$database" = "$DB_NAME" ] && [ "${tables:-0}" -gt 0 ] && [ "$chatvia_tables" != t ]; then
+                problems+=("The database $database holds the tables of another app. Use an empty database, or another name.")
+            fi
+        fi
+
+        # The extensions it still needs (of those on the server), and who
+        # may create them.
+        absent=()
+        for ext in $needed; do
+            [[ " $installed " == *" $ext "* ]] && continue
+            grep -q "^$ext|" <<<"$available" || continue
+            if [ "$super" = t ] || { [ "$can_create" = t ] && [[ " $trusted " == *" $ext "* ]]; }; then continue; fi
+            absent+=("$ext")
+        done
+        if [ "${#absent[@]}" -gt 0 ]; then
+            # The superuser can only connect to it once it is there.
+            if [ "$create_it" = 1 ]; then
+                create_it=0
+                sql_dbs+=("CREATE DATABASE $database OWNER \"$DB_USER\";")
+            fi
+            sql+=("\\connect $database")
+            for ext in "${absent[@]}"; do
+                if [ "$ext" = pg_partman ]; then
+                    sql+=("CREATE SCHEMA IF NOT EXISTS partman AUTHORIZATION \"$DB_USER\";"
+                        'CREATE EXTENSION IF NOT EXISTS pg_partman SCHEMA partman;'
+                        "GRANT ALL ON ALL TABLES IN SCHEMA partman TO \"$DB_USER\";"
+                        "GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA partman TO \"$DB_USER\";"
+                        "GRANT EXECUTE ON ALL PROCEDURES IN SCHEMA partman TO \"$DB_USER\";")
+                else
+                    sql+=("CREATE EXTENSION IF NOT EXISTS $ext;")
+                fi
+            done
+        fi
+        if [ "$create_it" = 1 ]; then created+=("$database"); fi
+    done
+
+    # Backups (and the backup before each upgrade) need a pg_dump of the
+    # server's version or newer.
+    if command -v apt-cache >/dev/null 2>&1 && [ ! -x "/usr/lib/postgresql/$DB_MAJOR/bin/pg_dump" ] &&
+        ! apt-cache policy "postgresql-client-$DB_MAJOR" 2>/dev/null | grep -q 'Candidate: [0-9]'; then
+        problems+=("There is no package postgresql-client-$DB_MAJOR for backups of PostgreSQL $DB_MAJOR. Add the"
+            'PostgreSQL apt repository (https://wiki.postgresql.org/wiki/Apt), then run the installer again.')
+    fi
+
+    sql=(${sql_dbs[@]+"${sql_dbs[@]}"} ${sql[@]+"${sql[@]}"})
+    if [ "${#problems[@]}" -eq 0 ] && [ "${#sql[@]}" -eq 0 ]; then
+        ok 'pgvector, pg_textsearch and pg_partman are on the server'
+        if [ "${#created[@]}" -gt 0 ]; then
+            info "$(dim "The install creates the databases ${created[*]}")"
+        fi
+        return 0
+    fi
+
+    # On stderr, like the failure itself, so the two never come apart.
+    {
+        fail 'This PostgreSQL server cannot hold ChatVia.ai yet.'
+        if [ "${#problems[@]}" -gt 0 ]; then
+            local line
+            for line in "${problems[@]}"; do info "$line"; done
+        fi
+        if [ "${#sql[@]}" -gt 0 ]; then
+            block text
+            info "$DB_USER may not do this itself. A superuser runs it in psql:"
+            if [ "$preload" = '?' ] && [[ ${sql[*]} == *pg_textsearch* ]]; then
+                info "$(dim 'pg_textsearch must be in shared_preload_libraries first, or creating it fails.')"
+            fi
+            printf '%s\n' "${sql[@]}" | quote
+        fi
+    } >&2
+    die 'Nothing was changed.' 'Fix these, then run the installer again.'
+}
+
+# The first database the user can connect to, on stdout: the app's, or,
+# while that does not exist yet, one that is always there. Otherwise psql's
+# message, and 1.
+native_db_reachable() {
+    local database output
+    for database in "$DB_NAME" postgres template1; do
+        if output=$(db_psql "$database" -Atc 'SELECT 1' 2>&1); then
+            printf '%s' "$database"
+            return 0
+        fi
+        [[ $output == *"database \"$database\" does not exist"* ]] || break
+    done
+    printf '%s\n' "$output"
+    return 1
+}
+
+# Creates what the checks found missing: the databases (when the user may
+# create databases) and the extensions (when it may create them). Safe to
+# repeat, like every step.
+native_prepare_database() {
+    local database ext via
+    via=$(native_db_reachable) || {
+        echo "$via" >&2
+        return 1
+    }
+    for database in "$DB_NAME" "$DB_ANALYTICS" "$DB_PULSE" "$DB_SPECTRA"; do
+        if [ -z "$(db_psql "$via" -Atc "SELECT 1 FROM pg_database WHERE datname = '$database'")" ]; then
+            db_psql "$via" -c "CREATE DATABASE $database"
+            echo "Created the database $database."
+        fi
+    done
+    for ext in $APP_EXTENSIONS; do
+        db_psql "$DB_NAME" -c "CREATE EXTENSION IF NOT EXISTS $ext"
+    done
+    db_psql "$DB_ANALYTICS" -c 'CREATE SCHEMA IF NOT EXISTS partman' \
+        -c 'CREATE EXTENSION IF NOT EXISTS pg_partman SCHEMA partman'
+    db_psql "$DB_NAME" -Atc "SELECT extname || ' ' || extversion FROM pg_extension ORDER BY 1"
+}
+
 native_collect_settings() {
     SERVER_IP=$(server_ip)
+    if [ "$DATABASE" = existing ]; then native_database_settings; fi
     if [ "$INTERACTIVE" = 0 ]; then
         ADMIN_EMAIL=${CHATVIA_ADMIN_EMAIL:-}
         [ -n "$ADMIN_EMAIL" ] || die 'Set the admin e-mail: --email you@example.com (or CHATVIA_ADMIN_EMAIL).'
@@ -2462,7 +2887,7 @@ native_check_dns() {
 }
 
 native_show_summary() {
-    local password='the one you typed' address version storage index firewall swap code email kind updates
+    local password='the one you typed' address version storage index firewall swap code email kind updates database
     local rows=()
     if [ "$PASSWORD_GENERATED" = 1 ]; then password='a new random one, shown at the end'; fi
     kv_to kind 'Install' 'Complete, directly on this server'
@@ -2477,7 +2902,12 @@ native_show_summary() {
     kv_to storage 'Search storage' "$EMBEDDING_TYPE, $EMBEDDING_DIMENSIONS dimensions $(dim '(permanent)')"
     kv_to index 'Search index' "$EMBEDDING_INDEX $(dim '(can be changed later)')"
     kv_to code 'Code' "$NATIVE_ROOT, run by the user $NATIVE_USER"
-    rows=("$kind" "$address" "$email" "$password" "$version" "$storage" "$index" "$code")
+    if [ "$DATABASE" = existing ]; then
+        kv_to database 'Database' "your PostgreSQL at $DB_HOST:$DB_PORT, user $DB_USER $(dim "($DB_NAME, $DB_ANALYTICS, $DB_PULSE, $DB_SPECTRA)")"
+    else
+        kv_to database 'Database' "PostgreSQL $NATIVE_PG, installed on this server"
+    fi
+    rows=("$kind" "$address" "$email" "$password" "$version" "$storage" "$index" "$code" "$database")
     if [ "$FIREWALL" = yes ]; then
         kv_to firewall 'Firewall' "on: SSH (port $(ssh_ports | paste -sd, - | sed 's/,/, /g')), HTTP and HTTPS"
     else
@@ -2523,8 +2953,23 @@ CHATVIA_BRANCH=$CHATVIA_BRANCH
 FIREWALL=$FIREWALL
 SWAP=$SWAP
 AUTO_UPDATE=$AUTO_UPDATE
+DATABASE=$DATABASE
+DB_HOST=$DB_HOST
+DB_PORT=$DB_PORT
+DB_DATABASE=$DB_NAME
+DB_USERNAME=$DB_USER
+DB_ANALYTICS_DATABASE=$DB_ANALYTICS
+DB_PULSE_DATABASE=$DB_PULSE
+DB_SPECTRA_DATABASE=$DB_SPECTRA
+DB_SERVER_MAJOR=$DB_MAJOR
 EOF
     )
+    # The existing user's password is a secret, so it waits in the shared
+    # .env, where the step that writes the rest of it keeps it.
+    if [ "$DATABASE" = existing ]; then
+        install -d -m 755 "$NATIVE_ROOT" "$NATIVE_ROOT/shared"
+        (umask 077 && printf "DB_PASSWORD='%s'\n" "$DB_PASS" >"$NATIVE_ROOT/shared/.env")
+    fi
 }
 
 native_load_settings() {
@@ -2544,6 +2989,20 @@ native_load_settings() {
     AUTO_UPDATE=$(conf_value AUTO_UPDATE)
     AUTO_UPDATE=${AUTO_UPDATE:-no}
     CHATVIA_REPO=${CHATVIA_REPO:-$NATIVE_REPO}
+    # Installs from before the existing-PostgreSQL choice made their own.
+    DATABASE=$(conf_value DATABASE)
+    DATABASE=${DATABASE:-local}
+    if [ "$DATABASE" = existing ]; then
+        DB_HOST=$(conf_value DB_HOST)
+        DB_PORT=$(conf_value DB_PORT)
+        DB_NAME=$(conf_value DB_DATABASE)
+        DB_USER=$(conf_value DB_USERNAME)
+        DB_ANALYTICS=$(conf_value DB_ANALYTICS_DATABASE)
+        DB_PULSE=$(conf_value DB_PULSE_DATABASE)
+        DB_SPECTRA=$(conf_value DB_SPECTRA_DATABASE)
+        DB_MAJOR=$(conf_value DB_SERVER_MAJOR)
+        DB_PASS=$(native_db_password)
+    fi
 }
 
 native_failed() {
@@ -2559,20 +3018,29 @@ native_run_steps() {
     run_step 'Updating the system packages' native_update_system || native_failed
     run_step 'Looking for a newer Redis at packages.redis.io' native_add_redis_repo || native_failed
     run_step 'Adding ppa:ondrej/php for the newest PHP' native_add_php_repo || native_failed
-    run_step 'Installing PHP, PostgreSQL, Redis, nginx and the other packages' native_install_packages || native_failed
-    run_step 'Installing Node.js 22' native_install_node || native_failed
-    run_step 'Installing the search extensions for PostgreSQL' native_install_extensions || native_failed
-    if [ "$DRY_RUN" = 1 ]; then
-        section 'PostgreSQL settings' "/etc/postgresql/$NATIVE_PG/main/conf.d/chatvia.conf"
-        native_postgres_conf | quote
+    if [ "$DATABASE" = existing ]; then
+        run_step 'Installing PHP, Redis, nginx and the other packages' native_install_packages || native_failed
+        run_step 'Installing Node.js 22' native_install_node || native_failed
+    else
+        run_step 'Installing PHP, PostgreSQL, Redis, nginx and the other packages' native_install_packages || native_failed
+        run_step 'Installing Node.js 22' native_install_node || native_failed
+        run_step 'Installing the search extensions for PostgreSQL' native_install_extensions || native_failed
+        if [ "$DRY_RUN" = 1 ]; then
+            section 'PostgreSQL settings' "/etc/postgresql/$NATIVE_PG/main/conf.d/chatvia.conf"
+            native_postgres_conf | quote
+        fi
+        run_step 'Setting up PostgreSQL' native_configure_postgres || native_failed
     fi
-    run_step 'Setting up PostgreSQL' native_configure_postgres || native_failed
     run_step "Creating the $NATIVE_USER user" native_create_user || native_failed
     run_step 'Setting up PHP-FPM' native_configure_php || native_failed
     run_step 'Setting up nginx' native_configure_nginx || native_failed
     if [ "$HTTPS" != no ]; then native_https; fi
     run_step "Saving the settings to $NATIVE_ROOT/shared/.env" native_write_env || native_failed
-    run_step 'Creating the database' native_setup_database || native_failed
+    if [ "$DATABASE" = existing ]; then
+        run_step "Preparing the databases on $DB_HOST" native_prepare_database || native_failed
+    else
+        run_step 'Creating the database' native_setup_database || native_failed
+    fi
     run_step 'Setting up Redis' native_configure_redis || native_failed
     run_step 'Installing Deployer' native_install_deployer || native_failed
     run_step "Deploying ChatVia.ai $(native_version_text) (5 to 15 minutes)" native_first_deploy || native_failed
@@ -2694,15 +3162,14 @@ native_check_php() {
 
 native_install_packages() {
     # Poppler, pandoc, catdoc and ffmpeg read file sources, WeasyPrint makes
-    # PDF exports, and the Noto fonts give it every script. pg_partman splits
-    # the analytics event log into monthly partitions. The backup programs
-    # come with native_backup_packages. Node.js is the next step.
+    # PDF exports, and the Noto fonts give it every script. The backup
+    # programs come with native_backup_packages. Node.js is the next step.
     # shellcheck disable=SC2046
     apt_get install \
         git curl unzip ca-certificates cron ufw \
         $(native_php_packages) composer \
         nginx redis-server supervisor certbot python3-certbot-nginx fail2ban \
-        "postgresql-$NATIVE_PG" "postgresql-$NATIVE_PG-pgvector" "postgresql-$NATIVE_PG-partman" \
+        $(native_postgres_packages) \
         $(native_backup_packages) \
         poppler-utils pandoc catdoc ffmpeg weasyprint fonts-noto-core fonts-noto-cjk || return
     native_check_php || return
@@ -2710,12 +3177,20 @@ native_install_packages() {
     composer --version
 }
 
+# PostgreSQL with pgvector, and pg_partman, which splits the analytics event
+# log into monthly partitions. None with an existing PostgreSQL server: it
+# has them already.
+native_postgres_packages() {
+    [ "$DATABASE" = existing ] && return 0
+    printf '%s\n' "postgresql-$NATIVE_PG" "postgresql-$NATIVE_PG-pgvector" "postgresql-$NATIVE_PG-partman"
+}
+
 # The packages of the programs Settings → Backups runs: pg_dump and
 # pg_restore (the client of the PostgreSQL installed here: an older pg_dump
 # refuses a newer server), redis-cli and gpg. Named here although PostgreSQL
 # and Redis bring them too, so a change of those packages cannot drop them.
 native_backup_packages() {
-    printf '%s\n' "postgresql-client-$NATIVE_PG" redis-tools gnupg
+    printf '%s\n' "postgresql-client-$DB_MAJOR" redis-tools gnupg
 }
 
 # An upgrade installs them too: an install from before Settings → Backups,
@@ -2738,8 +3213,8 @@ native_check_backup_programs() {
         return 1
     fi
     major=$(pg_dump --version | sed -n 's/.*(PostgreSQL) \([0-9][0-9]*\).*/\1/p')
-    if [ "${major:-0}" -lt "$NATIVE_PG" ]; then
-        echo "pg_dump is version ${major:-unknown}, older than PostgreSQL $NATIVE_PG: backups would fail." >&2
+    if [ "${major:-0}" -lt "$DB_MAJOR" ]; then
+        echo "pg_dump is version ${major:-unknown}, older than PostgreSQL $DB_MAJOR: backups would fail." >&2
         return 1
     fi
     pg_dump --version || return
@@ -3119,7 +3594,11 @@ native_write_env() {
     reverb_key=${reverb_key:-$(random_hex 16)}
     reverb_secret=${reverb_secret:-$(random_hex 32)}
     mcp_secret=${mcp_secret:-$(random_hex 32)}
-    db_port=$(pg_conftool -s "$NATIVE_PG" main show port 2>/dev/null) || db_port=5432
+    if [ "$DATABASE" = existing ]; then
+        db_port=$DB_PORT
+    else
+        db_port=$(pg_conftool -s "$NATIVE_PG" main show port 2>/dev/null) || db_port=5432
+    fi
     case $APP_URL in https://*) secure=true ;; esac
 
     (
@@ -3160,14 +3639,14 @@ LOG_LEVEL=info
 LOG_DEPRECATIONS_CHANNEL=null
 
 DB_CONNECTION=pgsql
-DB_HOST=127.0.0.1
+DB_HOST=$DB_HOST
 DB_PORT=$db_port
-DB_DATABASE=chatvia
-DB_USERNAME=chatvia
+DB_DATABASE=$DB_NAME
+DB_USERNAME=$DB_USER
 DB_PASSWORD=$db_password
-DB_ANALYTICS_DATABASE=analytics
-DB_PULSE_DATABASE=pulse
-DB_SPECTRA_DATABASE=spectra
+DB_ANALYTICS_DATABASE=$DB_ANALYTICS
+DB_PULSE_DATABASE=$DB_PULSE
+DB_SPECTRA_DATABASE=$DB_SPECTRA
 
 REDIS_CLIENT=phpredis
 REDIS_HOST=127.0.0.1
@@ -3350,10 +3829,16 @@ EOF
 }
 
 # The first deploy. Its first migration installs the PostgreSQL extensions,
-# which needs a superuser: the database user is one for this deploy only.
+# which needs a superuser: the database user is one for this deploy only. On
+# an existing server, the extensions are there already (the checks saw to
+# it), and its users are not the installer's to change.
 native_first_deploy() {
     local status=0
     native_unlock_stale
+    if [ "$DATABASE" = existing ]; then
+        native_dep deploy "$(native_target)"
+        return
+    fi
     psql_admin -c "ALTER ROLE $NATIVE_USER SUPERUSER"
     native_dep deploy "$(native_target)" || status=$?
     psql_admin -c "ALTER ROLE $NATIVE_USER NOSUPERUSER" || status=1
@@ -3369,6 +3854,11 @@ native_upgrade_deploy() {
     native_dep deploy "$(native_target)" && return 0
     output=$(tail -n 300 "$LOG")
     [[ $output == *'permission denied to create extension'* ]] || return 1
+    if [ "$DATABASE" = existing ]; then
+        echo "A migration installs a PostgreSQL extension, which $DB_USER may not do. A superuser" \
+            "creates it (CREATE EXTENSION, the name is above) in $DB_NAME; then run the installer again." >&2
+        return 1
+    fi
     echo 'A migration installs a PostgreSQL extension: deploying again, as a superuser this time.'
     native_first_deploy
 }
@@ -3716,7 +4206,10 @@ native_horizon_is_up() {
 # queue workers, live updates through nginx, Pulse and the scheduler.
 native_check_parts() {
     local service code
-    for service in postgresql redis-server "php$NATIVE_PHP-fpm" nginx supervisor cron; do
+    local services=(redis-server "php$NATIVE_PHP-fpm" nginx supervisor cron)
+    # An existing PostgreSQL may run elsewhere, or under another name.
+    if [ "$DATABASE" = local ]; then services=(postgresql "${services[@]}"); fi
+    for service in "${services[@]}"; do
         if ! systemctl is-active --quiet "$service"; then
             echo "$service is not running." >&2
             return 1
@@ -3786,7 +4279,11 @@ native_show_finish() {
     info "Live updates  Reverb $(dim '(Supervisor: chatvia-reverb, through nginx at /app/)')"
     info "Server stats  Pulse $(dim '(Supervisor: chatvia-pulse)')"
     info "Scheduler     every minute $(dim '(cron: /etc/cron.d/chatvia)')"
-    info "Database      PostgreSQL $NATIVE_PG $(dim '(pgvector, pg_textsearch, pg_partman)')"
+    if [ "$DATABASE" = existing ]; then
+        info "Database      your PostgreSQL $DB_MAJOR $(dim "($DB_HOST:$DB_PORT, database $DB_NAME, user $DB_USER)")"
+    else
+        info "Database      PostgreSQL $NATIVE_PG $(dim '(pgvector, pg_textsearch, pg_partman)')"
+    fi
     info "Cache         Redis $(dim '(with a password, kept on disk)')"
     if [ "$HTTPS" = yes ]; then info "HTTPS         Let's Encrypt $(dim '(renews by itself)')"; fi
     if [ "$FIREWALL" = yes ]; then info "Firewall      ufw $(dim '(SSH, HTTP and HTTPS only)')"; fi
@@ -3937,13 +4434,13 @@ native_backup() {
     stamp="$(date '+%Y%m%d-%H%M%S')-before-$(native_version_text | tr ' ' '-')"
     install -d -m 700 "$NATIVE_BACKUPS"
     file="$NATIVE_BACKUPS/chatvia-$stamp.dump"
-    (cd / && runuser -u postgres -- pg_dump --cluster "$NATIVE_PG/main" -Fc chatvia) >"$file"
+    native_dump "$DB_NAME" >"$file"
     chmod 600 "$file"
     echo "Saved $file"
     # The analytics numbers have a database of their own.
-    if [ "$(cd / && runuser -u postgres -- psql --cluster "$NATIVE_PG/main" -Atc "SELECT 1 FROM pg_database WHERE datname = 'analytics'")" = 1 ]; then
+    if [ "$(native_backup_psql -Atc "SELECT 1 FROM pg_database WHERE datname = '$DB_ANALYTICS'")" = 1 ]; then
         file="$NATIVE_BACKUPS/analytics-$stamp.dump"
-        (cd / && runuser -u postgres -- pg_dump --cluster "$NATIVE_PG/main" -Fc analytics) >"$file"
+        native_dump "$DB_ANALYTICS" >"$file"
         chmod 600 "$file"
         echo "Saved $file"
     fi
@@ -3951,6 +4448,24 @@ native_backup() {
     ls -1t "$NATIVE_BACKUPS"/chatvia-*-before-*.dump | tail -n +6 | xargs -r rm -f
     # shellcheck disable=SC2012
     ls -1t "$NATIVE_BACKUPS"/analytics-*-before-*.dump 2>/dev/null | tail -n +6 | xargs -r rm -f
+}
+
+# native_dump DATABASE: as the postgres superuser on this server's own
+# cluster, or as the database user on an existing server.
+native_dump() {
+    if [ "$DATABASE" = existing ]; then
+        db_dump "$1"
+    else
+        (cd / && runuser -u postgres -- pg_dump --cluster "$NATIVE_PG/main" -Fc "$1")
+    fi
+}
+
+native_backup_psql() {
+    if [ "$DATABASE" = existing ]; then
+        db_psql "$DB_NAME" "$@"
+    else
+        psql_admin "$@"
+    fi
 }
 
 native_retry_https() {
@@ -4005,6 +4520,10 @@ parse_args() {
             --no-firewall) CHATVIA_FIREWALL=no ;;
             --force) FORCE=1 ;;
             --no-auto-update) CHATVIA_AUTO_UPDATE=no ;;
+            --db-host) CHATVIA_DB_HOST=${2:?--db-host needs a host}; shift ;;
+            --db-port) CHATVIA_DB_PORT=${2:?--db-port needs a number}; shift ;;
+            --db-name) CHATVIA_DB_DATABASE=${2:?--db-name needs a name}; shift ;;
+            --db-user) CHATVIA_DB_USERNAME=${2:?--db-user needs a name}; shift ;;
             --yes | -y) YES=1 ;;
             --upgrade) UPGRADE=1 ;;
             --no-start) NO_START=1 ;;
@@ -4043,6 +4562,8 @@ main() {
     MODE=${CHATVIA_INSTALL:-} FORCE=${CHATVIA_FORCE:-0} ARGS=("$@")
     CHATVIA_REPO=${CHATVIA_REPO:-$NATIVE_REPO} CHATVIA_RELEASE='' CHATVIA_BRANCH=''
     DOMAIN='' SERVER_IP='' HTTPS=no FIREWALL=no SWAP=no AUTO_UPDATE=no DNS_READY=1
+    DATABASE=local DB_HOST=127.0.0.1 DB_PORT=5432 DB_NAME=chatvia DB_USER=chatvia DB_PASS=''
+    DB_ANALYTICS=analytics DB_PULSE=pulse DB_SPECTRA=spectra DB_MAJOR=$NATIVE_PG
 
     setup_output
     parse_args "$@"
@@ -4093,6 +4614,10 @@ main() {
     if [ "$MODE" = complete ]; then
         native_main
         return
+    fi
+    if [ -n "${CHATVIA_DB_HOST:-}${CHATVIA_DB_PORT:-}${CHATVIA_DB_DATABASE:-}${CHATVIA_DB_USERNAME:-}" ]; then
+        die '--db-host, --db-port, --db-name and --db-user are for the complete installation.' \
+            'The Docker install runs a PostgreSQL of its own. Leave them out, or pass --complete.'
     fi
 
     INSTALL_DIR=${CHATVIA_DIR:-$HOME/chatvia}

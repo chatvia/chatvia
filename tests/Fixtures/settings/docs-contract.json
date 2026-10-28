@@ -295,7 +295,8 @@
         "App name"
     ],
     "settings/platform#custom-domains": [
-        "Custom domains"
+        "Custom domains",
+        "CNAME target"
     ],
     "settings/platform#development": [
         "Logs page"

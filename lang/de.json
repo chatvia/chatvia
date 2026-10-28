@@ -564,8 +564,12 @@
     "Connect :name first.": "Verbinden Sie zuerst :name.",
     "Custom domains": "Eigene Domains",
     "Lets agents show their Hosted Chat on a domain of their own, such as help.yourshop.com. Needs a license key.": "Agenten können ihren gehosteten Chat unter einer eigenen Domain zeigen, z. B. help.yourshop.com. Braucht einen Lizenzschlüssel.",
-    "Turn this on only when your web server gets a certificate for each new domain by itself, for example Caddy with on-demand TLS. Without one, visitors see a security warning.": "Schalten Sie dies nur ein, wenn Ihr Webserver für jede neue Domain selbst ein Zertifikat holt, z. B. Caddy mit On-Demand-TLS. Ohne Zertifikat sehen Besucher eine Sicherheitswarnung.",
+    "Each domain needs its own HTTPS certificate. Turn this on only when your web server gets one for each new domain by itself, as the HTTPS proxy of the installer does. Without one, visitors see a security warning.": "Jede Domain braucht ihr eigenes HTTPS-Zertifikat. Schalten Sie dies nur ein, wenn Ihr Webserver für jede neue Domain selbst eins holt, wie der HTTPS-Proxy des Installers. Ohne Zertifikat sehen Besucher eine Sicherheitswarnung.",
     "How to set up": "So richten Sie es ein",
+    "This server gets certificates for new domains by itself": "Dieser Server holt Zertifikate für neue Domains selbst",
+    "The installer put the HTTPS proxy in front of ChatVia.ai, so custom domains work as soon as they are saved.": "Der Installer hat den HTTPS-Proxy vor ChatVia.ai gesetzt. Eigene Domains funktionieren also, sobald sie gespeichert sind.",
+    "CNAME target": "CNAME-Ziel",
+    "The address customers point their domain at. Empty uses this install's own address. Set it when that address runs behind a CDN such as Cloudflare: then give a second address that points straight at this server.": "Die Adresse, auf die Kunden ihre Domain zeigen lassen. Leer nutzt die eigene Adresse dieser Installation. Setzen Sie es, wenn diese Adresse hinter einem CDN wie Cloudflare läuft: Geben Sie dann eine zweite Adresse an, die direkt auf diesen Server zeigt.",
     "Use a domain of your own, not the address of this server.": "Verwenden Sie eine eigene Domain, nicht die Adresse dieses Servers.",
     "Enter a domain name, such as help.yourshop.com.": "Geben Sie einen Domainnamen ein, z. B. help.yourshop.com.",
     "Another agent already uses this domain.": "Ein anderer Agent nutzt diese Domain bereits."

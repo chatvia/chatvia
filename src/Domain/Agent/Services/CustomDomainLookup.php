@@ -35,8 +35,24 @@ final readonly class CustomDomainLookup
         return $this->entitlements->customDomains() && config('chatvia.custom_domains.enabled') === true;
     }
 
-    /** What a custom domain's CNAME record points to: this install's own host. */
+    /**
+     * What a custom domain's CNAME record points to: the admin's target
+     * host, or this install's own host.
+     */
     public function cnameTarget(): string
+    {
+        $target = config('chatvia.custom_domains.cname_target');
+
+        return filled($target) ? Str::lower((string) $target) : $this->appHost();
+    }
+
+    /** Whether the host is this server's own address, which no agent may claim. */
+    public function isOwnHost(string $host): bool
+    {
+        return collect([$this->appHost(), $this->cnameTarget()])->containsStrict($this->normalize($host));
+    }
+
+    private function appHost(): string
     {
         return Str::lower((string) Uri::of((string) config('app.url'))->host());
     }

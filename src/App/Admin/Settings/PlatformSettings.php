@@ -134,6 +134,10 @@ class PlatformSettings extends AdminSettings
     #[ConfigKey('chatvia.custom_domains.enabled')]
     public ?bool $custom_domains_enabled = null;
 
+    // The host customers point their CNAME at; empty is APP_URL's host.
+    #[ConfigKey('chatvia.custom_domains.cname_target')]
+    public ?string $custom_domains_cname_target = null;
+
     // The daily look for a newer release (CheckForUpdateAction). On by
     // default; it reads only the public list of releases.
     #[ConfigKey('chatvia.updates.check')]

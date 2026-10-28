@@ -564,8 +564,12 @@
     "Connect :name first.": "Yhdistä ensin :name.",
     "Custom domains": "Omat verkkotunnukset",
     "Lets agents show their Hosted Chat on a domain of their own, such as help.yourshop.com. Needs a license key.": "Agentit voivat näyttää isännöidyn chattinsa omassa verkkotunnuksessa, esimerkiksi help.yourshop.com. Vaatii lisenssiavaimen.",
-    "Turn this on only when your web server gets a certificate for each new domain by itself, for example Caddy with on-demand TLS. Without one, visitors see a security warning.": "Ota tämä käyttöön vain, kun verkkopalvelimesi hakee itse varmenteen jokaiselle uudelle verkkotunnukselle, esimerkiksi Caddy ja on-demand TLS. Ilman sitä kävijät näkevät tietoturvavaroituksen.",
+    "Each domain needs its own HTTPS certificate. Turn this on only when your web server gets one for each new domain by itself, as the HTTPS proxy of the installer does. Without one, visitors see a security warning.": "Jokainen verkkotunnus tarvitsee oman HTTPS-varmenteen. Ota tämä käyttöön vain, kun verkkopalvelimesi hakee sellaisen itse jokaiselle uudelle verkkotunnukselle, kuten asennusohjelman HTTPS-välityspalvelin tekee. Ilman sitä kävijät näkevät tietoturvavaroituksen.",
     "How to set up": "Näin otat sen käyttöön",
+    "This server gets certificates for new domains by itself": "Tämä palvelin hakee uusien verkkotunnusten varmenteet itse",
+    "The installer put the HTTPS proxy in front of ChatVia.ai, so custom domains work as soon as they are saved.": "Asennusohjelma asetti HTTPS-välityspalvelimen ChatVia.ai:n eteen, joten omat verkkotunnukset toimivat heti, kun ne on tallennettu.",
+    "CNAME target": "CNAME-kohde",
+    "The address customers point their domain at. Empty uses this install's own address. Set it when that address runs behind a CDN such as Cloudflare: then give a second address that points straight at this server.": "Osoite, johon asiakkaat ohjaavat verkkotunnuksensa. Tyhjä käyttää tämän asennuksen omaa osoitetta. Täytä se, kun osoite on Cloudflaren kaltaisen CDN:n takana: anna silloin toinen osoite, joka osoittaa suoraan tähän palvelimeen.",
     "Use a domain of your own, not the address of this server.": "Käytä omaa verkkotunnustasi, älä tämän palvelimen osoitetta.",
     "Enter a domain name, such as help.yourshop.com.": "Kirjoita verkkotunnus, esimerkiksi help.yourshop.com.",
     "Another agent already uses this domain.": "Toinen agentti käyttää jo tätä verkkotunnusta."

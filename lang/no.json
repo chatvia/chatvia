@@ -564,8 +564,12 @@
     "Connect :name first.": "Koble til :name først.",
     "Custom domains": "Egne domener",
     "Lets agents show their Hosted Chat on a domain of their own, such as help.yourshop.com. Needs a license key.": "Lar agenter vise den hostede chatten sin på et eget domene, for eksempel help.yourshop.com. Krever en lisensnøkkel.",
-    "Turn this on only when your web server gets a certificate for each new domain by itself, for example Caddy with on-demand TLS. Without one, visitors see a security warning.": "Slå dette på bare når webserveren din selv henter et sertifikat for hvert nye domene, for eksempel Caddy med on-demand TLS. Uten det ser besøkende en sikkerhetsadvarsel.",
+    "Each domain needs its own HTTPS certificate. Turn this on only when your web server gets one for each new domain by itself, as the HTTPS proxy of the installer does. Without one, visitors see a security warning.": "Hvert domene trenger sitt eget HTTPS-sertifikat. Slå dette på bare når webserveren din selv henter et for hvert nytt domene, slik installasjonsprogrammets HTTPS-proxy gjør. Uten det ser besøkende en sikkerhetsadvarsel.",
     "How to set up": "Slik setter du det opp",
+    "This server gets certificates for new domains by itself": "Denne serveren henter selv sertifikater for nye domener",
+    "The installer put the HTTPS proxy in front of ChatVia.ai, so custom domains work as soon as they are saved.": "Installasjonsprogrammet satte HTTPS-proxyen foran ChatVia.ai, så egne domener virker så snart de er lagret.",
+    "CNAME target": "CNAME-mål",
+    "The address customers point their domain at. Empty uses this install's own address. Set it when that address runs behind a CDN such as Cloudflare: then give a second address that points straight at this server.": "Adressen kundene peker domenet sitt mot. Tomt bruker installasjonens egen adresse. Fyll den inn når adressen kjører bak et CDN som Cloudflare: oppgi da en annen adresse som peker rett på denne serveren.",
     "Use a domain of your own, not the address of this server.": "Bruk et domene du eier selv, ikke adressen til denne serveren.",
     "Enter a domain name, such as help.yourshop.com.": "Skriv inn et domenenavn, for eksempel help.yourshop.com.",
     "Another agent already uses this domain.": "En annen agent bruker allerede dette domenet."

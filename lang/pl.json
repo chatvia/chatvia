@@ -564,8 +564,12 @@
     "Connect :name first.": "Najpierw połącz :name.",
     "Custom domains": "Własne domeny",
     "Lets agents show their Hosted Chat on a domain of their own, such as help.yourshop.com. Needs a license key.": "Pozwala agentom pokazywać hostowany czat pod własną domeną, np. help.yourshop.com. Wymaga klucza licencyjnego.",
-    "Turn this on only when your web server gets a certificate for each new domain by itself, for example Caddy with on-demand TLS. Without one, visitors see a security warning.": "Włącz to tylko wtedy, gdy serwer WWW sam pobiera certyfikat dla każdej nowej domeny, na przykład Caddy z TLS na żądanie. Bez niego odwiedzający zobaczą ostrzeżenie o bezpieczeństwie.",
+    "Each domain needs its own HTTPS certificate. Turn this on only when your web server gets one for each new domain by itself, as the HTTPS proxy of the installer does. Without one, visitors see a security warning.": "Każda domena potrzebuje własnego certyfikatu HTTPS. Włącz to tylko wtedy, gdy Twój serwer WWW sam pobiera certyfikat dla każdej nowej domeny, tak jak proxy HTTPS instalatora. Bez niego odwiedzający zobaczą ostrzeżenie bezpieczeństwa.",
     "How to set up": "Jak to skonfigurować",
+    "This server gets certificates for new domains by itself": "Ten serwer sam pobiera certyfikaty dla nowych domen",
+    "The installer put the HTTPS proxy in front of ChatVia.ai, so custom domains work as soon as they are saved.": "Instalator umieścił proxy HTTPS przed ChatVia.ai, więc własne domeny działają od razu po zapisaniu.",
+    "CNAME target": "Cel CNAME",
+    "The address customers point their domain at. Empty uses this install's own address. Set it when that address runs behind a CDN such as Cloudflare: then give a second address that points straight at this server.": "Adres, na który klienci kierują swoją domenę. Puste oznacza własny adres tej instalacji. Ustaw go, gdy ten adres działa za CDN, np. Cloudflare: podaj wtedy drugi adres, który wskazuje bezpośrednio na ten serwer.",
     "Use a domain of your own, not the address of this server.": "Użyj własnej domeny, a nie adresu tego serwera.",
     "Enter a domain name, such as help.yourshop.com.": "Wpisz nazwę domeny, np. help.yourshop.com.",
     "Another agent already uses this domain.": "Inny agent już używa tej domeny."

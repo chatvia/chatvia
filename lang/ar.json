@@ -564,8 +564,12 @@
     "Connect :name first.": "اربط :name أولًا.",
     "Custom domains": "النطاقات المخصصة",
     "Lets agents show their Hosted Chat on a domain of their own, such as help.yourshop.com. Needs a license key.": "يتيح للوكلاء عرض المحادثة المستضافة على نطاق خاص بهم، مثل help.yourshop.com. يتطلب مفتاح ترخيص.",
-    "Turn this on only when your web server gets a certificate for each new domain by itself, for example Caddy with on-demand TLS. Without one, visitors see a security warning.": "فعّل هذا فقط عندما يحصل خادم الويب على شهادة لكل نطاق جديد بنفسه، مثل Caddy مع TLS عند الطلب. بدونها يرى الزوار تحذيرًا أمنيًا.",
+    "Each domain needs its own HTTPS certificate. Turn this on only when your web server gets one for each new domain by itself, as the HTTPS proxy of the installer does. Without one, visitors see a security warning.": "يحتاج كل نطاق إلى شهادة HTTPS خاصة به. فعّل هذا فقط عندما يحصل خادم الويب لديك على شهادة لكل نطاق جديد بنفسه، كما يفعل وكيل HTTPS الخاص بالمثبّت. بدونها يرى الزوار تحذيرًا أمنيًا.",
     "How to set up": "طريقة الإعداد",
+    "This server gets certificates for new domains by itself": "هذا الخادم يحصل على شهادات النطاقات الجديدة بنفسه",
+    "The installer put the HTTPS proxy in front of ChatVia.ai, so custom domains work as soon as they are saved.": "وضع المثبّت وكيل HTTPS أمام ChatVia.ai، لذا تعمل النطاقات المخصصة فور حفظها.",
+    "CNAME target": "هدف CNAME",
+    "The address customers point their domain at. Empty uses this install's own address. Set it when that address runs behind a CDN such as Cloudflare: then give a second address that points straight at this server.": "العنوان الذي يوجّه إليه العملاء نطاقهم. الفراغ يستخدم عنوان هذا التثبيت نفسه. اضبطه عندما يعمل هذا العنوان خلف شبكة CDN مثل Cloudflare: أدخل حينها عنوانًا ثانيًا يشير مباشرة إلى هذا الخادم.",
     "Use a domain of your own, not the address of this server.": "استخدم نطاقًا خاصًا بك، وليس عنوان هذا الخادم.",
     "Enter a domain name, such as help.yourshop.com.": "أدخل اسم نطاق، مثل help.yourshop.com.",
     "Another agent already uses this domain.": "وكيل آخر يستخدم هذا النطاق بالفعل."

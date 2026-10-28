@@ -57,6 +57,7 @@ return new class extends SettingsMigration
             $group->addEncrypted('pdf_gotenberg_password');
             $group->add('logs_page_enabled');
             $group->add('custom_domains_enabled');
+            $group->add('custom_domains_cname_target');
             $group->add('update_check_enabled');
         });
     }

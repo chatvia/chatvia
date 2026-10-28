@@ -41,6 +41,9 @@ class AgentDomain extends Model
     /** @use HasFactory<AgentDomainFactory> */
     use HasFactory;
 
+    /** A host name: two or more dot-separated labels of letters, digits and inner dashes. */
+    public const string HOST_PATTERN = '/^(?=.{4,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]$/';
+
     public const int FAILED_CHECKS_TO_UNVERIFY = 3;
 
     /** How long a new domain is checked by itself; after that only "Check again" does. */

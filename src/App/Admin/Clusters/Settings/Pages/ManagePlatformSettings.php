@@ -17,16 +17,19 @@ use App\Admin\Update\Services\AvailableUpdate;
 use App\Admin\Update\Services\InstalledVersion;
 use BackedEnum;
 use Closure;
+use Domain\Agent\Models\AgentDomain;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Actions;
+use Filament\Schemas\Components\Callout;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
+use Illuminate\Support\Uri;
 
 /**
  * Install-wide options: the app's name, default language, the tracking code,
@@ -187,14 +190,31 @@ class ManagePlatformSettings extends AdminSettingsPage
                 ->tone(fn (): string => $this->programsLosingWork() === [] ? 'gray' : 'warning')
                 ->advanced(),
             SettingsCard::make('custom_domains', __('Custom domains'), __('Lets agents show their Hosted Chat on a domain of their own, such as help.yourshop.com. Needs a license key.'), Heroicon::OutlinedGlobeAlt, fn (): array => [
+                Callout::make(__('This server gets certificates for new domains by itself'))
+                    ->description(__('The installer put the HTTPS proxy in front of ChatVia.ai, so custom domains work as soon as they are saved.'))
+                    ->icon(Heroicon::OutlinedShieldCheck)
+                    ->success()
+                    ->visible(fn (): bool => config('chatvia.custom_domains.on_demand_tls') === true),
                 $this->toggle('custom_domains_enabled', __('Custom domains'),
-                    help: __('Turn this on only when your web server gets a certificate for each new domain by itself, for example Caddy with on-demand TLS. Without one, visitors see a security warning.'))
+                    help: __('Each domain needs its own HTTPS certificate. Turn this on only when your web server gets one for each new domain by itself, as the HTTPS proxy of the installer does. Without one, visitors see a security warning.'))
                     ->hintAction(Action::make('customDomainsDocs')
                         ->label(__('How to set up'))
                         ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
                         ->iconPosition('after')
                         ->url(config('chatvia.docs_url').'/guide/installation/custom-domains', shouldOpenInNewTab: true)),
-            ])->summary(fn (): string => $this->valueInUse('custom_domains_enabled') === true ? __('On') : __('Off'))
+                $this->text('custom_domains_cname_target', __('CNAME target'),
+                    help: __('The address customers point their domain at. Empty uses this install\'s own address. Set it when that address runs behind a CDN such as Cloudflare: then give a second address that points straight at this server.'))
+                    ->placeholder(fn (): string => (string) Uri::of((string) config('app.url'))->host())
+                    ->rule(fn (): Closure => function (string $attribute, mixed $value, Closure $fail): void {
+                        if (filled($value) && ! Str::isMatch(AgentDomain::HOST_PATTERN, Str::lower(Str::trim((string) $value)))) {
+                            $fail(__('Enter a domain name, such as help.yourshop.com.'));
+                        }
+                    })
+                    ->dehydrateStateUsing(fn (?string $state): ?string => filled($state) ? Str::lower(Str::trim($state)) : null),
+            ])->summary(fn (): string => collect([
+                $this->valueInUse('custom_domains_enabled') === true ? __('On') : __('Off'),
+                $this->valueInUse('custom_domains_cname_target'),
+            ])->filter()->implode(' · '))
                 ->advanced(),
             SettingsCard::make('development', __('Development'), __('Tools for finding problems in this install.'), Heroicon::OutlinedCodeBracket, fn (): array => [
                 $this->toggle('logs_page_enabled', __('Logs page'),

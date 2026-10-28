@@ -564,8 +564,12 @@
     "Connect :name first.": "Connectez d’abord :name.",
     "Custom domains": "Domaines personnalisés",
     "Lets agents show their Hosted Chat on a domain of their own, such as help.yourshop.com. Needs a license key.": "Permet aux agents d’afficher leur chat hébergé sur leur propre domaine, par exemple help.yourshop.com. Nécessite une clé de licence.",
-    "Turn this on only when your web server gets a certificate for each new domain by itself, for example Caddy with on-demand TLS. Without one, visitors see a security warning.": "N’activez ceci que si votre serveur web obtient lui-même un certificat pour chaque nouveau domaine, par exemple Caddy avec le TLS à la demande. Sans cela, les visiteurs voient un avertissement de sécurité.",
+    "Each domain needs its own HTTPS certificate. Turn this on only when your web server gets one for each new domain by itself, as the HTTPS proxy of the installer does. Without one, visitors see a security warning.": "Chaque domaine a besoin de son propre certificat HTTPS. Activez ceci seulement si votre serveur web en obtient un lui-même pour chaque nouveau domaine, comme le proxy HTTPS de l'installateur. Sans certificat, les visiteurs voient un avertissement de sécurité.",
     "How to set up": "Comment le configurer",
+    "This server gets certificates for new domains by itself": "Ce serveur obtient lui-même les certificats des nouveaux domaines",
+    "The installer put the HTTPS proxy in front of ChatVia.ai, so custom domains work as soon as they are saved.": "L'installateur a placé le proxy HTTPS devant ChatVia.ai : les domaines personnalisés fonctionnent dès qu'ils sont enregistrés.",
+    "CNAME target": "Cible CNAME",
+    "The address customers point their domain at. Empty uses this install's own address. Set it when that address runs behind a CDN such as Cloudflare: then give a second address that points straight at this server.": "L'adresse vers laquelle les clients font pointer leur domaine. Vide utilise l'adresse de cette installation. Renseignez-la quand cette adresse passe par un CDN comme Cloudflare : donnez alors une deuxième adresse qui pointe directement vers ce serveur.",
     "Use a domain of your own, not the address of this server.": "Utilisez votre propre domaine, pas l’adresse de ce serveur.",
     "Enter a domain name, such as help.yourshop.com.": "Saisissez un nom de domaine, par exemple help.yourshop.com.",
     "Another agent already uses this domain.": "Un autre agent utilise déjà ce domaine."

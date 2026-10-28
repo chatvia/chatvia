@@ -6,6 +6,7 @@ namespace App\Http\Requests\Agent\Domain;
 
 use Domain\Agent\Data\Domain\SaveAgentDomainData;
 use Domain\Agent\Models\Agent;
+use Domain\Agent\Models\AgentDomain;
 use Domain\Agent\Services\CustomDomainLookup;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
@@ -19,9 +20,6 @@ use Illuminate\Validation\Validator;
  */
 class UpdateAgentDomainRequest extends FormRequest
 {
-    /** Two or more dot-separated labels of letters, digits and inner dashes. */
-    private const string HOST_PATTERN = '/^(?=.{4,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]$/';
-
     public function authorize(): bool
     {
         return true;
@@ -40,7 +38,7 @@ class UpdateAgentDomainRequest extends FormRequest
                 'required',
                 'string',
                 'max:253',
-                'regex:'.self::HOST_PATTERN,
+                'regex:'.AgentDomain::HOST_PATTERN,
                 // Install-wide, not per workspace: one domain serves one agent.
                 Rule::unique('agent_domains', 'host')->ignore($agent->id, 'agent_id'),
             ],
@@ -54,7 +52,7 @@ class UpdateAgentDomainRequest extends FormRequest
     {
         return [
             function (Validator $validator): void {
-                if ($this->string('host')->toString() === app(CustomDomainLookup::class)->cnameTarget()) {
+                if (app(CustomDomainLookup::class)->isOwnHost($this->string('host')->toString())) {
                     $validator->errors()->add('host', __('Use a domain of your own, not the address of this server.'));
                 }
             },

@@ -187,10 +187,17 @@ return [
     | (Caddy's on-demand TLS asks /custom-domains first). Saved by the admin
     | panel (Settings → Platform → Custom domains).
     |
+    | `on_demand_tls` says the installer put that web server in front (the
+    | bundled Caddy proxy), so the switch starts on. `cname_target` is the
+    | host customers point their CNAME at, when it is not APP_URL's (an
+    | address proxied by a CDN cannot take other names).
+    |
     */
 
     'custom_domains' => [
-        'enabled' => false,
+        'enabled' => (bool) env('CHATVIA_ON_DEMAND_TLS', false),
+        'on_demand_tls' => (bool) env('CHATVIA_ON_DEMAND_TLS', false),
+        'cname_target' => null,
     ],
 
     /*

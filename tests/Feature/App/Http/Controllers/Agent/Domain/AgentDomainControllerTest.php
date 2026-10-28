@@ -64,6 +64,21 @@ it('refuses a domain another agent uses', function (): void {
     expect($this->agent->domain()->exists())->toBeFalse();
 });
 
+it('refuses this server\'s own address and the CNAME target, which would take over the whole app', function (string $host): void {
+    config(['app.url' => 'https://chat.example.com']);
+    withLicense();
+    saveSettings(PlatformSettings::class, ['custom_domains_enabled' => true, 'custom_domains_cname_target' => 'domains.example.com']);
+
+    $this->actingAs($this->owner)
+        ->put(route('agents.domain.update', $this->agent), ['host' => $host])
+        ->assertSessionHasErrors('host');
+
+    expect($this->agent->domain()->exists())->toBeFalse();
+})->with([
+    'the install\'s address' => ['Chat.Example.com'],
+    'the CNAME target' => ['domains.example.com'],
+]);
+
 it('checks the domain at once and shows what it found', function (): void {
     $domain = AgentDomain::factory()->forAgent($this->agent)->create(['host' => 'help.acme.com']);
     Http::fake(['https://help.acme.com/*' => Http::response($domain->verification_token)]);

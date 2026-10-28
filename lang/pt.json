@@ -564,8 +564,12 @@
     "Connect :name first.": "Conecte :name primeiro.",
     "Custom domains": "Domínios próprios",
     "Lets agents show their Hosted Chat on a domain of their own, such as help.yourshop.com. Needs a license key.": "Permite que os agentes mostrem o chat alojado num domínio próprio, como help.yourshop.com. Precisa de uma chave de licença.",
-    "Turn this on only when your web server gets a certificate for each new domain by itself, for example Caddy with on-demand TLS. Without one, visitors see a security warning.": "Ligue isto apenas quando o seu servidor web obtiver por si um certificado para cada domínio novo, por exemplo o Caddy com TLS a pedido. Sem ele, os visitantes veem um aviso de segurança.",
+    "Each domain needs its own HTTPS certificate. Turn this on only when your web server gets one for each new domain by itself, as the HTTPS proxy of the installer does. Without one, visitors see a security warning.": "Cada domínio precisa do seu próprio certificado HTTPS. Ative isto só quando o seu servidor web obtiver um sozinho para cada novo domínio, como faz o proxy HTTPS do instalador. Sem ele, os visitantes veem um aviso de segurança.",
     "How to set up": "Como configurar",
+    "This server gets certificates for new domains by itself": "Este servidor obtém sozinho os certificados dos novos domínios",
+    "The installer put the HTTPS proxy in front of ChatVia.ai, so custom domains work as soon as they are saved.": "O instalador colocou o proxy HTTPS à frente do ChatVia.ai, por isso os domínios próprios funcionam assim que são guardados.",
+    "CNAME target": "Destino CNAME",
+    "The address customers point their domain at. Empty uses this install's own address. Set it when that address runs behind a CDN such as Cloudflare: then give a second address that points straight at this server.": "O endereço para onde os clientes apontam o seu domínio. Vazio usa o endereço desta instalação. Defina-o quando esse endereço estiver atrás de uma CDN como a Cloudflare: indique então um segundo endereço que aponte diretamente para este servidor.",
     "Use a domain of your own, not the address of this server.": "Use um domínio seu, não o endereço deste servidor.",
     "Enter a domain name, such as help.yourshop.com.": "Escreva um nome de domínio, como help.yourshop.com.",
     "Another agent already uses this domain.": "Outro agente já usa este domínio."

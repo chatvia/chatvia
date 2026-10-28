@@ -11,6 +11,12 @@
 
 <p align="center">
   <a href="https://github.com/chatvia/chatvia/actions/workflows/tests.yml"><img src="https://github.com/chatvia/chatvia/actions/workflows/tests.yml/badge.svg?branch=main" alt="Tests"></a>
+  <a href="https://github.com/chatvia/chatvia/actions/workflows/php-quality.yml"><img src="https://github.com/chatvia/chatvia/actions/workflows/php-quality.yml/badge.svg?branch=main" alt="PHP quality"></a>
+  <a href="https://github.com/chatvia/chatvia/actions/workflows/frontend.yml"><img src="https://github.com/chatvia/chatvia/actions/workflows/frontend.yml/badge.svg?branch=main" alt="Frontend"></a>
+  <a href="https://github.com/chatvia/chatvia/actions/workflows/security.yml"><img src="https://github.com/chatvia/chatvia/actions/workflows/security.yml/badge.svg?branch=main" alt="Security audit"></a>
+  <a href="https://github.com/chatvia/chatvia/actions/workflows/scripts.yml"><img src="https://github.com/chatvia/chatvia/actions/workflows/scripts.yml/badge.svg?branch=main" alt="Scripts"></a>
+  <a href="https://github.com/chatvia/chatvia/actions/workflows/docker.yml"><img src="https://github.com/chatvia/chatvia/actions/workflows/docker.yml/badge.svg" alt="Docker image"></a>
+  <a href="https://github.com/chatvia/chatvia/actions/workflows/postgres-image.yml"><img src="https://github.com/chatvia/chatvia/actions/workflows/postgres-image.yml/badge.svg?branch=main" alt="Postgres image"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-ChatVia.ai-blue.svg" alt="ChatVia.ai License"></a>
   <br>
   <a href="https://www.php.net"><img src="https://img.shields.io/badge/PHP-8.5-777bb4.svg?logo=php&logoColor=white" alt="PHP 8.5"></a>

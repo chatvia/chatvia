@@ -461,8 +461,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     'Lets each agent show chatters an "Image model" menu in the hosted chat, with the models you tick here. The model above is always in it, as the default. Each agent turns this on under Capabilities → Image generation.')
                     ->live(),
                 $this->mediaModelPicker('image_models', 'image_generator', 'image_model_choice', fn (string $service): array => app(MediaModelCatalog::class)->imageModels($service)),
-                $this->integer('images_per_chat_per_hour', 'Pictures per chat per hour', min: 1, max: 100,
-                    help: 'The most pictures an agent makes in one chat in an hour. A chatter who asks for more is told to wait.'),
+                $this->integer('images_per_chat_per_hour', 'Pictures per chat per hour', help: 'The most pictures an agent makes in one chat in an hour. A chatter who asks for more is told to wait.', min: 1, max: 100),
             ])->summary(fn (): string => $this->imageGenerationSummary()),
             SettingsCard::make('audio_generation', 'Audio generation', 'Audio files agents make in the hosted chat when a chatter asks: a text, or an attached PDF, read aloud.', Heroicon::OutlinedMusicalNote, fn (): array => [
                 $this->serviceChoice('audio_generator', 'Audio generation', [
@@ -477,10 +476,8 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->icon(Heroicon::OutlinedInformationCircle)
                     ->info()
                     ->visible(fn (Get $get): bool => $get('audio_generator') === 'openai'),
-                $this->integer('audio_per_chat_per_hour', 'Audio files per chat per hour', min: 1, max: 100,
-                    help: 'The most audio files an agent makes in one chat in an hour. A chatter who asks for more is told to wait.'),
-                $this->integer('audio_max_characters', 'Longest text, in characters', min: 1000, max: 50000,
-                    help: 'The most text one audio file reads, such as a PDF a chatter attached. 20,000 characters is about 6 pages, or 20 minutes of audio. A longer text is refused.'),
+                $this->integer('audio_per_chat_per_hour', 'Audio files per chat per hour', help: 'The most audio files an agent makes in one chat in an hour. A chatter who asks for more is told to wait.', min: 1, max: 100),
+                $this->integer('audio_max_characters', 'Longest text, in characters', help: 'The most text one audio file reads, such as a PDF a chatter attached. 20,000 characters is about 6 pages, or 20 minutes of audio. A longer text is refused.', min: 1000, max: 50000),
             ])->summary(fn (): string => $this->providerInUse('audio_generator')),
             SettingsCard::make('video_generation', 'Video generation', 'Short videos agents make in the hosted chat when a chatter asks.', Heroicon::OutlinedFilm, fn (): array => [
                 $this->serviceChoice('video_generator', 'Video generation', [
@@ -535,10 +532,8 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     'Lets each agent show chatters a "Video model" menu in the hosted chat, with the models you tick here. The model above is always in it, as the default. Each agent turns this on under Capabilities → Video generation.')
                     ->live(),
                 $this->mediaModelPicker('video_models', 'video_generator', 'video_model_choice', fn (string $service): array => app(MediaModelCatalog::class)->videoModels($service)),
-                $this->integer('videos_per_chat_per_hour', 'Videos per chat per hour', min: 1, max: 20,
-                    help: 'The most videos an agent makes in one chat in an hour. A chatter who asks for more is told to wait.'),
-                $this->integer('video_duration', 'Length, in seconds', min: 2, max: 15,
-                    help: 'How long each video is. Each service makes the length nearest to this that its model can. Longer videos cost more.'),
+                $this->integer('videos_per_chat_per_hour', 'Videos per chat per hour', help: 'The most videos an agent makes in one chat in an hour. A chatter who asks for more is told to wait.', min: 1, max: 20),
+                $this->integer('video_duration', 'Length, in seconds', help: 'How long each video is. Each service makes the length nearest to this that its model can. Longer videos cost more.', min: 2, max: 15),
                 $this->choice('video_resolution', 'Resolution', [
                     VideoResolution::Hd720->value => '720p (HD)',
                     VideoResolution::Hd1080->value => '1080p (Full HD, costs more)',

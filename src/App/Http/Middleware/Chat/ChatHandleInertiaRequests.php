@@ -40,7 +40,7 @@ class ChatHandleInertiaRequests extends Middleware
             // chat (the admin panel's License page).
             'poweredBy' => config('chatvia.powered_by') === true,
             // The bot check of the chatter sign-in forms (Settings → Security).
-            'turnstile' => fn (): ?array => $this->botCheck->forPages(),
+            'turnstile' => $this->botCheck->forPages(...),
             'auth' => [
                 'user' => $account,
                 // Staff (a dashboard preview) chat too, but their profile is

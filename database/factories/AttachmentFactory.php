@@ -35,7 +35,7 @@ class AttachmentFactory extends Factory
             'chat_conversation_id' => Conversation::factory(),
             'workspace_id' => fn (array $attributes): int => (int) Conversation::query()->whereKey($attributes['chat_conversation_id'])->value('workspace_id'),
             'chat_message_id' => null,
-            'filepath' => fn (array $attributes): string => self::pathIn($attributes),
+            'filepath' => $this->pathIn(...),
             'filename' => 'notes.pdf',
             'mime_type' => 'application/pdf',
             'size_bytes' => 1024,
@@ -79,7 +79,7 @@ class AttachmentFactory extends Factory
      *
      * @param  array<string, mixed>  $attributes
      */
-    private static function pathIn(array $attributes): string
+    private function pathIn(array $attributes): string
     {
         $conversation = Conversation::query()->find($attributes['chat_conversation_id'] ?? null);
         $agent = $conversation instanceof Conversation ? Agent::withTrashed()->find($conversation->agent_id) : null;

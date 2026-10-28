@@ -63,7 +63,7 @@ class UpdateCapabilityModelChoiceRequest extends FormRequest
     {
         $this->kind ??= GeneratedMediaKind::withModelChoiceFor((string) $this->route('slug'));
 
-        abort_if($this->kind === null, 404, __('Capability not found.'));
+        abort_if(! $this->kind instanceof GeneratedMediaKind, 404, __('Capability not found.'));
 
         return $this->kind;
     }

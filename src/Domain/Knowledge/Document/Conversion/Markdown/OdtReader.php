@@ -229,7 +229,7 @@ final class OdtReader
 
                 // The first paragraph carries the marker, later ones line up under it.
                 $marker = match (true) {
-                    ! ($first && $marked) => ' ',
+                    ! $first || ! $marked => ' ',
                     $format['bullet'] => '-',
                     default => "{$number}.",
                 };

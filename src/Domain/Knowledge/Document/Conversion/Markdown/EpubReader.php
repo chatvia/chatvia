@@ -231,7 +231,7 @@ final class EpubReader
             ? $link->parentNode
             : $link;
 
-        if ($mark !== null) {
+        if ($mark instanceof \DOMText) {
             $outer->parentNode?->replaceChild($mark, $outer);
         }
     }

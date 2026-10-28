@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Agent\Actions\Sources;
 
 use Domain\Agent\Data\Sources\KnowledgeAnalyzeResourceData;

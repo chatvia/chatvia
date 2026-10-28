@@ -23,12 +23,12 @@ use Illuminate\Support\Str;
  * ({@see GeneratedMediaArtifacts}): the reply was saved while the file was
  * still being made.
  */
-final class GeneratedMediaNotes
+final readonly class GeneratedMediaNotes
 {
     /** How much of the description or text a note repeats. */
     private const int DESCRIPTION_LIMIT = 300;
 
-    public function __construct(private readonly GeneratedMediaArtifacts $artifacts) {}
+    public function __construct(private GeneratedMediaArtifacts $artifacts) {}
 
     /**
      * The messages, each reply that asked for files with its notes after its

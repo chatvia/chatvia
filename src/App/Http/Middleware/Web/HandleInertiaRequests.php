@@ -47,7 +47,7 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             // The Cloudflare Turnstile bot check of the public forms (Settings →
             // Security): its site key and the forms it protects, or null.
-            'turnstile' => fn (): ?array => $this->botCheck->forPages(),
+            'turnstile' => $this->botCheck->forPages(...),
             // The sign-in providers whose OAuth app is set up (Settings →
             // Sign-in): only their buttons are shown.
             'socialProviders' => fn (): array => array_map(fn (SocialProvider $provider): string => $provider->value, SocialProvider::configured()),

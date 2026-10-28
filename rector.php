@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Rector\CodeQuality\Rector\Class_\CompleteDynamicPropertiesRector;
 use Rector\CodingStyle\Rector\ArrowFunction\ArrowFunctionDelegatingCallToFirstClassCallableRector;
+use Rector\TypeDeclaration\Rector\ArrowFunction\AddArrowFunctionReturnTypeRector;
 use Rector\Config\RectorConfig;
 use Rector\TypeDeclaration\Rector\ClassMethod\StrictArrayParamDimFetchRector;
 
@@ -56,6 +57,7 @@ return RectorConfig::configure()
     ->withSkip([
         __DIR__.'/bootstrap/cache',
         ArrowFunctionDelegatingCallToFirstClassCallableRector::class => [__DIR__.'/tests'],
+        AddArrowFunctionReturnTypeRector::class => [__DIR__.'/tests'],
         StrictArrayParamDimFetchRector::class => [__DIR__.'/tests'],
         CompleteDynamicPropertiesRector::class => [__DIR__.'/src/App/Http/Macros'],
     ])

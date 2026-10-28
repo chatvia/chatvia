@@ -25,7 +25,7 @@ final readonly class SentenceSeparator implements Separator
 
         $iterator = IntlBreakIterator::createSentenceInstance(self::LOCALE);
 
-        if ($iterator === null || ! $iterator->setText($text)) {
+        if (! $iterator instanceof IntlBreakIterator || ! $iterator->setText($text)) {
             return [$text];
         }
 

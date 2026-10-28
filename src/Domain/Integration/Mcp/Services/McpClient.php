@@ -165,7 +165,7 @@ class McpClient
         $firstParty = $this->isFirstPartyServer($server);
         $url = $firstParty ? InternalMcpSignature::transportUrl($server->url) : $server->url;
 
-        $request = $this->request($server, $firstParty, $url, $sessionId, $identityHeaders, $httpMethod, $body);
+        $request = $this->request($server, $firstParty, $sessionId, $identityHeaders, $httpMethod, $body);
 
         return $payload === null
             ? $request->delete($url)
@@ -182,7 +182,7 @@ class McpClient
      *
      * @param  array<string, string>  $identityHeaders
      */
-    private function request(AgentMcpServer $server, bool $firstParty, string $url, ?string $sessionId, array $identityHeaders, string $httpMethod, string $body): PendingRequest
+    private function request(AgentMcpServer $server, bool $firstParty, ?string $sessionId, array $identityHeaders, string $httpMethod, string $body): PendingRequest
     {
         $headers = [
             'Content-Type' => 'application/json',

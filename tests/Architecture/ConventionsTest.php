@@ -997,7 +997,7 @@ function conventionInterpolatable(array $atoms, int $dot, int $step): ?array
             } elseif ($text === '[') {
                 $depth++;
             } elseif (! in_array($operand[$i]['id'], $argument, true) && ! in_array($text, [',', ':'], true)
-                && ! ($operand[$i]['id'] === T_CONSTANT_ENCAPSED_STRING && Str::startsWith($text, "'"))) {
+                && ($operand[$i]['id'] !== T_CONSTANT_ENCAPSED_STRING || ! Str::startsWith($text, "'"))) {
                 return null;
             }
         }

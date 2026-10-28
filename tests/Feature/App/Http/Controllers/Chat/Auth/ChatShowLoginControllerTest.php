@@ -17,7 +17,7 @@ it('does not send the agent model or its system prompt to the guest login page',
 
     $response->assertOk()
         ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
-            ->component('auth/LoginChatter')
+            ->component('auth/pages/LoginChatter')
             ->where('agentName', $agent->name)
             ->has('appearance')
             ->missing('agent')

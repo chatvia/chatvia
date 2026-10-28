@@ -16,7 +16,7 @@ it('shows a run of the agent', function (): void {
     $this->actingAs($owner)
         ->get(route('agents.evals.runs.show', [$agent, $run]))
         ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
-            ->component('agents/Evals/Run')
+            ->component('dashboard/agents/pages/Evals/Run')
             ->where('run.external_id', $run->external_id));
 });
 

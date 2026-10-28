@@ -40,7 +40,7 @@ class AgentFormController
 
     public function index(Agent $agent, Transcriber $transcriber, Entitlements $entitlements): Response
     {
-        return Inertia::render('agents/Forms/index', [
+        return Inertia::render('dashboard/agents/pages/Forms/index', [
             'agent' => AgentResourceData::fromModel($agent),
             'forms' => FormDefinitionData::collect(
                 $entitlements->capabilities()

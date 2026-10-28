@@ -31,7 +31,7 @@ class DeleteAccountController
         /** @var User $user */
         $user = $request->user();
 
-        return Inertia::render('account/DeleteAccount', [
+        return Inertia::render('dashboard/account/pages/DeleteAccount', [
             'agents' => $user->workspace()->agents()
                 ->orderBy('name')
                 ->get(['name'])

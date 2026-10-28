@@ -286,7 +286,7 @@ return [
     |
     | The languages of the widget and hosted chat language pickers, and the
     | allowed values of a user's dashboard language, so every dashboard
-    | language (SUPPORTED_LOCALES in resources/js/i18n) must be listed here.
+    | language (SUPPORTED_LOCALES in resources/js/shared/i18n) must be listed here.
     | EU languages come first, like the dashboard switcher; "auto" (the agent
     | detects the visitor's language) stays first of all.
     |

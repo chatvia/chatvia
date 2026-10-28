@@ -22,7 +22,7 @@ beforeEach(function (): void {
 it('shows the password reset page with the token and email filled in', function (): void {
     $this->get(route('password.reset', ['token' => $this->token, 'email' => 'test@example.com']))
         ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
-            ->component('auth/ResetPassword')
+            ->component('auth/pages/ResetPassword')
             ->where('token', $this->token)
             ->where('email', 'test@example.com'));
 });

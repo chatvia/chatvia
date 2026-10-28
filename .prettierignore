@@ -1,4 +1,4 @@
-resources/js/components/ui/*
+resources/js/shared/ui/*
 resources/js/actions/*
 resources/js/routes/*
 resources/js/wayfinder/*

@@ -25,7 +25,7 @@ class AgentPlaygroundController
             $authToken = $authTokens->generateToken($agent, $user);
         }
 
-        return Inertia::render('agents/Playground', [
+        return Inertia::render('dashboard/agents/pages/Playground', [
             'agent' => AgentResourceData::fromModel($agent),
             'authToken' => $authToken,
         ]);

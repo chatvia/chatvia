@@ -35,7 +35,7 @@ class AgentController
     public function index(Request $request, AgentVisibility $visibility, AgentMessageTotalsQuery $messageTotals): Response|Collection
     {
         if (! $request->wantsJson()) {
-            return Inertia::render('agents/AgentsIndex');
+            return Inertia::render('dashboard/agents/pages/AgentsIndex');
         }
 
         $team = $request->user()?->currentOrPrimaryTeam();

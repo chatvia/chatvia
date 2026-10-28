@@ -126,7 +126,7 @@ it('checks the hosted chat sign-in forms too, and gives the chat sign-in page th
     $agent = Agent::factory()->create(['is_public' => false]);
 
     $this->get(route('chat.login.show', $agent->slug))->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
-        ->component('auth/LoginChatter')
+        ->component('auth/pages/LoginChatter')
         ->where('turnstile.site_key', '1x00000000000000000000AA'));
 
     $this->post(route('chat.login', $agent->slug), ['email' => 'ada@example.com', 'password' => 'password'])

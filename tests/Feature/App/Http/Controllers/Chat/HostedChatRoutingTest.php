@@ -20,17 +20,17 @@ beforeEach(function (): void {
 
 it('serves the chat under the agent slug', function (): void {
     $this->get('/chat/'.$this->agent->slug)
-        ->assertInertia(fn (Assert $page): Assert => $page->component('chat/Home')->where('agentSlug', $this->agent->slug));
+        ->assertInertia(fn (Assert $page): Assert => $page->component('chat/pages/Home')->where('agentSlug', $this->agent->slug));
 });
 
 it('serves the chat under the agent external id', function (): void {
     $this->get('/chat/'.$this->agent->external_id)
-        ->assertInertia(fn (Assert $page): Assert => $page->component('chat/Home')->where('agentSlug', $this->agent->external_id));
+        ->assertInertia(fn (Assert $page): Assert => $page->component('chat/pages/Home')->where('agentSlug', $this->agent->external_id));
 });
 
 it('shows the not-found page for an unknown agent', function (): void {
     $this->get('/chat/does-not-exist')
-        ->assertInertia(fn (Assert $page): Assert => $page->component('agents/chat/AgentNotFound'));
+        ->assertInertia(fn (Assert $page): Assert => $page->component('chat/pages/AgentNotFound'));
 });
 
 it('sends a guest of a private agent to that agent\'s own login page', function (): void {
@@ -55,12 +55,12 @@ it('passes route parameters after the agent segment to the controller in order',
 
     $this->get('/chat/'.$this->agent->slug.'/c/'.$conversationId)
         ->assertInertia(fn (Assert $page): Assert => $page
-            ->component('chat/Chat')
+            ->component('chat/pages/Chat')
             ->where('conversation_id', $conversationId)
             ->where('agent_id', $this->agent->id));
 });
 
 it('serves every agent on any host', function (): void {
     $this->get('http://192.168.1.10/chat/'.$this->agent->slug)
-        ->assertInertia(fn (Assert $page): Assert => $page->component('chat/Home'));
+        ->assertInertia(fn (Assert $page): Assert => $page->component('chat/pages/Home'));
 });

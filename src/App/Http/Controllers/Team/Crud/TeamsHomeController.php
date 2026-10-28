@@ -33,7 +33,7 @@ class TeamsHomeController
             ->values()
             ->all();
 
-        return Inertia::render('teams/Index', [
+        return Inertia::render('dashboard/teams/pages/Index', [
             'teams' => $teams,
             'availableRoles' => $catalog->defaultRoles(),
         ]);

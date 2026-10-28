@@ -48,7 +48,7 @@ class AgentTopicController
             return response()->json($query->get()->map(fn (Topic $topic): TopicRowData => TopicRowData::fromModel($topic)));
         }
 
-        return Inertia::render('agents/topics/Manage', [
+        return Inertia::render('dashboard/agents/pages/topics/Manage', [
             'agent' => AgentResourceData::fromModel($agent),
         ]);
     }

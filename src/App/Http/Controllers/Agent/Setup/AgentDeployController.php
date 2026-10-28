@@ -26,7 +26,7 @@ class AgentDeployController
     {
         $domain = $agent->domain()->first();
 
-        return Inertia::render('agents/Deploy', [
+        return Inertia::render('dashboard/agents/pages/Deploy', [
             'agent' => AgentResourceData::fromModel($agent),
             // Private agents embed with a server-minted JWT — the snippets show a
             // `data-auth` placeholder and a "make it public" nudge.

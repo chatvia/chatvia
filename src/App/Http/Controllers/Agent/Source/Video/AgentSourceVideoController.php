@@ -15,7 +15,7 @@ class AgentSourceVideoController
 {
     public function __invoke(Agent $agent): Response
     {
-        return Inertia::render('agents/Sources/Video', [
+        return Inertia::render('dashboard/agents/pages/Sources/Video', [
             'agent' => AgentResourceData::fromModel($agent),
         ]);
     }

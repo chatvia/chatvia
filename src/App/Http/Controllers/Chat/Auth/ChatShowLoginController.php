@@ -27,7 +27,7 @@ class ChatShowLoginController
         // Guest page of a protected agent: send only what the login screen
         // shows. Never the Agent model itself — it carries the system prompt
         // and owner ids.
-        return Inertia::render('auth/LoginChatter', [
+        return Inertia::render('auth/pages/LoginChatter', [
             'canResetPassword' => Route::has('password.request'),
             'status' => $request->session()->get('status'),
             'agentName' => $agent->name,

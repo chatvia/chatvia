@@ -10,11 +10,11 @@
         "prefix": ""
     },
     "aliases": {
-        "components": "@/components",
-        "composables": "@/composables",
-        "utils": "@/lib/utils",
-        "ui": "@/components/ui",
-        "lib": "@/lib"
+        "components": "@/shared/components",
+        "composables": "@/shared/composables",
+        "utils": "@/shared/lib/utils",
+        "ui": "@/shared/ui",
+        "lib": "@/shared/lib"
     },
     "iconLibrary": "lucide"
 }

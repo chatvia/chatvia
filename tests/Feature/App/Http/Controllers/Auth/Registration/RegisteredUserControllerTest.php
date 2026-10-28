@@ -34,7 +34,7 @@ it('shows the sign-up form while sign-up is open', function (): void {
     config(['chatvia.registration_enabled' => true]);
 
     $this->get(route('register'))->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
-        ->component('auth/Register'));
+        ->component('auth/pages/Register'));
 });
 
 it('gives a new account its own workspace and default team, signs it in and asks it to verify the email', function (): void {

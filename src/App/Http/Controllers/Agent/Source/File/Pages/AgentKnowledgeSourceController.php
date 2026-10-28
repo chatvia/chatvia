@@ -17,7 +17,7 @@ class AgentKnowledgeSourceController
 {
     public function __invoke(Agent $agent, KnowledgeSearchSwitch $knowledgeSearch): Response
     {
-        return Inertia::render('agents/Sources/Sources', [
+        return Inertia::render('dashboard/agents/pages/Sources/Sources', [
             'agent' => AgentResourceData::fromModel($agent),
             'knowledgeSearch' => $knowledgeSearch->state($agent),
         ]);

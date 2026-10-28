@@ -26,7 +26,7 @@ class AgentSubmissionController
     {
         $this->ensureFormOfAgent($agent, $form);
 
-        return Inertia::render('agents/Forms/Submissions', [
+        return Inertia::render('dashboard/agents/pages/Forms/Submissions', [
             'agent' => AgentResourceData::fromModel($agent),
             'form' => FormDefinitionData::fromModel($form),
             'submissions' => SubmissionData::collect(

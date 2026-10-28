@@ -15,7 +15,7 @@ class AgentSourceAudioController
 {
     public function __invoke(Agent $agent): Response
     {
-        return Inertia::render('agents/Sources/Audio', [
+        return Inertia::render('dashboard/agents/pages/Sources/Audio', [
             'agent' => AgentResourceData::fromModel($agent),
         ]);
     }

@@ -33,7 +33,7 @@ class AgentChannelsController
 
         $bot = $agent->telegramBot;
 
-        return Inertia::render('agents/Channels/index', [
+        return Inertia::render('dashboard/agents/pages/Channels/index', [
             'agent' => AgentResourceData::fromModel($agent),
             'open' => $this->channelToOpen($request),
             ConversationSource::Telegram->value => TelegramChannelCardData::fromBot($bot, $bot !== null ? $commands->forEditing($bot) : []),

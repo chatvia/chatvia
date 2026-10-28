@@ -29,7 +29,7 @@ it('shows the audit log of the workspace', function (): void {
         ->get(route('security.audit'))
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
-            ->component('workspace/security/SecurityAudit')
+            ->component('dashboard/workspace/pages/security/SecurityAudit')
             ->has('rows.data', 1)
             ->where('rows.data.0.action_label', SecurityAuditAction::AuthLogin->label()));
 });

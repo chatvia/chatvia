@@ -19,7 +19,7 @@ class AgentBlockedController
 {
     public function __invoke(Agent $agent): Response
     {
-        return Inertia::render('agents/security/Blocked', [
+        return Inertia::render('dashboard/agents/pages/security/Blocked', [
             'agent' => AgentResourceData::fromModel($agent),
         ]);
     }

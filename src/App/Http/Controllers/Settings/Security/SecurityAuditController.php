@@ -31,7 +31,7 @@ class SecurityAuditController
             ->withQueryString()
             ->through(fn (SecurityAuditLog $row): SecurityAuditRowData => SecurityAuditRowData::fromModel($row));
 
-        return Inertia::render('workspace/security/SecurityAudit', [
+        return Inertia::render('dashboard/workspace/pages/security/SecurityAudit', [
             'rows' => $rows,
             'categories' => array_map(
                 fn (SecurityAuditCategory $c): array => ['value' => $c->value, 'label' => $c->label()],

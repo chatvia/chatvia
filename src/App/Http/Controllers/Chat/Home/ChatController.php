@@ -18,7 +18,7 @@ final class ChatController
     {
         $agent?->loadSettingsGroups(['appearance', 'embed']);
 
-        return Inertia::render('chat/Chat', [
+        return Inertia::render('chat/pages/Chat', [
             ...$props->for($agent),
             'agent_id' => $agent?->id,
             'conversation_id' => $conversationId,

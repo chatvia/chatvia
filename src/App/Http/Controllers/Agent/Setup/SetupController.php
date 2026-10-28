@@ -20,6 +20,6 @@ class SetupController
 {
     public function __invoke(Request $request, Agent $agent, SetupPageProps $props): Response
     {
-        return Inertia::render('agents/setup/Setup', $props->for($agent, $request->user()));
+        return Inertia::render('dashboard/agents/pages/setup/Setup', $props->for($agent, $request->user()));
     }
 }

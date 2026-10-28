@@ -13,7 +13,7 @@ it('opens the page for the owner only', function (): void {
 
     $this->actingAs($owner)
         ->get(route('analytics.chat'))
-        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->component('AnalyticsChat'));
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->component('dashboard/analytics/pages/AnalyticsChat'));
 
     $this->actingAs($employee)->get(route('analytics.chat'))->assertForbidden();
 });

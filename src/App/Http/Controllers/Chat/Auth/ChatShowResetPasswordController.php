@@ -27,7 +27,7 @@ class ChatShowResetPasswordController
             ->where('external_id', $chatterId)
             ->value('email');
 
-        return Inertia::render('auth/ResetPasswordChatter', [
+        return Inertia::render('auth/pages/ResetPasswordChatter', [
             'token' => $token,
             'chatter' => $chatterId,
             'email' => $email,

@@ -20,7 +20,7 @@ class AgentChatLogController
 {
     public function index(Request $request, Agent $agent, ToolRecording $tools, HandoffAvailability $handoff): Response
     {
-        return Inertia::render('agents/ChatLog/index', [
+        return Inertia::render('dashboard/agents/pages/ChatLog/index', [
             'agent' => AgentResourceData::fromModel($agent),
             'current_conversation_id' => $request->query('conversation_id'),
             'chatlogEnabled' => $agent->chatlogEnabled(),

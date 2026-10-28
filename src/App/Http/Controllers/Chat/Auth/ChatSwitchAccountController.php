@@ -32,7 +32,7 @@ class ChatSwitchAccountController
         $current = HostedChatViewer::account();
 
         // Only what the page shows: the two names and the link account's email.
-        return Inertia::render('auth/ConfirmChatSwitch', [
+        return Inertia::render('auth/pages/ConfirmChatSwitch', [
             'agentName' => $agent->name,
             'appearance' => $agent->settings('appearance'),
             'currentName' => $current?->name,

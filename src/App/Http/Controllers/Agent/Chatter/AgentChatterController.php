@@ -40,7 +40,7 @@ class AgentChatterController
             return ['data' => $rows->forAgent($agent)];
         }
 
-        return Inertia::render('agents/Chatters', [
+        return Inertia::render('dashboard/agents/pages/Chatters', [
             'agent' => AgentResourceData::fromModel($agent),
         ]);
     }

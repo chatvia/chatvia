@@ -15,7 +15,7 @@ class AgentToneController
 {
     public function __invoke(Agent $agent): Response
     {
-        return Inertia::render('agents/Tone', [
+        return Inertia::render('dashboard/agents/pages/Tone', [
             'agent' => AgentResourceData::fromModel($agent),
             'enabled' => $agent->analyticsEnabled('tone'),
             'chatlogEnabled' => $agent->chatlogEnabled(),

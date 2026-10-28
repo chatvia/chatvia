@@ -42,7 +42,7 @@ it('shows the not-found page on the deleted agent hosted chat', function (string
     $segment = $address === 'slug' ? $this->slug : $this->deleted->external_id;
 
     $this->get(route('chat.home', $segment))
-        ->assertInertia(fn (Assert $page): Assert => $page->component('agents/chat/AgentNotFound'));
+        ->assertInertia(fn (Assert $page): Assert => $page->component('chat/pages/AgentNotFound'));
 })->with(['slug', 'external id']);
 
 it('answers 404 in the API and leaves the agent out of its list', function (): void {

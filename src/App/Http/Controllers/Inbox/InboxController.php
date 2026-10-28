@@ -15,6 +15,6 @@ class InboxController
 {
     public function index(): Response
     {
-        return Inertia::render('inbox/Index');
+        return Inertia::render('dashboard/inbox/pages/Index');
     }
 }

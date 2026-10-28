@@ -15,7 +15,7 @@ class AgentConnectorController
 {
     public function __invoke(Agent $agent): Response
     {
-        return Inertia::render('agents/Sources/Connectors/index', [
+        return Inertia::render('dashboard/agents/pages/Sources/Connectors/index', [
             'agent' => AgentResourceData::fromModel($agent),
         ]);
     }

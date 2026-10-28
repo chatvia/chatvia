@@ -27,14 +27,14 @@ it('shows AgentNotFound when the hosted chat surface is turned off', function ()
     $this->agent->setSetting(key: 'hosted_chat', value: false, group: 'surfaces');
 
     $this->get($this->chat)
-        ->assertInertia(fn (Assert $page): Assert => $page->component('agents/chat/AgentNotFound'));
+        ->assertInertia(fn (Assert $page): Assert => $page->component('chat/pages/AgentNotFound'));
 });
 
 it('shows AgentNotFound on every chat route once the workspace is deactivated', function (string $method, string $path, array $body): void {
     deactivateWorkspaceOf($this->agent);
 
     $this->call($method, $this->chat.$path, $body)
-        ->assertInertia(fn (Assert $page): Assert => $page->component('agents/chat/AgentNotFound'));
+        ->assertInertia(fn (Assert $page): Assert => $page->component('chat/pages/AgentNotFound'));
 
     Http::assertNotSent(fn (Request $request): bool => Str::contains($request->url(), 'api.openai.com'));
 })->with([
@@ -49,5 +49,5 @@ it('serves the hosted chat again once the workspace is reactivated', function ()
     reactivateWorkspaceOf($this->agent);
 
     $this->get($this->chat)
-        ->assertInertia(fn (Assert $page): Assert => $page->component('chat/Home'));
+        ->assertInertia(fn (Assert $page): Assert => $page->component('chat/pages/Home'));
 });

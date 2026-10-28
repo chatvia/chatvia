@@ -35,7 +35,7 @@ class AgentTextController
             return $this->textList($agent);
         }
 
-        return Inertia::render('agents/Sources/Text', [
+        return Inertia::render('dashboard/agents/pages/Sources/Text', [
             'agent' => AgentResourceData::fromModel($agent),
         ]);
     }

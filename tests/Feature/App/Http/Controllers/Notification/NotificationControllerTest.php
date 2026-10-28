@@ -22,7 +22,7 @@ it('renders the Notifications page with the newest activity first', function ():
     $this->actingAs($this->owner)->get('/my/notifications')
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
-            ->component('notifications/Index')
+            ->component('dashboard/notifications/pages/Index')
             ->where('filter', 'all')
             ->where('feed.unread', 2)
             ->has('feed.notifications', 2)

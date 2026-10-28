@@ -22,6 +22,6 @@ class AgentInvitationController
         // A deleted agent is hidden from the relation, so its invitations are gone too.
         abort_if($invitation->hasExpired() || $invitation->agent === null, 404);
 
-        return Inertia::render('auth/AcceptAgentInvitation', $props->for($invitation));
+        return Inertia::render('auth/pages/AcceptAgentInvitation', $props->for($invitation));
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Global styles for the hosted chat page (resources/js/pages/chat/Chat.vue),
+ * Global styles for the hosted chat page (resources/js/chat/pages/Chat.vue),
  * imported once by that page. They are global on purpose: they style markdown
  * rendered by child components (#chat-ai-responses, .prose) and the
  * transcript scroller, which scoped styles cannot reach.

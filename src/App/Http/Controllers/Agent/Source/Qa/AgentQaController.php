@@ -36,7 +36,7 @@ class AgentQaController
             return response()->json(['data' => $rows]);
         }
 
-        return Inertia::render('agents/Sources/Qa', [
+        return Inertia::render('dashboard/agents/pages/Sources/Qa', [
             'agent' => AgentResourceData::fromModel($agent),
         ]);
     }

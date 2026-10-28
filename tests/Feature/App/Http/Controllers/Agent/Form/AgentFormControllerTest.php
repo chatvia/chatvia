@@ -55,7 +55,7 @@ it('lists each form with its submitted-submission count', function (): void {
         ->get(route('agents.forms.index', $this->agent->external_id))
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
-            ->component('agents/Forms/index')
+            ->component('dashboard/agents/pages/Forms/index')
             ->where('forms.0.name', 'Booking')
             ->where('forms.0.submissions_count', 1)
             ->where('forms.1.submissions_count', 2));

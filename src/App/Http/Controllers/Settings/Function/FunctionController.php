@@ -39,7 +39,7 @@ class FunctionController
             ->latest()
             ->get();
 
-        return Inertia::render('workspace/integrations/Functions', [
+        return Inertia::render('dashboard/workspace/pages/integrations/Functions', [
             'functions' => WorkspaceFunctionRowData::collect($functions)->toArray(),
         ]);
     }

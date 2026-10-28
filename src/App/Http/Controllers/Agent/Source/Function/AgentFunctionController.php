@@ -15,7 +15,7 @@ class AgentFunctionController
 {
     public function __invoke(Agent $agent): Response
     {
-        return Inertia::render('agents/Sources/Functions/index', [
+        return Inertia::render('dashboard/agents/pages/Sources/Functions/index', [
             'agent' => AgentResourceData::fromModel($agent),
         ]);
     }

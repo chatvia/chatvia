@@ -23,7 +23,7 @@ class ProfileController
         /** @var User $user */
         $user = $request->user();
 
-        return Inertia::render('account/Profile', [
+        return Inertia::render('dashboard/account/pages/Profile', [
             'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
             'dateFormats' => DateFormat::options(),

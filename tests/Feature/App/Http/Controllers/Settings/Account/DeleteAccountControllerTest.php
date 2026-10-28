@@ -21,7 +21,7 @@ it('shows the delete page to a workspace owner with their agents', function (boo
         ->get(route('account.delete'))
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
-            ->component('account/DeleteAccount')
+            ->component('dashboard/account/pages/DeleteAccount')
             ->has('agents', 1)
             ->where('agents.0.name', 'Support Bot')
             ->where('deletionConfirmed', $confirmed));

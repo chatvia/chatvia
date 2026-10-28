@@ -22,7 +22,7 @@ it('lists the capabilities in catalog order, with whether each is on', function 
         ->get(route('agents.capabilities', $agent->external_id))
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
-            ->component('agents/Capabilities/index')
+            ->component('dashboard/agents/pages/Capabilities/index')
             // Ordered by catalog priority: charts (30), forms (40), calendar (45), then any others.
             ->where('capabilities.0.connector.slug', 'charts')
             ->where('capabilities.0.enabled', false)

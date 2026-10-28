@@ -4,8 +4,8 @@ use Illuminate\Support\Str;
 
 /*
  * Source-level guardrails for the Vue dashboard + hosted chat (resources/js).
- * There is no JavaScript test runner for resources/js, so these checks read the
- * source files directly, like ConventionsTest does for PHP. Each one pins a bug
+ * Vitest covers plain TypeScript helpers (resources/js/tests); these checks read
+ * the source files directly, like ConventionsTest does for PHP. Each one pins a bug
  * that was silent in the browser (invalid CSS dropped without an error, a
  * third-party request leaking the visitor's IP, storage access that throws in
  * an iframe).
@@ -82,8 +82,8 @@ it('does not load web fonts from Google at runtime', function () use ($frontendO
 it('leaves no console.log debug output in the frontend', function () use ($frontendOffenders, $frontendRoot): void {
     // These files show console.log inside code samples for customers.
     $codeSamples = [
-        'pages/agents/Deploy.vue',
-        'pages/agents/security/Identity.examples.ts',
+        'dashboard/agents/pages/Deploy.vue',
+        'dashboard/agents/pages/security/Identity.examples.ts',
     ];
 
     foreach ($codeSamples as $sample) {
@@ -97,12 +97,12 @@ it('builds form controls on the shared ui components', function () use ($fronten
     // Native <select>, checkbox, radio, range and <textarea> controls take the
     // browser's look, so they differ from the rest of the dashboard and from
     // one OS to the next. Use Select, Checkbox, RadioGroup, Slider and Textarea
-    // from components/ui instead.
+    // from shared/ui instead.
     $custom = [
-        'components/agents/ColorPicker.vue',          // the shade slider paints the theme's color ramp
-        'components/agents/forms/FormPreview.vue',    // copies the chat widget's own form controls
-        'components/common/JsonCodeEditor.vue',       // a transparent textarea over the highlighted code
-        'pages/AnalyticsChat.vue',                    // the chat composer's borderless textarea
+        'dashboard/agents/components/ColorPicker.vue',       // the shade slider paints the theme's color ramp
+        'dashboard/agents/components/forms/FormPreview.vue', // copies the chat widget's own form controls
+        'dashboard/workspace/components/JsonCodeEditor.vue', // a transparent textarea over the highlighted code
+        'dashboard/analytics/pages/AnalyticsChat.vue',       // the chat composer's borderless textarea
     ];
 
     foreach ($custom as $file) {
@@ -111,7 +111,7 @@ it('builds form controls on the shared ui components', function () use ($fronten
 
     $offenders = array_values(array_filter(
         $frontendOffenders('/<select\b|<textarea\b|type="(checkbox|radio|range)"/', $custom),
-        fn (string $file): bool => ! Str::startsWith($file, 'components/ui/'),
+        fn (string $file): bool => ! Str::startsWith($file, 'shared/ui/'),
     ));
 
     expect($offenders)->toBe([]);
@@ -121,7 +121,7 @@ it('reads localStorage only through safeStorage', function () use ($frontendOffe
     // The hosted chat can run in an iframe where touching localStorage throws;
     // at boot that would stop the whole app from mounting. Even `typeof
     // localStorage` reads the global, so it throws there too.
-    expect($frontendOffenders('/\blocalStorage\s*\.|\btypeof\s+localStorage\b/', ['lib/safeStorage.ts', 'lib/safeStorage.test.ts']))->toBe([]);
+    expect($frontendOffenders('/\blocalStorage\s*\.|\btypeof\s+localStorage\b/', ['shared/lib/safeStorage.ts', 'tests/shared/lib/safeStorage.test.ts']))->toBe([]);
 });
 
 it('uses one shared Echo connection', function () use ($frontendOffenders): void {
@@ -131,20 +131,58 @@ it('uses one shared Echo connection', function () use ($frontendOffenders): void
 });
 
 it('builds the delete confirmation on AlertDialog', function () use ($frontendSource): void {
-    $source = $frontendSource('components/common/DeleteConfirmationDialog.vue');
+    $source = $frontendSource('dashboard/components/DeleteConfirmationDialog.vue');
 
     expect($source)->toContain('<AlertDialog')
-        ->and($source)->not->toContain("from '@/components/ui/dialog'");
+        ->and($source)->not->toContain("from '@/shared/ui/dialog'");
 });
 
 it('only puts attributes the embed script reads into the Command Bar snippet', function () use ($frontendSource): void {
     // Shakomako's embed.js never reads data-trigger / data-placement; the bar
     // takes both from the agent's saved settings. Every install snippet the
     // Deploy page shows is built in installSnippets.ts.
-    $source = $frontendSource('components/agents/deploy/installSnippets.ts');
+    $source = $frontendSource('dashboard/agents/components/deploy/installSnippets.ts');
 
     expect($source)->toContain('data-mode="bar"');
 
     expect($source)->not->toContain('data-trigger')
         ->and($source)->not->toContain('data-placement');
+});
+
+it('keeps each frontend area to the areas it may import', function () use ($frontendRoot): void {
+    // resources/js is grouped by who uses it. shared/ serves everyone, auth/
+    // and the hosted chat (chat/) stand on shared/ alone, and the dashboard
+    // may also reuse hosted-chat UI (Playground, chat log). An import the
+    // other way puts dashboard code into the chat bundle, or into sign-in.
+    $mayImport = [
+        'shared' => ['shared'],
+        'auth' => ['auth', 'shared'],
+        'chat' => ['chat', 'shared'],
+        'dashboard' => ['dashboard', 'chat', 'shared'],
+        'tests' => ['tests', 'shared', 'auth', 'chat', 'dashboard'],
+    ];
+    $offenders = [];
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($frontendRoot, FilesystemIterator::SKIP_DOTS)
+    );
+
+    foreach ($iterator as $file) {
+        $path = (string) $file;
+        $relative = Str::ltrim(Str::replace($frontendRoot, '', $path), DIRECTORY_SEPARATOR);
+        $area = Str::before($relative, DIRECTORY_SEPARATOR);
+        if (! isset($mayImport[$area]) || ! Str::isMatch('/\.(vue|ts)$/', $path)) {
+            continue;
+        }
+
+        preg_match_all("#(?:from\\s*|import\\s*\\(?\\s*)['\"]@/([a-z]+)/#", (string) file_get_contents($path), $matches);
+        foreach (array_unique($matches[1]) as $target) {
+            if (isset($mayImport[$target]) && ! in_array($target, $mayImport[$area], true)) {
+                $offenders[] = "{$relative} imports @/{$target}";
+            }
+        }
+    }
+
+    sort($offenders);
+
+    expect($offenders)->toBe([]);
 });

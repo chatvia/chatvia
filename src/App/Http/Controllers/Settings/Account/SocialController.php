@@ -28,7 +28,7 @@ class SocialController
             ->get(['provider', 'created_at'])
             ->keyBy(fn (UserSocial $s) => $s->provider->value);
 
-        return Inertia::render('account/Social', [
+        return Inertia::render('dashboard/account/pages/Social', [
             // A provider that is not set up cannot be connected; one already
             // linked still shows, so it can be disconnected.
             'accounts' => collect(SocialProvider::linkable())

@@ -17,7 +17,7 @@ class ChatHomeController
     {
         $agent?->loadSettingsGroups(['appearance', 'embed']);
 
-        return Inertia::render('chat/Home', [
+        return Inertia::render('chat/pages/Home', [
             ...$props->for($agent),
             'agent_id' => $agent?->id,
         ]);

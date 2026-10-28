@@ -13,6 +13,6 @@ class DashboardController
 {
     public function __invoke(): Response
     {
-        return Inertia::render('Dashboard');
+        return Inertia::render('dashboard/home/pages/Dashboard');
     }
 }

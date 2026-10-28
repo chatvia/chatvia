@@ -46,7 +46,7 @@ class GovernanceAuditController
             ->map(fn (Agent $a): array => ['id' => $a->id, 'name' => $a->name])
             ->all();
 
-        return Inertia::render('workspace/governance/Governance', [
+        return Inertia::render('dashboard/workspace/pages/governance/Governance', [
             'rows' => $rows,
             'agents' => $agents,
             'connectors' => $connectors->forWorkspace($workspaceId),

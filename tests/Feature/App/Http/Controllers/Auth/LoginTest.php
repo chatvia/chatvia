@@ -20,7 +20,7 @@ it('shows the login page, with the sign-up link only while sign-up is open', fun
     config(['chatvia.registration_enabled' => $open]);
 
     $this->get(route('login'))->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
-        ->component('auth/Login')
+        ->component('auth/pages/Login')
         ->where('canRegister', $open));
 })->with(['sign-up open' => true, 'sign-up closed' => false]);
 

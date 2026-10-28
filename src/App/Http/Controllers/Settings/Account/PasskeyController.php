@@ -17,7 +17,7 @@ class PasskeyController
 {
     public function edit(Request $request): Response
     {
-        return Inertia::render('account/Passkeys', [
+        return Inertia::render('dashboard/account/pages/Passkeys', [
             'passkeys' => $request->user()
                 ->passkeys()
                 ->orderByDesc('created_at')

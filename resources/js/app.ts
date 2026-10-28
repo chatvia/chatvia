@@ -7,19 +7,19 @@ import { configureEcho } from '@laravel/echo-vue';
 import axios from 'axios';
 import 'primeicons/primeicons.css';
 import { ConfigProvider } from 'reka-ui';
-import { computed, createApp, h } from 'vue';
+import { computed, createApp, h, type DefineComponent } from 'vue';
 import { toast } from 'vue-sonner';
 import 'vue-sonner/style.css';
 import Vue3ColorPicker from 'vue3-colorpicker';
 import 'vue3-colorpicker/style.css';
-import { pageTitle, setAppName, syncNotificationSummary } from './composables/notifications/notificationStore';
-import { initializeTheme } from './composables/useAppearance';
-import { i18n, isRTL, normalizeLocale, resolveLocale, setI18nLocale } from './i18n';
 import { auth as chatBroadcastAuth } from './routes/chat/broadcasting';
-import type { SharedData } from './types';
-import { csrfHeaders, setCsrfToken } from './utils/csrf';
-import { startErrorTracking } from './utils/errorTracking';
-import { createChatEventBus } from './utils/eventBus';
+import { pageTitle, setAppName, syncNotificationSummary } from './shared/composables/notifications/notificationStore';
+import { initializeTheme } from './shared/composables/useAppearance';
+import { i18n, isRTL, normalizeLocale, resolveLocale, setI18nLocale } from './shared/i18n';
+import type { SharedData } from './shared/types';
+import { csrfHeaders, setCsrfToken } from './shared/utils/csrf';
+import { startErrorTracking } from './shared/utils/errorTracking';
+import { createChatEventBus } from './shared/utils/eventBus';
 import { setUrlDefaults } from './wayfinder';
 
 const chatEventBus = createChatEventBus();
@@ -86,9 +86,18 @@ function defaultLocaleOf(pageProps: Record<string, unknown>): string | null {
     return typeof pageProps.defaultLocale === 'string' ? pageProps.defaultLocale : null;
 }
 
+// Inertia page names are paths from resources/js without ".vue"
+// (`dashboard/agents/pages/Persona`), and only a `pages/` folder holds pages.
+const pages = import.meta.glob<{ default: DefineComponent }>('./{auth,chat,dashboard}/**/pages/**/*.vue');
+
 createInertiaApp({
     // "Page - {app name}", led by the unread notification count when there is one.
     title: (title) => pageTitle(title),
+    resolve: async (name) => {
+        const page = pages[`./${name}.vue`];
+        if (!page) throw new Error(`Page not found: ${name}`);
+        return (await page()).default;
+    },
     setup({ el, App, props, plugin }) {
         syncPageContext(props.initialPage.props);
 

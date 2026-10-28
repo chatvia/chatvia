@@ -16,7 +16,7 @@ class AgentKnowledgeMarkdownController
 {
     public function __invoke(Agent $agent): Response
     {
-        return Inertia::render('agents/Sources/Markdown', [
+        return Inertia::render('dashboard/agents/pages/Sources/Markdown', [
             'agent' => AgentResourceData::fromModel($agent),
         ]);
     }

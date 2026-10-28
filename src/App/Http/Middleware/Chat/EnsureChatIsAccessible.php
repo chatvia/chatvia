@@ -57,7 +57,7 @@ class EnsureChatIsAccessible
         if (! $agent instanceof Agent
             || ! $agent->surfaceEnabled(ConversationSource::HostedChat)
             || ! $this->activation->isActive($agent->workspace_id)) {
-            return Inertia::render('agents/chat/AgentNotFound');
+            return Inertia::render('chat/pages/AgentNotFound');
         }
 
         $request->attributes->set('agent_workspace_id', $agent->workspace_id);

@@ -22,7 +22,7 @@ it('shows the person\'s active export on the page', function (): void {
         ->get(route('account.data-export.edit'))
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
-            ->component('account/DataExport')
+            ->component('dashboard/account/pages/DataExport')
             ->where('activeExport.id', $export->id)
             ->where('activeExport.status', 'processing'));
 });

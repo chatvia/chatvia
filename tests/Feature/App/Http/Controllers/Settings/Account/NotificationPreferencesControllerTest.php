@@ -17,7 +17,7 @@ it("shows and saves the account's notification switches", function (): void {
     $this->actingAs($this->owner)->get('/my/account/notifications')
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
-            ->component('account/Notifications')
+            ->component('dashboard/account/pages/Notifications')
             ->where('preferences.security.desktop', true));
 
     $switches = collect(['handoffs', 'security', 'training', 'leads', 'usage', 'reports'])

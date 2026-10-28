@@ -23,7 +23,7 @@ class NotificationPreferencesController
         /** @var User $user */
         $user = $request->user();
 
-        return Inertia::render('account/Notifications', [
+        return Inertia::render('dashboard/account/pages/Notifications', [
             'preferences' => $user->notificationPreferences(),
         ]);
     }

@@ -16,11 +16,11 @@ class TeamInvitationController
     public function show(TeamInvitationPageProps $props, Invitation $invitation): Response
     {
         if ($invitation->hasExpired()) {
-            return Inertia::render('auth/InvitationExpired', [
+            return Inertia::render('auth/pages/InvitationExpired', [
                 'message' => __('This invitation has expired.'),
             ]);
         }
 
-        return Inertia::render('auth/AcceptInvitation', $props->for($invitation));
+        return Inertia::render('auth/pages/AcceptInvitation', $props->for($invitation));
     }
 }

@@ -15,7 +15,7 @@ class AgentKnowledgeFileController
 {
     public function __invoke(Agent $agent): Response
     {
-        return Inertia::render('agents/Sources/FilesSource', [
+        return Inertia::render('dashboard/agents/pages/Sources/FilesSource', [
             'agent' => AgentResourceData::fromModel($agent),
         ]);
     }

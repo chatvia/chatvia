@@ -63,7 +63,7 @@ it('shows the security settings with the install\'s retention bounds', function 
         ->get(route('security.edit'))
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
-            ->component('workspace/security/Security')
+            ->component('dashboard/workspace/pages/security/Security')
             ->where('limits.conversations_max', 200)
             ->where('limits.leads_floor', 1)
             ->where('limits.analytics_floor', 30)

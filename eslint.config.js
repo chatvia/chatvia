@@ -45,7 +45,7 @@ export default defineConfig(
             'storage',
             'bootstrap/ssr',
             'tailwind.config.js',
-            'resources/js/components/ui/*',
+            'resources/js/shared/ui/*',
             // VitePress' on-disk dep cache and built output — both contain
             // pre-bundled vendor JS (Vue runtime, vueuse, mark.js, etc.)
             // that lints with thousands of irrelevant errors. Source docs
@@ -65,9 +65,9 @@ export default defineConfig(
         rules: {
             'vue/multi-word-component-names': 'off',
             // Type responses with the generated PHP types or small interfaces
-            // (see resources/js/api/); `unknown` + narrowing where the shape
-            // is really open. A warning, so it flags new `any` without
-            // blocking a build.
+            // (see the `api/` folders in resources/js); `unknown` + narrowing
+            // where the shape is really open. A warning, so it flags new `any`
+            // without blocking a build.
             '@typescript-eslint/no-explicit-any': 'warn',
             // No debug logging in shipped code; console.warn / console.error
             // stay allowed for real problems.

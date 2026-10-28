@@ -29,7 +29,7 @@ class AgentShowPersonaController
 
         $mayPick = $permissions->allowsOnAgent($user, $agent, 'agent.setup') || $permissions->allows($user, 'account.prompts');
 
-        return Inertia::render('agents/Persona', [
+        return Inertia::render('dashboard/agents/pages/Persona', [
             'agent' => AgentResourceData::fromModel($agent),
             'prompts' => $mayPick
                 ? $user->workspace()->prompts()

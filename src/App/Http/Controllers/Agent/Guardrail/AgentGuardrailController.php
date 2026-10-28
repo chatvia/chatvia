@@ -56,7 +56,7 @@ class AgentGuardrailController
             $offenderOf->get($event->id),
         ));
 
-        return Inertia::render('agents/Guardrails/index', [
+        return Inertia::render('dashboard/agents/pages/Guardrails/index', [
             'agent' => AgentResourceData::fromModel($agent),
             'settings' => GuardrailSettingsData::fromAgent($agent)->toSettings(),
             'availableFilters' => PiiFilterType::catalog(),

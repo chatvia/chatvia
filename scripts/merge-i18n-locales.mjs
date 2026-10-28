@@ -5,7 +5,7 @@
  *   node scripts/merge-i18n-locales.mjs           # merge every locale
  *   node scripts/merge-i18n-locales.mjs en ar     # merge only these
  *
- * Fragments live in resources/js/i18n/locales/_fragments/{name}.{locale}.json
+ * Fragments live in resources/js/shared/i18n/locales/_fragments/{name}.{locale}.json
  * and are merged in filename sort order (later files win on key conflicts).
  */
 
@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
-const localesDir = path.join(root, 'resources/js/i18n/locales');
+const localesDir = path.join(root, 'resources/js/shared/i18n/locales');
 const fragmentsDir = path.join(localesDir, '_fragments');
 
 // Default: every base locale file (en.json, ar.json, …) next to _fragments, so

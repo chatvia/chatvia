@@ -37,7 +37,7 @@ class AgentAuditController
             ->withQueryString()
             ->through(fn (AgentActivity $activity): ToolCallAuditRowData => ToolCallAuditRowData::fromModel($activity));
 
-        return Inertia::render('agents/Audit/index', [
+        return Inertia::render('dashboard/agents/pages/Audit/index', [
             'agent' => AgentResourceData::fromModel($agent),
             'rows' => $rows,
             'connectors' => $connectors->forWorkspace($agent->workspace_id),

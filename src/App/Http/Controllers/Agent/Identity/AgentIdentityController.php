@@ -20,7 +20,7 @@ class AgentIdentityController
 {
     public function __invoke(Agent $agent): Response
     {
-        return Inertia::render('agents/security/Identity', [
+        return Inertia::render('dashboard/agents/pages/security/Identity', [
             'agent' => AgentResourceData::fromModel($agent),
             'auth_secret' => $agent->ensureAuthSecret(),
             'embed_script_url' => url(config('chatvia.widget.script_url_embed')),

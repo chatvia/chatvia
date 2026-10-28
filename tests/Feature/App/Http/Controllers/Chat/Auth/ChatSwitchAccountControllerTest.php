@@ -43,7 +43,7 @@ it('asks before a sign-in link switches to another account', function (string $p
     $this->get($this->chat.'/switch-account')
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
-            ->component('auth/ConfirmChatSwitch')
+            ->component('auth/pages/ConfirmChatSwitch')
             ->where('currentName', 'Current Chatter')
             ->where('nextName', 'Other Chatter'));
 

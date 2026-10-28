@@ -33,7 +33,7 @@ class TeamRoleEditShowController
             return redirect()->route('teams.show', $team)->with('error', __('Cannot edit the owner role.'));
         }
 
-        return Inertia::render('teams/roles/Edit', [
+        return Inertia::render('dashboard/teams/pages/roles/Edit', [
             'team' => TeamData::fromModel($team),
             'role' => TeamRoleData::fromModel($role),
             'agents' => TeamAgentData::collectForTeam($team),

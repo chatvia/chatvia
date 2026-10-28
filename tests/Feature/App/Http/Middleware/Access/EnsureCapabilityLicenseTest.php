@@ -78,7 +78,7 @@ it('opens the Forms page without the forms without a license key', function (): 
         ->get(route('agents.forms.index', $this->agent->external_id))
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
-            ->component('agents/Forms/index')
+            ->component('dashboard/agents/pages/Forms/index')
             ->has('forms', 0));
 
     expect($this->form->fresh())->not->toBeNull();

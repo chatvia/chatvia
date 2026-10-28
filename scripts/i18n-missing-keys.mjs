@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
 const jsDir = path.join(root, 'resources/js');
-const localesDir = path.join(root, 'resources/js/i18n/locales');
+const localesDir = path.join(root, 'resources/js/shared/i18n/locales');
 
 function flattenKeys(obj, prefix = '') {
     const keys = [];

@@ -15,7 +15,7 @@ class AgentSentimentController
 {
     public function __invoke(Agent $agent): Response
     {
-        return Inertia::render('agents/Sentiment', [
+        return Inertia::render('dashboard/agents/pages/Sentiment', [
             'agent' => AgentResourceData::fromModel($agent),
             'enabled' => $agent->analyticsEnabled('sentiment'),
             'chatlogEnabled' => $agent->chatlogEnabled(),

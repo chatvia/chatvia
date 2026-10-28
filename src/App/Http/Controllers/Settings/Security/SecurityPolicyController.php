@@ -43,7 +43,7 @@ class SecurityPolicyController
         // unresolved ⇒ no warning, mirroring the gate's geo fail-open.
         $currentCountry = $request->country();
 
-        return Inertia::render('workspace/security/Security', [
+        return Inertia::render('dashboard/workspace/pages/security/Security', [
             'policy' => $policy ? WorkspaceSecurityPolicyData::fromModel($policy) : new WorkspaceSecurityPolicyData,
             // Country picker options for the geo rules. Codes are the lowercase
             // ISO-3166 alpha-2 values the geo gate stores and matches against.

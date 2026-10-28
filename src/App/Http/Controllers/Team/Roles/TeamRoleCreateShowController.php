@@ -24,7 +24,7 @@ class TeamRoleCreateShowController
     {
         abort_if($request->user()->cannot('update', $team), 403, __('Only the team owner can create roles.'));
 
-        return Inertia::render('teams/roles/Create', [
+        return Inertia::render('dashboard/teams/pages/roles/Create', [
             'team' => TeamData::fromModel($team),
             'agents' => TeamAgentData::collectForTeam($team),
             'permissionsConfig' => $this->catalog->permissions(),

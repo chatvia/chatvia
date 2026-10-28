@@ -15,7 +15,7 @@ class AgentKnowledgeWebController
 {
     public function __invoke(Agent $agent): Response
     {
-        return Inertia::render('agents/Sources/Web', [
+        return Inertia::render('dashboard/agents/pages/Sources/Web', [
             'agent' => AgentResourceData::fromModel($agent),
         ]);
     }

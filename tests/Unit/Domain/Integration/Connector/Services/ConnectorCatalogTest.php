@@ -50,7 +50,7 @@ it('has a logo file for every connector', function (string $class): void {
 
 it('has English catalog text for every connector and category', function (string $class): void {
     $connector = app($class);
-    $text = File::json(resource_path('js/i18n/locales/_fragments/connectors_catalog.en.json'))['connectors'];
+    $text = File::json(resource_path('js/shared/i18n/locales/_fragments/connectors_catalog.en.json'))['connectors'];
 
     expect($text['catalog'][$connector->slug]['name'] ?? null)->toBe($connector->name)
         ->and($text['catalog'][$connector->slug]['description'] ?? null)->toBe($connector->description)

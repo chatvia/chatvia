@@ -55,7 +55,7 @@ class AgentCapabilitiesController
             );
         });
 
-        return Inertia::render('agents/Capabilities/index', [
+        return Inertia::render('dashboard/agents/pages/Capabilities/index', [
             'agent' => AgentResourceData::fromModel($agent),
             'capabilities' => AgentCapabilityRowData::collect($rows),
         ]);

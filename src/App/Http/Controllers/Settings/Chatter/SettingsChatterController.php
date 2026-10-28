@@ -58,7 +58,7 @@ class SettingsChatterController
             ->values()
             ->all();
 
-        return Inertia::render('workspace/people/Chatters', [
+        return Inertia::render('dashboard/workspace/pages/people/Chatters', [
             'agents' => $agents,
         ]);
     }

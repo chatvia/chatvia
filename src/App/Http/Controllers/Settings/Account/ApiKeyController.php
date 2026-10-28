@@ -27,7 +27,7 @@ class ApiKeyController
             ->map(fn (PersonalAccessToken $token): ApiKeyRowData => ApiKeyRowData::fromToken($token))
             ->all();
 
-        return Inertia::render('workspace/integrations/ApiKeys', [
+        return Inertia::render('dashboard/workspace/pages/integrations/ApiKeys', [
             'tokens' => $tokens,
             'created_token' => $request->session()->get('created_token'),
         ]);

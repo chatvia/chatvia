@@ -35,7 +35,7 @@ final class ResolveHostedChatAgent
         $agent = AgentLocator::resolveAgentBySlug($slug);
 
         if (! $agent instanceof Agent) {
-            return Inertia::render('agents/chat/AgentNotFound');
+            return Inertia::render('chat/pages/AgentNotFound');
         }
 
         HostedChatAgent::remember($request, $agent);

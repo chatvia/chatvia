@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
  * response is the full payload — every protected agent in the workspace the
  * viewer may manage, partitioned into `attached` (already granted) and
  * `available` (toggle on to grant) — matching the shape consumed by
- * {@see resources/js/composables/useAgentAttachments.ts}.
+ * {@see resources/js/dashboard/workspace/composables/useAgentAttachments.ts}.
  *
  * Gated by `account.chatters.manage`; `workspace.scope` 404s a bound chatter
  * or agent of another workspace, and `can.access.agent` on grant and revoke

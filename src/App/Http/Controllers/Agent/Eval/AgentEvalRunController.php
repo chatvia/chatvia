@@ -27,7 +27,7 @@ class AgentEvalRunController
         $run->loadMissing('triggeredByUser');
         $results = $run->results()->orderBy('id')->get();
 
-        return Inertia::render('agents/Evals/Run', [
+        return Inertia::render('dashboard/agents/pages/Evals/Run', [
             'agent' => AgentResourceData::fromModel($agent),
             'run' => EvalRunResourceData::fromModel($run),
             'results' => EvalResultResourceData::collection($results),

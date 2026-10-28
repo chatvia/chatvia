@@ -22,7 +22,7 @@ it('tells the chat page which composer features to show', function (Closure $arr
     $arrange($this->agent);
 
     $this->get('/chat/'.$this->agent->slug)
-        ->assertInertia(fn (Assert $page): Assert => $page->component('chat/Home')->where($prop, $expected));
+        ->assertInertia(fn (Assert $page): Assert => $page->component('chat/pages/Home')->where($prop, $expected));
 })->with([
     'uploads, allowed with a model that reads files' => [function (Agent $agent): void {
         $agent->setSetting('allow_file_uploads', true, 'appearance');
@@ -90,7 +90,7 @@ it('lists the models the chatter may pick only while Multi-model is on', functio
     $this->agent->setSetting('models', [$other->id], 'model_choice');
 
     $this->get('/chat/'.$this->agent->slug)
-        ->assertInertia(fn (Assert $page): Assert => $page->component('chat/Home')->has('models', $count));
+        ->assertInertia(fn (Assert $page): Assert => $page->component('chat/pages/Home')->has('models', $count));
 })->with([
     'admin allows it' => [true, 2],
     'admin does not' => [false, 0],

@@ -24,7 +24,7 @@ class ConnectorController
 
     public function edit(): Response
     {
-        return Inertia::render('workspace/integrations/Connectors');
+        return Inertia::render('dashboard/workspace/pages/integrations/Connectors');
     }
 
     public function destroy(Request $request, string $slug): JsonResponse

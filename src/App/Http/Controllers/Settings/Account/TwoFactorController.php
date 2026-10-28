@@ -15,7 +15,7 @@ class TwoFactorController
     {
         $user = $request->user();
 
-        return Inertia::render('account/TwoFactor', [
+        return Inertia::render('dashboard/account/pages/TwoFactor', [
             'enabled' => $user->two_factor_secret !== null,
             'confirmed' => $user->two_factor_confirmed_at !== null,
         ]);

@@ -24,6 +24,6 @@ class TeamShowController
             return back();
         }
 
-        return Inertia::render('teams/Show', $props->for($team, $user));
+        return Inertia::render('dashboard/teams/pages/Show', $props->for($team, $user));
     }
 }

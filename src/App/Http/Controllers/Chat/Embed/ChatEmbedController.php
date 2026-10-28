@@ -15,7 +15,7 @@ class ChatEmbedController
 {
     public function __invoke(string $conversationId, #[HostedChatAgent] ?Agent $agent, HostedChatPageProps $props): Response
     {
-        return Inertia::render('chat/Chat', [
+        return Inertia::render('chat/pages/Chat', [
             ...$props->for($agent),
             'agent_id' => $agent?->id,
             'conversation_id' => $conversationId,

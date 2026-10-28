@@ -18,6 +18,6 @@ class AnalyticsChatController
     {
         abort_unless($request->user()?->isWorkspaceOwner() === true, 403);
 
-        return Inertia::render('AnalyticsChat');
+        return Inertia::render('dashboard/analytics/pages/AnalyticsChat');
     }
 }

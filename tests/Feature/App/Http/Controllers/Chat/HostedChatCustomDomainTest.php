@@ -29,7 +29,7 @@ it('sends a visitor from the domain\'s root to the chat, keeping the query', fun
 
 it('serves the agent\'s own chat on the domain', function (): void {
     $this->get("http://help.acme.test/chat/{$this->agent->slug}")
-        ->assertInertia(fn (Assert $page): Assert => $page->component('chat/Home'));
+        ->assertInertia(fn (Assert $page): Assert => $page->component('chat/pages/Home'));
 
     $this->get("http://help.acme.test/chat/{$this->agent->external_id}")
         ->assertOk();

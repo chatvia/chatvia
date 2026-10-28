@@ -33,7 +33,7 @@ it('lists the providers that are set up', function (): void {
         ->get(route('account.social.edit'))
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
-            ->component('account/Social')
+            ->component('dashboard/account/pages/Social')
             ->where('socialProviders', ['github'])
             ->has('accounts', 1)
             ->where('accounts.0.provider', 'github'));

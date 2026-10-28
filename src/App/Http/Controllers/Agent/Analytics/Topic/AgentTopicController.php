@@ -15,7 +15,7 @@ class AgentTopicController
 {
     public function __invoke(Agent $agent): Response
     {
-        return Inertia::render('agents/Topics', [
+        return Inertia::render('dashboard/agents/pages/Topics', [
             'agent' => AgentResourceData::fromModel($agent),
             'enabled' => $agent->analyticsEnabled('topics'),
             'chatlogEnabled' => $agent->chatlogEnabled(),

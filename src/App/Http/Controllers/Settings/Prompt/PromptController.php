@@ -46,7 +46,7 @@ class PromptController
      */
     public function edit(Request $request): Response
     {
-        return Inertia::render('workspace/library/Prompts', [
+        return Inertia::render('dashboard/workspace/pages/library/Prompts', [
             'prompts' => $request->user()->workspace()->prompts()
                 ->withCount('agents')
                 ->latest()

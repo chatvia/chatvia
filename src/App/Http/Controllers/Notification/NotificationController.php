@@ -28,7 +28,7 @@ class NotificationController
         $user = $request->user();
         $filter = NotificationFilter::tryFrom((string) $request->query('filter')) ?? NotificationFilter::All;
 
-        return Inertia::render('notifications/Index', [
+        return Inertia::render('dashboard/notifications/pages/Index', [
             'filter' => $filter,
             'feed' => NotificationFeedResourceData::fromPage(
                 $feed->page($user, $filter),

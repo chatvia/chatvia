@@ -18,7 +18,7 @@ class RegisteredUserController
 {
     public function create(): Response
     {
-        return Inertia::render('auth/Register');
+        return Inertia::render('auth/pages/Register');
     }
 
     public function store(RegisterUserRequest $request, RegisterUserAction $registerUser): RedirectResponse

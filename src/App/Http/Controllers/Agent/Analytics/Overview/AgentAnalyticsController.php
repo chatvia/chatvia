@@ -15,7 +15,7 @@ class AgentAnalyticsController
 {
     public function __invoke(Agent $agent): Response
     {
-        return Inertia::render('agents/Analytics', [
+        return Inertia::render('dashboard/agents/pages/Analytics', [
             'agent' => AgentResourceData::fromModel($agent),
         ]);
     }

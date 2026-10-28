@@ -18,7 +18,7 @@ class AgentRateLimitController
 {
     public function __invoke(Agent $agent): Response
     {
-        return Inertia::render('agents/security/RateLimiting', [
+        return Inertia::render('dashboard/agents/pages/security/RateLimiting', [
             'agent' => AgentResourceData::fromModel($agent),
             'securitySettings' => AgentRateLimitSettingsData::fromAgent($agent),
         ]);

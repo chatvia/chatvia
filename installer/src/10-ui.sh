@@ -371,8 +371,8 @@ ask() {
         STATUS=''
         if [ -n "$status" ]; then "$status" "${value:-$default}" || true; fi
 
-        # The default is a real answer, so it is shown like typed text; a
-        # placeholder is only an example, so it is greyed out. A long answer
+        # The default and a placeholder are greyed out until you type, as in
+        # ./manage; the line below says Enter uses the default. A long answer
         # shows its end, where you type.
         input_room "$STATUS"
         if [ -n "$value" ] && [ "${#value}" -ge "$ROOM" ] && [ "$ROOM" -gt 10 ]; then
@@ -380,7 +380,7 @@ ask() {
         elif [ -n "$value" ]; then
             input="$value$C_INVERSE $C_NO_INVERSE"
         elif [ -n "$default" ]; then
-            input="$C_INVERSE${default:0:1}$C_NO_INVERSE${default:1}"
+            input="$C_INVERSE${default:0:1}$C_NO_INVERSE$C_DIM${default:1}$C_RESET"
         elif [ -n "$placeholder" ]; then
             input="$C_INVERSE${placeholder:0:1}$C_NO_INVERSE$C_DIM${placeholder:1}$C_RESET"
         else

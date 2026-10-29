@@ -82,8 +82,9 @@ valid_host() {
     return 1
 }
 
-# This server's public IPv4 address, for the DNS hint. Asked from outside,
-# as a server behind NAT does not know it; else its own first address.
+# This server's public IPv4 address, for the DNS hint and the address of
+# HTTPS on the IP address. Asked from outside, as a server behind NAT does
+# not know it; else its own first address.
 server_ip() {
     local ip
     ip=$(curl -4 -fsS --max-time 5 https://api.ipify.org 2>/dev/null) || ip=''

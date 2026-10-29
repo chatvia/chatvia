@@ -15,8 +15,11 @@
 # Built-in HTTPS: with COMPOSE_PROFILES=https and CHATVIA_DOMAIN in .env, the
 # proxy service (Caddy) takes ports 80 and 443, gets a Let's Encrypt
 # certificate for CHATVIA_DOMAIN, and one for each agent's custom domain the
-# first time it is opened (./manage https on sets it all up). Without it,
-# put your own proxy in front of APP_PORT.
+# first time it is opened (./manage https on sets it all up). A server with
+# no domain name can use COMPOSE_PROFILES=self-signed, CHATVIA_IP and
+# CHATVIA_HTTPS_PORT instead: HTTPS on its IP address, with a certificate
+# browsers warn about. Without either, put your own proxy in front of
+# APP_PORT.
 #
 # The installer (install.sh) also puts `manage` next to this file, for the
 # everyday work: ./manage start, stop, backup, restore and more (./manage
@@ -149,7 +152,7 @@ services:
   # Built-in HTTPS (the https profile): Caddy on ports 80 and 443 in front of
   # the app. Its certificates are kept in caddy_data; backups leave them out,
   # as Caddy gets them again by itself.
-  proxy:
+  proxy: &proxy
     image: caddy:2.11-alpine
     profiles: [https]
     restart: unless-stopped
@@ -179,6 +182,19 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+
+  # HTTPS on this server's IP address (the self-signed profile), for a server
+  # with no domain name: Caddy answers on CHATVIA_HTTPS_PORT with a
+  # certificate from its own authority, which browsers warn about until they
+  # trust it (./manage https ca). Custom domains need the https profile.
+  proxy-self-signed:
+    <<: *proxy
+    profiles: [self-signed]
+    ports:
+      - "${CHATVIA_HTTPS_PORT:-443}:443"
+    configs:
+      - source: caddyfile-self-signed
+        target: /etc/caddy/Caddyfile
 
   # The command services run with a small init process: it passes on the stop
   # signal and reaps finished child processes (the scheduler's background
@@ -251,6 +267,29 @@ configs:
       https:// {
       	tls {
       		on_demand
+      	}
+      	reverse_proxy app:8080
+      }
+
+  # The proxy-self-signed service. A browser sends no name when it opens an IP
+  # address, so default_sni picks the certificate. It lasts a year and is
+  # signed by the root itself: browsers remember a click-through per
+  # certificate, so Caddy's usual 12-hour one would bring the warning back
+  # all day. No redirect from port 80, as people open the HTTPS port itself.
+  caddyfile-self-signed:
+    content: |
+      {
+      	default_sni ${CHATVIA_IP:-127.0.0.1}
+      	auto_https disable_redirects
+      	skip_install_trust
+      }
+
+      https://${CHATVIA_IP:-127.0.0.1} {
+      	tls {
+      		issuer internal {
+      			lifetime 365d
+      			sign_with_root
+      		}
       	}
       	reverse_proxy app:8080
       }

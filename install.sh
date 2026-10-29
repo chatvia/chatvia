@@ -52,6 +52,9 @@
 #   --url URL           address people open          CHATVIA_URL (http://localhost:PORT)
 #   --https builtin     ChatVia.ai handles HTTPS     CHATVIA_HTTPS=builtin (needs ports 80, 443
 #                       and --url https://DOMAIN or --domain DOMAIN)
+#   --https self-signed ChatVia.ai handles HTTPS on the IP address, with its own
+#                       certificate (browsers warn)  CHATVIA_HTTPS=self-signed
+#                       (--url https://IP:PORT; else this server's address on 443)
 #   --https proxy       your own proxy handles HTTPS CHATVIA_HTTPS=proxy (the default)
 #   CHATVIA_HTTPS=yes or no (the complete installation's values) changes
 #   nothing here.
@@ -62,8 +65,8 @@
 # Only with the complete installation:
 #   --domain NAME       domain name or IP address people open   CHATVIA_DOMAIN
 #   --no-https          no Let's Encrypt certificate (HTTP only) CHATVIA_HTTPS=no
-#   CHATVIA_HTTPS here is yes (the default) or no; builtin and proxy are
-#   the Docker answers (--https).
+#   CHATVIA_HTTPS here is yes (the default) or no; builtin, self-signed and
+#   proxy are the Docker answers (--https).
 #   --no-firewall       leave the firewall (ufw) as it is        CHATVIA_FIREWALL=no
 #   --force             install on a server that is not fresh    CHATVIA_FORCE=1
 #   --no-auto-update    no automatic updates (once a night)      CHATVIA_AUTO_UPDATE=no
@@ -1391,6 +1394,7 @@ write_env() {
     [ -n "$CHATVIA_IMAGE" ] && image_line="CHATVIA_IMAGE=$CHATVIA_IMAGE"$'\n'
     case $APP_URL in https://*) secure=$'SESSION_SECURE_COOKIE=true\n' ;; esac
     if [ "$BUILTIN_HTTPS" = 1 ]; then https_block=$(https_env_block)$'\n'; fi
+    if [ "$SELF_SIGNED" = 1 ]; then https_block=$(self_signed_env_block)$'\n'; fi
     (
         umask 077
         cat >"$INSTALL_DIR/.env" <<EOF
@@ -1440,6 +1444,76 @@ APP_BIND_IP=127.0.0.1
 CHATVIA_ON_DEMAND_TLS=true
 TRUSTED_PROXIES=$HTTPS_TRUSTED_PROXIES
 EOF
+}
+
+# The .env lines for HTTPS on the IP address (compose.yaml's self-signed
+# profile), as ./manage https writes and removes them.
+self_signed_env_block() {
+    cat <<EOF
+
+# Built-in HTTPS on the IP address, with its own certificate. Changed by ./manage https.
+COMPOSE_PROFILES=self-signed
+CHATVIA_IP=$HTTPS_IP
+CHATVIA_HTTPS_PORT=$HTTPS_PORT
+APP_BIND_IP=127.0.0.1
+TRUSTED_PROXIES=$HTTPS_TRUSTED_PROXIES
+EOF
+}
+
+# An IPv4 address, each part 0 to 255 without leading zeros (Caddy refuses
+# those).
+valid_https_ip() {
+    local part='(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])'
+    local pattern="^($part\.){3}$part\$"
+    [[ $1 =~ $pattern ]] && return 0
+    INVALID='Type an IPv4 address like 203.0.113.10, without https:// or a port.'
+    return 1
+}
+
+# The HTTPS port for the IP address: free, and not the app's own port.
+valid_https_port() {
+    valid_port "$1" || return 1
+    if [ "$1" = "$APP_PORT" ]; then
+        INVALID="Port $1 is ChatVia.ai's own port. Choose another one."
+        return 1
+    fi
+    return 0
+}
+
+# The address for HTTPS_IP and HTTPS_PORT, without :443.
+self_signed_url() {
+    if [ "$HTTPS_PORT" = 443 ]; then
+        printf 'https://%s' "$HTTPS_IP"
+    else
+        printf 'https://%s:%s' "$HTTPS_IP" "$HTTPS_PORT"
+    fi
+}
+
+# This server's own IPv4 addresses, without Docker's bridges, like
+# "10.0.2.15, 192.168.56.10". Empty where ip is missing (macOS).
+local_ips() {
+    command -v ip >/dev/null 2>&1 || return 0
+    ip -4 -o addr show scope global 2>/dev/null |
+        awk '$2 !~ /^(docker|br-|veth)/ { sub(/\/.*/, "", $4); print $4 }' |
+        paste -sd ',' - | sed 's/,/, /g'
+}
+
+# The address question's answer for HTTPS on the IP address: the address
+# (this server's public one by default) and the port people open. The hint
+# lists the server's own addresses too: in a VM or on a home network the
+# public one is the router's, not this machine's.
+ask_self_signed() {
+    local default_ip=${HTTPS_IP:-} default_port=443 hint='The address of this server that people open.' own
+    [ -n "$default_ip" ] || default_ip=$(server_ip)
+    if port_in_use 443; then default_port=$(first_free_port 8443); fi
+    own=$(local_ips)
+    if [ -n "$own" ]; then hint="$hint This machine's own: $own"; fi
+    ask HTTPS_IP 'IP address' --default "$default_ip" --placeholder '203.0.113.10' \
+        --hint "$hint" --check valid_https_ip
+    ask HTTPS_PORT 'HTTPS port' --default "${HTTPS_PORT:-$default_port}" \
+        --hint 'People open https://ADDRESS:PORT. 443 needs no port in the address.' \
+        --check valid_https_port --status port_status
+    APP_URL=$(self_signed_url)
 }
 
 # A domain name for a certificate: no IP address, no localhost.
@@ -1498,9 +1572,21 @@ https_is_up() {
     curl -fs -o /dev/null --max-time 10 --resolve "$DOMAIN:443:127.0.0.1" "https://$DOMAIN/up" 2>/dev/null
 }
 
+# Caddy answers on the HTTPS port with the app. -k: no client trusts its
+# own certificate yet.
+self_signed_is_up() {
+    curl -fsk -o /dev/null --max-time 10 --connect-to "::127.0.0.1:$HTTPS_PORT" "$(self_signed_url)/up" 2>/dev/null
+}
+
 # After a start: waits (bounded) for the certificate. A timeout is no
 # failure: the app runs, and Caddy keeps trying.
 wait_for_https() {
+    if [ "$SELF_SIGNED" = 1 ]; then
+        run_step "Starting HTTPS on $(self_signed_url)" wait_until 60 self_signed_is_up && return 0
+        warn "HTTPS on $(self_signed_url) does not answer yet."
+        info "See why: cd $(pretty_path "$INSTALL_DIR") && ./manage logs proxy-self-signed"
+        return 0
+    fi
     [ "$BUILTIN_HTTPS" = 1 ] || return 0
     if run_step "Getting the HTTPS certificate for $DOMAIN" wait_until 120 https_is_up; then
         return 0
@@ -1510,12 +1596,20 @@ wait_for_https() {
     info "and 443 are open. See why: cd $(pretty_path "$INSTALL_DIR") && ./manage logs proxy"
 }
 
-# BUILTIN_HTTPS and DOMAIN from an existing install's .env.
+# BUILTIN_HTTPS and DOMAIN, or SELF_SIGNED, HTTPS_IP and HTTPS_PORT, from an
+# existing install's .env.
 read_https_settings() {
-    BUILTIN_HTTPS=0 DOMAIN=''
+    BUILTIN_HTTPS=0 DOMAIN='' SELF_SIGNED=0 HTTPS_IP='' HTTPS_PORT=''
     case ,$(env_value COMPOSE_PROFILES), in *,https,*) BUILTIN_HTTPS=1 ;; esac
+    case ,$(env_value COMPOSE_PROFILES), in *,self-signed,*) SELF_SIGNED=1 ;; esac
     if [ "$BUILTIN_HTTPS" = 1 ]; then DOMAIN=$(env_value CHATVIA_DOMAIN); fi
     [ -n "$DOMAIN" ] || BUILTIN_HTTPS=0
+    if [ "$SELF_SIGNED" = 1 ]; then
+        HTTPS_IP=$(env_value CHATVIA_IP)
+        HTTPS_PORT=$(env_value CHATVIA_HTTPS_PORT)
+        HTTPS_PORT=${HTTPS_PORT:-443}
+    fi
+    [ -n "$HTTPS_IP" ] || SELF_SIGNED=0
 }
 
 # The address question's answer for built-in HTTPS: the domain, then the
@@ -1709,8 +1803,8 @@ collect_settings() {
     # yes and no are the complete installation's answers (--no-https): with
     # Docker they change nothing, like proxy.
     case ${CHATVIA_HTTPS:-} in
-        '' | builtin | proxy | yes | no | true | false | 1 | 0) ;;
-        *) die "With Docker, CHATVIA_HTTPS must be builtin or proxy, not $CHATVIA_HTTPS." ;;
+        '' | builtin | self-signed | proxy | yes | no | true | false | 1 | 0) ;;
+        *) die "With Docker, CHATVIA_HTTPS must be builtin, self-signed or proxy, not $CHATVIA_HTTPS." ;;
     esac
 
     if [ "$INTERACTIVE" = 0 ]; then
@@ -1737,6 +1831,20 @@ collect_settings() {
             check_https_ports || die 'Free ports 80 and 443, or use --https proxy.'
             check_https_dns
         fi
+        if [ "$SELF_SIGNED" = 1 ]; then
+            # --url https://IP[:PORT], else this server's public address on 443.
+            local host=${CHATVIA_URL:-}
+            case $host in
+                '') host=$(server_ip) ;;
+                https://*) host=${host#https://} ;;
+                *) die 'HTTPS on the IP address needs an https:// address: --url https://203.0.113.10:8443' ;;
+            esac
+            HTTPS_IP=${host%%:*} HTTPS_PORT=443
+            case $host in *:*) HTTPS_PORT=${host##*:} ;; esac
+            valid_https_ip "$HTTPS_IP" || die "$INVALID"
+            valid_https_port "$HTTPS_PORT" || die "$INVALID"
+            APP_URL=$(self_signed_url)
+        fi
         valid_url "$APP_URL" || die "$INVALID"
         EMBEDDING_TYPE=${CHATVIA_EMBEDDING_TYPE:-halfvec}
         EMBEDDING_DIMENSIONS=${CHATVIA_EMBEDDING_DIMENSIONS:-1024}
@@ -1757,13 +1865,18 @@ collect_settings() {
         choose 'Where will people open ChatVia.ai?' \
             "On this computer only  — http://localhost:$APP_PORT" \
             'On my domain, ChatVia.ai handles HTTPS  — needs ports 80 and 443 (recommended on a server)' \
+            "On this server's IP address, with HTTPS  — its own certificate: browsers warn until you trust it" \
             'On my own domain or IP address  — your own proxy handles HTTPS'
-        BUILTIN_HTTPS=0
+        BUILTIN_HTTPS=0 SELF_SIGNED=0
         case $CHOICE in
             0) APP_URL="http://localhost:$APP_PORT" ;;
             1)
                 ask_https_domain || continue
                 BUILTIN_HTTPS=1
+                ;;
+            2)
+                ask_self_signed
+                SELF_SIGNED=1
                 ;;
             *)
                 ask APP_URL 'Address' --default "${CHATVIA_URL:-}" --placeholder 'https://chat.example.com' \
@@ -1854,6 +1967,9 @@ show_summary() {
     kv_to password 'Admin password' "$password"
     if [ "$BUILTIN_HTTPS" = 1 ]; then
         kv_to address 'Address' "$APP_URL  $(dim '(HTTPS by ChatVia.ai, on ports 80 and 443)')"
+        kv_to port 'Port' "$APP_PORT $(dim '(this machine only)')"
+    elif [ "$SELF_SIGNED" = 1 ]; then
+        kv_to address 'Address' "$APP_URL  $(dim "(HTTPS by ChatVia.ai, its own certificate, on port $HTTPS_PORT)")"
         kv_to port 'Port' "$APP_PORT $(dim '(this machine only)')"
     else
         kv_to address 'Address' "$APP_URL"
@@ -1971,7 +2087,14 @@ show_finish() {
     note "$title" "$open" "$admin" "$email" "$password" ${saved:+"$saved"}
 
     section 'Next steps'
-    if [ "$BUILTIN_HTTPS" = 0 ] && [ "$APP_URL" != "http://localhost:$APP_PORT" ]; then
+    if [ "$SELF_SIGNED" = 1 ]; then
+        info "$n. If the server has a firewall, open port $HTTPS_PORT (TCP)."
+        info "$((n + 1)). Your browser warns that the connection is not private, as no browser"
+        info '   knows the certificate yet. Choose Advanced, then go on to the address.'
+        info "   To stop the warning on your own devices: $(accent './manage https ca')"
+        info '   Visitors and chat apps (Slack, WhatsApp…) need a domain: ./manage https on --domain NAME'
+        n=$((n + 2))
+    elif [ "$BUILTIN_HTTPS" = 0 ] && [ "$APP_URL" != "http://localhost:$APP_PORT" ]; then
         info "$n. Point your proxy at http://localhost:$APP_PORT and set TRUSTED_PROXIES"
         info '   in .env (see the guide).'
         n=$((n + 1))
@@ -2120,7 +2243,7 @@ do_upgrade() {
     ok "$(bold "ChatVia.ai $CHATVIA_VERSION is running.")"
     # Custom domains need a certificate per domain, which only the built-in
     # HTTPS gets by itself.
-    if [ "$BUILTIN_HTTPS" = 0 ] && [ "$APP_URL" != "http://localhost:$APP_PORT" ]; then
+    if [ "$BUILTIN_HTTPS" = 0 ] && [ "$SELF_SIGNED" = 0 ] && [ "$APP_URL" != "http://localhost:$APP_PORT" ]; then
         info "$(dim "For agents' custom domains, ChatVia.ai can handle HTTPS: ./manage https on")"
     fi
     outro "Open $(accent "$APP_URL")"
@@ -2211,8 +2334,9 @@ valid_host() {
     return 1
 }
 
-# This server's public IPv4 address, for the DNS hint. Asked from outside,
-# as a server behind NAT does not know it; else its own first address.
+# This server's public IPv4 address, for the DNS hint and the address of
+# HTTPS on the IP address. Asked from outside, as a server behind NAT does
+# not know it; else its own first address.
 server_ip() {
     local ip
     ip=$(curl -4 -fsS --max-time 5 https://api.ipify.org 2>/dev/null) || ip=''
@@ -4966,7 +5090,7 @@ parse_args() {
             --email) CHATVIA_ADMIN_EMAIL=${2:?--email needs an address}; shift ;;
             --port) CHATVIA_PORT=${2:?--port needs a number}; shift ;;
             --url) CHATVIA_URL=${2:?--url needs an address}; shift ;;
-            --https) CHATVIA_HTTPS=${2:?--https needs builtin or proxy}; shift ;;
+            --https) CHATVIA_HTTPS=${2:?--https needs builtin, self-signed or proxy}; shift ;;
             --version) CHATVIA_VERSION=${2:?--version needs a version} VERSION_GIVEN=1; shift ;;
             --image) CHATVIA_IMAGE=${2:?--image needs a name}; shift ;;
             --no-pull) NO_PULL=1 ;;
@@ -5017,7 +5141,7 @@ main() {
     MODE=${CHATVIA_INSTALL:-} FORCE=${CHATVIA_FORCE:-0} ARGS=("$@")
     CHATVIA_REPO=${CHATVIA_REPO:-$NATIVE_REPO} CHATVIA_RELEASE='' CHATVIA_BRANCH=''
     DOMAIN='' SERVER_IP='' HTTPS=no FIREWALL=no SWAP=no AUTO_UPDATE=no DNS_READY=1
-    BUILTIN_HTTPS=0
+    BUILTIN_HTTPS=0 SELF_SIGNED=0 HTTPS_IP='' HTTPS_PORT=''
     DATABASE=local DB_HOST=127.0.0.1 DB_PORT=5432 DB_NAME=chatvia DB_USER=chatvia DB_PASS=''
     DB_ANALYTICS=analytics DB_PULSE=pulse DB_SPECTRA=spectra DB_MAJOR=$NATIVE_PG
 
@@ -5033,10 +5157,11 @@ main() {
         [ "$NO_PULL" = 1 ] || [ "$NO_START" = 1 ]; then
         DOCKER_OPTIONS=1
     fi
-    # builtin and proxy are the Docker answers; the complete installation
-    # takes no (--no-https).
+    # builtin, self-signed and proxy are the Docker answers; the complete
+    # installation takes no (--no-https).
     case ${CHATVIA_HTTPS:-} in
         builtin) DOCKER_OPTIONS=1 BUILTIN_HTTPS=1 ;;
+        self-signed) DOCKER_OPTIONS=1 SELF_SIGNED=1 ;;
         proxy) DOCKER_OPTIONS=1 ;;
     esac
 

@@ -120,7 +120,7 @@ do_upgrade() {
     ok "$(bold "ChatVia.ai $CHATVIA_VERSION is running.")"
     # Custom domains need a certificate per domain, which only the built-in
     # HTTPS gets by itself.
-    if [ "$BUILTIN_HTTPS" = 0 ] && [ "$APP_URL" != "http://localhost:$APP_PORT" ]; then
+    if [ "$BUILTIN_HTTPS" = 0 ] && [ "$SELF_SIGNED" = 0 ] && [ "$APP_URL" != "http://localhost:$APP_PORT" ]; then
         info "$(dim "For agents' custom domains, ChatVia.ai can handle HTTPS: ./manage https on")"
     fi
     outro "Open $(accent "$APP_URL")"

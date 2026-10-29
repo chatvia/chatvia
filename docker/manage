@@ -38,7 +38,8 @@ readonly DEFAULT_IMAGE="ghcr.io/chatvia/chatvia"
 readonly MIN_PASSWORD=12
 
 # The long-running services, in the order `status` shows them; the first five
-# use the database. SERVICES adds proxy (Caddy) when built-in HTTPS is on.
+# use the database. SERVICES adds proxy or proxy-self-signed (Caddy) when
+# built-in HTTPS is on.
 readonly BASE_SERVICES="app horizon scheduler reverb pulse postgres redis"
 readonly DATABASE_USERS="app horizon scheduler reverb pulse"
 
@@ -47,6 +48,9 @@ readonly DATABASE_USERS="app horizon scheduler reverb pulse"
 # listens on 127.0.0.1 only.
 readonly HTTPS_TRUSTED_PROXIES="172.16.0.0/12,10.0.0.0/8,192.168.0.0/16"
 readonly HTTPS_ENV_COMMENT="# Built-in HTTPS, by Caddy on ports 80 and 443. Changed by ./manage https."
+readonly SELF_SIGNED_ENV_COMMENT="# Built-in HTTPS on the IP address, with its own certificate. Changed by ./manage https."
+# Where Caddy keeps the root of its own certificates (the self-signed profile).
+readonly SELF_SIGNED_ROOT="/data/caddy/pki/authorities/local/root.crt"
 
 # Where PostgreSQL reads postgres/postgresql.conf inside its container.
 readonly PG_CONF_MOUNT="/etc/postgresql/chatvia"
@@ -1392,6 +1396,12 @@ cmd_status() {
             kv_to https 'HTTPS' "built in  $C_GREEN$S_OK certificate works$C_RESET"
         else
             kv_to https 'HTTPS' "built in  ${C_YELLOW}not working yet$C_RESET  $(dim '(./manage https status)')"
+        fi
+    elif self_signed_on; then
+        if self_signed_is_up; then
+            kv_to https 'HTTPS' "built in, own certificate  $C_GREEN$S_OK answering$C_RESET"
+        else
+            kv_to https 'HTTPS' "built in, own certificate  ${C_YELLOW}not answering$C_RESET  $(dim '(./manage https status)')"
         fi
     else
         kv_to https 'HTTPS' "$(dim 'your own proxy, or none (./manage https on)')"
@@ -2821,10 +2831,85 @@ postgres_start_failed() {
 # compose.yaml's proxy service (Caddy, the https profile) on ports 80 and 443:
 # a certificate for the install's own domain, and one for each agent's custom
 # domain the first time it is opened, after the app says it is a saved one.
+#
+# Or, for a server with no domain name, its proxy-self-signed service (the
+# self-signed profile): HTTPS on the IP address and a port of your choice,
+# with a certificate from Caddy's own authority, which browsers warn about.
 #------------------------------------------------------------------------------
 
 https_on() {
     case ,$(env_value COMPOSE_PROFILES), in *,https,*) [ -n "$(env_value CHATVIA_DOMAIN)" ] ;; *) return 1 ;; esac
+}
+
+self_signed_on() {
+    case ,$(env_value COMPOSE_PROFILES), in *,self-signed,*) [ -n "$(env_value CHATVIA_IP)" ] ;; *) return 1 ;; esac
+}
+
+self_signed_port() {
+    local port
+    port=$(env_value CHATVIA_HTTPS_PORT)
+    printf '%s' "${port:-443}"
+}
+
+# self_signed_url [IP PORT]: the address people open, without :443. Without
+# arguments, the saved ones.
+self_signed_url() {
+    local ip=${1:-$(env_value CHATVIA_IP)} port=${2:-$(self_signed_port)}
+    if [ "$port" = 443 ]; then printf 'https://%s' "$ip"; else printf 'https://%s:%s' "$ip" "$port"; fi
+}
+
+# Caddy answers on the HTTPS port with the app. -k: no client here trusts
+# its own certificate.
+self_signed_is_up() {
+    curl -fsk -o /dev/null --max-time 10 --connect-to "::127.0.0.1:$(self_signed_port)" "$(self_signed_url)/up" 2>/dev/null
+}
+
+# An IPv4 address, each part 0 to 255 without leading zeros (Caddy refuses
+# those).
+valid_https_ip() {
+    local part='(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])'
+    local pattern="^($part\.){3}$part\$"
+    [[ $1 =~ $pattern ]] && return 0
+    INVALID='Type an IPv4 address like 203.0.113.10, without https:// or a port.'
+    return 1
+}
+
+# The HTTPS port for the IP address: a number, and not the app's own port.
+valid_https_port() {
+    if ! [[ $1 =~ ^[0-9]{1,5}$ ]] || [ "$1" -lt 1 ] || [ "$1" -gt 65535 ]; then
+        INVALID='Use a number from 1 to 65535.'
+        return 1
+    fi
+    if [ "$1" = "$(app_port)" ]; then
+        INVALID="Port $1 is ChatVia.ai's own port. Choose another one."
+        return 1
+    fi
+    return 0
+}
+
+# Something on this machine listens on PORT.
+port_busy() {
+    (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null ||
+        { command -v ss >/dev/null 2>&1 && [ -n "$(ss -Hltn "( sport = :$1 )" 2>/dev/null)" ]; } ||
+        { command -v lsof >/dev/null 2>&1 && lsof -nP -iTCP:"$1" -sTCP:LISTEN >/dev/null 2>&1; }
+}
+
+# This server's own IPv4 addresses, without Docker's bridges, like
+# "10.0.2.15, 192.168.56.10". Empty where ip is missing (macOS).
+local_ips() {
+    command -v ip >/dev/null 2>&1 || return 0
+    ip -4 -o addr show scope global 2>/dev/null |
+        awk '$2 !~ /^(docker|br-|veth)/ { sub(/\/.*/, "", $4); print $4 }' |
+        paste -sd ',' - | sed 's/,/, /g'
+}
+
+# This server's public IPv4 address, asked from outside as a server behind
+# NAT does not know it; else its own first address.
+public_ip() {
+    local ip
+    ip=$(curl -4 -fsS --max-time 5 https://api.ipify.org 2>/dev/null) || ip=''
+    valid_https_ip "$ip" 2>/dev/null || ip=$(hostname -I 2>/dev/null | awk '{ print $1 }') || ip=''
+    printf '%s' "$ip"
 }
 
 # The certificate works: Caddy on this machine answers for the domain with
@@ -2848,11 +2933,7 @@ valid_https_domain() {
 https_ports_busy() {
     local port busy=''
     for port in 80 443; do
-        if (exec 3<>"/dev/tcp/127.0.0.1/$port") 2>/dev/null ||
-            { command -v ss >/dev/null 2>&1 && [ -n "$(ss -Hltn "( sport = :$port )" 2>/dev/null)" ]; } ||
-            { command -v lsof >/dev/null 2>&1 && lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; }; then
-            busy="$busy $port"
-        fi
+        if port_busy "$port"; then busy="$busy $port"; fi
     done
     printf '%s' "${busy# }"
 }
@@ -2895,21 +2976,30 @@ cmd_https() {
         on) https_turn_on "$@" ;;
         off) https_turn_off "$@" ;;
         status) https_status "$@" ;;
+        ca) https_ca "$@" ;;
         '' | help | -h | --help) command_help https ;;
-        *) die "Unknown: ./manage https $action" 'Use on, off or status.' ;;
+        *) die "Unknown: ./manage https $action" 'Use on, off, status or ca.' ;;
     esac
 }
 
+# https_turn_on: on the domain (--domain), or on the IP address (--ip,
+# --port). With neither it asks which, or (with --yes) takes the domain in
+# APP_URL, as before there was a choice.
 https_turn_on() {
-    local domain='' url busy
+    local domain='' ip='' port='' kind=''
     while [ $# -gt 0 ]; do
         case $1 in
-            --domain) domain=${2:?--domain needs a name}; shift ;;
+            --domain) domain=${2:?--domain needs a name} kind=domain; shift ;;
+            --ip) ip=${2:?--ip needs an address} kind=self-signed; shift ;;
+            --port) port=${2:?--port needs a number} kind=self-signed; shift ;;
             --yes | -y) YES=1 INTERACTIVE=0 ;;
             *) die "Unknown option: $1" 'See ./manage help https' ;;
         esac
         shift
     done
+    if [ -n "$domain" ] && [ -n "$ip$port" ]; then
+        die 'Use --domain, or --ip and --port, not both.'
+    fi
     intro 'Built-in HTTPS' "$(pretty_path "$DIR")"
     if ! grep -q '^  proxy:' "$DIR/compose.yaml"; then
         die 'This compose.yaml has no built-in HTTPS yet.' 'Upgrade first: ./manage upgrade'
@@ -2917,6 +3007,34 @@ https_turn_on() {
     check_docker
     lock
 
+    if [ -z "$kind" ]; then
+        if https_on; then
+            ok "Built-in HTTPS is already on, for $(bold "$(env_value CHATVIA_DOMAIN)")."
+            outro "$(dim 'See it: ./manage https status')"
+            return
+        fi
+        if self_signed_on; then
+            ok "Built-in HTTPS is already on, at $(bold "$(self_signed_url)")."
+            outro "$(dim 'See it: ./manage https status')"
+            return
+        fi
+        kind=domain
+        if [ "$INTERACTIVE" = 1 ]; then
+            choose 'Where will people open ChatVia.ai?' \
+                "On my domain  — a Let's Encrypt certificate, needs ports 80 and 443" \
+                "On this server's IP address  — its own certificate: browsers warn until you trust it"
+            if [ "$CHOICE" = 1 ]; then kind=self-signed; fi
+        fi
+    fi
+    if [ "$kind" = self-signed ]; then
+        https_on_self_signed "$ip" "$port"
+    else
+        https_on_domain "$domain"
+    fi
+}
+
+https_on_domain() {
+    local domain=$1 url busy
     if https_on && [ -z "$domain" ]; then
         ok "Built-in HTTPS is already on, for $(bold "$(env_value CHATVIA_DOMAIN)")."
         outro "$(dim 'See it: ./manage https status')"
@@ -2952,11 +3070,18 @@ https_turn_on() {
 
     info "ChatVia.ai moves to $(bold "https://$domain"), and its port $(app_port) then only listens"
     info 'on this machine. A short restart follows.'
+    if self_signed_on; then
+        info "$(dim "It replaces HTTPS on $(self_signed_url).")"
+    fi
     if [ "$INTERACTIVE" = 1 ] && ! confirm 'Turn on built-in HTTPS?' y; then
         outro 'Nothing was changed.'
         return
     fi
 
+    if self_signed_on; then
+        run_step 'Stopping HTTPS on the IP address' compose rm -sf proxy-self-signed || die 'Caddy did not stop.'
+        https_remove_settings
+    fi
     if ! grep -qxF "$HTTPS_ENV_COMMENT" "$DIR/.env" 2>/dev/null; then
         printf '\n%s\n' "$HTTPS_ENV_COMMENT" >>"$DIR/.env"
     fi
@@ -2982,41 +3107,150 @@ https_turn_on() {
     outro "$(dim 'Check again: ./manage https status')"
 }
 
+# https_on_self_signed IP PORT: HTTPS on the IP address. An empty IP or PORT
+# is the saved one, else this server's public address and 443 (or the first
+# free port from 8443).
+https_on_self_signed() {
+    local ip=$1 port=$2 url
+    if ! grep -q '^  proxy-self-signed:' "$DIR/compose.yaml"; then
+        die 'This compose.yaml has no HTTPS on the IP address yet.' 'Upgrade first: ./manage upgrade'
+    fi
+    [ -n "$ip" ] || ip=$(env_value CHATVIA_IP)
+    [ -n "$ip" ] || ip=$(public_ip)
+    if [ -z "$port" ]; then
+        port=$(env_value CHATVIA_HTTPS_PORT)
+        if [ -z "$port" ]; then
+            port=443
+            if port_busy 443; then
+                port=8443
+                while port_busy "$port"; do port=$((port + 1)); done
+            fi
+        fi
+    fi
+    if [ "$INTERACTIVE" = 1 ]; then
+        # The server's own addresses too: in a VM or on a home network the
+        # public one is the router's, not this machine's.
+        local hint='The address of this server that people open.' own
+        own=$(local_ips)
+        if [ -n "$own" ]; then hint="$hint This machine's own: $own"; fi
+        ask ip 'IP address' --default "$ip" --placeholder '203.0.113.10' \
+            --hint "$hint" --check valid_https_ip
+        ask port 'HTTPS port' --default "$port" \
+            --hint 'People open https://ADDRESS:PORT. 443 needs no port in the address.' \
+            --check valid_https_port
+    fi
+    [ -n "$ip" ] || die 'Name the address: ./manage https on --ip 203.0.113.10 --port 8443'
+    valid_https_ip "$ip" || die "$INVALID"
+    valid_https_port "$port" || die "$INVALID"
+    url=$(self_signed_url "$ip" "$port")
+
+    # The port Caddy holds now is no clash.
+    if ! { is_running proxy-self-signed && [ "$port" = "$(self_signed_port)" ]; } && port_busy "$port"; then
+        die "Port $port is already in use on this machine." 'Choose another one: ./manage https on --port PORT'
+    fi
+
+    info "ChatVia.ai moves to $(bold "$url"), and its port $(app_port) then only listens"
+    info 'on this machine. A short restart follows.'
+    info 'Browsers warn about the certificate until you trust it (./manage https ca).'
+    if https_on; then
+        info "$(dim "It replaces HTTPS for $(env_value CHATVIA_DOMAIN), and agents' custom domains stop working.")"
+    fi
+    if [ "$INTERACTIVE" = 1 ] && ! confirm 'Turn on built-in HTTPS?' y; then
+        outro 'Nothing was changed.'
+        return
+    fi
+
+    if https_on; then
+        run_step 'Stopping HTTPS on the domain' compose rm -sf proxy || die 'Caddy did not stop.'
+        https_remove_settings
+    fi
+    if ! grep -qxF "$SELF_SIGNED_ENV_COMMENT" "$DIR/.env" 2>/dev/null; then
+        printf '\n%s\n' "$SELF_SIGNED_ENV_COMMENT" >>"$DIR/.env"
+    fi
+    set_env_value COMPOSE_PROFILES "$(with_item "$(env_value COMPOSE_PROFILES)" self-signed)"
+    set_env_value CHATVIA_IP "$ip"
+    set_env_value CHATVIA_HTTPS_PORT "$port"
+    set_env_value APP_BIND_IP 127.0.0.1
+    set_env_value TRUSTED_PROXIES "$(with_item "$(env_value TRUSTED_PROXIES)" "$HTTPS_TRUSTED_PROXIES")"
+    set_env_value APP_URL "$url"
+    set_env_value SESSION_SECURE_COOKIE true
+    ok "Settings saved $(dim "$(pretty_path "$DIR")/.env")"
+
+    # The service is recreated, so a changed address or port reaches Caddy.
+    run_step 'Starting Caddy and restarting ChatVia.ai' compose up -d --remove-orphans --force-recreate proxy-self-signed app ||
+        start_failed
+    run_step 'Starting the other services' compose up -d --remove-orphans || start_failed
+    run_step 'Waiting for the web app' wait_until 180 app_is_up ||
+        die 'The web app did not answer within 3 minutes.' 'See why: ./manage status, then ./manage logs app'
+    if ! run_step "Starting HTTPS on $url" wait_until 60 self_signed_is_up; then
+        warn "HTTPS on $url does not answer yet."
+        info 'See why: ./manage logs proxy-self-signed'
+        outro "$(dim 'Check again: ./manage https status')"
+        return
+    fi
+    info "If the server has a firewall, open port $port (TCP)."
+    info "To stop the browser warning on your own devices: $(accent './manage https ca')"
+    outro "ChatVia.ai is running at $(accent "$url")"
+}
+
+# Takes the lines of both kinds of built-in HTTPS out of .env, keeping any
+# other profiles and trusted proxies.
+https_remove_settings() {
+    local profiles proxies
+    profiles=$(without_item "$(without_item "$(env_value COMPOSE_PROFILES)" https)" self-signed)
+    proxies=$(without_item "$(env_value TRUSTED_PROXIES)" "$HTTPS_TRUSTED_PROXIES")
+    unset_env_value "$HTTPS_ENV_COMMENT" "$SELF_SIGNED_ENV_COMMENT" CHATVIA_DOMAIN CHATVIA_IP CHATVIA_HTTPS_PORT \
+        APP_BIND_IP CHATVIA_ON_DEMAND_TLS COMPOSE_PROFILES TRUSTED_PROXIES
+    if [ -n "$profiles" ]; then set_env_value COMPOSE_PROFILES "$profiles"; fi
+    if [ -n "$proxies" ]; then set_env_value TRUSTED_PROXIES "$proxies"; fi
+}
+
 https_turn_off() {
-    local domain port
+    local domain ip port service
     no_options "$@"
     intro 'Built-in HTTPS' "$(pretty_path "$DIR")"
     check_docker
     lock
-    if ! https_on; then
+    if ! https_on && ! self_signed_on; then
         ok 'Built-in HTTPS is already off.'
         outro "$(dim 'Turn it on: ./manage https on')"
         return
     fi
-    domain=$(env_value CHATVIA_DOMAIN)
     port=$(app_port)
-    warn "Without it, nothing here answers on ports 80 and 443, and agents' custom"
-    info 'domains get no new certificates. Your own proxy then has to handle HTTPS.'
-    info "ChatVia.ai keeps the address https://$domain, and its port $port opens to the network."
+    if https_on; then
+        service=proxy
+        domain=$(env_value CHATVIA_DOMAIN)
+        warn "Without it, nothing here answers on ports 80 and 443, and agents' custom"
+        info 'domains get no new certificates. Your own proxy then has to handle HTTPS.'
+        info "ChatVia.ai keeps the address https://$domain, and its port $port opens to the network."
+    else
+        service=proxy-self-signed
+        ip=$(env_value CHATVIA_IP)
+        warn "Without it, nothing answers on $(self_signed_url) any more."
+        info "ChatVia.ai moves to http://$ip:$port (no HTTPS), as its port $port opens to the network."
+    fi
     if [ "$INTERACTIVE" = 1 ] && ! confirm 'Turn off built-in HTTPS?' n; then
         outro 'Nothing was changed.'
         return
     fi
 
-    run_step 'Stopping Caddy' compose rm -sf proxy || die 'Caddy did not stop.'
-    local profiles proxies
-    profiles=$(without_item "$(env_value COMPOSE_PROFILES)" https)
-    proxies=$(without_item "$(env_value TRUSTED_PROXIES)" "$HTTPS_TRUSTED_PROXIES")
-    unset_env_value "$HTTPS_ENV_COMMENT" CHATVIA_DOMAIN APP_BIND_IP CHATVIA_ON_DEMAND_TLS COMPOSE_PROFILES TRUSTED_PROXIES
-    if [ -n "$profiles" ]; then set_env_value COMPOSE_PROFILES "$profiles"; fi
-    if [ -n "$proxies" ]; then set_env_value TRUSTED_PROXIES "$proxies"; fi
+    run_step 'Stopping Caddy' compose rm -sf "$service" || die 'Caddy did not stop.'
+    https_remove_settings
+    if [ "$service" = proxy-self-signed ]; then
+        set_env_value APP_URL "http://$ip:$port"
+        unset_env_value SESSION_SECURE_COOKIE
+    fi
     ok "Settings saved $(dim "$(pretty_path "$DIR")/.env")"
 
     run_step 'Restarting ChatVia.ai' compose up -d --remove-orphans || start_failed
     run_step 'Waiting for the web app' wait_until 180 app_is_up ||
         die 'The web app did not answer within 3 minutes.' 'See why: ./manage status, then ./manage logs app'
-    info "Point your proxy at http://localhost:$port, and add its address to TRUSTED_PROXIES in .env."
-    info "$(dim 'The certificates stay saved, for when you turn it on again.')"
+    if [ "$service" = proxy ]; then
+        info "Point your proxy at http://localhost:$port, and add its address to TRUSTED_PROXIES in .env."
+        info "$(dim 'The certificates stay saved, for when you turn it on again.')"
+    else
+        info "$(dim 'Its certificate authority stays saved: devices that trust it keep working when you turn it on again.')"
+    fi
     outro 'Built-in HTTPS is off.'
 }
 
@@ -3024,6 +3258,10 @@ https_status() {
     no_options "$@"
     intro 'Built-in HTTPS' "$(pretty_path "$DIR")"
     check_docker
+    if self_signed_on; then
+        self_signed_status
+        return
+    fi
     if ! https_on; then
         info "Off. $(dim 'ChatVia.ai answers on its port, for your own proxy.')"
         outro "$(dim 'Turn it on: ./manage https on')"
@@ -3050,6 +3288,50 @@ https_status() {
         while IFS= read -r name; do info "$name"; done <<<"$names"
     fi
     outro "$(dim "Agents' custom domains get theirs the first time they are opened.")"
+}
+
+self_signed_status() {
+    local address caddy answers certificate
+    if is_running proxy-self-signed; then caddy="$C_GREEN$S_OK running$C_RESET"; else caddy="${C_RED}stopped$C_RESET"; fi
+    kv_to address 'Address' "$(self_signed_url)"
+    kv_to caddy 'Caddy' "$caddy"
+    if self_signed_is_up; then
+        kv_to answers 'Answers' "$C_GREEN$S_OK yes$C_RESET"
+    else
+        kv_to answers 'Answers' "${C_YELLOW}not yet$C_RESET  $(dim '(./manage logs proxy-self-signed)')"
+    fi
+    kv_to certificate 'Certificate' "its own $(dim '(browsers warn until they trust it)')"
+    note "$(bold 'On, on the IP address')" "$address" "$caddy" "$answers" "$certificate"
+    info "$(dim 'Stop the warning on your own devices: ./manage https ca')"
+    outro "$(dim "Visitors on other websites, chat apps and agents' custom domains need a domain: ./manage https on --domain NAME")"
+}
+
+# Saves the root of Caddy's own certificates next to compose.yaml, for
+# devices that should trust HTTPS on the IP address without a warning.
+https_ca() {
+    no_options "$@"
+    intro 'HTTPS root certificate' "$(pretty_path "$DIR")"
+    check_docker
+    self_signed_on || die 'This is for HTTPS on the IP address, which is off.' 'Turn it on: ./manage https on'
+    is_running proxy-self-signed || die 'Caddy is not running.' 'Start it: ./manage start'
+    local file="$DIR/chatvia-root-ca.crt" fingerprint
+    run_step 'Saving the root certificate' compose cp "proxy-self-signed:$SELF_SIGNED_ROOT" "$file" ||
+        die 'The root certificate was not saved.' 'See why: ./manage logs proxy-self-signed'
+    chmod 644 "$file"
+    ok "Saved $(bold "$(pretty_path "$file")")"
+    if command -v openssl >/dev/null 2>&1; then
+        fingerprint=$(openssl x509 -noout -fingerprint -sha256 -in "$file" 2>/dev/null | sed 's/^.*=//') || fingerprint=''
+        if [ -n "$fingerprint" ]; then info "$(dim "SHA-256 $fingerprint")"; fi
+    fi
+    section 'Trust it on each of your devices'
+    info 'Copy the file over, then add it as a trusted root certificate:'
+    info "Mac: open it, then in Keychain Access set it to $(bold 'Always Trust')."
+    info "Windows: open it, Install Certificate, Local Machine, $(bold 'Trusted Root Certification Authorities')."
+    info 'Firefox: Settings, Privacy & Security, View Certificates, Authorities, Import.'
+    info 'Then restart the browser.'
+    warn 'Only on your own devices: a device that trusts it accepts every certificate'
+    info "this server's Caddy makes, and anyone with this server's Caddy data can make them."
+    outro "$(dim 'The file holds no secret: the private key stays in Caddy.')"
 }
 
 cmd_uninstall() {
@@ -3118,7 +3400,7 @@ usage() {
     help_row 'logs [SERVICE]' 'Follow the logs (Ctrl-C to stop)'
     help_row 'upgrade' 'Back up, then upgrade to the newest version'
     help_row 'rollback [FILE]' 'Go back to the version before the last upgrade'
-    help_row 'https on|off|status' 'Built-in HTTPS on ports 80 and 443 (Caddy)'
+    help_row 'https on|off|status' 'Built-in HTTPS on your domain or the IP address (and ca)'
     help_section 'Backups'
     help_row 'backup' 'Back up the database, the app key and Redis'
     help_row 'backups' 'List the backups'
@@ -3198,11 +3480,16 @@ command_help() {
         https)
             info 'Built-in HTTPS: Caddy answers on ports 80 and 443 and gets the Let'"'"'s Encrypt'
             info "certificates by itself, for your domain and for agents' custom domains."
+            info 'A server with no domain name can have HTTPS on its IP address instead, on a'
+            info 'port you choose, with a certificate of its own that browsers warn about.'
             info "The app's own port then only listens on this machine."
-            help_option 'on' 'Turn it on (asks for the domain), then restart'
+            help_option 'on' 'Turn it on (asks which kind), then restart'
             help_option 'off' 'Turn it off, for your own proxy; the certificates are kept'
             help_option 'status' 'Show whether it works, and the certificates'
+            help_option 'ca' 'IP address: save the root certificate, for your devices to trust'
             help_option '--domain NAME' 'on: the domain, without asking'
+            help_option '--ip IP' 'on: HTTPS on this IP address, without asking'
+            help_option '--port PORT' 'on: its HTTPS port (default 443)'
             help_option '--yes' 'No questions'
             ;;
         backups) info 'Lists the backups, oldest first.' ;;
@@ -3292,6 +3579,7 @@ main() {
     fi
     SERVICES=$BASE_SERVICES
     if https_on; then SERVICES="proxy $SERVICES"; fi
+    if self_signed_on; then SERVICES="proxy-self-signed $SERVICES"; fi
 
     COMMAND=${1:-help}
     if [ $# -gt 0 ]; then shift; fi

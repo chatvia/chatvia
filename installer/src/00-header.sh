@@ -52,6 +52,9 @@
 #   --url URL           address people open          CHATVIA_URL (http://localhost:PORT)
 #   --https builtin     ChatVia.ai handles HTTPS     CHATVIA_HTTPS=builtin (needs ports 80, 443
 #                       and --url https://DOMAIN or --domain DOMAIN)
+#   --https self-signed ChatVia.ai handles HTTPS on the IP address, with its own
+#                       certificate (browsers warn)  CHATVIA_HTTPS=self-signed
+#                       (--url https://IP:PORT; else this server's address on 443)
 #   --https proxy       your own proxy handles HTTPS CHATVIA_HTTPS=proxy (the default)
 #   CHATVIA_HTTPS=yes or no (the complete installation's values) changes
 #   nothing here.
@@ -62,8 +65,8 @@
 # Only with the complete installation:
 #   --domain NAME       domain name or IP address people open   CHATVIA_DOMAIN
 #   --no-https          no Let's Encrypt certificate (HTTP only) CHATVIA_HTTPS=no
-#   CHATVIA_HTTPS here is yes (the default) or no; builtin and proxy are
-#   the Docker answers (--https).
+#   CHATVIA_HTTPS here is yes (the default) or no; builtin, self-signed and
+#   proxy are the Docker answers (--https).
 #   --no-firewall       leave the firewall (ufw) as it is        CHATVIA_FIREWALL=no
 #   --force             install on a server that is not fresh    CHATVIA_FORCE=1
 #   --no-auto-update    no automatic updates (once a night)      CHATVIA_AUTO_UPDATE=no

@@ -11,10 +11,7 @@
             "empty": "Ainda não há capacidades disponíveis.",
             "enable_failed": "Não foi possível ativar esta capacidade",
             "disable_failed": "Não foi possível desativar esta capacidade",
-            "turned_off_by_admin": "Desativado pelo seu administrador",
-            "model_choice_image": "Permitir que as pessoas escolham o modelo de imagem",
-            "model_choice_video": "Permitir que as pessoas escolham o modelo de vídeo",
-            "model_choice_failed": "Não foi possível alterar a escolha do modelo"
+            "turned_off_by_admin": "Desativado pelo seu administrador"
         }
     }
 }

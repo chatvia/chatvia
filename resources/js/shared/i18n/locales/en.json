@@ -2139,7 +2139,12 @@
             "multi_model": "Multi-model",
             "multi_model_help": "Pick several models. Chatters then choose which one answers, in the hosted chat, the chat widget and the command bar, for each message and when they ask for a new answer.",
             "multi_model_placeholder": "Choose models",
-            "multi_model_hint": "The first model answers until a chatter picks another. Pick at least two, or chatters see no picker."
+            "multi_model_hint": "The first model answers until a chatter picks another. Pick at least two, or chatters see no picker.",
+            "media_models_title": "Picture and video models",
+            "media_models_description": "Chatters can pick the model for their next picture or video at the top of the hosted chat.",
+            "media_model_choice_image": "Let people choose the image model",
+            "media_model_choice_video": "Let people choose the video model",
+            "media_models_offered": "Chatters pick from: {models}."
         },
         "topics_index": {
             "title": "Topics",
@@ -2401,10 +2406,7 @@
             "connect_connector": "Connect {names}",
             "book_through": "Book through",
             "provider_failed": "Could not change the booking service",
-            "turned_off_by_admin": "Turned off by your admin",
-            "model_choice_image": "Let people choose the image model",
-            "model_choice_video": "Let people choose the video model",
-            "model_choice_failed": "Could not change the model choice"
+            "turned_off_by_admin": "Turned off by your admin"
         },
         "forms": {
             "page_title": "Forms",

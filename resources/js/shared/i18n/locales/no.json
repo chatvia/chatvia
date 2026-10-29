@@ -2139,7 +2139,12 @@
             "multi_model": "Flere modeller",
             "multi_model_help": "Velg flere modeller. Chattere velger da hvilken som svarer, i den hostede chatten, chat-widgeten og kommandolinjen, for hver melding og når de ber om et nytt svar.",
             "multi_model_placeholder": "Velg modeller",
-            "multi_model_hint": "Den første modellen svarer til en chatter velger en annen. Velg minst to, ellers ser chattere ingen velger."
+            "multi_model_hint": "Den første modellen svarer til en chatter velger en annen. Velg minst to, ellers ser chattere ingen velger.",
+            "media_models_title": "Bilde- og videomodeller",
+            "media_models_description": "Chattere kan velge modellen for neste bilde eller video øverst i den hostede chatten.",
+            "media_model_choice_image": "La folk velge bildemodellen",
+            "media_model_choice_video": "La folk velge videomodellen",
+            "media_models_offered": "Chattere velger mellom: {models}."
         },
         "topics_index": {
             "title": "Emner",
@@ -2401,10 +2406,7 @@
             "connect_connector": "Koble til {names}",
             "book_through": "Book via",
             "provider_failed": "Kunne ikke endre bookingtjenesten",
-            "turned_off_by_admin": "Slått av av administratoren din",
-            "model_choice_image": "La folk velge bildemodellen",
-            "model_choice_video": "La folk velge videomodellen",
-            "model_choice_failed": "Kunne ikke endre modellvalget"
+            "turned_off_by_admin": "Slått av av administratoren din"
         },
         "forms": {
             "page_title": "Skjemaer",

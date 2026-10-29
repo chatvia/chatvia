@@ -2139,7 +2139,12 @@
             "multi_model": "Wiele modeli",
             "multi_model_help": "Wybierz kilka modeli. Rozmówcy wybierają wtedy, który odpowiada, w czacie hostowanym, widżecie czatu i pasku poleceń, dla każdej wiadomości i przy prośbie o nową odpowiedź.",
             "multi_model_placeholder": "Wybierz modele",
-            "multi_model_hint": "Pierwszy model odpowiada, dopóki rozmówca nie wybierze innego. Wybierz co najmniej dwa, inaczej rozmówcy nie zobaczą wyboru."
+            "multi_model_hint": "Pierwszy model odpowiada, dopóki rozmówca nie wybierze innego. Wybierz co najmniej dwa, inaczej rozmówcy nie zobaczą wyboru.",
+            "media_models_title": "Modele obrazów i wideo",
+            "media_models_description": "Czatujący mogą wybrać model dla następnego obrazu lub wideo u góry czatu hostowanego.",
+            "media_model_choice_image": "Pozwól wybierać model obrazów",
+            "media_model_choice_video": "Pozwól wybierać model wideo",
+            "media_models_offered": "Czatujący wybierają spośród: {models}."
         },
         "topics_index": {
             "title": "Tematy",
@@ -2401,10 +2406,7 @@
             "connect_connector": "Połącz {names}",
             "book_through": "Rezerwuj przez",
             "provider_failed": "Nie udało się zmienić usługi rezerwacji",
-            "turned_off_by_admin": "Wyłączone przez administratora",
-            "model_choice_image": "Pozwól wybierać model obrazów",
-            "model_choice_video": "Pozwól wybierać model wideo",
-            "model_choice_failed": "Nie udało się zmienić wyboru modelu"
+            "turned_off_by_admin": "Wyłączone przez administratora"
         },
         "forms": {
             "page_title": "Formularze",

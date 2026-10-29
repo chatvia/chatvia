@@ -2139,7 +2139,12 @@
             "multi_model": "Multi-modèle",
             "multi_model_help": "Choisissez plusieurs modèles. Les utilisateurs choisissent alors lequel répond, dans le chat hébergé, le widget de chat et la barre de commande, pour chaque message et quand ils demandent une nouvelle réponse.",
             "multi_model_placeholder": "Choisir des modèles",
-            "multi_model_hint": "Le premier modèle répond tant qu'un utilisateur n'en choisit pas un autre. Choisissez-en au moins deux, sinon les utilisateurs ne voient pas de sélecteur."
+            "multi_model_hint": "Le premier modèle répond tant qu'un utilisateur n'en choisit pas un autre. Choisissez-en au moins deux, sinon les utilisateurs ne voient pas de sélecteur.",
+            "media_models_title": "Modèles d'image et de vidéo",
+            "media_models_description": "Les chatters peuvent choisir le modèle de leur prochaine image ou vidéo en haut du chat hébergé.",
+            "media_model_choice_image": "Laisser les personnes choisir le modèle d'image",
+            "media_model_choice_video": "Laisser les personnes choisir le modèle vidéo",
+            "media_models_offered": "Les chatters choisissent parmi : {models}."
         },
         "topics_index": {
             "title": "Sujets",
@@ -2401,10 +2406,7 @@
             "connect_connector": "Connecter {names}",
             "book_through": "Réserver via",
             "provider_failed": "Impossible de modifier le service de réservation",
-            "turned_off_by_admin": "Désactivé par votre administrateur",
-            "model_choice_image": "Laisser les personnes choisir le modèle d'image",
-            "model_choice_video": "Laisser les personnes choisir le modèle vidéo",
-            "model_choice_failed": "Impossible de modifier le choix du modèle"
+            "turned_off_by_admin": "Désactivé par votre administrateur"
         },
         "forms": {
             "page_title": "Formulaires",

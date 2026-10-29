@@ -114,6 +114,11 @@
             "multi_model_help": "Vælg flere modeller. Chattere vælger så, hvilken der svarer, i den hostede chat, chatwidgeten og kommandolinjen, for hver besked og når de beder om et nyt svar.",
             "multi_model_placeholder": "Vælg modeller",
             "multi_model_hint": "Den første model svarer, indtil en chatter vælger en anden. Vælg mindst to, ellers ser chattere ingen vælger.",
+            "media_models_title": "Billed- og videomodeller",
+            "media_models_description": "Chattere kan vælge modellen til deres næste billede eller video øverst i den hostede chat.",
+            "media_model_choice_image": "Lad folk vælge billedmodellen",
+            "media_model_choice_video": "Lad folk vælge videomodellen",
+            "media_models_offered": "Chattere vælger mellem: {models}.",
             "behavior": {
                 "hosted_title": "Adfærd for hostet chat",
                 "hosted_description": "Iframe-indstillinger for den indlejrede hostede chatoverflade.",

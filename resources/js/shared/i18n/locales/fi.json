@@ -2139,7 +2139,12 @@
             "multi_model": "Monta mallia",
             "multi_model_help": "Valitse useita malleja. Keskustelijat valitsevat sitten, mikä vastaa, isännöidyssä chatissa, chat-widgetissä ja komentopalkissa, jokaiselle viestille ja uutta vastausta pyytäessään.",
             "multi_model_placeholder": "Valitse mallit",
-            "multi_model_hint": "Ensimmäinen malli vastaa, kunnes keskustelija valitsee toisen. Valitse vähintään kaksi, muuten keskustelijat eivät näe valitsinta."
+            "multi_model_hint": "Ensimmäinen malli vastaa, kunnes keskustelija valitsee toisen. Valitse vähintään kaksi, muuten keskustelijat eivät näe valitsinta.",
+            "media_models_title": "Kuva- ja videomallit",
+            "media_models_description": "Keskustelijat voivat valita mallin seuraavalle kuvalleen tai videolleen isännöidyn chatin yläosasta.",
+            "media_model_choice_image": "Anna ihmisten valita kuvamalli",
+            "media_model_choice_video": "Anna ihmisten valita videomalli",
+            "media_models_offered": "Keskustelijat valitsevat näistä: {models}."
         },
         "topics_index": {
             "title": "Aiheet",
@@ -2401,10 +2406,7 @@
             "connect_connector": "Yhdistä {names}",
             "book_through": "Varauspalvelu",
             "provider_failed": "Varauspalvelun vaihtaminen epäonnistui",
-            "turned_off_by_admin": "Ylläpitäjäsi on poistanut tämän käytöstä",
-            "model_choice_image": "Anna ihmisten valita kuvamalli",
-            "model_choice_video": "Anna ihmisten valita videomalli",
-            "model_choice_failed": "Mallivalintaa ei voitu muuttaa"
+            "turned_off_by_admin": "Ylläpitäjäsi on poistanut tämän käytöstä"
         },
         "forms": {
             "page_title": "Lomakkeet",

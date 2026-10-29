@@ -114,6 +114,11 @@
             "multi_model_help": "Wybierz kilka modeli. Rozmówcy wybierają wtedy, który odpowiada, w czacie hostowanym, widżecie czatu i pasku poleceń, dla każdej wiadomości i przy prośbie o nową odpowiedź.",
             "multi_model_placeholder": "Wybierz modele",
             "multi_model_hint": "Pierwszy model odpowiada, dopóki rozmówca nie wybierze innego. Wybierz co najmniej dwa, inaczej rozmówcy nie zobaczą wyboru.",
+            "media_models_title": "Modele obrazów i wideo",
+            "media_models_description": "Czatujący mogą wybrać model dla następnego obrazu lub wideo u góry czatu hostowanego.",
+            "media_model_choice_image": "Pozwól wybierać model obrazów",
+            "media_model_choice_video": "Pozwól wybierać model wideo",
+            "media_models_offered": "Czatujący wybierają spośród: {models}.",
             "behavior": {
                 "hosted_title": "Zachowanie hostowanego czatu",
                 "hosted_description": "Opcje iframe dla osadzonej powierzchni hostowanego czatu.",

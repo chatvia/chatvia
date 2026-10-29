@@ -2139,7 +2139,12 @@
             "multi_model": "Flere modeller",
             "multi_model_help": "Vælg flere modeller. Chattere vælger så, hvilken der svarer, i den hostede chat, chatwidgeten og kommandolinjen, for hver besked og når de beder om et nyt svar.",
             "multi_model_placeholder": "Vælg modeller",
-            "multi_model_hint": "Den første model svarer, indtil en chatter vælger en anden. Vælg mindst to, ellers ser chattere ingen vælger."
+            "multi_model_hint": "Den første model svarer, indtil en chatter vælger en anden. Vælg mindst to, ellers ser chattere ingen vælger.",
+            "media_models_title": "Billed- og videomodeller",
+            "media_models_description": "Chattere kan vælge modellen til deres næste billede eller video øverst i den hostede chat.",
+            "media_model_choice_image": "Lad folk vælge billedmodellen",
+            "media_model_choice_video": "Lad folk vælge videomodellen",
+            "media_models_offered": "Chattere vælger mellem: {models}."
         },
         "topics_index": {
             "title": "Emner",
@@ -2401,10 +2406,7 @@
             "connect_connector": "Tilslut {names}",
             "book_through": "Book via",
             "provider_failed": "Bookingtjenesten kunne ikke ændres",
-            "turned_off_by_admin": "Slået fra af din administrator",
-            "model_choice_image": "Lad folk vælge billedmodellen",
-            "model_choice_video": "Lad folk vælge videomodellen",
-            "model_choice_failed": "Kunne ikke ændre modelvalget"
+            "turned_off_by_admin": "Slået fra af din administrator"
         },
         "forms": {
             "page_title": "Formularer",

@@ -12,6 +12,11 @@
  * into a multi-select: chatters then pick among the chosen models in the
  * hosted chat, the widget and the command bar. The first one chosen is the
  * agent's own model, which answers until a chatter picks another.
+ *
+ * While the agent has Image or Video generation (Capabilities), a switch
+ * per kind lets chatters pick that model in the hosted chat's header, from
+ * the ones the admin ticked. Like Multi-model it is locked while the admin
+ * does not let agents offer a choice, unless it is still on from before.
  */
 import SetupSaveFooter from '@/dashboard/agents/components/setup/SetupSaveFooter.vue';
 import ChatModelLogo from '@/chat/components/ChatModelLogo.vue';
@@ -31,7 +36,8 @@ import { Slider } from '@/shared/ui/slider';
 import { Switch } from '@/shared/ui/switch';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip';
 import { useSetupContext } from '@/dashboard/agents/composables/setup/useSetupContext';
-import type { ReasoningEffort } from '@/dashboard/agents/composables/setup/useSetupModel';
+import type { MediaModelChoice, ReasoningEffort } from '@/dashboard/agents/composables/setup/useSetupModel';
+import { useLocaleDate } from '@/shared/composables/useLocaleDate';
 import { ChevronDown, Info, Server, Wrench } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -46,9 +52,11 @@ const props = defineProps<{
     defaultModel: number | null;
     reasoningAllowed: boolean;
     modelChoiceAllowed: boolean;
+    mediaModelChoice: MediaModelChoice;
 }>();
 
 const { t } = useI18n();
+const { intlLocale } = useLocaleDate();
 const { locked, model } = useSetupContext();
 const { form, isSaving, save } = model;
 
@@ -94,6 +102,32 @@ const chosenIds = computed<number[]>(() => [
 const chosenModels = computed(() =>
     chosenIds.value.map((id) => props.catalog.find((llm) => llm.id === id)).filter((llm): llm is Llm => llm !== undefined),
 );
+
+type MediaKind = keyof MediaModelChoice;
+
+/** The image and video switches to show: the agent has the capability, and the admin allows a choice or it is still on. */
+const mediaKinds = computed<MediaKind[]>(() =>
+    (['image', 'video'] as const).filter((kind) => {
+        const choice = props.mediaModelChoice[kind];
+
+        return choice.capability && (choice.allowed || form[`${kind}_model_choice_enabled`]);
+    }),
+);
+
+const mediaLabels = computed<Record<MediaKind, string>>(() => ({
+    image: t('agents.setup.media_model_choice_image'),
+    video: t('agents.setup.media_model_choice_video'),
+}));
+
+/** The models chatters would pick from, as "A, B and C" in the UI language. */
+function mediaModelNames(kind: MediaKind): string {
+    const names = props.mediaModelChoice[kind].models.map((model) => model.name);
+    try {
+        return new Intl.ListFormat(intlLocale.value, { type: 'conjunction' }).format(names);
+    } catch {
+        return names.join(', ');
+    }
+}
 
 /** Ticks or unticks a model. Unticking the agent's own hands its place to the next one; the last one stays. */
 function choose(llm: Llm, on: boolean): void {
@@ -239,6 +273,29 @@ function choose(llm: Llm, on: boolean): void {
                     {{ t('agents.setup.model_no_tools_description') }}
                 </AlertDescription>
             </Alert>
+        </div>
+
+        <div v-if="mediaKinds.length" class="max-w-md space-y-4 border-t pt-6">
+            <div class="space-y-1">
+                <h3 class="text-sm font-medium">{{ t('agents.setup.media_models_title') }}</h3>
+                <p class="text-muted-foreground text-sm">{{ t('agents.setup.media_models_description') }}</p>
+            </div>
+            <div v-for="kind in mediaKinds" :key="kind" class="space-y-1">
+                <div class="flex items-center justify-between gap-4">
+                    <Label :for="`media-model-choice-${kind}`" class="text-sm font-normal">{{ mediaLabels[kind] }}</Label>
+                    <Switch
+                        :id="`media-model-choice-${kind}`"
+                        v-model="form[`${kind}_model_choice_enabled`]"
+                        :disabled="locked || (!mediaModelChoice[kind].allowed && !form[`${kind}_model_choice_enabled`])"
+                    />
+                </div>
+                <p v-if="form[`${kind}_model_choice_enabled`] && mediaModelChoice[kind].models.length" class="text-muted-foreground text-xs">
+                    {{ t('agents.setup.media_models_offered', { models: mediaModelNames(kind) }) }}
+                </p>
+                <p v-if="form.errors[`${kind}_model_choice_enabled`]" class="text-destructive text-sm">
+                    {{ form.errors[`${kind}_model_choice_enabled`] }}
+                </p>
+            </div>
         </div>
 
         <div class="space-y-1 border-t pt-6">

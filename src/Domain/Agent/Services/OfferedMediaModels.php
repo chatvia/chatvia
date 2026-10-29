@@ -13,8 +13,8 @@ use Illuminate\Support\Collection;
 /**
  * The image and video models a chatter may pick in the hosted chat. The
  * admin lets agents offer a choice and ticks the models (Settings → AI
- * models), of the one service in use; the agent turns it on under
- * Capabilities, with the capability itself on. The admin's model is always
+ * models), of the one service in use; the agent turns it on under Setup →
+ * Model, with the capability itself on. The admin's model is always
  * offered, first, as the default. One model is no choice, so fewer than two
  * offer none. Audio files have no choice.
  */
@@ -32,13 +32,18 @@ final readonly class OfferedMediaModels
      */
     public function for(Agent $agent, GeneratedMediaKind $kind): array
     {
-        $ids = $this->offered($agent, $kind);
+        return $this->models($kind, $this->offered($agent, $kind));
+    }
 
-        return $ids->map(fn (string $id): OfferedMediaModelData => new OfferedMediaModelData(
-            id: $id,
-            name: $this->name($kind, $id),
-            is_default: $id === $ids->first(),
-        ))->all();
+    /**
+     * The models the admin lets agents offer, whether or not this agent does:
+     * what Setup → Model lists next to the agent's switch.
+     *
+     * @return list<OfferedMediaModelData>
+     */
+    public function choices(GeneratedMediaKind $kind): array
+    {
+        return $this->models($kind, $this->allowed($kind));
     }
 
     /** The picked model when the agent offers it; null otherwise (the admin's model is used). */
@@ -51,6 +56,12 @@ final readonly class OfferedMediaModels
     public function isAllowed(GeneratedMediaKind $kind): bool
     {
         return $this->allowed($kind)->isNotEmpty();
+    }
+
+    /** Whether the agent has the capability that makes this kind. */
+    public function hasCapability(Agent $agent, GeneratedMediaKind $kind): bool
+    {
+        return $agent->mcpServers()->where('connector_slug', $kind->capabilitySlug())->exists();
     }
 
     /** Whether the agent has the choice of this kind turned on. */
@@ -76,11 +87,24 @@ final readonly class OfferedMediaModels
 
         $allowed = $this->allowed($kind);
 
-        if ($allowed->isEmpty() || ! $agent->mcpServers()->where('connector_slug', $kind->capabilitySlug())->exists()) {
+        if ($allowed->isEmpty() || ! $this->hasCapability($agent, $kind)) {
             return collect();
         }
 
         return $allowed;
+    }
+
+    /**
+     * @param  Collection<int, string>  $ids
+     * @return list<OfferedMediaModelData>
+     */
+    private function models(GeneratedMediaKind $kind, Collection $ids): array
+    {
+        return $ids->map(fn (string $id): OfferedMediaModelData => new OfferedMediaModelData(
+            id: $id,
+            name: $this->name($kind, $id),
+            is_default: $id === $ids->first(),
+        ))->all();
     }
 
     /**

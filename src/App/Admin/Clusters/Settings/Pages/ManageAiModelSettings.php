@@ -458,10 +458,10 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->info()
                     ->visible(fn (Get $get): bool => $get('image_generator') === 'fal'),
                 $this->toggle('image_model_choice', 'Let workspaces offer a choice of models',
-                    'Lets each agent show chatters an "Image model" menu in the hosted chat, with the models you tick here. The model above is always in it, as the default. Each agent turns this on under Capabilities → Image generation.')
+                    'Lets each agent show chatters an "Image model" menu in the hosted chat, with the models you tick here. The model above is always in it, as the default. Each agent turns this on under Setup → Model.')
                     ->live(),
                 Callout::make('Each agent turns the menu on')
-                    ->description('This switch only allows the choice. Chatters see the "Image model" menu once an agent has Image generation under Capabilities and turns on "Let people choose the image model" there.')
+                    ->description('This switch only allows the choice. Chatters see the "Image model" menu once an agent has Image generation under Capabilities and turns on "Let people choose the image model" under Setup → Model.')
                     ->icon(Heroicon::OutlinedInformationCircle)
                     ->info()
                     ->visible(fn (Get $get): bool => (bool) $get('image_model_choice') && $get('image_generator') !== 'none'),
@@ -534,10 +534,10 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->info()
                     ->visible(fn (Get $get): bool => collect(['kling', 'fal'])->containsStrict($get('video_generator'))),
                 $this->toggle('video_model_choice', 'Let workspaces offer a choice of models',
-                    'Lets each agent show chatters a "Video model" menu in the hosted chat, with the models you tick here. The model above is always in it, as the default. Each agent turns this on under Capabilities → Video generation.')
+                    'Lets each agent show chatters a "Video model" menu in the hosted chat, with the models you tick here. The model above is always in it, as the default. Each agent turns this on under Setup → Model.')
                     ->live(),
                 Callout::make('Each agent turns the menu on')
-                    ->description('This switch only allows the choice. Chatters see the "Video model" menu once an agent has Video generation under Capabilities and turns on "Let people choose the video model" there.')
+                    ->description('This switch only allows the choice. Chatters see the "Video model" menu once an agent has Video generation under Capabilities and turns on "Let people choose the video model" under Setup → Model.')
                     ->icon(Heroicon::OutlinedInformationCircle)
                     ->info()
                     ->visible(fn (Get $get): bool => (bool) $get('video_model_choice') && $get('video_generator') !== 'none'),

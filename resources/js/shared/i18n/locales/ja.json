@@ -2139,7 +2139,12 @@
             "multi_model": "マルチモデル",
             "multi_model_help": "複数のモデルを選びます。チャット利用者は、ホスト型チャット、チャットウィジェット、コマンドバーで、メッセージごとと新しい回答を求めるときに、どのモデルが回答するかを選べます。",
             "multi_model_placeholder": "モデルを選択",
-            "multi_model_hint": "チャット利用者が別のモデルを選ぶまで、最初のモデルが回答します。2 つ以上選んでください。1 つだけだと選択肢は表示されません。"
+            "multi_model_hint": "チャット利用者が別のモデルを選ぶまで、最初のモデルが回答します。2 つ以上選んでください。1 つだけだと選択肢は表示されません。",
+            "media_models_title": "画像と動画のモデル",
+            "media_models_description": "チャッターはホスト型チャットの上部で、次の画像や動画のモデルを選べます。",
+            "media_model_choice_image": "画像モデルを選べるようにする",
+            "media_model_choice_video": "動画モデルを選べるようにする",
+            "media_models_offered": "選べるモデル: {models}"
         },
         "topics_index": {
             "title": "トピック",
@@ -2401,10 +2406,7 @@
             "connect_connector": "{names} を接続",
             "book_through": "予約サービス",
             "provider_failed": "予約サービスを変更できませんでした",
-            "turned_off_by_admin": "管理者によってオフにされています",
-            "model_choice_image": "画像モデルを選べるようにする",
-            "model_choice_video": "動画モデルを選べるようにする",
-            "model_choice_failed": "モデルの選択を変更できませんでした"
+            "turned_off_by_admin": "管理者によってオフにされています"
         },
         "forms": {
             "page_title": "フォーム",

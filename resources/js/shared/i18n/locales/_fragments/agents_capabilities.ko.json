@@ -11,10 +11,7 @@
             "empty": "아직 사용할 수 있는 능력이 없습니다.",
             "enable_failed": "이 능력을 켤 수 없습니다",
             "disable_failed": "이 능력을 끌 수 없습니다",
-            "turned_off_by_admin": "관리자가 꺼 두었습니다",
-            "model_choice_image": "사람들이 이미지 모델을 선택하도록 허용",
-            "model_choice_video": "사람들이 동영상 모델을 선택하도록 허용",
-            "model_choice_failed": "모델 선택을 변경할 수 없습니다"
+            "turned_off_by_admin": "관리자가 꺼 두었습니다"
         }
     }
 }

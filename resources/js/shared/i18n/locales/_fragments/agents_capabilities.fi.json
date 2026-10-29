@@ -11,10 +11,7 @@
             "empty": "Kykyjä ei ole vielä saatavilla.",
             "enable_failed": "Tämän kyvyn käyttöönotto epäonnistui",
             "disable_failed": "Tämän kyvyn poistaminen käytöstä epäonnistui",
-            "turned_off_by_admin": "Ylläpitäjäsi on poistanut tämän käytöstä",
-            "model_choice_image": "Anna ihmisten valita kuvamalli",
-            "model_choice_video": "Anna ihmisten valita videomalli",
-            "model_choice_failed": "Mallivalintaa ei voitu muuttaa"
+            "turned_off_by_admin": "Ylläpitäjäsi on poistanut tämän käytöstä"
         }
     }
 }

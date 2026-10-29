@@ -2139,7 +2139,12 @@
             "multi_model": "Nhiều mô hình",
             "multi_model_help": "Chọn nhiều mô hình. Người trò chuyện sau đó chọn mô hình trả lời, trong trò chuyện được lưu trữ, tiện ích trò chuyện và thanh lệnh, cho mỗi tin nhắn và khi yêu cầu câu trả lời mới.",
             "multi_model_placeholder": "Chọn mô hình",
-            "multi_model_hint": "Mô hình đầu tiên trả lời cho đến khi người trò chuyện chọn mô hình khác. Chọn ít nhất hai, nếu không người trò chuyện sẽ không thấy bộ chọn."
+            "multi_model_hint": "Mô hình đầu tiên trả lời cho đến khi người trò chuyện chọn mô hình khác. Chọn ít nhất hai, nếu không người trò chuyện sẽ không thấy bộ chọn.",
+            "media_models_title": "Mô hình hình ảnh và video",
+            "media_models_description": "Người trò chuyện có thể chọn mô hình cho hình ảnh hoặc video tiếp theo ở đầu cuộc trò chuyện được lưu trữ.",
+            "media_model_choice_image": "Cho phép mọi người chọn mô hình hình ảnh",
+            "media_model_choice_video": "Cho phép mọi người chọn mô hình video",
+            "media_models_offered": "Người trò chuyện chọn từ: {models}."
         },
         "topics_index": {
             "title": "Chủ đề",
@@ -2401,10 +2406,7 @@
             "connect_connector": "Kết nối {names}",
             "book_through": "Đặt lịch qua",
             "provider_failed": "Không thể thay đổi dịch vụ đặt lịch",
-            "turned_off_by_admin": "Đã bị quản trị viên của bạn tắt",
-            "model_choice_image": "Cho phép mọi người chọn mô hình hình ảnh",
-            "model_choice_video": "Cho phép mọi người chọn mô hình video",
-            "model_choice_failed": "Không thể thay đổi lựa chọn mô hình"
+            "turned_off_by_admin": "Đã bị quản trị viên của bạn tắt"
         },
         "forms": {
             "page_title": "Biểu mẫu",

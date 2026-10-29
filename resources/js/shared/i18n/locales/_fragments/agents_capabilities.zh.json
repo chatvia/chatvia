@@ -11,10 +11,7 @@
             "empty": "暂无可用的能力。",
             "enable_failed": "无法开启此能力",
             "disable_failed": "无法关闭此能力",
-            "turned_off_by_admin": "已被管理员关闭",
-            "model_choice_image": "允许用户选择图像模型",
-            "model_choice_video": "允许用户选择视频模型",
-            "model_choice_failed": "无法更改模型选择"
+            "turned_off_by_admin": "已被管理员关闭"
         }
     }
 }

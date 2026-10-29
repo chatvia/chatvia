@@ -36,7 +36,7 @@ import {
     type SetupVoiceOptions,
 } from '@/dashboard/agents/composables/setup/useSetupGeneralSettings';
 import { useSetupLanguages } from '@/dashboard/agents/composables/setup/useSetupLanguages';
-import { useSetupModel, type ModelChoice } from '@/dashboard/agents/composables/setup/useSetupModel';
+import { useSetupModel, type MediaModelChoice, type ModelChoice } from '@/dashboard/agents/composables/setup/useSetupModel';
 import { useSetupPreview } from '@/dashboard/agents/composables/setup/useSetupPreview';
 import { useSetupSections } from '@/dashboard/agents/composables/setup/useSetupSections';
 import { useSetupStarters } from '@/dashboard/agents/composables/setup/useSetupStarters';
@@ -91,6 +91,8 @@ interface Props {
     /** Which other models chatters may pick from, and whether the admin lets agents offer a choice at all. */
     modelChoice: ModelChoice;
     modelChoiceAllowed: boolean;
+    /** Whether chatters may pick the image and the video model; each switch shows while the agent has that capability. */
+    mediaModelChoice: MediaModelChoice;
 
     availableLanguages: Record<string, string>;
 }
@@ -121,7 +123,7 @@ provideSetupContext({
     languages: useSetupLanguages(deps, appearance, () => props.availableLanguages),
     starters: useSetupStarters(deps, props.starters),
     bubbles: useSetupBubbles(deps, props.bubbles),
-    model: useSetupModel(deps, props.selectedModel, props.llmSettings, props.reasoningEffort, props.modelChoice),
+    model: useSetupModel(deps, props.selectedModel, props.llmSettings, props.reasoningEffort, props.modelChoice, props.mediaModelChoice),
     branding: useSetupBranding(deps, appearance, () => props.appearanceSettings),
     behavior: useSetupBehavior(
         deps,
@@ -178,6 +180,7 @@ provideSetupContext({
                                     :default-model="defaultModel"
                                     :reasoning-allowed="reasoningAllowed"
                                     :model-choice-allowed="modelChoiceAllowed"
+                                    :media-model-choice="mediaModelChoice"
                                 />
                                 <SetupBrandingPanel v-if="activeSection === 'branding'" />
 

@@ -2139,7 +2139,12 @@
             "multi_model": "Mehrere Modelle",
             "multi_model_help": "Wähle mehrere Modelle. Chatter wählen dann, welches antwortet, im gehosteten Chat, im Chat-Widget und in der Befehlsleiste, für jede Nachricht und wenn sie eine neue Antwort anfordern.",
             "multi_model_placeholder": "Modelle wählen",
-            "multi_model_hint": "Das erste Modell antwortet, bis ein Chatter ein anderes wählt. Wähle mindestens zwei, sonst sehen Chatter keine Auswahl."
+            "multi_model_hint": "Das erste Modell antwortet, bis ein Chatter ein anderes wählt. Wähle mindestens zwei, sonst sehen Chatter keine Auswahl.",
+            "media_models_title": "Bild- und Videomodelle",
+            "media_models_description": "Chatter können oben im gehosteten Chat das Modell für ihr nächstes Bild oder Video wählen.",
+            "media_model_choice_image": "Personen das Bildmodell wählen lassen",
+            "media_model_choice_video": "Personen das Videomodell wählen lassen",
+            "media_models_offered": "Chatter wählen aus: {models}."
         },
         "topics_index": {
             "title": "Themen",
@@ -2401,10 +2406,7 @@
             "connect_connector": "{names} verbinden",
             "book_through": "Buchen über",
             "provider_failed": "Der Buchungsdienst konnte nicht geändert werden",
-            "turned_off_by_admin": "Von deinem Administrator ausgeschaltet",
-            "model_choice_image": "Personen das Bildmodell wählen lassen",
-            "model_choice_video": "Personen das Videomodell wählen lassen",
-            "model_choice_failed": "Die Modellauswahl konnte nicht geändert werden"
+            "turned_off_by_admin": "Von deinem Administrator ausgeschaltet"
         },
         "forms": {
             "page_title": "Formulare",

@@ -24,7 +24,6 @@ use App\Http\Controllers\Agent\Capability\AgentCapabilitiesController;
 use App\Http\Controllers\Agent\Capability\ChooseCapabilityProviderController;
 use App\Http\Controllers\Agent\Capability\DisableAgentCapabilityController;
 use App\Http\Controllers\Agent\Capability\EnableAgentCapabilityController;
-use App\Http\Controllers\Agent\Capability\UpdateCapabilityModelChoiceController;
 use App\Http\Controllers\Agent\Channel\AgentChannelsController;
 use App\Http\Controllers\Agent\Channel\AgentInstagramChannelController;
 use App\Http\Controllers\Agent\Channel\AgentInstagramOAuthCallbackController;
@@ -361,8 +360,6 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
             ->middleware('agent.permission:agent.sources.train.connectors')->name('capabilities.disable');
         Route::put('capabilities/{slug}/provider', ChooseCapabilityProviderController::class)
             ->middleware(['agent.permission:agent.sources.train.connectors', 'license.capabilities'])->name('capabilities.provider');
-        Route::put('capabilities/{slug}/model-choice', UpdateCapabilityModelChoiceController::class)
-            ->middleware(['agent.permission:agent.sources.train.connectors', 'license.capabilities'])->name('capabilities.model-choice');
 
         // Channels — connecting the agent to messaging apps. Gated by its own
         // `agent.channels` permission (split out from `agent.setup`).

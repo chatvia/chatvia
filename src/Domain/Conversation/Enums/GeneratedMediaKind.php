@@ -45,12 +45,4 @@ enum GeneratedMediaKind: string
             self::Audio => false,
         };
     }
-
-    /** The kind with a model choice that the capability makes; null for any other capability. */
-    public static function withModelChoiceFor(string $capabilitySlug): ?self
-    {
-        return collect(self::cases())->first(
-            fn (self $kind): bool => $kind->offersModelChoice() && $kind->capabilitySlug() === $capabilitySlug,
-        );
-    }
 }

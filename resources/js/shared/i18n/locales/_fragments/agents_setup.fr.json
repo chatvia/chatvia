@@ -114,6 +114,11 @@
             "multi_model_help": "Choisissez plusieurs modèles. Les utilisateurs choisissent alors lequel répond, dans le chat hébergé, le widget de chat et la barre de commande, pour chaque message et quand ils demandent une nouvelle réponse.",
             "multi_model_placeholder": "Choisir des modèles",
             "multi_model_hint": "Le premier modèle répond tant qu'un utilisateur n'en choisit pas un autre. Choisissez-en au moins deux, sinon les utilisateurs ne voient pas de sélecteur.",
+            "media_models_title": "Modèles d'image et de vidéo",
+            "media_models_description": "Les chatters peuvent choisir le modèle de leur prochaine image ou vidéo en haut du chat hébergé.",
+            "media_model_choice_image": "Laisser les personnes choisir le modèle d'image",
+            "media_model_choice_video": "Laisser les personnes choisir le modèle vidéo",
+            "media_models_offered": "Les chatters choisissent parmi : {models}.",
             "behavior": {
                 "hosted_title": "Comportement du chat hébergé",
                 "hosted_description": "Options d'iframe pour la surface de chat hébergé intégrée.",

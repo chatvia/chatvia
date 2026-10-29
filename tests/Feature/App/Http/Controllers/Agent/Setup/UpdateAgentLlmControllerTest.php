@@ -2,6 +2,7 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Agent\Services\OfferedMediaModels;
 use Domain\Llm\Models\Llm;
 use Illuminate\Testing\TestResponse;
 
@@ -10,7 +11,7 @@ use Illuminate\Testing\TestResponse;
  * generation settings, its reasoning effort and, with Multi-model, the other
  * models chatters may pick. While the admin does not let agents reason, only
  * Off or the effort saved before can be sent; while the admin does not allow
- * Multi-model, it cannot be turned on.
+ * Multi-model, or a choice of image or video models, it cannot be turned on.
  */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
@@ -100,6 +101,28 @@ it('refuses to turn Multi-model on while the admin does not allow it', function 
         ->assertSessionHasErrors('model_choice_enabled');
 
     expect($this->agent->fresh()->settings('model_choice')->get('enabled'))->toBeFalse();
+});
+
+it('saves whether chatters may pick the image model while the admin allows a choice', function (): void {
+    config([
+        'chatvia.ai.image_generator' => 'fal',
+        'services.fal.image_model' => 'fal-ai/flux-2',
+        'chatvia.ai.image_model_choice' => true,
+        'chatvia.ai.image_models' => ['fal-ai/qwen-image'],
+    ]);
+
+    ualSave($this->owner, $this->agent, $this->model, ['image_model_choice_enabled' => true])->assertSessionHasNoErrors();
+
+    expect($this->agent->fresh()->settings(OfferedMediaModels::SETTINGS_GROUP)->get('image'))->toBeTrue();
+});
+
+it('refuses to turn the video model choice on while the admin does not allow it', function (): void {
+    config(['chatvia.ai.video_model_choice' => false]);
+
+    ualSave($this->owner, $this->agent, $this->model, ['video_model_choice_enabled' => true])
+        ->assertSessionHasErrors('video_model_choice_enabled');
+
+    expect($this->agent->fresh()->settings(OfferedMediaModels::SETTINGS_GROUP)->get('video'))->toBeFalse();
 });
 
 it('refuses a picked model that is not available', function (): void {

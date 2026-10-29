@@ -1,17 +1,10 @@
 <script lang="ts" setup>
 // Without a license key every capability is off in chats and cannot be turned
 // on: the page explains it and links to buy a key (turning one off still works).
-import {
-    type AgentCapabilityRow,
-    chooseCapabilityProvider,
-    disableCapability,
-    enableCapability,
-    setCapabilityModelChoice,
-} from '@/dashboard/agents/api/agentCapabilities';
+import { type AgentCapabilityRow, chooseCapabilityProvider, disableCapability, enableCapability } from '@/dashboard/agents/api/agentCapabilities';
 import { errorMessage } from '@/shared/api/http';
 import LicenseNotice from '@/dashboard/components/license/LicenseNotice.vue';
 import { Button } from '@/shared/ui/button';
-import { Label } from '@/shared/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Switch } from '@/shared/ui/switch';
 import { useConnectorText } from '@/dashboard/composables/useConnectorText';
@@ -66,23 +59,6 @@ async function chooseProvider(row: AgentCapabilityRow, connectorSlug: string): P
     } catch (error: unknown) {
         row.provider = previous;
         toast.error(errorMessage(error, t('agents.capabilities.provider_failed')));
-    } finally {
-        busy[slug] = false;
-    }
-}
-
-/** Image and Video generation: let chatters pick the model in the hosted chat's header. */
-async function toggleModelChoice(row: AgentCapabilityRow): Promise<void> {
-    const slug = row.connector.slug;
-    if (busy[slug]) return;
-    busy[slug] = true;
-
-    const turningOn = !row.model_choice_enabled;
-    try {
-        await setCapabilityModelChoice(props.agent.external_id, slug, turningOn);
-        row.model_choice_enabled = turningOn;
-    } catch (error: unknown) {
-        toast.error(errorMessage(error, t('agents.capabilities.model_choice_failed')));
     } finally {
         busy[slug] = false;
     }
@@ -168,21 +144,6 @@ async function toggle(row: AgentCapabilityRow): Promise<void> {
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
-                            </div>
-                            <div v-if="row.enabled && (row.model_choice_allowed || row.model_choice_enabled)" class="mt-2 flex items-center gap-2">
-                                <Switch
-                                    :id="`model-choice-${row.connector.slug}`"
-                                    :model-value="row.model_choice_enabled"
-                                    :disabled="busy[row.connector.slug] || (!row.model_choice_allowed && !row.model_choice_enabled)"
-                                    @update:model-value="toggleModelChoice(row)"
-                                />
-                                <Label :for="`model-choice-${row.connector.slug}`" class="text-muted-foreground text-xs font-normal">
-                                    {{
-                                        row.connector.slug === 'video-generation'
-                                            ? t('agents.capabilities.model_choice_video')
-                                            : t('agents.capabilities.model_choice_image')
-                                    }}
-                                </Label>
                             </div>
                         </div>
                         <LoaderCircle v-if="busy[row.connector.slug]" class="text-muted-foreground h-4 w-4 animate-spin" />

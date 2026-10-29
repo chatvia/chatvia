@@ -11,10 +11,7 @@
             "empty": "Henüz kullanılabilir yetenek yok.",
             "enable_failed": "Bu yetenek açılamadı",
             "disable_failed": "Bu yetenek kapatılamadı",
-            "turned_off_by_admin": "Yöneticiniz tarafından kapatıldı",
-            "model_choice_image": "Kişilerin görsel modelini seçmesine izin ver",
-            "model_choice_video": "Kişilerin video modelini seçmesine izin ver",
-            "model_choice_failed": "Model seçimi değiştirilemedi"
+            "turned_off_by_admin": "Yöneticiniz tarafından kapatıldı"
         }
     }
 }

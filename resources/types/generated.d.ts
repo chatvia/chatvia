@@ -149,6 +149,12 @@ declare namespace Domain {
     namespace Agent {
         namespace Data {
             namespace ModelChoice {
+                export type AgentMediaModelChoiceData = {
+                    capability: boolean;
+                    allowed: boolean;
+                    enabled: boolean;
+                    models: Domain.Agent.Data.ModelChoice.OfferedMediaModelData[];
+                };
                 export type OfferedMediaModelData = {
                     id: string;
                     name: string;
@@ -915,8 +921,6 @@ declare namespace Domain {
                         ready: boolean;
                         providers: Domain.Integration.Connector.Data.Agent.CapabilityProviderData[];
                         provider: string | null;
-                        model_choice_allowed: boolean;
-                        model_choice_enabled: boolean;
                     };
                     export type AgentConnectorAttachResultData = {
                         data: Domain.Integration.Mcp.Data.Resources.AgentMcpServerData;

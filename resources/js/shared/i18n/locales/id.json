@@ -2139,7 +2139,12 @@
             "multi_model": "Multi-model",
             "multi_model_help": "Pilih beberapa model. Pengguna chat lalu memilih model yang menjawab, di chat yang di-host, widget chat, dan bilah perintah, untuk setiap pesan dan saat meminta jawaban baru.",
             "multi_model_placeholder": "Pilih model",
-            "multi_model_hint": "Model pertama menjawab sampai pengguna chat memilih yang lain. Pilih setidaknya dua, atau pengguna chat tidak melihat pemilih."
+            "multi_model_hint": "Model pertama menjawab sampai pengguna chat memilih yang lain. Pilih setidaknya dua, atau pengguna chat tidak melihat pemilih.",
+            "media_models_title": "Model gambar dan video",
+            "media_models_description": "Chatter dapat memilih model untuk gambar atau video berikutnya di bagian atas obrolan yang dihosting.",
+            "media_model_choice_image": "Izinkan orang memilih model gambar",
+            "media_model_choice_video": "Izinkan orang memilih model video",
+            "media_models_offered": "Chatter memilih dari: {models}."
         },
         "topics_index": {
             "title": "Topik",
@@ -2401,10 +2406,7 @@
             "connect_connector": "Hubungkan {names}",
             "book_through": "Pesan melalui",
             "provider_failed": "Layanan pemesanan tidak dapat diubah",
-            "turned_off_by_admin": "Dimatikan oleh admin Anda",
-            "model_choice_image": "Izinkan orang memilih model gambar",
-            "model_choice_video": "Izinkan orang memilih model video",
-            "model_choice_failed": "Tidak dapat mengubah pilihan model"
+            "turned_off_by_admin": "Dimatikan oleh admin Anda"
         },
         "forms": {
             "page_title": "Formulir",

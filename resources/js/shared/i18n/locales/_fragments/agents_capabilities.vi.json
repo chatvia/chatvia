@@ -11,10 +11,7 @@
             "empty": "Chưa có khả năng nào khả dụng.",
             "enable_failed": "Không thể bật khả năng này",
             "disable_failed": "Không thể tắt khả năng này",
-            "turned_off_by_admin": "Đã bị quản trị viên của bạn tắt",
-            "model_choice_image": "Cho phép mọi người chọn mô hình hình ảnh",
-            "model_choice_video": "Cho phép mọi người chọn mô hình video",
-            "model_choice_failed": "Không thể thay đổi lựa chọn mô hình"
+            "turned_off_by_admin": "Đã bị quản trị viên của bạn tắt"
         }
     }
 }

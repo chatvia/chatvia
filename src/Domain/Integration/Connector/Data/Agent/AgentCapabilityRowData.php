@@ -15,8 +15,7 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
  * other connectors (Calendar through Calendly or Cal.com) is not `ready` until
  * the workspace connects one; {@see $providers} lists them for the page's
  * "connect first" prompt and its "book through" choice, and {@see $provider}
- * is the one in use. Image and Video generation may let chatters pick the
- * model, while the admin allows it ({@see $model_choice_allowed}).
+ * is the one in use.
  */
 #[TypeScript]
 class AgentCapabilityRowData extends Data
@@ -28,7 +27,5 @@ class AgentCapabilityRowData extends Data
         /** @var list<CapabilityProviderData> */
         public array $providers = [],
         public ?string $provider = null,
-        public bool $model_choice_allowed = false,
-        public bool $model_choice_enabled = false,
     ) {}
 }

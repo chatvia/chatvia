@@ -2139,7 +2139,12 @@
             "multi_model": "Flera modeller",
             "multi_model_help": "Välj flera modeller. Chattare väljer då vilken som svarar, i den hostade chatten, chattwidgeten och kommandofältet, för varje meddelande och när de ber om ett nytt svar.",
             "multi_model_placeholder": "Välj modeller",
-            "multi_model_hint": "Den första modellen svarar tills en chattare väljer en annan. Välj minst två, annars ser chattare ingen väljare."
+            "multi_model_hint": "Den första modellen svarar tills en chattare väljer en annan. Välj minst två, annars ser chattare ingen väljare.",
+            "media_models_title": "Bild- och videomodeller",
+            "media_models_description": "Chattare kan välja modellen för nästa bild eller video högst upp i den hostade chatten.",
+            "media_model_choice_image": "Låt personer välja bildmodellen",
+            "media_model_choice_video": "Låt personer välja videomodellen",
+            "media_models_offered": "Chattare väljer bland: {models}."
         },
         "topics_index": {
             "title": "Ämnen",
@@ -2401,10 +2406,7 @@
             "connect_connector": "Anslut {names}",
             "book_through": "Boka via",
             "provider_failed": "Det gick inte att ändra bokningstjänsten",
-            "turned_off_by_admin": "Avstängt av din administratör",
-            "model_choice_image": "Låt personer välja bildmodellen",
-            "model_choice_video": "Låt personer välja videomodellen",
-            "model_choice_failed": "Det gick inte att ändra modellvalet"
+            "turned_off_by_admin": "Avstängt av din administratör"
         },
         "forms": {
             "page_title": "Formulär",

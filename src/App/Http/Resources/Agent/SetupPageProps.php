@@ -6,11 +6,14 @@ use App\Admin\Settings\AiProviderIcon;
 use App\Identity\Chatter\Services\ChatterAuthTokens;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\TeamPermissionPolicy;
+use Domain\Agent\Data\ModelChoice\AgentMediaModelChoiceData;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Prompt\Data\Resources\AgentPromptPickerData;
 use Domain\Agent\Prompt\Models\AgentPrompt;
 use Domain\Agent\Services\AgentModel;
+use Domain\Agent\Services\OfferedMediaModels;
+use Domain\Conversation\Enums\GeneratedMediaKind;
 use Domain\Conversation\Services\Speech\ReadAloudAvailability;
 use Domain\Conversation\Services\Voice\VoiceAvailability;
 use Domain\Knowledge\Ingestion\Models\Chunk;
@@ -43,6 +46,7 @@ final readonly class SetupPageProps
         private ReadAloudAvailability $readAloud,
         private Speaker $speaker,
         private ModelsDevCatalog $modelsDev,
+        private OfferedMediaModels $mediaModels,
     ) {}
 
     /**
@@ -146,6 +150,12 @@ final readonly class SetupPageProps
                 'models' => collect((array) $agent->settings('model_choice')->get('models'))->map(fn (mixed $id): int => (int) $id)->values()->all(),
             ],
             'modelChoiceAllowed' => (bool) config('chatvia.ai.chatter_model_choice'),
+            // Whether chatters may pick the image and the video model, shown
+            // while the agent has that capability.
+            'mediaModelChoice' => [
+                'image' => $this->mediaModelChoice($agent, GeneratedMediaKind::Image),
+                'video' => $this->mediaModelChoice($agent, GeneratedMediaKind::Video),
+            ],
 
             'availableLanguages' => config('chatvia.languages'),
         ];
@@ -170,6 +180,16 @@ final readonly class SetupPageProps
             ->map(fn (AgentPrompt $prompt): AgentPromptPickerData => AgentPromptPickerData::fromModel($prompt))
             ->values()
             ->all();
+    }
+
+    private function mediaModelChoice(Agent $agent, GeneratedMediaKind $kind): AgentMediaModelChoiceData
+    {
+        return new AgentMediaModelChoiceData(
+            capability: $this->mediaModels->hasCapability($agent, $kind),
+            allowed: $this->mediaModels->isAllowed($kind),
+            enabled: $this->mediaModels->isEnabled($agent, $kind),
+            models: $this->mediaModels->choices($kind),
+        );
     }
 
     /** The URL of the logo of the model's maker (as the hosted chat's picker shows it), or null. */

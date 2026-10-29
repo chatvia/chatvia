@@ -2139,7 +2139,12 @@
             "multi_model": "Çoklu model",
             "multi_model_help": "Birkaç model seçin. Sohbet edenler barındırılan sohbette, sohbet widget'ında ve komut çubuğunda, her mesaj için ve yeni bir yanıt istediklerinde hangi modelin yanıtlayacağını seçer.",
             "multi_model_placeholder": "Model seçin",
-            "multi_model_hint": "Sohbet eden başka bir model seçene kadar ilk model yanıtlar. En az iki model seçin, yoksa sohbet edenler seçiciyi görmez."
+            "multi_model_hint": "Sohbet eden başka bir model seçene kadar ilk model yanıtlar. En az iki model seçin, yoksa sohbet edenler seçiciyi görmez.",
+            "media_models_title": "Görsel ve video modelleri",
+            "media_models_description": "Sohbet edenler, barındırılan sohbetin üst kısmında sonraki görselleri veya videoları için modeli seçebilir.",
+            "media_model_choice_image": "Kişilerin görsel modelini seçmesine izin ver",
+            "media_model_choice_video": "Kişilerin video modelini seçmesine izin ver",
+            "media_models_offered": "Sohbet edenler şunlardan seçer: {models}."
         },
         "topics_index": {
             "title": "Konular",
@@ -2401,10 +2406,7 @@
             "connect_connector": "{names} bağla",
             "book_through": "Rezervasyon hizmeti",
             "provider_failed": "Rezervasyon hizmeti değiştirilemedi",
-            "turned_off_by_admin": "Yöneticiniz tarafından kapatıldı",
-            "model_choice_image": "Kişilerin görsel modelini seçmesine izin ver",
-            "model_choice_video": "Kişilerin video modelini seçmesine izin ver",
-            "model_choice_failed": "Model seçimi değiştirilemedi"
+            "turned_off_by_admin": "Yöneticiniz tarafından kapatıldı"
         },
         "forms": {
             "page_title": "Formlar",

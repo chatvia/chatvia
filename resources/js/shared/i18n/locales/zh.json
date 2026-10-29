@@ -2139,7 +2139,12 @@
             "multi_model": "多模型",
             "multi_model_help": "选择多个模型。聊天用户随后可以在托管聊天、聊天小组件和命令栏中，为每条消息以及重新生成回答时选择由哪个模型回答。",
             "multi_model_placeholder": "选择模型",
-            "multi_model_hint": "在聊天用户选择其他模型之前，由第一个模型回答。请至少选择两个，否则聊天用户看不到选择器。"
+            "multi_model_hint": "在聊天用户选择其他模型之前，由第一个模型回答。请至少选择两个，否则聊天用户看不到选择器。",
+            "media_models_title": "图片和视频模型",
+            "media_models_description": "聊天者可以在托管聊天顶部为下一张图片或下一个视频选择模型。",
+            "media_model_choice_image": "允许用户选择图像模型",
+            "media_model_choice_video": "允许用户选择视频模型",
+            "media_models_offered": "聊天者可从以下模型中选择：{models}。"
         },
         "topics_index": {
             "title": "主题",
@@ -2401,10 +2406,7 @@
             "connect_connector": "连接 {names}",
             "book_through": "预订服务",
             "provider_failed": "无法更改预订服务",
-            "turned_off_by_admin": "已被管理员关闭",
-            "model_choice_image": "允许用户选择图像模型",
-            "model_choice_video": "允许用户选择视频模型",
-            "model_choice_failed": "无法更改模型选择"
+            "turned_off_by_admin": "已被管理员关闭"
         },
         "forms": {
             "page_title": "表单",

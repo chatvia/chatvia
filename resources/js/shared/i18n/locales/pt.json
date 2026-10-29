@@ -2139,7 +2139,12 @@
             "multi_model": "Multimodelo",
             "multi_model_help": "Escolha vários modelos. Os usuários escolhem então qual responde, no chat hospedado, no widget de chat e na barra de comandos, em cada mensagem e ao pedir uma nova resposta.",
             "multi_model_placeholder": "Escolher modelos",
-            "multi_model_hint": "O primeiro modelo responde até que um usuário escolha outro. Escolha pelo menos dois, ou os usuários não verão o seletor."
+            "multi_model_hint": "O primeiro modelo responde até que um usuário escolha outro. Escolha pelo menos dois, ou os usuários não verão o seletor.",
+            "media_models_title": "Modelos de imagem e vídeo",
+            "media_models_description": "Os chatters podem escolher o modelo da próxima imagem ou vídeo no topo do chat hospedado.",
+            "media_model_choice_image": "Permitir que as pessoas escolham o modelo de imagem",
+            "media_model_choice_video": "Permitir que as pessoas escolham o modelo de vídeo",
+            "media_models_offered": "Os chatters escolhem entre: {models}."
         },
         "topics_index": {
             "title": "Tópicos",
@@ -2401,10 +2406,7 @@
             "connect_connector": "Ligar {names}",
             "book_through": "Marcar através de",
             "provider_failed": "Não foi possível alterar o serviço de marcação",
-            "turned_off_by_admin": "Desativado pelo seu administrador",
-            "model_choice_image": "Permitir que as pessoas escolham o modelo de imagem",
-            "model_choice_video": "Permitir que as pessoas escolham o modelo de vídeo",
-            "model_choice_failed": "Não foi possível alterar a escolha do modelo"
+            "turned_off_by_admin": "Desativado pelo seu administrador"
         },
         "forms": {
             "page_title": "Formulários",

@@ -11,10 +11,7 @@
             "empty": "利用できる能力はまだありません。",
             "enable_failed": "この能力を有効にできませんでした",
             "disable_failed": "この能力を無効にできませんでした",
-            "turned_off_by_admin": "管理者によってオフにされています",
-            "model_choice_image": "画像モデルを選べるようにする",
-            "model_choice_video": "動画モデルを選べるようにする",
-            "model_choice_failed": "モデルの選択を変更できませんでした"
+            "turned_off_by_admin": "管理者によってオフにされています"
         }
     }
 }

@@ -11,10 +11,7 @@
             "empty": "Es sind noch keine Fähigkeiten verfügbar.",
             "enable_failed": "Diese Fähigkeit konnte nicht aktiviert werden",
             "disable_failed": "Diese Fähigkeit konnte nicht deaktiviert werden",
-            "turned_off_by_admin": "Von deinem Administrator ausgeschaltet",
-            "model_choice_image": "Personen das Bildmodell wählen lassen",
-            "model_choice_video": "Personen das Videomodell wählen lassen",
-            "model_choice_failed": "Die Modellauswahl konnte nicht geändert werden"
+            "turned_off_by_admin": "Von deinem Administrator ausgeschaltet"
         }
     }
 }

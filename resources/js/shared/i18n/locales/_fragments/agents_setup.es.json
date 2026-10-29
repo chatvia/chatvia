@@ -114,6 +114,11 @@
             "multi_model_help": "Elige varios modelos. Los usuarios eligen entonces cuál responde, en el chat alojado, el widget de chat y la barra de comandos, en cada mensaje y al pedir una nueva respuesta.",
             "multi_model_placeholder": "Elegir modelos",
             "multi_model_hint": "El primer modelo responde hasta que un usuario elige otro. Elige al menos dos, o los usuarios no verán el selector.",
+            "media_models_title": "Modelos de imagen y vídeo",
+            "media_models_description": "Los chatters pueden elegir el modelo de su próxima imagen o vídeo en la parte superior del chat alojado.",
+            "media_model_choice_image": "Permitir que las personas elijan el modelo de imagen",
+            "media_model_choice_video": "Permitir que las personas elijan el modelo de vídeo",
+            "media_models_offered": "Los chatters eligen entre: {models}.",
             "behavior": {
                 "hosted_title": "Comportamiento del chat alojado",
                 "hosted_description": "Opciones de iframe para la superficie de chat alojado embebido.",

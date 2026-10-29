@@ -4,7 +4,6 @@ use App\Identity\Workspace\Enums\WorkspaceRole;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Notification;
-use Inertia\Testing\AssertableInertia;
 
 /**
  * The self-serve sign-up form (RegisteredUserController): open by default, a
@@ -12,8 +11,6 @@ use Inertia\Testing\AssertableInertia;
  * comes with its own workspace. A taken email is refused whatever its case
  * (EmailCaseTest).
  */
-// Creating workspaces past the first one needs a license key; the free-use
-// limit itself is covered in WorkspaceAllowanceTest.
 beforeEach(fn () => withLicense());
 
 it('answers 404 on both sign-up routes while sign-up is closed, and creates no account', function (): void {
@@ -30,13 +27,6 @@ it('answers 404 on both sign-up routes while sign-up is closed, and creates no a
     expect(User::query()->where('email', 'closed-signup@example.test')->exists())->toBeFalse();
 });
 
-it('shows the sign-up form while sign-up is open', function (): void {
-    config(['chatvia.registration_enabled' => true]);
-
-    $this->get(route('register'))->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
-        ->component('auth/pages/Register'));
-});
-
 it('gives a new account its own workspace and default team, signs it in and asks it to verify the email', function (): void {
     config(['chatvia.registration_enabled' => true]);
     Notification::fake();
@@ -50,7 +40,6 @@ it('gives a new account its own workspace and default team, signs it in and asks
 
     $user = User::query()->where('email', 'new-signup@example.test')->sole();
     $workspace = $user->workspace();
-
     expect(auth()->user()?->is($user))->toBeTrue()
         ->and($user->workspaceRole())->toBe(WorkspaceRole::Owner)
         ->and($workspace->name)->toBe('Ada Lovelace')

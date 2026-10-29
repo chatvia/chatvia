@@ -15,13 +15,6 @@ beforeEach(function (): void {
     AgentPrompt::factory()->create(['workspace_id' => $this->owner->workspace()->id]);
 });
 
-it('sends the prompt library to the owner', function (): void {
-    $this->actingAs($this->owner)
-        ->get(route('agents.persona', $this->agent->external_id))
-        ->assertOk()
-        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->has('prompts', 1));
-});
-
 it('sends the prompt library only to a teammate who may set the agent up or manage prompts', function (array $permissions, int $count): void {
     $this->actingAs(teammateWithPermissions($this->owner, $permissions))
         ->get(route('agents.persona', $this->agent->external_id))

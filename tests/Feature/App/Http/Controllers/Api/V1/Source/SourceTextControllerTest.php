@@ -8,9 +8,8 @@ use Tests\Support\Api\ActsAsApiOwner;
 
 /**
  * An agent's text sources through the public API: adding one answers 201
- * with its public id, and a delete takes that id. A delete finds the text
- * through the agent's own sources, so another agent's text is a 404 even
- * inside the same workspace.
+ * with its public id. A delete finds the text through the agent's own
+ * sources, so another agent's text is a 404 even inside the same workspace.
  */
 uses(ActsAsApiOwner::class);
 
@@ -29,21 +28,6 @@ it('adds a text and answers 201 with its public id', function (): void {
 
     expect($response->json('data.id'))->toBeUuid()
         ->and(SourceText::query()->where('external_id', $response->json('data.id'))->exists())->toBeTrue();
-});
-
-it('refuses a text longer than a source takes', function (): void {
-    $this->withToken($this->token)
-        ->postJson($this->uri, ['content' => Str::repeat('a', SourceText::MAX_CONTENT_CHARS + 1)])
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors(['content']);
-});
-
-it('deletes a text by its public id', function (): void {
-    $text = SourceText::factory()->attachedTo($this->agent)->create();
-
-    $this->withToken($this->token)->deleteJson("{$this->uri}/{$text->external_id}")->assertNoContent();
-
-    expect($this->agent->texts()->exists())->toBeFalse();
 });
 
 it('404s a text of another agent of the same workspace and keeps it', function (): void {

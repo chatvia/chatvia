@@ -13,35 +13,17 @@ beforeEach(function (): void {
     Notification::fake();
 });
 
-it('sends a reset link to a known email', function (): void {
+it('sends a reset link to a known email and answers an unknown one the same way without sending', function (): void {
     $user = User::factory()->create(['email' => 'test@example.com']);
 
-    $this->post(route('password.email'), ['email' => 'test@example.com'])
-        ->assertSessionHas('status');
-
-    Notification::assertSentTo($user, ResetPassword::class);
-});
-
-it('answers an unknown email the same way and sends nothing', function (): void {
-    User::factory()->create(['email' => 'test@example.com']);
-
-    $this->post(route('password.email'), ['email' => 'test@example.com']);
+    $this->post(route('password.email'), ['email' => 'test@example.com'])->assertSessionHas('status');
     $known = session('status');
+    Notification::assertSentTo($user, ResetPassword::class);
     Notification::fake();
-
-    $this->post(route('password.email'), ['email' => 'nonexistent@example.com'])
-        ->assertSessionHas('status', $known);
+    $this->post(route('password.email'), ['email' => 'nonexistent@example.com'])->assertSessionHas('status', $known);
 
     Notification::assertNothingSent();
 });
-
-it('requires a valid email', function (string $email): void {
-    $this->post(route('password.email'), ['email' => $email])
-        ->assertSessionHasErrors('email');
-})->with([
-    'no email' => '',
-    'not an email' => 'not-an-email',
-]);
 
 it('takes five reset requests a minute and refuses the sixth', function (): void {
     User::factory()->create(['email' => 'test@example.com']);

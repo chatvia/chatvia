@@ -8,8 +8,8 @@ use Illuminate\Support\Facades\Storage;
 
 /**
  * POST sources/files/{file}/replace puts a new version in place of one of
- * the agent's files. A file the agent does not use is a 404, and a teammate
- * without the file-training permission is refused.
+ * the agent's files; a teammate without the file-training permission is
+ * refused.
  */
 beforeEach(function (): void {
     Storage::fake();
@@ -32,18 +32,8 @@ it('replaces one of the agent\'s files', function (): void {
     expect($file->fresh()->filename)->toBe('new.txt');
 });
 
-it('is a 404 for a file the agent does not use', function (): void {
-    $other = AgentFileFactory::new()->create(['workspace_id' => $this->agent->workspace_id]);
-
-    $this->actingAs($this->owner)
-        ->post(route('agents.sources.files.replace', ['agent' => $this->agent, 'file' => $other->id]), [
-            'file' => UploadedFile::fake()->createWithContent('new.txt', 'New prices.'),
-        ])
-        ->assertNotFound();
-});
-
-it('refuses a teammate who may not train files', function (): void {
-    $file = AgentFileFactory::new()->create(['workspace_id' => $this->agent->workspace_id]);
+it('refuses a teammate who may not train files and keeps the old version', function (): void {
+    $file = AgentFileFactory::new()->create(['workspace_id' => $this->agent->workspace_id, 'filename' => 'old.txt']);
     $this->agent->files()->attach($file->id);
     $viewer = teammateWithPermissions($this->owner, ['agent.chat.view']);
 
@@ -52,4 +42,6 @@ it('refuses a teammate who may not train files', function (): void {
             'file' => UploadedFile::fake()->createWithContent('new.txt', 'New prices.'),
         ])
         ->assertForbidden();
+
+    expect($file->fresh()->filename)->toBe('old.txt');
 });

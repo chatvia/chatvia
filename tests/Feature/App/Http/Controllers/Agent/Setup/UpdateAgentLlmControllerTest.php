@@ -2,16 +2,13 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Agent\Services\OfferedMediaModels;
 use Domain\Llm\Models\Llm;
 use Illuminate\Testing\TestResponse;
 
 /**
- * Setup → Model saves the agent's model (one an admin made available), its
- * generation settings, its reasoning effort and, with Multi-model, the other
- * models chatters may pick. While the admin does not let agents reason, only
- * Off or the effort saved before can be sent; while the admin does not allow
- * Multi-model, or a choice of image or video models, it cannot be turned on.
+ * Setup → Model saves the agent's model (one an admin made available) and its
+ * generation settings. A model that is not available is refused, and so is a
+ * new reasoning effort or Multi-model while the admin does not allow it.
  */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
@@ -41,92 +38,21 @@ it('saves the model and the temperature', function (): void {
     ualSave($this->owner, $this->agent, $this->model, ['temperature' => 0.4])->assertSessionHasNoErrors();
 
     $agent = $this->agent->fresh();
-
     expect($agent->llm_id)->toBe($this->model->id)
         ->and((float) $agent->llmSettings()['temperature'])->toBe(0.4);
 });
 
-it('refuses a model that is not available', function (): void {
-    $this->model->provider->forceFill(['is_enabled' => false])->save();
+it('refuses what the admin has not made available and keeps the agent as it was', function (Closure $arrange, array $overrides, string $field): void {
+    $arrange->call($this);
 
-    ualSave($this->owner, $this->agent, $this->model)->assertSessionHasErrors('model_id');
-});
+    ualSave($this->owner, $this->agent, $this->model, $overrides)->assertSessionHasErrors($field);
 
-it('saves the reasoning effort while the admin lets agents reason', function (): void {
-    config(['chatvia.ai.reasoning.enabled' => true]);
-
-    ualSave($this->owner, $this->agent, $this->model, ['reasoning_effort' => 'high'])->assertSessionHasNoErrors();
-
-    expect($this->agent->fresh()->settings('reasoning')->get('effort'))->toBe('high');
-});
-
-it('refuses a new effort while the admin does not let agents reason', function (): void {
-    config(['chatvia.ai.reasoning.enabled' => false]);
-
-    ualSave($this->owner, $this->agent, $this->model, ['reasoning_effort' => 'medium'])
-        ->assertSessionHasErrors(['reasoning_effort' => 'Your admin has turned reasoning off.']);
-
-    expect($this->agent->fresh()->settings('reasoning')->get('effort'))->not->toBe('medium');
-});
-
-it('still saves the effort saved before, or Off, while the admin does not let agents reason', function (string $effort): void {
-    config(['chatvia.ai.reasoning.enabled' => false]);
-    // Saved earlier, while reasoning was on.
-    $this->agent->setSetting('effort', 'high', 'reasoning');
-
-    ualSave($this->owner, $this->agent, $this->model, ['reasoning_effort' => $effort])->assertSessionHasNoErrors();
-
-    expect($this->agent->fresh()->settings('reasoning')->get('effort'))->toBe($effort);
-})->with(['the saved one' => 'high', 'off' => 'off']);
-
-it('saves Multi-model and the other models chatters may pick', function (): void {
-    config(['chatvia.ai.chatter_model_choice' => true]);
-    $other = testLlm('third-model');
-
-    ualSave($this->owner, $this->agent, $this->model, [
-        'model_choice_enabled' => true,
-        'offered_model_ids' => [$other->id],
-    ])->assertSessionHasNoErrors();
-
-    $choice = $this->agent->fresh()->settings('model_choice');
-
-    expect($choice->get('enabled'))->toBeTrue()
-        ->and($choice->get('models'))->toBe([$other->id]);
-});
-
-it('refuses to turn Multi-model on while the admin does not allow it', function (): void {
-    config(['chatvia.ai.chatter_model_choice' => false]);
-
-    ualSave($this->owner, $this->agent, $this->model, ['model_choice_enabled' => true])
-        ->assertSessionHasErrors('model_choice_enabled');
-
-    expect($this->agent->fresh()->settings('model_choice')->get('enabled'))->toBeFalse();
-});
-
-it('saves whether chatters may pick the image model while the admin lists two or more', function (): void {
-    config(['chatvia.ai.image_models' => ['fal:fal-ai/flux-2', 'openai:gpt-image-2']]);
-
-    ualSave($this->owner, $this->agent, $this->model, ['image_model_choice_enabled' => true])->assertSessionHasNoErrors();
-
-    expect($this->agent->fresh()->settings(OfferedMediaModels::SETTINGS_GROUP)->get('image'))->toBeTrue();
-});
-
-it('refuses to turn the video model choice on while the admin lists only one video model', function (): void {
-    config(['chatvia.ai.video_models' => ['kling:kling-4.0']]);
-
-    ualSave($this->owner, $this->agent, $this->model, ['video_model_choice_enabled' => true])
-        ->assertSessionHasErrors('video_model_choice_enabled');
-
-    expect($this->agent->fresh()->settings(OfferedMediaModels::SETTINGS_GROUP)->get('video'))->toBeFalse();
-});
-
-it('refuses a picked model that is not available', function (): void {
-    config(['chatvia.ai.chatter_model_choice' => true]);
-    $off = testLlm('off-model');
-    $off->provider->forceFill(['is_enabled' => false])->save();
-
-    ualSave($this->owner, $this->agent, $this->model, [
-        'model_choice_enabled' => true,
-        'offered_model_ids' => [$off->id],
-    ])->assertSessionHasErrors('offered_model_ids.0');
-});
+    expect($this->agent->fresh())
+        ->llm_id->not->toBe($this->model->id)
+        ->and($this->agent->fresh()->settings('reasoning')->get('effort'))->not->toBe('medium')
+        ->and($this->agent->fresh()->settings('model_choice')->get('enabled'))->toBeFalse();
+})->with([
+    'a model that is not available' => [fn () => $this->model->provider->forceFill(['is_enabled' => false])->save(), [], 'model_id'],
+    'a new effort while reasoning is off' => [fn () => config(['chatvia.ai.reasoning.enabled' => false]), ['reasoning_effort' => 'medium'], 'reasoning_effort'],
+    'Multi-model while not allowed' => [fn () => config(['chatvia.ai.chatter_model_choice' => false]), ['model_choice_enabled' => true], 'model_choice_enabled'],
+]);

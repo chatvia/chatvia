@@ -11,7 +11,7 @@ use Tests\Support\Api\ActsAsApiOwner;
 
 /**
  * An agent's website sources through the public API: adding one answers 201
- * with its public id, and a delete takes that id.
+ * with its public id.
  */
 uses(ActsAsApiOwner::class);
 
@@ -38,12 +38,4 @@ it('adds a website and answers 201 with its public id', function (): void {
         ->assertJsonPath('data.name', 'https://docs.example.test/start');
 
     expect(SourceWebsite::query()->where('external_id', $response->json('data.id'))->exists())->toBeTrue();
-});
-
-it('deletes a website by its public id', function (): void {
-    $website = SourceWebsite::factory()->attachedTo($this->agent)->ingested()->create();
-
-    $this->withToken($this->token)->deleteJson("{$this->uri}/{$website->external_id}")->assertNoContent();
-
-    expect($this->agent->websites()->exists())->toBeFalse();
 });

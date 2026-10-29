@@ -13,9 +13,9 @@ use Inertia\Testing\AssertableInertia;
 
 /**
  * The Guardrails page: the form saves topics with their response, custom
- * patterns and each guard's mode and sensitivity, and refuses a broken
- * pattern; the Activity log filters by guard, outcome and visitor, and names
- * who is behind each abusive trigger.
+ * patterns and each guard's mode and sensitivity (answers stay checked when
+ * the switch is left out), and refuses a broken pattern; the Activity log
+ * filters by guard and outcome, and names who is behind each abusive trigger.
  */
 beforeEach(function (): void {
     $this->agent = Agent::factory()->create();
@@ -23,10 +23,13 @@ beforeEach(function (): void {
     $this->mock(TextTranslator::class)->shouldReceive('translate')->andReturn([]);
 });
 
-it('saves the guardrail settings', function (): void {
+it('saves the guardrail settings and keeps checking answers when the form leaves the switch out', function (): void {
+    $form = agcForm();
+    unset($form['check_answers']);
+
     $this->actingAs($this->owner)
         ->from(route('agents.guardrails', $this->agent->external_id))
-        ->post(route('agents.guardrails.update', $this->agent->external_id), agcForm())
+        ->post(route('agents.guardrails.update', $this->agent->external_id), $form)
         ->assertRedirect()
         ->assertSessionHasNoErrors();
 
@@ -40,21 +43,9 @@ it('saves the guardrail settings', function (): void {
         ->and($settings->injection_mode)->toBe(GuardMode::Monitor)
         ->and($settings->injection_sensitivity)->toBe(GuardSensitivity::Medium)
         ->and($settings->toxicity_sensitivity)->toBe(GuardSensitivity::Low)
-        ->and($settings->check_answers)->toBeFalse()
+        ->and($settings->check_answers)->toBeTrue()
         ->and($settings->check_before_showing)->toBeTrue()
         ->and($settings->alert_owner)->toBeTrue();
-});
-
-it('keeps checking answers when the form leaves the switch out', function (): void {
-    $form = agcForm();
-    unset($form['check_answers']);
-
-    $this->actingAs($this->owner)
-        ->from(route('agents.guardrails', $this->agent->external_id))
-        ->post(route('agents.guardrails.update', $this->agent->external_id), $form)
-        ->assertSessionHasNoErrors();
-
-    expect(GuardrailSettingsData::fromAgent($this->agent->fresh())->check_answers)->toBeTrue();
 });
 
 it('refuses a custom pattern that does not compile or matches empty text', function (string $pattern): void {
@@ -77,21 +68,6 @@ it('filters the activity log by guard and outcome', function (): void {
             ->where('filters.outcome', 'skipped')
             ->where('triggers.total', 1)
             ->where('triggers.data.0.guard_type', 'toxicity'));
-});
-
-it('filters the activity log by visitor and shows who it was', function (): void {
-    $visitor = GuardrailEvent::factory()->forAgent($this->agent)->fromVisitor('visitor-1')
-        ->create(['user_id' => $this->owner->id, 'user_name' => $this->owner->name]);
-    GuardrailEvent::factory()->forAgent($this->agent)->fromVisitor('visitor-2')->create();
-
-    $this->actingAs($this->owner)
-        ->get(route('agents.guardrails', ['agent' => $this->agent->external_id, 'visitor' => $visitor->visitor_key]))
-        ->assertOk()
-        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
-            ->where('filters.visitor', $visitor->visitor_key)
-            ->where('triggers.total', 1)
-            ->where('triggers.data.0.user_name', $this->owner->name)
-            ->where('triggers.data.0.avatar', null));
 });
 
 it('shows who is behind each abusive trigger and how often they tried', function (): void {

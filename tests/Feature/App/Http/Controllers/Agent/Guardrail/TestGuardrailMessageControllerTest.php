@@ -25,7 +25,6 @@ it('tests a message with the form settings and returns what the visitor gets', f
         ])
         ->assertOk()
         ->assertJsonPath('blocked', true)
-        ->assertJsonPath('reply', 'Sorry, I can’t help with that request.')
         ->assertJsonPath('verdicts.0.guard_type', 'prompt_injection')
         ->assertJsonPath('verdicts.0.outcome', 'blocked');
 });

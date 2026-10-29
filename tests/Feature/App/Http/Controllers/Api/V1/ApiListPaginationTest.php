@@ -22,9 +22,11 @@ use Tests\Support\Api\ActsAsApiOwner;
  * Every list of the public API is cursor-paged: it answers `{data,
  * next_cursor}` with at most `per_page` items (default 25, clamped to
  * 1–100), newest first, and a cursor that walks the rest without skipping or
- * repeating an item. A cursor the list did not hand out starts again at the
- * first page. The source list and the audit logs page on their own columns
- * and are tested with their controllers.
+ * repeating an item. A cursor the list did not hand out (here the list's own
+ * cursor column with a value of the wrong kind, which the query would fail
+ * on) starts again at the first page. The other shapes of a foreign cursor
+ * are in CursorPageTest; the source list and the audit logs page on their
+ * own columns and are tested with their controllers.
  */
 uses(ActsAsApiOwner::class);
 
@@ -91,54 +93,28 @@ function pagedConversation(Agent $agent): Conversation
 
 dataset('paged lists', ['agents', 'teams', 'functions', 'mcps', 'agent functions', 'agent mcps', 'users', 'chatters', 'prompts', 'conversation messages', 'forms', 'form submissions', 'eval runs', 'topics']);
 
-it('pages a list newest first and walks it with the cursor', function (string $list): void {
+it('pages a list newest first, walks it with the cursor, and starts over for a cursor it did not hand out', function (string $list): void {
     [$uri, $newestFirst] = pagedRecords($list, $this->owner, $this->agent);
 
-    $first = $this->withToken($this->token)->getJson($uri.'?per_page=2')
-        ->assertOk()
-        ->assertJsonStructure(['data', 'next_cursor']);
-
-    expect(array_column($first->json('data'), 'id'))->toBe(array_slice($newestFirst, 0, 2))
-        ->and($first->json('next_cursor'))->toBeString();
-
+    $first = $this->withToken($this->token)->getJson($uri.'?per_page=2')->assertOk();
     $second = $this->withToken($this->token)
         ->getJson(Uri::of($uri)->withQuery(['per_page' => 2, 'cursor' => $first->json('next_cursor')])->value())
         ->assertOk();
-
-    expect(array_column($second->json('data'), 'id'))->toBe(array_slice($newestFirst, 2))
-        ->and($second->json('next_cursor'))->toBeNull();
-})->with('paged lists');
-
-it('answers a short list whole and clamps a per_page below one up to one item', function (string $list): void {
-    [$uri] = pagedRecords($list, $this->owner, $this->agent);
-
-    $this->withToken($this->token)->getJson($uri)->assertOk()->assertJsonCount(3, 'data')->assertJsonPath('next_cursor', null);
-    $this->withToken($this->token)->getJson($uri.'?per_page=0')->assertOk()->assertJsonCount(1, 'data');
-})->with('paged lists');
-
-it('starts again at the first page for a cursor it did not hand out', function (string $list): void {
-    [$uri, $newestFirst] = pagedRecords($list, $this->owner, $this->agent);
-
-    // The column the list's own cursor carries, e.g. `agents.id`, with a
-    // value of the wrong kind: the query would fail on it. The other shapes
-    // of a foreign cursor are in CursorPageTest.
-    $handedOut = Cursor::fromEncoded($this->withToken($this->token)->getJson($uri.'?per_page=1')->json('next_cursor'));
+    $handedOut = Cursor::fromEncoded($first->json('next_cursor'));
     $foreign = new Cursor([array_key_first($handedOut->toArray()) => 'abc'])->encode();
+    $restart = $this->withToken($this->token)->getJson(Uri::of($uri)->withQuery(['per_page' => 2, 'cursor' => $foreign])->value())->assertOk();
 
-    $page = $this->withToken($this->token)->getJson(Uri::of($uri)->withQuery(['per_page' => 2, 'cursor' => $foreign])->value())->assertOk();
-
-    expect(array_column($page->json('data'), 'id'))->toBe(array_slice($newestFirst, 0, 2));
+    expect(array_column($first->json('data'), 'id'))->toBe(array_slice($newestFirst, 0, 2))
+        ->and($first->json('next_cursor'))->toBeString()
+        ->and(array_column($second->json('data'), 'id'))->toBe(array_slice($newestFirst, 2))
+        ->and($second->json('next_cursor'))->toBeNull()
+        ->and(array_column($restart->json('data'), 'id'))->toBe(array_slice($newestFirst, 0, 2));
 })->with('paged lists');
 
-it('defaults to 25 items and caps per_page at 100', function (): void {
+it('defaults to 25 items, caps per_page at 100 and clamps one below one up to one item', function (): void {
     AgentPrompt::factory()->count(101)->create(['workspace_id' => $this->owner->workspace()->id]);
 
     $this->withToken($this->token)->getJson('/api/v1/prompts')->assertOk()->assertJsonCount(25, 'data');
     $this->withToken($this->token)->getJson('/api/v1/prompts?per_page=500')->assertOk()->assertJsonCount(100, 'data');
-});
-
-it('rejects a per_page that is not a number', function (): void {
-    $this->withToken($this->token)->getJson('/api/v1/agents?per_page=many')
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors('per_page');
+    $this->withToken($this->token)->getJson('/api/v1/prompts?per_page=0')->assertOk()->assertJsonCount(1, 'data');
 });

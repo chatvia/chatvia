@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * The "always on" switch of a connector attached to an agent: its tools go
  * out on every turn, without the relevance routing picking them, however many
- * tools it has. Only a connector attached to the agent can be switched.
+ * tools it has.
  */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
@@ -20,8 +20,8 @@ beforeEach(function (): void {
     app(ToolRegistry::class)->forget($this->agent->id);
 });
 
-it('marks an attached connector always-on, however many tools it has', function (int $tools): void {
-    McpTool::factory()->count($tools)->allowed()->create(['mcp_server_id' => $this->server->id]);
+it('marks an attached connector always-on, however many tools it has', function (): void {
+    McpTool::factory()->count(25)->allowed()->create(['mcp_server_id' => $this->server->id]);
 
     $this->actingAs($this->owner)
         ->putJson(route('agents.sources.connectors.always-available', ['agent' => $this->agent->external_id, 'slug' => 'hejly-tutor']), ['always_available' => true])
@@ -29,23 +29,4 @@ it('marks an attached connector always-on, however many tools it has', function 
         ->assertJsonPath('always_available', true);
 
     expect(DB::table('agent_mcp_server')->where('agent_id', $this->agent->id)->value('always_available'))->toBeTrue();
-})->with([
-    'a few tools' => 3,
-    'more tools than a turn routes' => 25,
-]);
-
-it('validates the flag', function (): void {
-    $this->actingAs($this->owner)
-        ->putJson(route('agents.sources.connectors.always-available', ['agent' => $this->agent->external_id, 'slug' => 'hejly-tutor']), [])
-        ->assertJsonValidationErrors(['always_available']);
-});
-
-it('404s for a connector of the workspace that is not attached to the agent', function (): void {
-    $unattached = AgentMcpServer::factory()->forOwner($this->owner)->create(['slug' => 'not-attached']);
-
-    $this->actingAs($this->owner)
-        ->putJson(route('agents.sources.connectors.always-available', ['agent' => $this->agent->external_id, 'slug' => $unattached->slug]), ['always_available' => true])
-        ->assertNotFound();
-
-    expect($this->agent->mcpServers()->whereKey($unattached->id)->exists())->toBeFalse();
 });

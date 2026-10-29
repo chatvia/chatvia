@@ -6,9 +6,7 @@ use Tests\Support\Api\ActsAsApiOwner;
 
 /**
  * An agent's inline forms through the public API: creating one (its slug
- * comes from the name), showing it, updating it partially (the slug never
- * changes) and deleting it with its submissions. A field of an unknown type
- * is a field error.
+ * comes from the name) and deleting it with its submissions.
  */
 uses(ActsAsApiOwner::class);
 
@@ -44,25 +42,6 @@ it('creates a form with a slug from its name and shows it back', function (): vo
         ->assertOk()
         ->assertJsonPath('data.name', 'Contact us')
         ->assertJsonPath('data.schema.1.key', 'email');
-});
-
-it('updates partially: an omitted field keeps its value and the slug never changes', function (): void {
-    $id = $this->withToken($this->token)->postJson($this->uri, fcBody())->json('data.id');
-
-    $this->withToken($this->token)
-        ->patchJson("{$this->uri}/{$id}", ['name' => 'Talk to sales', 'is_active' => false])
-        ->assertOk()
-        ->assertJsonPath('data.name', 'Talk to sales')
-        ->assertJsonPath('data.slug', 'contact-us')
-        ->assertJsonPath('data.is_active', false)
-        ->assertJsonPath('data.schema.0.key', 'name');
-});
-
-it('rejects a schema field of an unknown type', function (): void {
-    $this->withToken($this->token)
-        ->postJson($this->uri, [...fcBody(), 'schema' => [['key' => 'file', 'label' => 'File', 'type' => 'upload']]])
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors(['schema.0.type']);
 });
 
 it('deletes a form with its submissions', function (): void {

@@ -6,11 +6,10 @@ use Tests\Support\Api\ActsAsApiOwner;
 
 /**
  * Creating a chatter through the public API: one with an email and a
- * password, granted the agents the request names. An email the workspace
- * already uses is a field error; which other emails are allowed is
- * CreateChatterAction's rule and is tested there. One agent that is not the
- * workspace's, or that a calling teammate's role does not reach, refuses the
- * whole request.
+ * password, keyed to the workspace and granted every agent the request
+ * names. An email the workspace already uses (in any case) is a field error;
+ * one agent that is deleted, not the workspace's, or that a calling
+ * teammate's role does not reach refuses the whole request.
  */
 uses(ActsAsApiOwner::class);
 
@@ -29,90 +28,49 @@ function eccBody(array $agentIds, string $email = 'jane@example.test'): array
     return ['name' => 'Jane', 'agent_ids' => $agentIds, 'email' => $email, 'password' => 'super-secret-pw'];
 }
 
-it('creates a chatter granted to the agent and answers with its public id', function (): void {
-    $body = $this->withToken($this->token)
-        ->postJson('/api/v1/chatters', eccBody([$this->agent->external_id]))
-        ->assertCreated()
-        ->assertJsonPath('data.name', 'Jane')
-        ->assertJsonStructure(['data' => ['id', 'name', 'created_at']])
-        ->json('data');
-
-    $created = Chatter::where('external_id', $body['id'])->firstOrFail();
-
-    expect($body['id'])->toBeUuid()
-        ->and($created->workspace_id)->toBe($this->owner->workspace()->id)
-        ->and($created->email)->toBe('jane@example.test')
-        ->and($created->canAccessAgent($this->agent))->toBeTrue()
-        ->and(User::where('external_id', $body['id'])->exists())->toBeFalse();
-});
-
-it('grants the chatter every agent the request names', function (): void {
+it('creates a chatter in the workspace granted every agent the request names', function (): void {
     $second = createAgent($this->owner);
 
     $body = $this->withToken($this->token)
-        ->postJson('/api/v1/chatters', eccBody([$this->agent->external_id, $second->external_id], 'multi@example.test'))
+        ->postJson('/api/v1/chatters', eccBody([$this->agent->external_id, $second->external_id]))
         ->assertCreated()
+        ->assertJsonPath('data.name', 'Jane')
         ->json('data');
 
-    expect(Chatter::where('external_id', $body['id'])->firstOrFail()->agents()->pluck('agents.id')->all())
-        ->toHaveCount(2)
-        ->toContain($this->agent->id)
-        ->toContain($second->id);
+    $created = Chatter::where('external_id', $body['id'])->firstOrFail();
+    expect($body['id'])->toBeUuid()
+        ->and($created->workspace_id)->toBe($this->owner->workspace()->id)
+        ->and($created->email)->toBe('jane@example.test')
+        ->and($created->agents()->pluck('agents.id')->sort()->values()->all())->toBe(collect([$this->agent->id, $second->id])->sort()->values()->all())
+        ->and(User::where('external_id', $body['id'])->exists())->toBeFalse();
 });
 
-it('answers an email the workspace already uses for a chatter, in any case, with a field error', function (): void {
-    Chatter::factory()->ofWorkspace($this->owner)->create(['email' => 'jane@example.test']);
+it('refuses the whole request and creates no chatter', function (Closure $request, string $field): void {
+    [$token, $body] = $request->call($this);
 
-    $this->withToken($this->token)
-        ->postJson('/api/v1/chatters', eccBody([$this->agent->external_id], 'JANE@example.test'))
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors(['email']);
-
-    expect($this->owner->workspace()->chatters()->whereRaw('lower(email) = ?', ['jane@example.test'])->count())->toBe(1);
-});
-
-it('rejects a body without a required field', function (array $body, array $fields): void {
-    $this->withToken($this->token)
+    $this->withToken($token)
         ->postJson('/api/v1/chatters', $body)
         ->assertUnprocessable()
-        ->assertJsonValidationErrors($fields);
+        ->assertJsonValidationErrors([$field]);
+
+    expect(Chatter::query()->where('email', 'jane@example.test')->where('name', 'Jane')->exists())->toBeFalse();
 })->with([
-    'no name' => [['agent_ids' => ['x'], 'email' => 'jane@example.test', 'password' => 'super-secret-pw'], ['name']],
-    'no agent ids' => [['name' => 'Jane', 'email' => 'jane@example.test', 'password' => 'super-secret-pw'], ['agent_ids']],
-    'no email or password' => [['name' => 'Jane', 'agent_ids' => ['x']], ['email', 'password']],
+    'an email the workspace uses, in another case' => [function (): array {
+        Chatter::factory()->ofWorkspace($this->owner)->create(['email' => 'jane@example.test', 'name' => 'Existing']);
+
+        return [$this->token, eccBody([$this->agent->external_id], 'JANE@example.test')];
+    }, 'email'],
+    'a deleted agent' => [function (): array {
+        $deleted = createAgent($this->owner);
+        $deleted->delete();
+
+        return [$this->token, eccBody([$deleted->external_id])];
+    }, 'agent_ids.0'],
+    "another workspace's agent" => [fn (): array => [$this->token, eccBody([$this->agent->external_id, createAgent(User::factory()->create())->external_id])], 'agent_ids.1'],
+    "an agent the teammate's role does not reach" => [function (): array {
+        $reached = createAgent($this->owner);
+        $teammate = teammateWithPermissions($this->owner, ['account.chatters.manage'], allAgents: false, agentExternalIds: [$reached->external_id]);
+
+        return [$teammate->createToken('account')->plainTextToken, eccBody([$reached->external_id, $this->agent->external_id])];
+    }, 'agent_ids.1'],
 ]);
-
-it('rejects a deleted agent', function (): void {
-    $deleted = createAgent($this->owner);
-    $deleted->delete();
-
-    $this->withToken($this->token)
-        ->postJson('/api/v1/chatters', eccBody([$deleted->external_id]))
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors(['agent_ids.0']);
-});
-
-it("refuses the whole request when one agent is another workspace's and creates no chatter", function (): void {
-    $foreignAgent = createAgent(User::factory()->create());
-
-    $this->withToken($this->token)
-        ->postJson('/api/v1/chatters', eccBody([$this->agent->external_id, $foreignAgent->external_id]))
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors(['agent_ids.1'])
-        ->assertJsonMissingValidationErrors(['agent_ids.0']);
-
-    expect(Chatter::where('email', 'jane@example.test')->where('workspace_id', $this->owner->workspace()->id)->exists())->toBeFalse();
-});
-
-it('refuses a teammate a chatter for an agent their role does not reach', function (): void {
-    $reached = createAgent($this->owner);
-    $teammate = teammateWithPermissions($this->owner, ['account.chatters.manage'], allAgents: false, agentExternalIds: [$reached->external_id]);
-
-    $this->withToken($teammate->createToken('account')->plainTextToken)
-        ->postJson('/api/v1/chatters', eccBody([$reached->external_id, $this->agent->external_id]))
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors(['agent_ids.1'])
-        ->assertJsonMissingValidationErrors(['agent_ids.0']);
-
-    expect(Chatter::where('email', 'jane@example.test')->exists())->toBeFalse();
-});

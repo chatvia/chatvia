@@ -19,7 +19,7 @@ it('emails a known address a link that signs it in to the dashboard', function (
     $this->from(route('login'))
         ->post(route('magic-link.send'), ['email' => 'known-link@example.test'])
         ->assertRedirect(route('login'))
-        ->assertSessionHas('status', 'If an account matches this email, a sign-in link is on its way.');
+        ->assertSessionHas('status');
 
     $url = null;
     Notification::assertSentOnDemand(
@@ -37,11 +37,16 @@ it('emails a known address a link that signs it in to the dashboard', function (
     expect(auth()->user()?->is($user))->toBeTrue();
 });
 
-it('answers an unknown address the same way and sends nothing', function (): void {
+it('answers an unknown address the same way as a known one and sends nothing', function (): void {
+    User::factory()->create(['email' => 'known-link@example.test']);
+    $this->from(route('login'))->post(route('magic-link.send'), ['email' => 'known-link@example.test']);
+    $known = session('status');
+    Notification::fake();
+
     $this->from(route('login'))
         ->post(route('magic-link.send'), ['email' => 'nobody-link@example.test'])
         ->assertRedirect(route('login'))
-        ->assertSessionHas('status', 'If an account matches this email, a sign-in link is on its way.');
+        ->assertSessionHas('status', $known);
 
     Notification::assertNothingSent();
 });

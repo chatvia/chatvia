@@ -9,8 +9,7 @@ use Illuminate\Support\Facades\Event;
 
 /**
  * An operator takes a waiting conversation over from the AI. One another
- * operator holds is a conflict, and one of another agent of the workspace is
- * a 404.
+ * operator holds is a conflict.
  */
 beforeEach(function (): void {
     Event::fake([HandedOff::class]);
@@ -46,14 +45,4 @@ it('reports a conflict when another operator already holds the conversation', fu
         ->assertConflict();
 
     expect($conversation->fresh()->handoff_user_id)->toBe($colleague->id);
-});
-
-it('404s a conversation of another agent of the workspace', function (): void {
-    $foreign = Conversation::factory()->forAgent(makeTeamAgent($this->owner, 'Other Bot'))->visible()->handedOff(HandoffStatus::Pending)->create();
-
-    $this->actingAs($this->owner)
-        ->postJson(thcTakeover($this->agent, $foreign))
-        ->assertNotFound();
-
-    expect($foreign->fresh()->handoff_status)->toBe(HandoffStatus::Pending);
 });

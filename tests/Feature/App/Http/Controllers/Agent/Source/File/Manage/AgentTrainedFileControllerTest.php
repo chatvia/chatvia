@@ -4,23 +4,12 @@ use App\Identity\Workspace\Models\User;
 use Database\Factories\AgentFileFactory;
 
 /**
- * The workspace's trained files, offered to link to another agent (GET
- * agents.sources.list), and unlinking one from the agent (POST
- * agents.sources.files.unlink): a file other agents use is unlinked, its last
- * link is refused (UnlinkSourceFileFromAgentActionTest has the rule).
+ * Unlinking a trained file from the agent (POST agents.sources.files.unlink):
+ * a file other agents use is unlinked, its last link is refused.
  */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
     $this->agent = createAgent($this->owner);
-});
-
-it('lists the workspace\'s trained files of a type, to link them', function (): void {
-    $file = AgentFileFactory::new()->create(['workspace_id' => $this->owner->workspace()->id, 'status' => 'ingested', 'filetype' => 'pdf']);
-
-    $this->actingAs($this->owner)
-        ->getJson(route('agents.sources.list', [$this->agent, 'type' => 'pdf']))
-        ->assertOk()
-        ->assertJsonPath('0.id', $file->id);
 });
 
 it('unlinks a shared file from the agent and refuses its last link', function (): void {

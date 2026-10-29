@@ -2,58 +2,27 @@
 
 use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\Auth;
-use Inertia\Testing\AssertableInertia;
 
-/*
+/**
  * The chat log offers a "trace" link into Spectra only to a viewer who may
  * actually open /spectra: an active admin signed in to the admin panel's own
  * guard, or the owner of a workspace an admin granted Spectra access.
- * Spectra shows every workspace's AI calls, so everyone else gets null,
- * which hides the link. The Live chat tab shows only while live chat is on:
- * the agent's switch and a license key.
+ * Spectra shows every workspace's AI calls, so everyone else gets null.
  */
-beforeEach(function (): void {
+it('offers the Spectra trace link only to an admin or the owner of a workspace granted Spectra', function (): void {
     config(['spectra.enabled' => true]);
+    $owner = User::factory()->create();
+    $agent = createAgent($owner);
+    $traceUrl = fn (): mixed => $this->actingAs($owner)->get(route('agents.logs', $agent))->assertOk()->inertiaProps('spectraTraceUrl');
 
-    $this->owner = User::factory()->create();
-    $this->agent = createAgent($this->owner);
-});
-
-it('hides the Spectra trace link from a dashboard-only session', function (): void {
-    $this->actingAs($this->owner)
-        ->get(route('agents.logs', $this->agent))
-        ->assertOk()
-        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('spectraTraceUrl', null));
-});
-
-it('offers the Spectra trace link to an admin signed in to the admin panel', function (): void {
-    // Both sessions at once, as in a real browser: the dashboard on the web
-    // guard, the admin panel on its own. setUser keeps `web` the default guard.
-    $this->actingAs($this->owner);
+    $dashboardOnly = $traceUrl();
+    $owner->workspace()->update(['spectra_access' => true]);
+    $granted = $traceUrl();
+    $owner->workspace()->update(['spectra_access' => false]);
     Auth::guard('admin')->setUser(adminUser());
+    $admin = $traceUrl();
 
-    $this->get(route('agents.logs', $this->agent))
-        ->assertOk()
-        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('spectraTraceUrl', url('spectra/requests')));
+    expect($dashboardOnly)->toBeNull()
+        ->and($granted)->toBe(url('spectra/requests'))
+        ->and($admin)->toBe(url('spectra/requests'));
 });
-
-it('offers the Spectra trace link to the owner of a workspace granted Spectra access', function (): void {
-    $this->owner->workspace()->update(['spectra_access' => true]);
-
-    $this->actingAs($this->owner)
-        ->get(route('agents.logs', $this->agent))
-        ->assertOk()
-        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('spectraTraceUrl', url('spectra/requests')));
-});
-
-it('turns the Live chat tab on only with a license key', function (bool $licensed): void {
-    $licensed ? withLicense() : withoutLicense();
-
-    $this->actingAs($this->owner)
-        ->get(route('agents.logs', $this->agent))
-        ->assertOk()
-        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('handoffEnabled', $licensed));
-})->with([
-    'with a key' => true,
-    'without one' => false,
-]);

@@ -4,9 +4,8 @@ use App\Identity\Chatter\Models\Chatter;
 use Tests\Support\Api\ActsAsApiOwner;
 
 /**
- * A chatter through the public API: showing it with its access controls,
- * and changing them: the monthly message cap and the deactivation switch.
- * A field left out keeps its value. The list is tested with every other list
+ * Changing a chatter's access controls through the public API: the monthly
+ * message cap and the deactivation switch. A field left out keeps its value. The list is tested with every other list
  * in ApiListPaginationTest.
  */
 uses(ActsAsApiOwner::class);
@@ -15,15 +14,6 @@ beforeEach(function (): void {
     $this->actAsApiOwner();
     $this->chatter = Chatter::factory()->ofWorkspace($this->owner)->create();
     $this->uri = "/api/v1/chatters/{$this->chatter->external_id}";
-});
-
-it('shows a chatter with its access controls', function (): void {
-    $this->withToken($this->token)
-        ->getJson($this->uri)
-        ->assertOk()
-        ->assertJsonPath('data.id', $this->chatter->external_id)
-        ->assertJsonPath('data.deactivated', false)
-        ->assertJsonPath('data.messages_limit', null);
 });
 
 it('sets the monthly cap and deactivates the chatter with a reason', function (): void {

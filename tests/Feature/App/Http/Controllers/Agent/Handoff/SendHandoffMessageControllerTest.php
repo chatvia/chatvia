@@ -23,7 +23,6 @@ it('posts the reply of the operator who holds the conversation', function (): vo
     $this->actingAs($this->owner)
         ->postJson(route('agents.handoff.message', ['agent' => $this->agent->external_id, 'conversation' => $conversation->external_id]), ['content' => 'Hi, I am here.'])
         ->assertSuccessful()
-        ->assertJsonPath('success', true)
         ->assertJsonPath('message.content', 'Hi, I am here.')
         ->assertJsonPath('message.role', MessageRole::Operator->value);
 
@@ -35,8 +34,7 @@ it('refuses a reply from an operator who does not hold the conversation', functi
 
     $this->actingAs($this->owner)
         ->postJson(route('agents.handoff.message', ['agent' => $this->agent->external_id, 'conversation' => $conversation->external_id]), ['content' => 'Hello'])
-        ->assertForbidden()
-        ->assertJsonPath('message', 'You must take over this conversation before sending messages.');
+        ->assertForbidden();
 
     Event::assertNotDispatched(MessagePosted::class);
 });

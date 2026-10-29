@@ -7,13 +7,9 @@ use Illuminate\Support\Str;
  * Public, unauthenticated endpoints that cost money or CPU per call are rate
  * limited with route middleware.
  */
-// Creating workspaces past the first one needs a license key; the free-use
-// limit itself is covered in WorkspaceLimitTest.
 beforeEach(fn () => withLicense());
 
 it('throttles guest sign-up', function (): void {
-    // Invalid input fails validation, so no account is created; the throttle
-    // still counts every call.
     foreach (range(1, 6) as $i) {
         $this->post(route('register.store'), ['email' => 'not-an-email'])->assertRedirect();
     }

@@ -1,7 +1,0 @@
-{
-    "serverInfo": {
-        "name": "Video generation",
-        "version": "1.0.0"
-    },
-    "instructions": "Make a short video for the visitor when they ask for one (\"make a video\", \"animate\",\n\"create a clip of\", \"show me a video of\"). One tool:\n- generate-video: describe the video in English: the subject, what happens, the camera\n  (close-up, wide shot, slow pan), the style, light and setting, and any sound or speech\n  the visitor asked for. Pick landscape (wide) or portrait (tall, for phones).\n\nThe video is made in the background and takes a few minutes; the chat shows it by itself\nas soon as it is ready. After calling the tool, say in one short sentence that it is on\nits way and may take a few minutes. Never say where on the screen it will appear, never\nsay it is done, never describe a video you have not seen, and never paste a link for it.\nIf the tool says no video can be made, pass that on plainly.\nMake one video per request unless the visitor asks for more."
-}

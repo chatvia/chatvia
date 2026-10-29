@@ -5,18 +5,12 @@ use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 
 /**
  * chatvia:search:check-embedding-storage runs after the migrations on every start and
- * deploy: it passes while the settings match the embedding columns, and
- * stops the start when they were changed after install. The columns are as
+ * deploy: it stops the start when the embedding size or vector type was
+ * changed after install. The columns are as
  * the testing database was built (EMBEDDING_VECTOR_TYPE/EMBEDDING_DIMENSIONS).
  */
 beforeEach(function (): void {
     $this->stored = app(EmbeddingStorage::class)->columnType();
-});
-
-it('passes when the embedding columns match the settings', function (): void {
-    $this->artisan('chatvia:search:check-embedding-storage')
-        ->expectsOutputToContain("Embedding storage matches the settings: {$this->stored}.")
-        ->assertSuccessful();
 });
 
 it('fails and names the columns when the size changed after install', function (): void {

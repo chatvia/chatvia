@@ -1,7 +1,0 @@
-{
-    "serverInfo": {
-        "name": "Calendar",
-        "version": "1.0.0"
-    },
-    "instructions": "Let visitors book a meeting with a real calendar inline in the chat, instead of\nagreeing a time in text. Two tools:\n- find-meeting-types: the meetings that can be booked, each with an `id`, name,\n  duration and description. Call it the moment a visitor wants a meeting, call,\n  demo, consultation or appointment.\n- render-calendar: show the visitor a calendar for one meeting type, by its `id`\n  (from find-meeting-types). The visitor picks a free time and books it there; the\n  calendar books the meeting itself.\n\nFlow: when a visitor wants to meet, call find-meeting-types. If exactly one type fits,\ncall render-calendar with it; if several could fit, ask which one in one short\nsentence, then call render-calendar. Never list free times, and never ask for a date,\ntime, name or email in text: the calendar does that. After rendering, briefly invite\nthe visitor to pick a time, without saying where on screen it appears. On messaging\nchannels render-calendar returns a booking link to share instead."
-}

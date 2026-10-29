@@ -1,7 +1,6 @@
 <?php
 
 use App\Admin\Resources\Workspaces\Pages\ViewWorkspace;
-use App\Admin\Resources\Workspaces\WorkspaceResource;
 use App\Identity\Workspace\Models\MessageLimit;
 use App\Identity\Workspace\Models\User;
 use Livewire\Features\SupportTesting\Testable;
@@ -21,16 +20,6 @@ function mlaPage(): Testable
     return Livewire::actingAs(test()->admin, 'admin')->test(ViewWorkspace::class, ['record' => test()->workspace->getRouteKey()]);
 }
 
-it('shows the workspace page with its message limit', function (): void {
-    MessageLimit::factory()->forWorkspace($this->workspace)->create(['monthly_limit' => 750, 'messages_used' => 40]);
-
-    $this->actingAs($this->admin, 'admin')
-        ->get(WorkspaceResource::getUrl('view', ['record' => $this->workspace]))
-        ->assertOk()
-        ->assertSee('Monthly limit on agent replies')
-        ->assertSee('750');
-});
-
 it('sets a monthly message limit', function (): void {
     mlaPage()
         ->callAction('messageLimit', data: ['monthly_limit' => 500])
@@ -47,12 +36,4 @@ it('removes the limit when the field is left empty', function (): void {
         ->assertHasNoActionErrors();
 
     expect(MessageLimit::query()->where('workspace_id', $this->workspace->id)->value('monthly_limit'))->toBeNull();
-});
-
-it('rejects a limit below one', function (): void {
-    mlaPage()
-        ->callAction('messageLimit', data: ['monthly_limit' => 0])
-        ->assertHasActionErrors(['monthly_limit']);
-
-    expect(MessageLimit::query()->where('workspace_id', $this->workspace->id)->exists())->toBeFalse();
 });

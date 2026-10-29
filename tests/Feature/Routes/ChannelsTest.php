@@ -124,7 +124,6 @@ describe('the chat presence channel', function (): void {
     });
 
     it('denies a conversation belonging to another workspace agent', function (): void {
-        // The factory chain provisions its own session → agent → workspace.
         $foreign = Conversation::factory()->create();
 
         chnAuthAs($this->owner, "presence-chat.{$foreign->external_id}")

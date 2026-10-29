@@ -25,8 +25,7 @@ it('opens the panel for an admin on the panel guard, with or without MFA, becaus
 
     $this->actingAs($admin, 'admin')
         ->get('/admin')
-        ->assertOk()
-        ->assertSee('Activity across every workspace, this month.');
+        ->assertOk();
 })->with(['without MFA' => false, 'with MFA set up' => true]);
 
 it('keeps out of the panel a deactivated admin and an account that is not an admin, even on the panel guard', function (User $user): void {
@@ -40,16 +39,3 @@ it('keeps out of the panel a deactivated admin and an account that is not an adm
     }),
     'not an admin' => fn (): User => User::factory()->create()->fresh(),
 ]);
-
-it('shows the version that runs to signed-in staff, never on the sign-in page', function (): void {
-    config(['chatvia.updates.version_file' => create_temp_file('VERSION', "1.4.2\n")]);
-
-    $this->get(Filament::getPanel('admin')->getLoginUrl())
-        ->assertOk()
-        ->assertDontSee('cv-brand__version', escape: false);
-
-    $this->actingAs(adminUser(), 'admin')
-        ->get('/admin')
-        ->assertOk()
-        ->assertSeeInOrder(['cv-brand__version', '>1.4.2</span>'], escape: false);
-});

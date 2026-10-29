@@ -1,7 +1,0 @@
-{
-    "serverInfo": {
-        "name": "Currency Converter",
-        "version": "1.0.0"
-    },
-    "instructions": "Foreign-exchange conversion powered by exchangerate-api. Exposes a single tool:\n- exchange-rate: convert any amount between any two currencies (ISO 4217 codes).\nSource defaults to USD. Use this when the user asks about currency conversion\nor wants to compare prices in different currencies."
-}

@@ -28,31 +28,26 @@ it('refuses the data without a license key', function (string $route): void {
         ->assertJsonPath('message', 'This feature is unavailable. Please contact your administrator.');
 })->with('locked analytics data');
 
-it('refuses promoting a topic suggestion without a license key', function (): void {
+it('refuses promoting a topic suggestion without a license key, and still opens the locked pages and the free Chats analytics', function (): void {
     $this->actingAs($this->owner)
         ->postJson(route('agents.topics.suggestions.promote', $this->agent), ['label' => 'refunds'])
         ->assertForbidden();
 
+    $this->get(route('agents.analytics.sentiment', $this->agent))->assertOk();
+    $this->get(route('agents.analytics.sources', $this->agent))->assertOk();
+    $this->get(route('agents.analytics.data', $this->agent))->assertOk();
+
     expect($this->agent->topics()->exists())->toBeFalse();
 });
 
-it('still opens the locked pages and the free Chats analytics', function (string $route): void {
-    $this->actingAs($this->owner)
-        ->get(route($route, $this->agent))
-        ->assertOk();
-})->with([
-    'sentiment page' => ['agents.analytics.sentiment'],
-    'sources page' => ['agents.analytics.sources'],
-    'chats data' => ['agents.analytics.data'],
-]);
-
-it('opens the data with a paid license key', function (Closure $license, string $route): void {
+it('opens the data with a paid license key', function (Closure $license): void {
     $license();
+    $this->actingAs($this->owner);
 
-    $this->actingAs($this->owner)
-        ->getJson(route($route, $this->agent))
-        ->assertOk();
+    foreach (['agents.sentiment.data', 'agents.tone.data', 'agents.topics.data', 'agents.topics.suggestions', 'agents.analytics.sources.data'] as $route) {
+        $this->getJson(route($route, $this->agent))->assertOk();
+    }
 })->with([
     'Pro' => [fn () => withLicense()],
     'Enterprise' => [fn () => withEnterpriseLicense()],
-])->with('locked analytics data');
+]);

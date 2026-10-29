@@ -28,7 +28,6 @@ it('rejects a cookie-authenticated hosted-chat request without a CSRF token', fu
 ]);
 
 it('keeps the token-authenticated widget endpoints exempt', function (string $uri): void {
-    // Past the CSRF check (419), the widget's own token check refuses it.
     $this->post($uri)->assertForbidden();
 })->with([
     'widget stream' => fn (): string => route('widget.stream', absolute: false),

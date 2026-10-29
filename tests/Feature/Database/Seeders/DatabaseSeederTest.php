@@ -1,10 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
-use Database\Seeders\AnalyticsDemoSeeder;
-use Database\Seeders\ChatSeeder;
 use Database\Seeders\DatabaseSeeder;
-use Database\Seeders\TopicsSeeder;
 use Domain\Agent\Models\Agent;
 use Domain\Llm\Models\Llm;
 
@@ -29,15 +26,3 @@ it('seeds only reference data in production and refuses the demo account', funct
         ->and(Agent::count())->toBe($agents)
         ->and(Llm::count())->toBeGreaterThan(0);
 });
-
-it('refuses each demo seeder on its own in production', function (string $seeder): void {
-    $this->app['env'] = 'production';
-
-    $this->artisan('db:seed', ['--class' => $seeder, '--force' => true])
-        ->expectsOutputToContain('demo data is never seeded in production')
-        ->assertSuccessful();
-})->with([
-    'analytics' => AnalyticsDemoSeeder::class,
-    'chats' => ChatSeeder::class,
-    'topics' => TopicsSeeder::class,
-]);

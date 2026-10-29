@@ -81,6 +81,7 @@ it('rejects a request its signature does not cover', function (Closure $change):
     'a different route' => fn (array $request): array => [...$request, 'path' => '/mcp/charts'],
     'the nonce swapped' => fn (array $request): array => [...$request, 'headers' => [...$request['headers'], InternalMcpSignature::NONCE_HEADER => Str::repeat('a', 40)]],
     'the nonce removed' => fn (array $request): array => [...$request, 'headers' => Arr::except($request['headers'], InternalMcpSignature::NONCE_HEADER)],
+    'signed without a nonce' => fn (array $request): array => [...$request, 'headers' => vimrSignedByHand($request['path'], $request['body'], test()->identity, null)],
     'an expired signature' => function (array $request): array {
         test()->travel(10)->minutes();
 
@@ -88,103 +89,60 @@ it('rejects a request its signature does not cover', function (Closure $change):
     },
 ]);
 
-it('rejects an identical copy of a request it already accepted', function (): void {
+it('runs each signed call once with its resolved caller, in workspace mode and for an agent that attached the built-in, and rejects a replayed copy', function (): void {
     $call = InternalMcp::toolCall('get-account-overview-tool');
     $headers = InternalMcp::signedHeaders('/mcp/account-analytics', $call, $this->identity);
-
-    $this->withHeaders($headers)->postJson('/mcp/account-analytics', $call)->assertOk();
-    $this->withHeaders($headers)->postJson('/mcp/account-analytics', $call)->assertStatus(401);
-});
-
-it('signs each request with its own nonce, so two identical calls both pass', function (): void {
-    $call = InternalMcp::toolCall('get-account-overview-tool');
-
-    $this->withHeaders(InternalMcp::signedHeaders('/mcp/account-analytics', $call, $this->identity))
-        ->postJson('/mcp/account-analytics', $call)->assertOk();
-    $this->withHeaders(InternalMcp::signedHeaders('/mcp/account-analytics', $call, $this->identity))
-        ->postJson('/mcp/account-analytics', $call)->assertOk();
-});
-
-it('accepts a request signed by hand with a nonce, so the hand-built form matches the real one', function (): void {
-    $call = InternalMcp::toolCall('get-account-overview-tool');
-
-    $this->withHeaders(vimrSignedByHand('/mcp/account-analytics', $call, $this->identity, Str::repeat('b', 40)))
-        ->postJson('/mcp/account-analytics', $call)
-        ->assertOk();
-});
-
-it('refuses a request signed without a nonce', function (): void {
-    $call = InternalMcp::toolCall('get-account-overview-tool');
-
-    $this->withHeaders(vimrSignedByHand('/mcp/account-analytics', $call, $this->identity, null))
-        ->postJson('/mcp/account-analytics', $call)
-        ->assertStatus(401);
-});
-
-it('only accepts workspace mode on the analytics chat servers', function (): void {
-    $call = InternalMcp::toolCall('current-weather');
-
-    // Validly signed, but /mcp/weather is a per-agent connector: a workspace
-    // id alone must not unlock it.
-    $this->withHeaders(InternalMcp::signedHeaders('/mcp/weather', $call, $this->identity))
-        ->postJson('/mcp/weather', $call)
-        ->assertStatus(403);
-});
-
-it('hands an authorised tools/call its resolved caller', function (): void {
-    $call = InternalMcp::toolCall('get-account-overview-tool');
-
-    $response = $this->withHeaders(InternalMcp::signedHeaders('/mcp/account-analytics', $call, $this->identity))
-        ->postJson('/mcp/account-analytics', $call)
-        ->assertOk();
-
-    // The tool only answers when it received the workspace from the middleware.
-    expect($response->json('result.isError'))->toBeFalse()
-        ->and($response->json('result.structuredContent.total_messages'))->toBe(0)
-        ->and(app(McpCallerContext::class)->workspace?->is($this->workspace))->toBeTrue();
-});
-
-it('lets the analytics chat draw charts in workspace mode', function (): void {
-    $chart = vimrBarChartCall();
-
-    $this->withHeaders(InternalMcp::signedHeaders('/mcp/charts', $chart, $this->identity))
-        ->postJson('/mcp/charts', $chart)
-        ->assertOk()
-        ->assertJsonPath('result.isError', false);
-});
-
-it('resolves no caller for a call that runs no tool', function (): void {
-    $call = ['jsonrpc' => '2.0', 'id' => '1', 'method' => 'tools/list', 'params' => (object) []];
-
-    $this->withHeaders(InternalMcp::signedHeaders('/mcp/account-analytics', $call, $this->identity))
-        ->postJson('/mcp/account-analytics', $call)
-        ->assertOk();
-
-    expect(app(McpCallerContext::class)->workspace)->toBeNull();
-});
-
-it('refuses a tool call for an agent that has not turned this built-in on', function (Closure $attach): void {
-    $agent = Agent::factory()->create();
-    $attach($agent);
-    $chart = vimrBarChartCall();
-
-    $this->withHeaders(InternalMcp::signedHeaders('/mcp/charts', $chart, ['X-Chatvia-Agent-Id' => $agent->external_id]))
-        ->postJson('/mcp/charts', $chart)
-        ->assertStatus(403);
-})->with([
-    'nothing attached' => fn (Agent $agent): null => null,
-    'attached but switched off' => fn (Agent $agent): AgentMcpServer => AgentMcpServer::factory()->builtin('charts')->disabled()->attachedTo($agent)->create(),
-    'another built-in attached' => fn (Agent $agent): AgentMcpServer => AgentMcpServer::factory()->builtin('forms')->attachedTo($agent)->create(),
-    'a custom server at the same address' => fn (Agent $agent): AgentMcpServer => AgentMcpServer::factory()->attachedTo($agent)->create(['url' => Str::rtrim((string) config('app.url'), '/').'/mcp/charts']),
-]);
-
-it('runs a tool for an agent that attached this built-in', function (): void {
     $agent = Agent::factory()->create();
     AgentMcpServer::factory()->builtin('charts')->attachedTo($agent)->create();
     $chart = vimrBarChartCall();
 
-    $this->withHeaders(InternalMcp::signedHeaders('/mcp/charts', $chart, ['X-Chatvia-Agent-Id' => $agent->external_id]))
+    $response = $this->withHeaders($headers)->postJson('/mcp/account-analytics', $call)->assertOk();
+
+    expect($response->json('result.isError'))->toBeFalse()
+        ->and($response->json('result.structuredContent.total_messages'))->toBe(0)
+        ->and(app(McpCallerContext::class)->workspace?->is($this->workspace))->toBeTrue();
+
+    $this->withHeaders($headers)->postJson('/mcp/account-analytics', $call)->assertStatus(401);
+    $this->withHeaders(InternalMcp::signedHeaders('/mcp/account-analytics', $call, $this->identity))
+        ->postJson('/mcp/account-analytics', $call)->assertOk();
+    $this->withHeaders(vimrSignedByHand('/mcp/account-analytics', $call, $this->identity, Str::repeat('b', 40)))
+        ->postJson('/mcp/account-analytics', $call)->assertOk();
+    $this->flushHeaders()->withHeaders(InternalMcp::signedHeaders('/mcp/charts', $chart, ['X-Chatvia-Agent-Id' => $agent->external_id]))
         ->postJson('/mcp/charts', $chart)
         ->assertOk()
         ->assertJsonPath('result.isError', false);
 });
+
+it('refuses a signed tool call where the caller has not turned this built-in on, but still lists the tools', function (Closure $caller): void {
+    $agent = Agent::factory()->create();
+    [$path, $call, $identity] = $caller($agent);
+    $listing = ['jsonrpc' => '2.0', 'id' => '1', 'method' => 'tools/list', 'params' => (object) []];
+
+    $this->withHeaders(InternalMcp::signedHeaders($path, $call, $identity))
+        ->postJson($path, $call)
+        ->assertStatus(403);
+    $tools = $this->flushHeaders()->withHeaders(InternalMcp::signedHeaders($path, $listing, $identity))
+        ->postJson($path, $listing)
+        ->assertOk()
+        ->json('result.tools');
+
+    expect($tools)->not->toBeEmpty();
+})->with([
+    'a workspace id on a per-agent built-in' => fn (Agent $agent): array => ['/mcp/weather', InternalMcp::toolCall('current-weather'), test()->identity],
+    'nothing attached' => fn (Agent $agent): array => ['/mcp/charts', vimrBarChartCall(), ['X-Chatvia-Agent-Id' => $agent->external_id]],
+    'attached but switched off' => function (Agent $agent): array {
+        AgentMcpServer::factory()->builtin('charts')->disabled()->attachedTo($agent)->create();
+
+        return ['/mcp/charts', vimrBarChartCall(), ['X-Chatvia-Agent-Id' => $agent->external_id]];
+    },
+    'another built-in attached' => function (Agent $agent): array {
+        AgentMcpServer::factory()->builtin('forms')->attachedTo($agent)->create();
+
+        return ['/mcp/charts', vimrBarChartCall(), ['X-Chatvia-Agent-Id' => $agent->external_id]];
+    },
+    'a custom server at the same address' => function (Agent $agent): array {
+        AgentMcpServer::factory()->attachedTo($agent)->create(['url' => Str::rtrim((string) config('app.url'), '/').'/mcp/charts']);
+
+        return ['/mcp/charts', vimrBarChartCall(), ['X-Chatvia-Agent-Id' => $agent->external_id]];
+    },
+]);

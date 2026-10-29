@@ -52,8 +52,6 @@ it('builds the hosted chat sign-in link on APP_URL when the Host header is forge
 it('builds links on the request host again after a request to an unknown host', function (): void {
     $this->get('http://evil.example/up');
 
-    // APP_URL is http://localhost: an https redirect shows the request's own
-    // root was used, not one left forced by the request before.
     $this->get('https://localhost/')
         ->assertRedirect('https://localhost/login');
 });

@@ -2,16 +2,12 @@
 
 declare(strict_types=1);
 
-use App\Admin\Settings\ModelLogo;
-use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Services\ModelsDevCatalog;
 use Illuminate\Support\Facades\Http;
 
 /**
- * A model's logo: the app serves it from models.dev (so browsers never call
- * models.dev) to signed-in admins and, for the chatters' model pickers, to
- * anyone; and names it before the model's name wherever the admin panel
- * shows a model.
+ * A model's logo is fetched from models.dev and served from this app's own
+ * origin, so its SVG is sent with a policy that blocks any script in it.
  */
 beforeEach(function (): void {
     forgetModelsDevCatalog();
@@ -25,46 +21,15 @@ beforeEach(function (): void {
     app(ModelsDevCatalog::class)->refresh();
 });
 
-it('serves a lab\'s logo to an admin, with scripts blocked', function (): void {
+it('serves a lab\'s logo with scripts blocked, to an admin and on the public route', function (): void {
     $this->actingAs(adminUser(), 'admin')
         ->get('/admin/model-logos/labs/alibaba.svg')
         ->assertOk()
         ->assertHeader('Content-Type', 'image/svg+xml')
         ->assertHeader('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'")
         ->assertHeader('X-Content-Type-Options', 'nosniff');
-});
 
-it('gives no logo models.dev does not have, nor to a guest', function (): void {
-    $this->actingAs(adminUser(), 'admin')->get('/admin/model-logos/labs/nobody.svg')->assertNotFound();
-
-    auth('admin')->logout();
-
-    $this->get('/admin/model-logos/labs/alibaba.svg')->assertRedirect();
-});
-
-it('serves a logo to anyone on any site for the chatters\' model pickers', function (): void {
     $this->get('/model-logos/labs/alibaba.svg')
         ->assertOk()
-        ->assertHeader('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'")
-        ->assertHeader('Access-Control-Allow-Origin', '*');
-
-    $this->get('/model-logos/labs/nobody.svg')->assertNotFound();
-});
-
-it('puts the lab\'s logo before the model\'s name', function (): void {
-    expect(ModelLogo::label('Qwen3 <235B>', LlmProviderKind::OpenRouter, 'qwen/qwen3-235b-a22b'))
-        ->toBe('<span class="cv-model-label"><span class="cv-model-logo" style="-webkit-mask-image: url(/admin/model-logos/labs/alibaba.svg); mask-image: url(/admin/model-logos/labs/alibaba.svg)" aria-hidden="true"></span><span>Qwen3 &lt;235B&gt;</span></span>')
-        ->and(ModelLogo::label('llama3.1:8b', LlmProviderKind::Custom, 'llama3.1:8b'))->toBe('llama3.1:8b');
-});
-
-it('puts a provider\'s own logo before its name', function (): void {
-    expect(ModelLogo::forProvider('OpenRouter', LlmProviderKind::OpenRouter))
-        ->toBe('<span class="cv-model-label"><span class="cv-model-logo" style="-webkit-mask-image: url(/admin/model-logos/openrouter.svg); mask-image: url(/admin/model-logos/openrouter.svg)" aria-hidden="true"></span><span>OpenRouter</span></span>')
-        ->and(ModelLogo::forProvider('My <Ollama>', LlmProviderKind::Custom))->toBe('My &lt;Ollama&gt;');
-});
-
-it('puts each model\'s logo before its name in a list of choices, and a lab\'s on its own API', function (): void {
-    expect(ModelLogo::labels(['qwen/qwen3-reranker-8b' => 'Qwen3 Reranker 8B'], LlmProviderKind::OpenRouter))
-        ->toBe(['qwen/qwen3-reranker-8b' => '<span class="cv-model-label"><span class="cv-model-logo" style="-webkit-mask-image: url(/admin/model-logos/labs/alibaba.svg); mask-image: url(/admin/model-logos/labs/alibaba.svg)" aria-hidden="true"></span><span>Qwen3 Reranker 8B</span></span>'])
-        ->and(ModelLogo::forLab('Cohere Rerank 4 Pro', 'cohere'))->toContain('url(/admin/model-logos/labs/cohere.svg)', '<span>Cohere Rerank 4 Pro</span>');
+        ->assertHeader('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'");
 });

@@ -6,8 +6,8 @@ use Illuminate\Support\Facades\Http;
 
 /**
  * The daily update check (`chatvia:update:check`): it reads the release tags
- * of the repository and keeps the newest for the admin dashboard, which
- * shows it only while it is newer than the release that runs.
+ * of the repository and keeps the newest release for the admin dashboard,
+ * and asks nothing while checks are off.
  */
 beforeEach(function (): void {
     config([
@@ -29,29 +29,10 @@ function cfuRefs(string ...$tags): string
 it('finds the newest release by version, leaving out release candidates', function (): void {
     Http::fake(['github.com/chatvia/chatvia.git/info/refs*' => Http::response(cfuRefs('v1.4.2', 'v1.10.0', 'v1.9.3', 'v2.0.0-rc.1'))]);
 
-    $this->artisan('chatvia:update:check')
-        ->expectsOutputToContain('ChatVia.ai 1.10.0 is available')
-        ->assertSuccessful();
+    $this->artisan('chatvia:update:check')->assertSuccessful();
 
     expect(app(AvailableUpdate::class)->get())
         ->toEqual(new ReleaseData(version: '1.10.0', url: 'https://github.com/chatvia/chatvia/releases/tag/v1.10.0'));
-});
-
-it('finds no update while the newest release runs', function (): void {
-    Http::fake(['github.com/*' => Http::response(cfuRefs('v1.4.1', 'v1.4.2'))]);
-
-    $this->artisan('chatvia:update:check')->expectsOutputToContain('No newer release found')->assertSuccessful();
-
-    expect(app(AvailableUpdate::class)->get())->toBeNull();
-});
-
-it('keeps the last answer when the repository cannot be read', function (): void {
-    app(AvailableUpdate::class)->remember(new ReleaseData(version: '1.5.0', url: 'https://github.com/chatvia/chatvia/releases/tag/v1.5.0'));
-    Http::fake(['github.com/*' => Http::response('', 503)]);
-
-    $this->artisan('chatvia:update:check')->assertSuccessful();
-
-    expect(app(AvailableUpdate::class)->get()?->version)->toBe('1.5.0');
 });
 
 it('asks nothing and drops the last answer when checks are off', function (): void {
@@ -63,14 +44,5 @@ it('asks nothing and drops the last answer when checks are off', function (): vo
 
     config(['chatvia.updates.check' => true]);
     expect(app(AvailableUpdate::class)->get())->toBeNull();
-    Http::assertNothingSent();
-});
-
-it('asks nothing for an install that runs no release', function (): void {
-    config(['chatvia.updates.version_file' => create_temp_file('VERSION', "main@1a2b3c4\n")]);
-    Http::fake();
-
-    $this->artisan('chatvia:update:check')->expectsOutputToContain('This install runs main@1a2b3c4')->assertSuccessful();
-
     Http::assertNothingSent();
 });

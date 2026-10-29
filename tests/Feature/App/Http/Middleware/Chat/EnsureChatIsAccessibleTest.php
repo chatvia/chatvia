@@ -34,31 +34,25 @@ beforeEach(function (): void {
     $this->agent = createAgent(User::factory()->create(), ['slug' => Str::lower(Str::random(12)), 'is_public' => false]);
 });
 
-it('opens a conversation for its owner while they have access to the agent', function (): void {
+it('opens a conversation for its owner while they have access to the agent, and refuses it once access is revoked', function (): void {
     $chatter = Chatter::factory()->grantedTo($this->agent)->create();
     $conversationId = ecaConversation($this->agent, $chatter);
 
     $this->actingAs($chatter, 'chat')
         ->getJson("/chat/{$this->agent->slug}/conversations/{$conversationId}/messages")
         ->assertOk();
-});
-
-it('refuses an old conversation once the chatter\'s access to the agent is revoked', function (): void {
-    $chatter = Chatter::factory()->grantedTo($this->agent)->create();
-    $conversationId = ecaConversation($this->agent, $chatter);
 
     $chatter->agents()->detach($this->agent->id);
 
     $this->actingAs($chatter, 'chat')
         ->getJson("/chat/{$this->agent->slug}/conversations/{$conversationId}/messages")
         ->assertForbidden();
-
     $this->actingAs($chatter, 'chat')
         ->postJson("/chat/{$this->agent->slug}/stream/{$conversationId}", ['message' => 'Hello'])
         ->assertForbidden();
 });
 
-it('refuses a conversation of another agent on a private agent the chatter cannot use', function (): void {
+it('never opens a conversation of one agent on another agent, with or without access to it', function (): void {
     $chatter = Chatter::factory()->grantedTo($this->agent)->create();
     $conversationId = ecaConversation($this->agent, $chatter);
     $other = createAgent($this->agent->workspace->owner, ['slug' => Str::lower(Str::random(12)), 'is_public' => false]);
@@ -66,40 +60,29 @@ it('refuses a conversation of another agent on a private agent the chatter canno
     $this->actingAs($chatter, 'chat')
         ->postJson("/chat/{$other->slug}/stream/{$conversationId}", ['message' => 'Hello'])
         ->assertForbidden();
-});
 
-it('never opens a conversation of one agent on another agent the chatter can use', function (): void {
-    $chatter = Chatter::factory()->grantedTo($this->agent)->create();
-    $conversationId = ecaConversation($this->agent, $chatter);
-    $other = createAgent($this->agent->workspace->owner, ['slug' => Str::lower(Str::random(12)), 'is_public' => false]);
     $chatter->agents()->attach($other->id, ['workspace_id' => $other->workspace_id]);
 
     $this->actingAs($chatter, 'chat')
         ->getJson("/chat/{$other->slug}/conversations/{$conversationId}/messages")
         ->assertNotFound();
-
     $this->actingAs($chatter, 'chat')
         ->postJson("/chat/{$other->slug}/stream/{$conversationId}", ['message' => 'Hello'])
         ->assertNotFound();
 });
 
-it("chats as a guest on a public agent of another workspace, signed out of that workspace's chat", function (): void {
+it('treats a signed-in chatter as a guest on a public agent of another workspace, and refuses its protected agents', function (): void {
     $chatter = Chatter::factory()->grantedTo($this->agent)->create();
     $public = createAgent(User::factory()->create(), ['slug' => Str::lower(Str::random(12)), 'is_public' => true]);
-
-    $this->actingAs($chatter, 'chat');
-    $conversationId = HostedChatVisitor::startConversation($public);
-
-    expect(Session::query()->where('agent_id', $public->id)->sole()->chatter_id)->toBeNull()
-        ->and(Auth::guard('chat')->check())->toBeFalse()
-        ->and($conversationId)->toBeUuid();
-});
-
-it('refuses a protected agent of another workspace to a signed-in chatter', function (): void {
-    $chatter = Chatter::factory()->grantedTo($this->agent)->create();
     $protected = createAgent(User::factory()->create(), ['slug' => Str::lower(Str::random(12)), 'is_public' => false]);
 
     $this->actingAs($chatter, 'chat')
         ->postJson("/chat/{$protected->slug}/conversations/create", ['message' => 'Hello'])
         ->assertForbidden();
+
+    $conversationId = HostedChatVisitor::startConversation($public);
+
+    expect(Session::query()->where('agent_id', $public->id)->sole()->chatter_id)->toBeNull()
+        ->and(Auth::guard('chat')->check())->toBeFalse()
+        ->and($conversationId)->toBeUuid();
 });

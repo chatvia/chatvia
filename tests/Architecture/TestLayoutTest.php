@@ -37,7 +37,6 @@ const LAYOUT_FEATURE_ROOTS = ['App', 'Bootstrap', 'Database', 'Routes'];
 const LAYOUT_PENDING_MOVES = [
     'tests/Feature/Admin/AdminSetupTest.php',
     'tests/Feature/Admin/AiModelsPageTest.php',
-    'tests/Feature/Admin/StatusPageTest.php',
 ];
 
 /** Methods of the test case that send a request or run a command. */

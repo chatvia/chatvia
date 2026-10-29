@@ -27,7 +27,6 @@ beforeEach(function (): void {
     $this->agent = makeTeamAgent($this->owner, 'Support Bot');
     $this->form = FormDefinition::factory()->forAgent($this->agent)->create(['name' => 'Contact']);
 
-    // The workspace's Forms row exists, so enabling is a pure attach.
     AgentMcpServer::factory()->forOwner($this->owner)->builtin('forms')->create();
 });
 
@@ -59,8 +58,14 @@ function eclSubmit(FormSubmission $form): TestResponse
     ]);
 }
 
-it('refuses building forms, their leads and the capabilities without a license key', function (): void {
+it('refuses building forms, their leads and the capabilities without a license key, and opens the Forms page without the forms', function (): void {
     $this->actingAs($this->owner);
+
+    $this->get(route('agents.forms.index', $this->agent->external_id))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
+            ->component('dashboard/agents/pages/Forms/index')
+            ->has('forms', 0));
 
     eclStoreForm($this->owner, $this->agent)->assertForbidden();
     $this->get(route('agents.forms.submissions.index', ['agent' => $this->agent->external_id, 'form' => $this->form->external_id]))->assertForbidden();
@@ -70,18 +75,8 @@ it('refuses building forms, their leads and the capabilities without a license k
         ->assertJsonPath('message', 'This feature is unavailable. Please contact your administrator.');
 
     expect(FormDefinition::query()->where('name', 'Demo request')->exists())->toBeFalse()
-        ->and($this->agent->isFormsEnabled())->toBeFalse();
-});
-
-it('opens the Forms page without the forms without a license key', function (): void {
-    $this->actingAs($this->owner)
-        ->get(route('agents.forms.index', $this->agent->external_id))
-        ->assertOk()
-        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
-            ->component('dashboard/agents/pages/Forms/index')
-            ->has('forms', 0));
-
-    expect($this->form->fresh())->not->toBeNull();
+        ->and($this->agent->isFormsEnabled())->toBeFalse()
+        ->and($this->form->fresh())->not->toBeNull();
 });
 
 it('refuses a form submitted in a chat without a license key', function (): void {

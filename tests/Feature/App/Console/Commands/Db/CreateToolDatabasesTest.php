@@ -16,7 +16,6 @@ function ctdDatabaseExists(string $name): bool
 }
 
 it('leaves existing tool databases alone', function (): void {
-    // Whatever database this run uses: `testing`, or a worker's in a parallel run.
     $analytics = config('database.connections.analytics.database');
     $pulse = config('database.connections.pulse.database');
     $spectra = config('database.connections.spectra.database');

@@ -460,6 +460,11 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 $this->toggle('image_model_choice', 'Let workspaces offer a choice of models',
                     'Lets each agent show chatters an "Image model" menu in the hosted chat, with the models you tick here. The model above is always in it, as the default. Each agent turns this on under Capabilities → Image generation.')
                     ->live(),
+                Callout::make('Each agent turns the menu on')
+                    ->description('This switch only allows the choice. Chatters see the "Image model" menu once an agent has Image generation under Capabilities and turns on "Let people choose the image model" there.')
+                    ->icon(Heroicon::OutlinedInformationCircle)
+                    ->info()
+                    ->visible(fn (Get $get): bool => (bool) $get('image_model_choice') && $get('image_generator') !== 'none'),
                 $this->mediaModelPicker('image_models', 'image_generator', 'image_model_choice', fn (string $service): array => app(MediaModelCatalog::class)->imageModels($service)),
                 $this->integer('images_per_chat_per_hour', 'Pictures per chat per hour', help: 'The most pictures an agent makes in one chat in an hour. A chatter who asks for more is told to wait.', min: 1, max: 100),
             ])->summary(fn (): string => $this->imageGenerationSummary()),
@@ -531,6 +536,11 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 $this->toggle('video_model_choice', 'Let workspaces offer a choice of models',
                     'Lets each agent show chatters a "Video model" menu in the hosted chat, with the models you tick here. The model above is always in it, as the default. Each agent turns this on under Capabilities → Video generation.')
                     ->live(),
+                Callout::make('Each agent turns the menu on')
+                    ->description('This switch only allows the choice. Chatters see the "Video model" menu once an agent has Video generation under Capabilities and turns on "Let people choose the video model" there.')
+                    ->icon(Heroicon::OutlinedInformationCircle)
+                    ->info()
+                    ->visible(fn (Get $get): bool => (bool) $get('video_model_choice') && $get('video_generator') !== 'none'),
                 $this->mediaModelPicker('video_models', 'video_generator', 'video_model_choice', fn (string $service): array => app(MediaModelCatalog::class)->videoModels($service)),
                 $this->integer('videos_per_chat_per_hour', 'Videos per chat per hour', help: 'The most videos an agent makes in one chat in an hour. A chatter who asks for more is told to wait.', min: 1, max: 20),
                 $this->integer('video_duration', 'Length, in seconds', help: 'How long each video is. Each service makes the length nearest to this that its model can. Longer videos cost more.', min: 2, max: 15),

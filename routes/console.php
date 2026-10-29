@@ -132,6 +132,13 @@ Schedule::command('chatvia:prune:chatter-password-resets')->dailyAt('05:30')->wi
 // It runs while Spectra does not record too, so an old log still empties.
 Schedule::command('spectra:prune', ['--hours' => max(1, (int) config('chatvia.spectra.retention_days')) * 24])->dailyAt('05:20')->withoutOverlapping()->onOneServer();
 
+// Radar (the admin panel's issues page): issues not seen within
+// Settings → Observability's retention go each night.
+Schedule::command('chatvia:prune:issues')->dailyAt('05:40')->withoutOverlapping()->onOneServer();
+// Radar's health check: parts of the install that are down, limits of an
+// earlier month and queues that caught up.
+Schedule::command('chatvia:radar:check')->everyFiveMinutes()->withoutOverlapping(10)->onOneServer();
+
 // The `chat` cache store groups chat memory under tags. Redis keeps a sorted
 // set per tag that lists its keys; entries stay in it after the keys expire,
 // so the sets only grow until this removes the stale entries.

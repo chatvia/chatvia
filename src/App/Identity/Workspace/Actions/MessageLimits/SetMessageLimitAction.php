@@ -6,6 +6,9 @@ use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\MessageLimit;
 use App\Identity\Workspace\Models\Workspace;
 use App\Identity\Workspace\Services\MessageAllowance;
+use Support\Radar\IssueTypeKey;
+use Support\Radar\ServiceKey;
+use Support\Radar\ServiceRecovered;
 
 /**
  * Sets or clears the monthly message limit of a workspace or a chatter. Null
@@ -46,5 +49,10 @@ class SetMessageLimitAction
         $owner instanceof Chatter
             ? $this->allowance->forgetChatter($owner->id)
             : $this->allowance->forget($owner->id);
+
+        if ($owner instanceof Workspace) {
+            // A new limit closes Radar's "reached its message limit" issue.
+            ServiceRecovered::dispatch(ServiceKey::WORKSPACES, (string) $owner->id, IssueTypeKey::MESSAGE_LIMIT_REACHED);
+        }
     }
 }

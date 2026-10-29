@@ -31,6 +31,9 @@ enum LlmFailure: string
     case BadReply = 'bad_reply';
     case Other = 'other';
 
+    /** What providers say when the account has no credit left, whatever the status. */
+    private const array OUT_OF_CREDIT = ['insufficient_quota', 'credit balance', 'insufficient balance', 'insufficient_balance', 'exhausted balance', 'quota_exceeded', 'payment required'];
+
     /**
      * The kind of failure an exception from an AI call stands for. Streamed
      * calls throw Guzzle's exceptions, the others Laravel's HTTP client ones.
@@ -56,10 +59,12 @@ enum LlmFailure: string
         return self::Other;
     }
 
-    private static function fromResponse(int $status, string $body): self
+    /** The kind of failure a refused call stands for, by its status and what the provider said. */
+    public static function fromResponse(int $status, string $body): self
     {
-        // Anthropic answers an empty balance with a 400, OpenAI with a 429.
-        if ($status === 402 || Str::contains($body, ['insufficient_quota', 'credit balance'], ignoreCase: true)) {
+        // Anthropic answers an empty balance with a 400, OpenAI with a 429,
+        // fal.ai with a 403 and ElevenLabs with a 401.
+        if ($status === 402 || Str::contains($body, self::OUT_OF_CREDIT, ignoreCase: true)) {
             return self::OutOfCredit;
         }
 

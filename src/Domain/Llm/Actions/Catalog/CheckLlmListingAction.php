@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace Domain\Llm\Actions\Catalog;
 
 use Domain\Llm\Data\Catalog\RemoteModelData;
+use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\ModelListStatus;
 use Domain\Llm\Events\LlmUnlisted;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Services\ModelListing;
+use Support\Radar\IssueRaised;
+use Support\Radar\IssueTypeKey;
 
 /**
  * Reads a provider's model list to see whether it still serves the catalog's
@@ -50,5 +53,11 @@ final readonly class CheckLlmListingAction
         $refused->update(['unlisted_at' => now()]);
 
         LlmUnlisted::dispatch($refused->id);
+
+        $account = AiProvider::forChatKind($provider->kind);
+
+        if ($account instanceof AiProvider) {
+            IssueRaised::dispatch($account->value, IssueTypeKey::MODEL_GONE, "{$account->label()} no longer lists the model {$refused->name}, so it is no longer offered.", model: $refused->name, subject: $refused->name);
+        }
     }
 }

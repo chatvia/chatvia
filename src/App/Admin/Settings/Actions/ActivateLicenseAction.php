@@ -9,6 +9,8 @@ use App\Admin\Settings\CreditLicense;
 use App\Admin\Settings\Data\LicenseActivationData;
 use App\Admin\Settings\LicenseActivation;
 use App\Admin\Settings\LicenseStatus;
+use Support\Radar\ServiceKey;
+use Support\Radar\ServiceRecovered;
 
 /**
  * Activates a license key for this install's domain at chatvia.ai and saves
@@ -35,6 +37,8 @@ final readonly class ActivateLicenseAction
         if ($activation->key !== null) {
             $this->settings->license_key = $activation->key;
             $this->settings->save();
+
+            ServiceRecovered::dispatch(ServiceKey::LICENSE);
         }
 
         return $activation;

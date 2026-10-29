@@ -18,6 +18,10 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Support\Radar\IssueRaised;
+use Support\Radar\IssueTypeKey;
+use Support\Radar\ServiceKey;
+use Support\Radar\ServiceRecovered;
 use Throwable;
 
 /**
@@ -90,6 +94,10 @@ class RunBackupAction
 
         if ($backup->status === BackupStatus::Completed) {
             $this->prune->execute(max(1, (int) config('chatvia.backup.keep')));
+
+            ServiceRecovered::dispatch(ServiceKey::BACKUPS);
+        } elseif ($backup->status === BackupStatus::Failed) {
+            IssueRaised::dispatch(ServiceKey::BACKUPS, IssueTypeKey::BACKUP_FAILED, $backup->error);
         }
 
         return $backup;

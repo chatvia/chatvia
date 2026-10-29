@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Domain\Llm\Enums;
 
 use Domain\Llm\Services\ModelPresets;
+use Illuminate\Support\Str;
+use Illuminate\Support\Uri;
 
 /**
  * An AI provider account: one API key (Settings → AI providers) that serves
@@ -181,6 +183,42 @@ enum AiProvider: string
             self::BytePlus => 'services.byteplus.endpoint',
             self::OpenRouter, self::Groq, self::Anthropic, self::Runway, self::Fal => null,
         };
+    }
+
+    /**
+     * The hosts its API answers on: the default ones, and the address saved
+     * in Settings when it has one (an Azure resource, a provider's own
+     * address), so a call can be told apart by where it went.
+     *
+     * @return list<string>
+     */
+    public function apiHosts(): array
+    {
+        $saved = $this->baseUrlConfig() !== null ? config($this->baseUrlConfig()) : null;
+
+        return collect(match ($this) {
+            self::Scaleway => ['api.scaleway.ai'],
+            self::OpenRouter => ['openrouter.ai'],
+            self::ElevenLabs => ['api.elevenlabs.io'],
+            self::OpenAi => ['api.openai.com'],
+            self::Mistral => ['api.mistral.ai'],
+            self::Google => ['generativelanguage.googleapis.com'],
+            self::Groq => ['api.groq.com'],
+            self::Anthropic => ['api.anthropic.com'],
+            self::Cohere => ['api.cohere.com', 'api.cohere.ai'],
+            self::Jina => ['api.jina.ai'],
+            self::Voyage => ['api.voyageai.com'],
+            self::Kling => ['api-singapore.klingai.com'],
+            self::BytePlus => ['ark.ap-southeast.bytepluses.com'],
+            self::Runway => ['api.dev.runwayml.com'],
+            self::Fal => ['queue.fal.run', 'fal.run'],
+            self::Azure, self::AzureOpenAi => [],
+        })
+            ->push(filled($saved) && is_scalar($saved) ? Str::lower(Uri::of((string) $saved)->host() ?? '') : '')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
     }
 
     /** Where an admin creates an API key. */

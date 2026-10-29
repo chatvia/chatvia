@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Admin\Settings;
 
+use App\Admin\Issue\Services\IssueRecording;
 use App\Admin\Settings\Data\ConnectionCheckData;
 use Domain\Knowledge\Embedding\Enums\EmbeddingCheckStatus;
 use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
@@ -45,6 +46,12 @@ final readonly class AiProviderCheck
     ) {}
 
     public function check(AiProvider $provider, ?string $apiKey = null, ?string $baseUrl = null): ConnectionCheckData
+    {
+        // A check never becomes an issue: it may test a key the admin is still typing.
+        return IssueRecording::muted(fn (): ConnectionCheckData => $this->checkUnmuted($provider, $apiKey, $baseUrl));
+    }
+
+    private function checkUnmuted(AiProvider $provider, ?string $apiKey = null, ?string $baseUrl = null): ConnectionCheckData
     {
         $key = filled($apiKey) ? $apiKey : config($provider->apiKeyConfig());
 

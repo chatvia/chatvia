@@ -2,6 +2,17 @@
 
 namespace App\Providers;
 
+use App\Admin\Issue\Listeners\CloseEmailIssue;
+use App\Admin\Issue\Listeners\CloseRecoveredJob;
+use App\Admin\Issue\Listeners\CloseRecoveredService;
+use App\Admin\Issue\Listeners\RecordFailedJob;
+use App\Admin\Issue\Listeners\RecordFinishedTask;
+use App\Admin\Issue\Listeners\RecordMessageLimitReached;
+use App\Admin\Issue\Listeners\RecordOutsideServiceCall;
+use App\Admin\Issue\Listeners\RecordQueueBacklog;
+use App\Admin\Issue\Listeners\RecordRaisedIssue;
+use App\Admin\Issue\Listeners\RememberIssueActor;
+use App\Admin\Issue\Listeners\TrackIssueOrigin;
 use App\Admin\Settings\Listeners\ReindexForNewEmbeddingModel;
 use App\Admin\Status\Listeners\RecordSchedulerHeartbeat;
 use App\Identity\Chatter\Events\ChatterBlocked;
@@ -135,19 +146,32 @@ use Domain\Security\Events\SecurityEventOccurred;
 use Domain\Security\Listeners\NotifySecurityChange;
 use Domain\Security\Listeners\RecordSecurityEvent;
 use Domain\Security\Listeners\SendSecurityEventToSiem;
+use Illuminate\Auth\Events\Authenticated;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Console\Events\CommandStarting;
+use Illuminate\Console\Events\ScheduledTaskFailed;
+use Illuminate\Console\Events\ScheduledTaskFinished;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Http\Client\Events\ConnectionFailed;
+use Illuminate\Http\Client\Events\ResponseReceived;
+use Illuminate\Mail\Events\MessageSent as EmailSent;
+use Illuminate\Queue\Events\JobFailed;
+use Illuminate\Queue\Events\JobProcessed;
+use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use Laravel\Horizon\Events\LongWaitDetected;
+use Laravel\Sanctum\Events\TokenAuthenticated;
 use Spatie\LaravelSettings\Events\SavingSettings;
 use Support\Executable;
+use Support\Radar\IssueRaised;
+use Support\Radar\ServiceRecovered;
 
 /**
  * Domain wiring: observers, DI bindings against contracts (AI providers,
@@ -347,6 +371,28 @@ class DomainServiceProvider extends ServiceProvider
 
         // A new embedding model (Settings → AI models) needs everything embedded again.
         Event::listen(SavingSettings::class, ReindexForNewEmbeddingModel::class);
+
+        // Radar, the admin panel's issues page: any code raises an issue or
+        // says a service works again; outside calls, failed jobs and tasks,
+        // long queue waits and reached message limits are looked at by
+        // themselves. The other listeners note where it happened and who
+        // was behind it.
+        Event::listen(IssueRaised::class, RecordRaisedIssue::class);
+        Event::listen(ServiceRecovered::class, CloseRecoveredService::class);
+        Event::listen(ResponseReceived::class, RecordOutsideServiceCall::class);
+        Event::listen(ConnectionFailed::class, RecordOutsideServiceCall::class);
+        Event::listen(EmailSent::class, CloseEmailIssue::class);
+        Event::listen(JobFailed::class, RecordFailedJob::class);
+        Event::listen(JobProcessed::class, CloseRecoveredJob::class);
+        Event::listen(ScheduledTaskFinished::class, RecordFinishedTask::class);
+        Event::listen(ScheduledTaskFailed::class, RecordFinishedTask::class);
+        Event::listen(LongWaitDetected::class, RecordQueueBacklog::class);
+        Event::listen(MessageLimitThresholdReached::class, RecordMessageLimitReached::class);
+        Event::listen(JobProcessing::class, TrackIssueOrigin::class);
+        Event::listen(JobProcessed::class, TrackIssueOrigin::class);
+        Event::listen(CommandStarting::class, TrackIssueOrigin::class);
+        Event::listen(Authenticated::class, RememberIssueActor::class);
+        Event::listen(TokenAuthenticated::class, RememberIssueActor::class);
 
         // Enterprise security audit log — one parametric event, persisted off
         // the request by a queued listener. The auth listeners run on the web

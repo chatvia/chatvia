@@ -130,6 +130,10 @@ abstract class TestCase extends BaseTestCase
         // database. A test covering the recording switches it on itself.
         config(['spectra.enabled' => false, 'chatvia.spectra.recording' => false]);
 
+        // Tests log warnings on purpose; none becomes an issue unless a test
+        // of the Issues page turns recording on.
+        config(['chatvia.issues.enabled' => false]);
+
         // New agents analyze sentiment, tone and topics with the model. Tests
         // start with that off, so a chat turn calls no unfaked model; a test
         // of the analysis turns it on for its agent.

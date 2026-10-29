@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Admin\Settings;
 
+use App\Admin\Issue\Services\IssueRecording;
 use App\Admin\Settings\Data\ConnectionCheckData;
 use Domain\Knowledge\Ingestion\Services\Clients\MistralOcr;
 use Domain\Llm\Enums\AiProvider;
@@ -25,6 +26,12 @@ final readonly class DocumentServiceCheck
 
     /** The service that reads documents while sources are trained. */
     public function reader(AiProvider $reader): ConnectionCheckData
+    {
+        // A check never becomes an issue: it may test a key the admin is still typing.
+        return IssueRecording::muted(fn (): ConnectionCheckData => $this->readerUnmuted($reader));
+    }
+
+    private function readerUnmuted(AiProvider $reader): ConnectionCheckData
     {
         return $reader === AiProvider::Mistral ? $this->mistralOcr() : $this->providers->check($reader);
     }

@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Admin;
 
+use App\Admin\Issue\Actions\CheckInstallHealthAction;
 use App\Admin\Pages\Setup;
 use App\Admin\Settings\CustomLogo;
 use App\Admin\Settings\ModelLogoController;
+use App\Admin\Status\Service;
 use App\Http\Middleware\Web\DenyCrossOriginFraming;
 use App\Identity\Workspace\Models\User;
 use Domain\Llm\Services\ModelsDevCatalog;
@@ -26,6 +28,7 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Saade\FilamentLaravelLog\FilamentLaravelLogPlugin;
@@ -50,9 +53,10 @@ use Saade\FilamentLaravelLog\FilamentLaravelLogPlugin;
  * same staff as Horizon ({@see StaffToolsAccess}), and only once an admin
  * turns it on (Settings → Platform → Development).
  *
- * Tools, Status, Logs and Settings sit below a divider in the sidebar, apart
- * from the pages about the install's data ({@see SYSTEM_NAVIGATION_GROUP}).
- * Settings comes last.
+ * Tools, Status, Radar and Settings sit below a divider in the sidebar,
+ * apart from the pages about the install's data ({@see SYSTEM_NAVIGATION_GROUP}).
+ * License and Logs sit below another divider at the bottom
+ * ({@see BOTTOM_NAVIGATION_GROUP}).
  */
 class AdminPanelProvider extends PanelProvider
 {
@@ -61,6 +65,9 @@ class AdminPanelProvider extends PanelProvider
      * heading: the theme draws a line above it.
      */
     public const string SYSTEM_NAVIGATION_GROUP = 'system';
+
+    /** The sidebar group of License and Logs, below the system group, with a line above it too. */
+    public const string BOTTOM_NAVIGATION_GROUP = 'bottom';
 
     public function panel(Panel $panel): Panel
     {
@@ -96,18 +103,28 @@ class AdminPanelProvider extends PanelProvider
             ->navigationGroups([
                 self::SYSTEM_NAVIGATION_GROUP => NavigationGroup::make()
                     ->extraSidebarAttributes(['class' => 'cv-sidebar-group--divided']),
+                self::BOTTOM_NAVIGATION_GROUP => NavigationGroup::make()
+                    ->extraSidebarAttributes(['class' => 'cv-sidebar-group--divided']),
             ])
             ->discoverClusters(in: app_path('Admin/Clusters'), for: 'App\Admin\Clusters')
             ->discoverResources(in: app_path('Admin/Resources'), for: 'App\Admin\Resources')
             ->discoverPages(in: app_path('Admin/Pages'), for: 'App\Admin\Pages')
             ->discoverWidgets(in: app_path('Admin/Widgets'), for: 'App\Admin\Widgets')
+            // A stopped scheduler cannot report itself to Radar: an admin's
+            // visit checks it, at most once a minute.
+            ->bootUsing(function (): void {
+                if (Cache::add('radar:scheduler-check', true, 60)) {
+                    rescue(fn () => app(CheckInstallHealthAction::class)->execute(Service::Scheduler), report: false);
+                }
+            })
             // The log files are the whole install's, not one workspace's.
             ->plugin(
                 FilamentLaravelLogPlugin::make()
                     ->authorize(fn (): bool => config('chatvia.admin.logs_page_enabled') === true
                         && app(StaffToolsAccess::class)->allows())
-                    ->navigationGroup(self::SYSTEM_NAVIGATION_GROUP)
-                    ->navigationSort(99)
+                    ->navigationGroup(self::BOTTOM_NAVIGATION_GROUP)
+                    // After License (102): the sidebar orders its groups by their pages' numbers.
+                    ->navigationSort(103)
             )
             ->middleware([
                 // The admin panel runs outside the `web` group, so it gets

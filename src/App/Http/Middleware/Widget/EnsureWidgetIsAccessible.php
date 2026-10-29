@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware\Widget;
 
+use App\Admin\Issue\Services\IssueReporter;
 use App\Http\Widget\WidgetAgent;
 use App\Identity\Workspace\Data\Sessions\ClientOriginData;
 use App\Identity\Workspace\Models\User;
@@ -65,8 +66,10 @@ class EnsureWidgetIsAccessible
             ], Response::HTTP_NOT_FOUND);
         }
 
-        // Jobs this request queues carry the agent's workspace.
+        // Jobs this request queues carry the agent and its workspace (an
+        // issue it meets names both).
         Context::addHidden('workspace_id', $agent->workspace_id);
+        Context::addHidden(IssueReporter::AGENT_CONTEXT, $agent->id);
 
         $resolved = $this->resolveSignedInUser($request, $agent);
 

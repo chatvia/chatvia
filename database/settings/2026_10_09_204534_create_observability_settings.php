@@ -27,6 +27,8 @@ return new class extends SettingsMigration
             $group->add('spectra_trace_per_request');
             $group->add('spectra_use_traceparent');
             $group->add('spectra_capture_request_id');
+            $group->add('issues_enabled');
+            $group->add('issues_retention_days');
         });
     }
 

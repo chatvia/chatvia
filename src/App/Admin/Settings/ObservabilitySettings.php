@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Admin\Settings;
 
 /**
- * The two staff tools that watch the install. Pulse, the app's health:
+ * The staff tools that watch the install. Pulse, the app's health:
  * whether it records. Spectra, the log of every AI call: whether it
  * records, what it saves of each call besides the counts, costs and times,
- * how long it keeps them, and how calls are grouped into traces.
+ * how long it keeps them, and how calls are grouped into traces. Issues,
+ * the issues with outside services an admin can fix: whether they are
+ * kept, and for how long.
  *
  * Spectra reads its keys again on every AI call, so a save applies at
  * once. Whether either tool records goes through {@see ToolRecording},
@@ -54,6 +56,12 @@ class ObservabilitySettings extends AdminSettings
 
     #[ConfigKey('spectra.tracking.capture_request_id')]
     public ?bool $spectra_capture_request_id = null;
+
+    #[ConfigKey('chatvia.issues.enabled')]
+    public ?bool $issues_enabled = null;
+
+    #[ConfigKey('chatvia.issues.retention_days')]
+    public ?int $issues_retention_days = null;
 
     public static function group(): string
     {

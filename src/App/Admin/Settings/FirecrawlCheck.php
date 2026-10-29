@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Admin\Settings;
 
+use App\Admin\Issue\Services\IssueRecording;
 use App\Admin\Settings\Data\ConnectionCheckData;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
@@ -17,6 +18,12 @@ use Illuminate\Support\Str;
 final class FirecrawlCheck
 {
     public function check(string $apiKey, ?string $endpoint = null): ConnectionCheckData
+    {
+        // A check never becomes an issue: it may test a key the admin is still typing.
+        return IssueRecording::muted(fn (): ConnectionCheckData => $this->checkUnmuted($apiKey, $endpoint));
+    }
+
+    private function checkUnmuted(string $apiKey, ?string $endpoint = null): ConnectionCheckData
     {
         $endpoint = Str::rtrim(filled($endpoint) ? $endpoint : (string) config('services.firecrawl.endpoint'), '/');
 

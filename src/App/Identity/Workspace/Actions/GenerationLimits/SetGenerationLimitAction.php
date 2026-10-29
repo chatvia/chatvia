@@ -7,6 +7,9 @@ namespace App\Identity\Workspace\Actions\GenerationLimits;
 use App\Identity\Workspace\Data\GenerationLimits\GenerationLimitData;
 use App\Identity\Workspace\Models\GenerationLimit;
 use App\Identity\Workspace\Models\Workspace;
+use Support\Radar\IssueTypeKey;
+use Support\Radar\ServiceKey;
+use Support\Radar\ServiceRecovered;
 
 /**
  * Sets or clears a workspace's monthly caps on what its agents make: one on
@@ -18,6 +21,9 @@ class SetGenerationLimitAction
 {
     public function execute(Workspace $workspace, GenerationLimitData $limits): void
     {
+        // A new limit closes Radar's "reached its generation limit" issue.
+        ServiceRecovered::dispatch(ServiceKey::WORKSPACES, (string) $workspace->id, IssueTypeKey::GENERATION_LIMIT_REACHED);
+
         if ($limits->isEmpty()) {
             GenerationLimit::query()->where('workspace_id', $workspace->id)->delete();
 

@@ -7,13 +7,17 @@ namespace App\Identity\Workspace\Services;
 use App\Identity\Workspace\Models\GenerationLimit;
 use Carbon\CarbonInterface;
 use Domain\Conversation\Enums\GeneratedMediaKind;
+use Support\Radar\IssueRaised;
+use Support\Radar\IssueTypeKey;
+use Support\Radar\ServiceKey;
 
 /**
  * Counts what a workspace's agents make against its monthly caps
  * ({@see GenerationLimit}): pictures and audio files against one, videos
  * against their own. A slot is taken when a file is asked for
  * ({@see reserve()}) and given back when making it fails ({@see release()}),
- * so a failed file costs the workspace nothing.
+ * so a failed file costs the workspace nothing. A refusal tells Radar, as
+ * only an admin can raise the cap.
  *
  * Each step is one UPDATE that also restarts both counts when a new month
  * has begun: the database decides from the stored period, so two requests
@@ -39,7 +43,14 @@ class GenerationAllowance
                 AND ({$cap} IS NULL OR CASE WHEN period_starts_at >= ? THEN {$used} ELSE 0 END < {$cap})
         SQL, [$monthStart, $monthStart, $monthStart, $now, $workspaceId, $monthStart]);
 
-        return $taken > 0 || ! GenerationLimit::query()->where('workspace_id', $workspaceId)->exists();
+        if ($taken > 0 || ! GenerationLimit::query()->where('workspace_id', $workspaceId)->exists()) {
+            return true;
+        }
+
+        $files = $kind === GeneratedMediaKind::Video ? 'videos' : 'pictures and audio files';
+        IssueRaised::dispatch(ServiceKey::WORKSPACES, IssueTypeKey::GENERATION_LIMIT_REACHED, "The monthly limit on {$files} is used up.", subject: (string) $workspaceId);
+
+        return false;
     }
 
     /**

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Admin\Status;
 
+use App\Admin\Issue\Services\IssueRecording;
 use App\Admin\Settings\AiProviderCheck;
 use App\Admin\Settings\AiProviderUsage;
 use App\Admin\Settings\Data\ConnectionCheckData;
@@ -40,6 +41,12 @@ final class AiServiceChecks
     ) {}
 
     public function check(AiService $service): ServiceStatusData
+    {
+        // A check never becomes an issue: it may test a key the admin is still typing.
+        return IssueRecording::muted(fn (): ServiceStatusData => $this->checkUnmuted($service));
+    }
+
+    private function checkUnmuted(AiService $service): ServiceStatusData
     {
         try {
             return match ($service) {

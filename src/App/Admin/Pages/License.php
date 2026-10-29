@@ -47,10 +47,10 @@ class License extends AdminSettingsPage
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedKey;
 
     #[\Override]
-    protected static string|UnitEnum|null $navigationGroup = AdminPanelProvider::SYSTEM_NAVIGATION_GROUP;
+    protected static string|UnitEnum|null $navigationGroup = AdminPanelProvider::BOTTOM_NAVIGATION_GROUP;
 
     #[\Override]
-    protected static ?int $navigationSort = 101;
+    protected static ?int $navigationSort = 102;
 
     public static function description(): string
     {

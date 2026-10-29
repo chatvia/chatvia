@@ -6,20 +6,23 @@ namespace App\Admin\Clusters\Settings\Pages;
 
 use App\Admin\Clusters\Settings\AdminSettingsPage;
 use App\Admin\Clusters\Settings\SettingsCard;
+use App\Admin\Resources\Issues\IssueResource;
 use App\Admin\Settings\ObservabilitySettings;
 use App\Admin\Settings\ToolRecording;
 use App\Admin\StaffTool;
 use BackedEnum;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Fieldset;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Str;
+use Laravel\Pulse\Support\CacheStoreResolver;
 
 /**
  * The staff tools that watch the install. Pulse, the app's health: whether
  * it records. Spectra, the log of every AI call: whether it records, how
  * long it keeps calls, what it saves of each one besides the counts, costs
- * and times, and how it groups calls into traces.
+ * and times, and (in its Advanced part) how it groups calls into traces. Radar, the issues an
+ * admin can fix (a refused API key, no credit…): whether they are kept, and
+ * for how long.
  */
 class ManageObservabilitySettings extends AdminSettingsPage
 {
@@ -29,14 +32,21 @@ class ManageObservabilitySettings extends AdminSettingsPage
         'spectra_enabled' => 'SPECTRA_ENABLED',
     ];
 
-    /** What Spectra can save of a call, by property, as the card's summary names it. */
+    /** What Spectra can save of a call, besides the counts, costs and times it always keeps. */
     private const array SAVED_PARTS = [
-        'spectra_store_prompts' => 'prompts',
-        'spectra_store_system_prompts' => 'system prompts',
-        'spectra_store_responses' => 'replies',
-        'spectra_store_tools' => 'tools',
-        'spectra_store_request_data' => 'request data',
-        'spectra_store_embeddings' => 'embeddings',
+        'spectra_store_prompts',
+        'spectra_store_system_prompts',
+        'spectra_store_responses',
+        'spectra_store_tools',
+        'spectra_store_request_data',
+        'spectra_store_embeddings',
+    ];
+
+    /** How Spectra groups calls into traces. */
+    private const array TRACE_PARTS = [
+        'spectra_trace_per_request',
+        'spectra_use_traceparent',
+        'spectra_capture_request_id',
     ];
 
     #[\Override]
@@ -56,13 +66,15 @@ class ManageObservabilitySettings extends AdminSettingsPage
 
     public static function description(): string
     {
-        return 'Pulse, the app\'s health, and Spectra, the log of every AI call.';
+        return 'Pulse, the app\'s health, Spectra, the log of every AI call, and Radar, the issues you can fix.';
     }
 
     /**
      * `pulse:check` (Pulse's server stats) runs for hours and never sees a
      * save, so a change of the Pulse switch restarts it: the process that
-     * keeps it running starts it again with the saved choice.
+     * keeps it running starts it again with the saved choice. The signal is
+     * the cache key `pulse:restart` writes; Pulse registers that command in
+     * the console only, so a web request cannot call it.
      */
     #[\Override]
     public function save(): void
@@ -72,7 +84,7 @@ class ManageObservabilitySettings extends AdminSettingsPage
         parent::save();
 
         if ($this->valueInUse('pulse_enabled') !== $pulse) {
-            Artisan::call('pulse:restart');
+            app(CacheStoreResolver::class)->store()->forever('laravel:pulse:restart', now()->getTimestamp());
         }
     }
 
@@ -102,21 +114,29 @@ class ManageObservabilitySettings extends AdminSettingsPage
             SettingsCard::make('spectra', 'Spectra', 'A log of every AI call: the model, the tokens, the cost and the time it took.', Heroicon::OutlinedCpuChip, fn (): array => [
                 $this->recordingToggle('spectra_enabled', 'Record AI calls'),
                 $this->integer('spectra_retention_days', 'Keep AI calls for (days)', help: 'AI calls older than this are deleted once a day.', min: 1, max: 3650),
-            ])->summary(fn (): string => $this->recordingSummary('spectra_enabled'))
-                ->console($this->toolUrl(StaffTool::Spectra), 'Open Spectra'),
-            SettingsCard::make('saved', 'What Spectra saves', 'Besides the counts, costs and times, which Spectra always keeps.', Heroicon::OutlinedDocumentText, fn (): array => [
-                $this->toggle('spectra_store_prompts', 'Prompts', help: 'Saves the messages sent to the AI, which include what people write in chats.'),
-                $this->toggle('spectra_store_system_prompts', 'System prompts', help: 'Saves each agent\'s instructions, along with the parts of your knowledge found for the question.'),
-                $this->toggle('spectra_store_responses', 'Replies', help: 'Saves what the AI answered.'),
-                $this->toggle('spectra_store_tools', 'Tools', help: 'Saves the list of tools the AI could use. It can be long.'),
-                $this->toggle('spectra_store_request_data', 'Request data', help: 'Saves the whole request sent to the AI service. That repeats the prompts and adds settings such as the temperature.'),
-                $this->toggle('spectra_store_embeddings', 'Embeddings', help: 'Saves the numbers that search uses to compare meaning. They are large and rarely useful, so this is off by default.'),
-            ])->summary(fn (): string => $this->savedSummary()),
-            SettingsCard::make('traces', 'Traces', 'How Spectra groups AI calls, so the calls of one reply show as one chain.', Heroicon::OutlinedLink, fn (): array => [
-                $this->toggle('spectra_trace_per_request', 'One trace per request', help: 'Groups the AI calls of one page visit or background job, so they show as one chain. Off shows each call on its own.'),
-                $this->toggle('spectra_use_traceparent', 'Join incoming traces', help: 'When another monitoring tool sends a trace ID with a request, the AI calls of that request join its trace.'),
-                $this->toggle('spectra_capture_request_id', 'Keep the request ID', help: 'Saves the ID of the page request with each AI call, so you can find the same request in the server logs.'),
-            ])->advanced(),
+                Fieldset::make('What Spectra saves, besides the counts, costs and times')
+                    ->columns(1)
+                    ->schema([
+                        $this->toggle('spectra_store_prompts', 'Prompts', help: 'Saves the messages sent to the AI, which include what people write in chats.'),
+                        $this->toggle('spectra_store_system_prompts', 'System prompts', help: 'Saves each agent\'s instructions, along with the parts of your knowledge found for the question.'),
+                        $this->toggle('spectra_store_responses', 'Replies', help: 'Saves what the AI answered.'),
+                        $this->toggle('spectra_store_tools', 'Tools', help: 'Saves the list of tools the AI could use. It can be long.'),
+                        $this->toggle('spectra_store_request_data', 'Request data', help: 'Saves the whole request sent to the AI service. That repeats the prompts and adds settings such as the temperature.'),
+                        $this->toggle('spectra_store_embeddings', 'Embeddings', help: 'Saves the numbers that search uses to compare meaning. They are large and rarely useful, so this is off by default.'),
+                    ]),
+            ])->properties('spectra_enabled', 'spectra_retention_days', ...self::SAVED_PARTS, ...self::TRACE_PARTS)
+                ->summary(fn (): string => $this->recordingSummary('spectra_enabled'))
+                ->console($this->toolUrl(StaffTool::Spectra), 'Open Spectra')
+                ->advancedFields(fn (): array => [
+                    $this->toggle('spectra_trace_per_request', 'One trace per request', help: 'Groups the AI calls of one page visit or background job, so they show as one chain. Off shows each call on its own.'),
+                    $this->toggle('spectra_use_traceparent', 'Join incoming traces', help: 'When another monitoring tool sends a trace ID with a request, the AI calls of that request join its trace.'),
+                    $this->toggle('spectra_capture_request_id', 'Keep the request ID', help: 'Saves the ID of the page request with each AI call, so you can find the same request in the server logs.'),
+                ]),
+            SettingsCard::make('issues', 'Radar', 'Issues you can fix, such as a refused API key or an account out of credit.', Heroicon::OutlinedSignal, fn (): array => [
+                $this->toggle('issues_enabled', 'Keep issues', help: 'Saves each issue with an AI provider or another service you set up (a refused key, no credit, a removed model, a service that is down), with who it happened to, to show on Radar.'),
+                $this->integer('issues_retention_days', 'Keep issues for (days)', help: 'Issues not seen for this many days are deleted once a day.', min: 1, max: 3650),
+            ])->summary(fn (): string => $this->issuesSummary())
+                ->console(IssueResource::getUrl(), 'Open Radar'),
         ];
     }
 
@@ -160,14 +180,8 @@ class ManageObservabilitySettings extends AdminSettingsPage
         return $tool->unavailableReason() === null ? $tool->url() : null;
     }
 
-    private function savedSummary(): string
+    private function issuesSummary(): string
     {
-        $saved = array_keys(array_filter(self::SAVED_PARTS, fn (string $part, string $property): bool => (bool) $this->valueInUse($property), ARRAY_FILTER_USE_BOTH));
-
-        if ($saved === []) {
-            return 'Counts, costs and times only';
-        }
-
-        return Str::ucfirst(collect($saved)->map(fn (string $property): string => self::SAVED_PARTS[$property])->join(', ', ' and '));
+        return $this->valueInUse('issues_enabled') === true ? 'On' : 'Off';
     }
 }

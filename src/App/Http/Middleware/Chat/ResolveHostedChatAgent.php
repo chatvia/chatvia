@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware\Chat;
 
+use App\Admin\Issue\Services\IssueReporter;
 use App\Http\Chat\HostedChatAgent;
 use Closure;
 use Domain\Agent\Models\Agent;
@@ -39,8 +40,10 @@ final class ResolveHostedChatAgent
         }
 
         HostedChatAgent::remember($request, $agent);
-        // Jobs this request queues carry the agent's workspace.
+        // Jobs this request queues carry the agent and its workspace (an
+        // issue it meets names both).
         Context::addHidden('workspace_id', $agent->workspace_id);
+        Context::addHidden(IssueReporter::AGENT_CONTEXT, $agent->id);
         URL::defaults(['agentSlug' => $slug]);
         $request->route()?->forgetParameter('agentSlug');
 

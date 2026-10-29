@@ -44,10 +44,15 @@ use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Sentry\Laravel\Integration as Sentry;
 use Support\Exceptions\DomainValidationException;
+use Support\Radar\IssueRaised;
+use Support\Radar\IssueTypeKey;
+use Support\Radar\ServiceKey;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 $app = Application::configure(basePath: dirname(__DIR__))
     ->withCommands([
@@ -168,6 +173,12 @@ $app = Application::configure(basePath: dirname(__DIR__))
         // Reported errors also go to Sentry while Settings → Platform has a
         // server DSN; without one this does nothing.
         Sentry::handles($exceptions);
+
+        // An email that could not be sent is an issue on Radar (the admin
+        // panel's issues page), beside the usual report.
+        $exceptions->report(function (TransportExceptionInterface $e): void {
+            IssueRaised::dispatch(ServiceKey::MAIL, IssueTypeKey::SEND_FAILED, Str::limit($e->getMessage(), 300));
+        });
 
         // The public API always answers errors as JSON, even when a client
         // leaves out `Accept: application/json`: a 401 or a 422, never a

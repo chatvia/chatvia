@@ -8,6 +8,9 @@ use App\Admin\Settings\BrandSettings;
 use App\Admin\Settings\CreditLicense;
 use App\Admin\Settings\LicenseActivation;
 use App\Admin\Settings\LicenseStatus;
+use Support\Radar\IssueRaised;
+use Support\Radar\IssueTypeKey;
+use Support\Radar\ServiceKey;
 
 /**
  * The daily license check: asks chatvia.ai whether the saved key is still
@@ -43,6 +46,8 @@ final readonly class CheckLicenseAction
             $this->settings->license_key = null;
             $this->settings->powered_by_enabled = null;
             $this->settings->save();
+
+            IssueRaised::dispatch(ServiceKey::LICENSE, IssueTypeKey::LICENSE_INACTIVE, 'chatvia.ai says the key is no longer active for this domain.');
 
             return true;
         }

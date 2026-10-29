@@ -261,6 +261,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Issues
+    |--------------------------------------------------------------------------
+    |
+    | Issues an admin can fix (a refused API key, an account out of credit,
+    | a model that is gone, email that cannot be sent…), on Radar, the admin
+    | panel's issues page. Issues not seen for `retention_days` are deleted each
+    | night by chatvia:prune:issues. Set in Settings → Observability.
+    |
+    */
+
+    'issues' => [
+        'enabled' => true,
+        'retention_days' => 30,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Backups
     |--------------------------------------------------------------------------
     |

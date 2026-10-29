@@ -265,22 +265,22 @@
     "settings/observability#pulse": [
         "Record app health"
     ],
+    "settings/observability#radar": [
+        "Keep issues",
+        "Keep issues for (days)"
+    ],
     "settings/observability#spectra": [
         "Record AI calls",
-        "Keep AI calls for (days)"
-    ],
-    "settings/observability#traces": [
-        "One trace per request",
-        "Join incoming traces",
-        "Keep the request ID"
-    ],
-    "settings/observability#what-spectra-saves": [
+        "Keep AI calls for (days)",
         "Prompts",
         "System prompts",
         "Replies",
         "Tools",
         "Request data",
-        "Embeddings"
+        "Embeddings",
+        "One trace per request",
+        "Join incoming traces",
+        "Keep the request ID"
     ],
     "settings/platform#alerts": [
         "Alert email"

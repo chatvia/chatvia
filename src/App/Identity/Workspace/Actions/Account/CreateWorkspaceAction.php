@@ -11,6 +11,9 @@ use App\Identity\Workspace\Models\Workspace;
 use App\Identity\Workspace\Services\WorkspaceAllowance;
 use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Illuminate\Support\Facades\DB;
+use Support\Radar\IssueRaised;
+use Support\Radar\IssueTypeKey;
+use Support\Radar\ServiceKey;
 
 /**
  * Gives a new account its own workspace: the workspace row (named after the
@@ -38,6 +41,8 @@ class CreateWorkspaceAction
             DB::select('SELECT pg_advisory_xact_lock(?)', [self::LOCK]);
 
             if (! $this->allowance->canCreate()) {
+                IssueRaised::dispatch(ServiceKey::LICENSE, IssueTypeKey::FREE_LIMIT_REACHED, 'Someone tried to make a new workspace, but the install already holds the one it may hold without a license key.');
+
                 throw WorkspaceLimitReachedException::make();
             }
 

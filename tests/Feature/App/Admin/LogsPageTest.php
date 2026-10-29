@@ -4,6 +4,7 @@ use App\Admin\Clusters\Settings\Pages\ManagePlatformSettings;
 use App\Admin\Clusters\Settings\SettingsCluster;
 use App\Admin\Pages\Dashboard;
 use App\Admin\Pages\Tools;
+use App\Admin\Resources\Issues\IssueResource;
 use App\Admin\Settings\PlatformSettings;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\File;
@@ -57,7 +58,7 @@ it('is off on a new install', function (): void {
         ->and(ViewLog::canAccess())->toBeFalse();
 });
 
-it('lists the logs page in the sidebar once the development switch is on', function (): void {
+it('lists the logs page in the bottom sidebar group once the development switch is on', function (): void {
     lpTurn(false);
     Filament::setCurrentPanel('admin');
 
@@ -73,7 +74,7 @@ it('lists the logs page in the sidebar once the development switch is on', funct
     $this->actingAs($this->admin, 'admin')
         ->get(Dashboard::getUrl())
         ->assertOk()
-        ->assertSeeInOrder(['cv-sidebar-group--divided', 'href="'.Tools::getUrl().'"', 'href="'.ViewLog::getUrl().'"', 'href="'.SettingsCluster::getUrl().'"'], false);
+        ->assertSeeInOrder(['cv-sidebar-group--divided', 'href="'.Tools::getUrl().'"', 'href="'.IssueResource::getUrl().'"', 'href="'.SettingsCluster::getUrl().'"', 'cv-sidebar-group--divided', 'href="'.ViewLog::getUrl().'"'], false);
 });
 
 it('opens the logs page for an admin signed in to the panel', function (): void {

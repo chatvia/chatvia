@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Admin\Settings;
 
+use App\Admin\Issue\Services\IssueRecording;
 use App\Admin\Settings\Data\ModelCheckData;
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
@@ -58,11 +59,23 @@ final readonly class ChatModelCheck
 
     public function check(LlmProvider $provider, string $modelId): ModelCheckData
     {
+        // A check never becomes an issue: it may test a key the admin is still typing.
+        return IssueRecording::muted(fn (): ModelCheckData => $this->checkUnmuted($provider, $modelId));
+    }
+
+    private function checkUnmuted(LlmProvider $provider, string $modelId): ModelCheckData
+    {
         return $this->ask($provider, $modelId, [ChatMessageData::user('Reply with the word OK.')], self::MAX_TOKENS, showReply: false);
     }
 
     /** Shows the model a picture of a cat; it passes with its description. */
     public function checkImage(LlmProvider $provider, string $modelId): ModelCheckData
+    {
+        // A check never becomes an issue: it may test a key the admin is still typing.
+        return IssueRecording::muted(fn (): ModelCheckData => $this->checkImageUnmuted($provider, $modelId));
+    }
+
+    private function checkImageUnmuted(LlmProvider $provider, string $modelId): ModelCheckData
     {
         $image = 'data:image/png;base64,'.base64_encode(File::get(resource_path(self::IMAGE)));
 
@@ -76,6 +89,12 @@ final readonly class ChatModelCheck
 
     /** Sends the model a one-page PDF file; it passes with its summary. */
     public function checkFile(LlmProvider $provider, string $modelId): ModelCheckData
+    {
+        // A check never becomes an issue: it may test a key the admin is still typing.
+        return IssueRecording::muted(fn (): ModelCheckData => $this->checkFileUnmuted($provider, $modelId));
+    }
+
+    private function checkFileUnmuted(LlmProvider $provider, string $modelId): ModelCheckData
     {
         $pdf = 'data:application/pdf;base64,'.base64_encode(File::get(resource_path(self::PDF)));
 

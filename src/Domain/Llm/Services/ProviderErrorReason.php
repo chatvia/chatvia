@@ -9,7 +9,8 @@ use Illuminate\Support\Str;
 
 /**
  * What an AI provider said went wrong when it refused a request, short enough
- * to show a person. Through OpenRouter, the message is often only "Provider
+ * to show a person: `error.message`, `message` or, as fal.ai sends it,
+ * `detail`. Through OpenRouter, the message is often only "Provider
  * returned error": the provider behind it and what it said come in the
  * error's metadata.
  */
@@ -19,7 +20,8 @@ final readonly class ProviderErrorReason
 
     public function of(Response $response): ?string
     {
-        $message = $this->text($response->json('error.message') ?? $response->json('message'));
+        // fal.ai answers with `detail`: text, or a list of `{msg}` for a bad request.
+        $message = $this->text($response->json('error.message') ?? $response->json('message') ?? $response->json('detail') ?? $response->json('detail.0.msg'));
         $upstream = $this->upstreamReason($response->json('error.metadata.raw'));
         $upstreamProvider = $this->text($response->json('error.metadata.provider_name'));
 

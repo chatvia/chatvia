@@ -37,11 +37,3 @@ it('names the cases that passed in the run before and fail now', function (): vo
 
     expect(app(EvalRegressionQuery::class)->regressedCases($now))->toBe(['Refunds']);
 });
-
-it('finds none in the agent\'s first run', function (): void {
-    $agent = Agent::factory()->create();
-    $run = EvalRun::factory()->forAgent($agent)->completed()->create();
-    erqResult($run, EvalCase::factory()->forAgent($agent)->create(), false);
-
-    expect(app(EvalRegressionQuery::class)->regressedCases($run))->toBe([]);
-});

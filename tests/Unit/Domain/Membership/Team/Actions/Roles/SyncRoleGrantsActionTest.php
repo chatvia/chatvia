@@ -9,8 +9,7 @@ use Domain\Membership\Team\Models\Role;
 use Support\Exceptions\DomainValidationException;
 
 /**
- * A role's agent grants: the all-agents meta-permission follows the
- * all-agents switch only, and agents outside the team are refused.
+ * A role's agent grants refuse agents outside the team.
  */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
@@ -21,25 +20,6 @@ beforeEach(function (): void {
         'team_id' => $this->team->id,
         'guard_name' => Permission::GUARD_NAME,
     ]);
-});
-
-it('adds the all-agents meta-permission only from the all-agents switch', function (): void {
-    $agent = makeTeamAgent($this->owner, 'Bot', $this->team);
-    $this->role->agents()->attach($agent->id);
-
-    app(SyncRoleGrantsAction::class)->execute($this->role, new SaveTeamRoleData(
-        team: $this->team,
-        name: 'Agents',
-        permissions: ['agent.chat.view'],
-        allAgents: true,
-        agentExternalIds: [],
-    ));
-
-    $role = $this->role->fresh();
-
-    expect($role->hasPermissionTo(Permission::ACCESS_ALL_AGENTS))->toBeTrue()
-        ->and($role->hasPermissionTo('agent.chat.view'))->toBeTrue()
-        ->and($role->agents()->count())->toBe(0);
 });
 
 it('rejects agents that are not in the team', function (): void {

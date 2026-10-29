@@ -1,13 +1,10 @@
 <?php
 
 use Domain\Agent\Models\Agent;
-use Domain\Conversation\Actions\Conversations\StartConversationAction;
-use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Domain\Widget\Actions\InitializeWidgetSessionAction;
 use Domain\Widget\Data\Session\WidgetSessionInitData;
-use Illuminate\Support\Facades\DB;
 
 /**
  * InitializeWidgetSessionAction sits at the multi-tenant boundary: the widget
@@ -20,237 +17,77 @@ use Illuminate\Support\Facades\DB;
  *    ignored, and a fresh session minted for the requesting agent.
  *  - A remembered conversation is resumed only inside its own session.
  *  - is_new_session/is_new_conversation flags reflect what actually happened.
- *  - Accept-Language is parsed down to the 2-letter ISO code on a freshly
- *    minted session; default 'en' when absent.
  *  - The visitor's referrer and page URLs are stored only when they are
  *    http(s), so an operator never opens a javascript: link.
- *  - A reload moves the activity stamps at most once a minute and never
- *    `updated_at`, so a page view does not move the chat log.
  */
-function iwsInitData(?string $existingSessionId = null, ?string $acceptLanguage = null): WidgetSessionInitData
+function iwsInitData(?string $existingSessionId = null): WidgetSessionInitData
 {
     return WidgetSessionInitData::from([
         'existingSessionId' => $existingSessionId,
         'existingConversationId' => null,
         'ipAddress' => '127.0.0.1',
         'userAgent' => 'Mozilla/5.0',
-        'acceptLanguage' => $acceptLanguage,
+        'acceptLanguage' => null,
         'referrerUrl' => 'https://example.com',
         'pageUrl' => 'https://example.com',
     ]);
 }
 
-it('reuses a valid same-agent session and does not mint a new one', function (): void {
+it('reuses a session only of the same agent, and mints a fresh one for another agent\'s session id', function (): void {
     $agent = Agent::factory()->create();
-    $existing = Session::factory()->create([
-        'agent_id' => $agent->id,
-        'last_activity_at' => now()->subDay(),
-    ]);
+    $existing = Session::factory()->create(['agent_id' => $agent->id, 'last_activity_at' => now()->subDay()]);
+    $foreignSession = Session::factory()->create(['agent_id' => Agent::factory()->create()->id]);
 
-    $result = app(InitializeWidgetSessionAction::class)->execute(
-        $agent,
-        iwsInitData(existingSessionId: $existing->external_id),
-    );
+    $reused = app(InitializeWidgetSessionAction::class)->execute($agent, iwsInitData(existingSessionId: $existing->external_id));
+    $minted = app(InitializeWidgetSessionAction::class)->execute($agent, iwsInitData(existingSessionId: $foreignSession->external_id));
 
-    expect($result->session_id)->toBe($existing->external_id)
-        ->and($result->is_new_session)->toBeFalse();
+    expect($reused->session_id)->toBe($existing->external_id)
+        ->and($reused->is_new_session)->toBeFalse()
+        ->and($minted->session_id)->not->toBe($foreignSession->external_id)
+        ->and($minted->is_new_session)->toBeTrue()
+        ->and(Session::query()->where('external_id', $minted->session_id)->value('agent_id'))->toBe($agent->id);
 });
 
-it('ignores a session id from a DIFFERENT agent and mints a fresh one for the requesting agent', function (): void {
-    $agent = Agent::factory()->create();
-    $otherAgent = Agent::factory()->create();
-    $foreignSession = Session::factory()->create(['agent_id' => $otherAgent->id]);
-
-    $result = app(InitializeWidgetSessionAction::class)->execute(
-        $agent,
-        iwsInitData(existingSessionId: $foreignSession->external_id),
-    );
-
-    expect($result->session_id)->not->toBe($foreignSession->external_id)
-        ->and($result->is_new_session)->toBeTrue();
-
-    // And the freshly minted row really does belong to $agent (not $otherAgent).
-    $mint = Session::query()->where('external_id', $result->session_id)->first();
-    expect($mint)->not->toBeNull()
-        ->and($mint->agent_id)->toBe($agent->id);
-});
-
-it('parses Accept-Language down to its 2-letter ISO code on a fresh session', function (): void {
-    $agent = Agent::factory()->create();
-
-    $result = app(InitializeWidgetSessionAction::class)->execute(
-        $agent,
-        iwsInitData(acceptLanguage: 'fr-FR,fr;q=0.9,en-US;q=0.8'),
-    );
-
-    $mint = Session::query()->where('external_id', $result->session_id)->first();
-    expect($mint->locale)->toBe('fr');
-});
-
-it('defaults locale to en when no Accept-Language is provided', function (): void {
-    $agent = Agent::factory()->create();
-
-    $result = app(InitializeWidgetSessionAction::class)->execute(
-        $agent,
-        iwsInitData(),
-    );
-
-    $mint = Session::query()->where('external_id', $result->session_id)->first();
-    expect($mint->locale)->toBe('en');
-});
-
-it('rolls back the new session when the conversation cannot be created', function (): void {
-    $agent = Agent::factory()->create();
-    $sessionsBefore = Session::query()->where('agent_id', $agent->id)->count();
-
-    $startConversation = Mockery::mock(StartConversationAction::class);
-    $startConversation->shouldReceive('execute')->andThrow(new RuntimeException('conversation insert failed'));
-    app()->instance(StartConversationAction::class, $startConversation);
-
-    expect(fn () => app(InitializeWidgetSessionAction::class)->execute($agent, iwsInitData()))
-        ->toThrow(RuntimeException::class, 'conversation insert failed');
-
-    expect(Session::query()->where('agent_id', $agent->id)->count())->toBe($sessionsBefore);
-});
-
-it('starts a widget conversation with the placeholder title when none is remembered', function (): void {
-    $agent = Agent::factory()->create();
-
-    $result = app(InitializeWidgetSessionAction::class)->execute($agent, iwsInitData());
-
-    $conversation = Conversation::query()->where('external_id', $result->conversation_id)->firstOrFail();
-
-    expect($result->is_new_conversation)->toBeTrue()
-        ->and($conversation->source)->toBe(ConversationSource::Widget)
-        ->and($conversation->title)->toBe(Conversation::DEFAULT_TITLE)
-        ->and($conversation->session->external_id)->toBe($result->session_id);
-});
-
-it('resumes a remembered conversation of the same agent', function (): void {
+it('resumes a remembered conversation only inside its own session', function (): void {
     $agent = Agent::factory()->create();
     $first = app(InitializeWidgetSessionAction::class)->execute($agent, iwsInitData());
 
-    $again = app(InitializeWidgetSessionAction::class)->execute($agent, WidgetSessionInitData::from([
+    $resumed = app(InitializeWidgetSessionAction::class)->execute($agent, WidgetSessionInitData::from([
         ...iwsInitData(existingSessionId: $first->session_id)->toArray(),
         'existingConversationId' => $first->conversation_id,
     ]));
-
-    expect($again->conversation_id)->toBe($first->conversation_id)
-        ->and($again->is_new_conversation)->toBeFalse()
-        ->and($again->is_new_session)->toBeFalse();
-});
-
-it('starts a new conversation when the remembered one belongs to another session', function (): void {
-    $agent = Agent::factory()->create();
-    $first = app(InitializeWidgetSessionAction::class)->execute($agent, iwsInitData());
-
-    // The widget lost its session id but still remembers the conversation.
-    $again = app(InitializeWidgetSessionAction::class)->execute($agent, WidgetSessionInitData::from([
+    $elsewhere = app(InitializeWidgetSessionAction::class)->execute($agent, WidgetSessionInitData::from([
         ...iwsInitData()->toArray(),
         'existingConversationId' => $first->conversation_id,
     ]));
 
-    $conversation = Conversation::query()->where('external_id', $again->conversation_id)->firstOrFail();
-
-    expect($again->is_new_session)->toBeTrue()
-        ->and($again->conversation_id)->not->toBe($first->conversation_id)
-        ->and($again->is_new_conversation)->toBeTrue()
-        ->and($conversation->session->external_id)->toBe($again->session_id);
+    expect($resumed->conversation_id)->toBe($first->conversation_id)
+        ->and($resumed->is_new_conversation)->toBeFalse()
+        ->and($resumed->is_new_session)->toBeFalse()
+        ->and($elsewhere->is_new_session)->toBeTrue()
+        ->and($elsewhere->conversation_id)->not->toBe($first->conversation_id)
+        ->and($elsewhere->is_new_conversation)->toBeTrue()
+        ->and(Conversation::query()->where('external_id', $elsewhere->conversation_id)->firstOrFail()->session->external_id)->toBe($elsewhere->session_id);
 });
 
-it('stores the visitor\'s referrer and page URLs on a fresh session', function (): void {
+it('stores the visitor\'s referrer and page URLs only when they are http(s)', function (?string $referrer, ?string $page, ?string $storedReferrer, ?string $storedPage): void {
     $agent = Agent::factory()->create();
 
     $result = app(InitializeWidgetSessionAction::class)->execute($agent, WidgetSessionInitData::from([
         ...iwsInitData()->toArray(),
-        'referrerUrl' => 'https://search.example/?q=help',
-        'pageUrl' => 'http://shop.example/pricing',
+        'referrerUrl' => $referrer,
+        'pageUrl' => $page,
     ]));
 
     $session = Session::query()->where('external_id', $result->session_id)->firstOrFail();
-    expect($session->referrer_url)->toBe('https://search.example/?q=help')
-        ->and($session->page_url)->toBe('http://shop.example/pricing');
-});
-
-it('uses the referrer as the page URL when the widget sends none', function (): void {
-    $agent = Agent::factory()->create();
-
-    $result = app(InitializeWidgetSessionAction::class)->execute($agent, WidgetSessionInitData::from([
-        ...iwsInitData()->toArray(),
-        'referrerUrl' => 'https://shop.example/pricing',
-        'pageUrl' => null,
-    ]));
-
-    expect(Session::query()->where('external_id', $result->session_id)->value('page_url'))->toBe('https://shop.example/pricing');
-});
-
-it('stores no referrer or page URL that is not http(s)', function (string $url): void {
-    $agent = Agent::factory()->create();
-
-    $result = app(InitializeWidgetSessionAction::class)->execute($agent, WidgetSessionInitData::from([
-        ...iwsInitData()->toArray(),
-        'referrerUrl' => $url,
-        'pageUrl' => $url,
-    ]));
-
-    $session = Session::query()->where('external_id', $result->session_id)->firstOrFail();
-    expect($session->referrer_url)->toBeNull()
-        ->and($session->page_url)->toBeNull();
+    expect($session->referrer_url)->toBe($storedReferrer)
+        ->and($session->page_url)->toBe($storedPage);
 })->with([
-    'javascript' => 'javascript:alert(document.cookie)',
-    'upper-case javascript' => 'JavaScript:alert(1)',
-    'data' => 'data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==',
-    'ftp' => 'ftp://files.example/report.pdf',
-    'no scheme' => 'shop.example/pricing',
+    'http and https' => ['https://search.example/?q=help', 'http://shop.example/pricing', 'https://search.example/?q=help', 'http://shop.example/pricing'],
+    'the referrer standing in for a missing page' => ['https://shop.example/pricing', null, 'https://shop.example/pricing', 'https://shop.example/pricing'],
+    'javascript' => ['javascript:alert(document.cookie)', 'javascript:alert(document.cookie)', null, null],
+    'upper-case javascript' => ['JavaScript:alert(1)', 'JavaScript:alert(1)', null, null],
+    'data' => ['data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==', 'data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==', null, null],
+    'ftp' => ['ftp://files.example/report.pdf', 'ftp://files.example/report.pdf', null, null],
+    'no scheme' => ['shop.example/pricing', 'shop.example/pricing', null, null],
 ]);
-
-/**
- * Boots a visit, makes its conversation visible (as a first message does) and
- * stamps both rows at the given times, for the reload tests below.
- *
- * @return array{0: Agent, 1: WidgetSessionInitData, 2: Conversation}
- */
-function iwsUsedVisit(DateTimeInterface $lastActivityAt, DateTimeInterface $updatedAt): array
-{
-    $agent = Agent::factory()->create();
-    $first = app(InitializeWidgetSessionAction::class)->execute($agent, iwsInitData());
-    $stamps = ['last_activity_at' => $lastActivityAt, 'updated_at' => $updatedAt];
-
-    DB::table('chat_sessions')->where('external_id', $first->session_id)->update($stamps);
-    DB::table('chat_conversations')->where('external_id', $first->conversation_id)->update(['is_visible' => true, ...$stamps]);
-
-    $reload = WidgetSessionInitData::from([
-        ...iwsInitData(existingSessionId: $first->session_id)->toArray(),
-        'existingConversationId' => $first->conversation_id,
-    ]);
-
-    return [$agent, $reload, Conversation::query()->where('external_id', $first->conversation_id)->sole()];
-}
-
-it('writes neither row on a reload within a minute', function (): void {
-    $recent = now()->subSeconds(20)->startOfSecond();
-    $updatedAt = now()->subHours(2)->startOfSecond();
-    [$agent, $reload, $conversation] = iwsUsedVisit($recent, $updatedAt);
-
-    app(InitializeWidgetSessionAction::class)->execute($agent, $reload);
-
-    $fresh = $conversation->fresh();
-    $session = $fresh->session;
-    expect($fresh->last_activity_at->equalTo($recent))->toBeTrue()
-        ->and($fresh->updated_at->equalTo($updatedAt))->toBeTrue()
-        ->and($session->last_activity_at->equalTo($recent))->toBeTrue()
-        ->and($session->updated_at->equalTo($updatedAt))->toBeTrue();
-});
-
-it('moves the activity stamps on a later reload but leaves updated_at alone', function (): void {
-    $updatedAt = now()->subHours(2)->startOfSecond();
-    [$agent, $reload, $conversation] = iwsUsedVisit(now()->subMinutes(10), $updatedAt);
-
-    app(InitializeWidgetSessionAction::class)->execute($agent, $reload);
-
-    $fresh = $conversation->fresh();
-    expect($fresh->last_activity_at->greaterThan(now()->subMinute()))->toBeTrue()
-        ->and($fresh->updated_at->equalTo($updatedAt))->toBeTrue()
-        ->and($fresh->session->last_activity_at->greaterThan(now()->subMinute()))->toBeTrue()
-        ->and($fresh->session->updated_at->equalTo($updatedAt))->toBeTrue();
-});

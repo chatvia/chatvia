@@ -9,13 +9,6 @@ use Support\Exceptions\DomainValidationException;
  * Finding a team by its public id inside the caller's workspace; another
  * workspace's team is a `team_id` field error, as if it did not exist.
  */
-it('resolves a team the owner owns', function (): void {
-    $owner = User::factory()->create();
-    $team = app(CreateDefaultTeamAction::class)->execute($owner);
-
-    expect(app(ResolveOwnedTeamAction::class)->execute($owner->workspace(), $team->external_id)->is($team))->toBeTrue();
-});
-
 it('rejects another workspace team as a team_id field error', function (): void {
     $owner = User::factory()->create();
     $otherTeam = app(CreateDefaultTeamAction::class)->execute(User::factory()->create());

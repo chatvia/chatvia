@@ -22,7 +22,6 @@ use Support\Http\SafeUrl;
  * event per changed group without the secret, and a webhook URL that is not
  * public https refused.
  */
-
 /** The person saving the form, as the audit log records them. */
 function uspActor(User $user): SecurityActorData
 {
@@ -30,8 +29,6 @@ function uspActor(User $user): SecurityActorData
 }
 
 beforeEach(function (): void {
-    // The webhook URL check looks the host up; answer with a public address
-    // instead of asking real DNS.
     SafeUrl::resolveHostsUsing(fn (string $host): array => ['93.184.216.34']);
 });
 
@@ -39,9 +36,13 @@ afterEach(function (): void {
     SafeUrl::resolveHostsUsing(null);
 });
 
-it('persists the form settings and encrypts the webhook secret', function (): void {
+it('stores the form settings with the secret encrypted, keeps the ones it does not own, and audits each group without the secret', function (): void {
     Event::fake([SecurityEventOccurred::class]);
     $user = User::factory()->create();
+    WorkspaceSecurityPolicy::forWorkspace($user->workspace()->id)->update([
+        'webhook_events' => ['auth.login'],
+        'is_scim_enabled' => true,
+    ]);
 
     app(UpdateSecurityPolicyAction::class)->execute(
         $user->workspace(),
@@ -60,40 +61,28 @@ it('persists the form settings and encrypts the webhook secret', function (): vo
     );
 
     $fresh = WorkspaceSecurityPolicy::forWorkspace($user->workspace()->id);
+    $stored = DB::table('workspace_security_policies')->where('workspace_id', $user->workspace()->id)->value('webhook_secret');
 
-    expect((int) $fresh->workspace_id)->toBe($user->workspace()->id)
-        ->and($fresh->retention_conversations_days)->toBe(60)
+    expect($fresh->retention_conversations_days)->toBe(60)
         ->and($fresh->retention_audit_days)->toBe(120)
         ->and($fresh->ip_allowlist_mode)->toBe(IpAllowlistMode::Dashboard)
         ->and($fresh->ip_allowlist)->toBe(['203.0.113.0/24', '198.51.100.7'])
         ->and($fresh->geo_mode)->toBe(GeoMode::Allow)
         ->and($fresh->geo_countries)->toBe(['ae', 'sa'])
         ->and($fresh->is_webhook_enabled)->toBeTrue()
-        ->and($fresh->webhook_secret)->toBe('shh-secret');
-
-    $stored = DB::table('workspace_security_policies')->where('workspace_id', $user->workspace()->id)->value('webhook_secret');
-
-    expect($stored)->not->toContain('shh-secret')
-        ->and(Crypt::decryptString($stored))->toBe('shh-secret');
-});
-
-it('keeps the settings the form does not own', function (): void {
-    $user = User::factory()->create();
-    WorkspaceSecurityPolicy::forWorkspace($user->workspace()->id)->update([
-        'webhook_events' => ['auth.login'],
-        'is_scim_enabled' => true,
-    ]);
-
-    app(UpdateSecurityPolicyAction::class)->execute($user->workspace(), new SecurityPolicyFormData(retention_audit_days: 200), uspActor($user));
-
-    $fresh = WorkspaceSecurityPolicy::forWorkspace($user->workspace()->id);
-
-    expect($fresh->webhook_events)->toBe(['auth.login'])
+        ->and($fresh->webhook_secret)->toBe('shh-secret')
+        ->and($fresh->webhook_events)->toBe(['auth.login'])
         ->and($fresh->is_scim_enabled)->toBeTrue()
-        ->and($fresh->retention_audit_days)->toBe(200);
+        ->and($stored)->not->toContain('shh-secret')
+        ->and(Crypt::decryptString($stored))->toBe('shh-secret');
+    Event::assertDispatched(SecurityEventOccurred::class, fn (SecurityEventOccurred $e): bool => $e->action === SecurityAuditAction::PolicyRetentionChanged->value);
+    Event::assertDispatched(SecurityEventOccurred::class, fn (SecurityEventOccurred $e): bool => $e->action === SecurityAuditAction::PolicyIpAllowlistChanged->value);
+    Event::assertDispatched(SecurityEventOccurred::class, fn (SecurityEventOccurred $e): bool => $e->action === SecurityAuditAction::PolicyChanged->value
+        && Str::contains($e->metadata, 'webhook_secret_rotated')
+        && ! Str::contains($e->metadata, 'shh-secret'));
 });
 
-it('saves the lead, analytics and anonymize windows with one retention audit event', function (): void {
+it('saves the lead, analytics and anonymize windows with one retention audit event, and clears them when sent blank', function (): void {
     $user = User::factory()->create();
     WorkspaceSecurityPolicy::forWorkspace($user->workspace()->id)->update(['retention_leads_days' => 90]);
     Event::fake([SecurityEventOccurred::class]);
@@ -103,14 +92,12 @@ it('saves the lead, analytics and anonymize windows with one retention audit eve
         new SecurityPolicyFormData(retention_leads_days: 30, retention_analytics_days: 180, anonymize_after_days: 14),
         uspActor($user),
     );
+    $saved = WorkspaceSecurityPolicy::forWorkspace($user->workspace()->id);
+    app(UpdateSecurityPolicyAction::class)->execute($user->workspace(), new SecurityPolicyFormData, uspActor($user));
+    $cleared = WorkspaceSecurityPolicy::forWorkspace($user->workspace()->id);
 
-    $fresh = WorkspaceSecurityPolicy::forWorkspace($user->workspace()->id);
-
-    expect($fresh->retention_leads_days)->toBe(30)
-        ->and($fresh->retention_analytics_days)->toBe(180)
-        ->and($fresh->anonymize_after_days)->toBe(14);
-
-    expect(Event::dispatched(SecurityEventOccurred::class, fn (SecurityEventOccurred $e): bool => $e->action === SecurityAuditAction::PolicyRetentionChanged->value))->toHaveCount(1);
+    expect([$saved->retention_leads_days, $saved->retention_analytics_days, $saved->anonymize_after_days])->toBe([30, 180, 14])
+        ->and([$cleared->retention_leads_days, $cleared->retention_analytics_days, $cleared->anonymize_after_days])->toBe([null, null, null]);
     Event::assertDispatched(SecurityEventOccurred::class, function (SecurityEventOccurred $e): bool {
         $metadata = json_decode($e->metadata, true);
 
@@ -121,69 +108,7 @@ it('saves the lead, analytics and anonymize windows with one retention audit eve
     });
 });
 
-it('clears a window when the form sends it blank', function (): void {
-    $user = User::factory()->create();
-    WorkspaceSecurityPolicy::forWorkspace($user->workspace()->id)->update([
-        'retention_leads_days' => 90,
-        'retention_analytics_days' => 60,
-        'anonymize_after_days' => 30,
-    ]);
-
-    app(UpdateSecurityPolicyAction::class)->execute($user->workspace(), new SecurityPolicyFormData, uspActor($user));
-
-    $fresh = WorkspaceSecurityPolicy::forWorkspace($user->workspace()->id);
-
-    expect($fresh->retention_leads_days)->toBeNull()
-        ->and($fresh->retention_analytics_days)->toBeNull()
-        ->and($fresh->anonymize_after_days)->toBeNull();
-});
-
-it('emits a category-specific audit event per changed group', function (): void {
-    Event::fake([SecurityEventOccurred::class]);
-    $user = User::factory()->create();
-
-    app(UpdateSecurityPolicyAction::class)->execute(
-        $user->workspace(),
-        new SecurityPolicyFormData(
-            retention_conversations_days: 30,
-            ip_allowlist_mode: IpAllowlistMode::Dashboard,
-            webhook_enabled: true,
-        ),
-        uspActor($user),
-    );
-
-    Event::assertDispatched(SecurityEventOccurred::class, fn (SecurityEventOccurred $e): bool => $e->action === SecurityAuditAction::PolicyRetentionChanged->value);
-    Event::assertDispatched(SecurityEventOccurred::class, fn (SecurityEventOccurred $e): bool => $e->action === SecurityAuditAction::PolicyIpAllowlistChanged->value);
-    Event::assertDispatched(SecurityEventOccurred::class, fn (SecurityEventOccurred $e): bool => $e->action === SecurityAuditAction::PolicyChanged->value);
-});
-
-it('never leaks the webhook secret into audit metadata, only a rotation flag', function (): void {
-    Event::fake([SecurityEventOccurred::class]);
-    $user = User::factory()->create();
-
-    app(UpdateSecurityPolicyAction::class)->execute(
-        $user->workspace(),
-        new SecurityPolicyFormData(webhook_secret: 'shh-secret'),
-        uspActor($user),
-    );
-
-    Event::assertDispatched(SecurityEventOccurred::class, fn (SecurityEventOccurred $e): bool => $e->action === SecurityAuditAction::PolicyChanged->value
-        && Str::contains($e->metadata, 'webhook_secret_rotated')
-        && ! Str::contains($e->metadata, 'shh-secret'));
-});
-
-it('rejects a non-https webhook URL (SSRF guard)', function (): void {
-    $user = User::factory()->create();
-
-    expect(fn () => app(UpdateSecurityPolicyAction::class)->execute(
-        $user->workspace(),
-        new SecurityPolicyFormData(webhook_url: 'http://hooks.example.com/siem'),
-        uspActor($user),
-    ))->toThrow(UnsafeWebhookUrlException::class);
-});
-
-it('rejects a webhook URL pointing at an internal address (SSRF guard)', function (string $url): void {
-    // The save-time check is strict in every environment, testing included.
+it('refuses a webhook URL that is not public https (SSRF guard)', function (string $url): void {
     $user = User::factory()->create();
 
     expect(fn () => app(UpdateSecurityPolicyAction::class)->execute(
@@ -194,6 +119,7 @@ it('rejects a webhook URL pointing at an internal address (SSRF guard)', functio
 
     expect(WorkspaceSecurityPolicy::forWorkspace($user->workspace()->id)->webhook_url)->toBeNull();
 })->with([
+    'plain http' => 'http://hooks.example.com/siem',
     'IPv4 loopback' => 'https://127.0.0.1/siem',
     'carrier-grade NAT' => 'https://100.64.0.1/siem',
     'IPv6 loopback' => 'https://[::1]/siem',

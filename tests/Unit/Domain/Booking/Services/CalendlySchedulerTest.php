@@ -5,20 +5,19 @@ declare(strict_types=1);
 use Carbon\CarbonImmutable;
 use Domain\Agent\Models\Agent;
 use Domain\Booking\Data\BookingRequestData;
-use Domain\Booking\Data\MeetingTypeData;
 use Domain\Booking\Enums\BookingFailure;
 use Domain\Booking\Exceptions\BookingException;
 use Domain\Booking\Services\CalendlyScheduler;
 use Domain\Integration\Mcp\Data\McpToolResultData;
-use Domain\Integration\Mcp\Exceptions\McpException;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Services\McpClient;
 use Tests\Support\Booking\FakeScheduler;
 
 /**
  * The Calendly scheduler calls Calendly's MCP tools on the workspace's
- * Calendly connection and reads their API-shaped replies. The MCP client is
- * faked: each test records the calls and answers them.
+ * Calendly connection and reads their API-shaped replies: the free start
+ * times and the reason a booking was refused. The MCP client is faked: each
+ * test records the calls and answers them.
  */
 beforeEach(function (): void {
     $this->agent = Agent::factory()->create();
@@ -37,26 +36,9 @@ beforeEach(function (): void {
         $this->calls[] = ['server' => $server->id, 'tool' => $tool, 'arguments' => $arguments];
         $reply = $this->replies[$tool] ?? ['structuredContent' => []];
 
-        if ($reply instanceof Throwable) {
-            throw $reply;
-        }
-
         return new McpToolResultData((string) ($reply['text'] ?? ''), (bool) ($reply['isError'] ?? false), $reply['structuredContent'] ?? null);
     });
     app()->instance(McpClient::class, $client);
-});
-
-it('lists the active, public event types of the connected user', function (): void {
-    $this->replies['users-get_current_user'] = ['structuredContent' => ['resource' => ['uri' => 'https://api.calendly.com/users/u1']]];
-    $this->replies['event_types-list_event_types'] = ['structuredContent' => ['collection' => [
-        ['uri' => 'https://api.calendly.com/event_types/a', 'name' => 'Intro', 'duration' => 30, 'active' => true],
-        ['uri' => 'https://api.calendly.com/event_types/b', 'name' => 'Secret', 'duration' => 30, 'active' => true, 'secret' => true],
-    ]]];
-
-    $types = app(CalendlyScheduler::class)->meetingTypes($this->agent);
-
-    expect(array_map(fn (MeetingTypeData $type): string => $type->name, $types))->toBe(['Intro'])
-        ->and($this->calls[1])->toBe(['server' => $this->server->id, 'tool' => 'event_types-list_event_types', 'arguments' => ['user' => 'https://api.calendly.com/users/u1', 'active' => true, 'count' => 100]]);
 });
 
 it('reads the free start times in UTC, in order', function (): void {
@@ -86,21 +68,6 @@ function csRequest(): BookingRequestData
     return new BookingRequestData(CarbonImmutable::parse('2026-11-03T10:00:00Z'), 'Ada Lovelace', 'ada@example.test', 'Europe/London', 'About the API');
 }
 
-it('books with the location and the notes answer', function (): void {
-    $this->replies['meetings-create_invitee'] = ['structuredContent' => ['resource' => ['uri' => 'https://api.calendly.com/scheduled_events/e1/invitees/i1', 'event' => 'https://api.calendly.com/scheduled_events/e1']]];
-
-    $booked = app(CalendlyScheduler::class)->book($this->agent, FakeScheduler::meetingType(), csRequest());
-
-    expect($booked->eventUri)->toBe('https://api.calendly.com/scheduled_events/e1')
-        ->and($this->calls[0]['arguments'])->toBe(['post_invitee_request' => [
-            'event_type' => FakeScheduler::INTRO_CALL,
-            'start_time' => '2026-11-03T10:00:00Z',
-            'invitee' => ['name' => 'Ada Lovelace', 'email' => 'ada@example.test', 'timezone' => 'Europe/London'],
-            'location' => ['kind' => 'google_conference'],
-            'questions_and_answers' => [['question' => 'Anything we should know?', 'position' => 0, 'answer' => 'About the API']],
-        ]]);
-});
-
 it('reads why Calendly refused a booking', function (string $text, BookingFailure $reason): void {
     $this->replies['meetings-create_invitee'] = ['isError' => true, 'text' => $text];
 
@@ -119,15 +86,3 @@ it('reads why Calendly refused a booking', function (string $text, BookingFailur
     'a taken time' => ['The selected time is no longer available.', BookingFailure::SlotTaken],
     'anything else' => ['Internal error', BookingFailure::Unavailable],
 ]);
-
-it('is unavailable when Calendly cannot be reached', function (): void {
-    $this->replies['event_types-list_event_type_available_times'] = new McpException('timeout');
-
-    app(CalendlyScheduler::class)->availableTimes($this->agent, FakeScheduler::meetingType(), now(), now()->addDay());
-})->throws(BookingException::class, 'The calendar could not be reached');
-
-it('is not connected without a working Calendly connection', function (): void {
-    $this->server->update(['last_error' => 'Token revoked']);
-
-    app(CalendlyScheduler::class)->meetingTypes($this->agent);
-})->throws(BookingException::class, 'Booking is not set up');

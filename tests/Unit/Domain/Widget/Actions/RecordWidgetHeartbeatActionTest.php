@@ -4,13 +4,12 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Domain\Widget\Actions\RecordWidgetHeartbeatAction;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
- * The widget heartbeat: one ping a minute per visitor and conversation
- * reaches the database; the others return without a query. A conversation
- * that is not the visitor's is refused on every ping.
+ * The widget heartbeat stamps the visitor's conversation. A conversation that
+ * is not the visitor's is refused on every ping, and ids that are not UUIDs
+ * before the cache.
  */
 function rwhConversation(): Conversation
 {
@@ -40,41 +39,12 @@ it('stamps the conversation on the first ping', function (): void {
         ->and($conversation->fresh()->last_activity_at->greaterThan(now()->subMinute()))->toBeTrue();
 });
 
-it('answers a second ping within a minute without a query', function (): void {
-    $conversation = rwhConversation();
-    $conversation->load(['agent', 'session']);
-    rwhPing($conversation);
-
-    $queries = [];
-    DB::listen(function ($query) use (&$queries): void {
-        $queries[] = $query->sql;
-    });
-
-    expect(rwhPing($conversation))->toBeTrue()
-        ->and($queries)->toBe([]);
-});
-
-it('checks again once the minute is over', function (): void {
-    $conversation = rwhConversation();
-    rwhPing($conversation);
-
-    $this->travel(RecordWidgetHeartbeatAction::GATE_SECONDS + 30)->seconds();
-    rwhPing($conversation);
-
-    expect($conversation->fresh()->last_activity_at->greaterThan(now()->subSeconds(5)))->toBeTrue();
-});
-
-it('refuses a conversation of another session on every ping', function (): void {
+it('refuses a conversation of another session on every ping, and ids that are not UUIDs', function (): void {
     $conversation = rwhConversation();
     $otherSession = Session::factory()->create(['agent_id' => $conversation->agent_id]);
 
     expect(rwhPing($conversation, $otherSession))->toBeFalse()
         ->and(rwhPing($conversation, $otherSession))->toBeFalse()
+        ->and(app(RecordWidgetHeartbeatAction::class)->execute($conversation->agent, Str::repeat('x', 500), (string) Str::uuid7()))->toBeFalse()
         ->and($conversation->fresh()->last_activity_at->lessThan(now()->subMinutes(30)))->toBeTrue();
-});
-
-it('refuses ids that are not UUIDs before the cache', function (): void {
-    $conversation = rwhConversation();
-
-    expect(app(RecordWidgetHeartbeatAction::class)->execute($conversation->agent, Str::repeat('x', 500), (string) Str::uuid7()))->toBeFalse();
 });

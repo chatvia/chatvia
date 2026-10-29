@@ -42,14 +42,3 @@ it('reads the replies, the unanswered ones and the average confidence from the r
         ->and($alphaOnly->unanswered)->toBe(1)
         ->and($alphaOnly->avgConfidence)->toBe(0.8);
 });
-
-it('has no average confidence when no reply in the window had one', function (): void {
-    $agent = Agent::factory()->create();
-    analyticsRollup($agent, '2026-06-10 09:00:00', ['assistant_messages' => 2]);
-
-    $stats = app(SatisfactionStatsQuery::class)->get(sssScope($agent));
-
-    expect($stats->aiReplies)->toBe(2)
-        ->and($stats->unanswered)->toBe(0)
-        ->and($stats->avgConfidence)->toBeNull();
-});

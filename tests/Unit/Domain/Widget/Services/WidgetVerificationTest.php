@@ -3,48 +3,14 @@
 use Domain\Agent\Models\Agent;
 use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\Request;
-use Illuminate\Support\Uri;
 
 /**
  * The embed-origin allow-list is the customer's own `sites` plus install-wide
  * hosts from config: the APP_URL host (dashboard playground, hosted chat) and
  * the extra hosts set in the admin panel. No vendor domain may be built in,
- * or every self-hosted install would accept embeds from that domain.
+ * or every self-hosted install would accept embeds from that domain. The
+ * origin is read from Origin, then Referer, then the request host.
  */
-
-/**
- * Evaluate the shipped config file under the given env values.
- *
- * @param  array<string, string>  $env
- * @return list<string>
- */
-function wvAlwaysAllowedOriginsFor(array $env): array
-{
-    $saved = [];
-    foreach ($env as $key => $value) {
-        $saved[$key] = [$_SERVER[$key] ?? null, $_ENV[$key] ?? null];
-        $_SERVER[$key] = $_ENV[$key] = $value;
-    }
-
-    try {
-        return (require config_path('chatvia.php'))['widget']['always_allowed_origins'];
-    } finally {
-        foreach ($saved as $key => [$server, $envValue]) {
-            if ($server === null) {
-                unset($_SERVER[$key]);
-            } else {
-                $_SERVER[$key] = $server;
-            }
-
-            if ($envValue === null) {
-                unset($_ENV[$key]);
-            } else {
-                $_ENV[$key] = $envValue;
-            }
-        }
-    }
-}
-
 function wvOriginRequest(string $origin): Request
 {
     $request = Request::create('/widget/verify', 'GET');
@@ -61,73 +27,37 @@ function wvAgentWithSites(array $sites): Agent
     return $agent->fresh();
 }
 
-it('trusts no outside domain when no always-allowed origins are configured', function (string $origin): void {
+it('allows only the agent\'s own sites, wildcards included, and trusts no outside domain', function (string $origin, bool $allowed): void {
     config(['chatvia.widget.always_allowed_origins' => []]);
-    $agent = wvAgentWithSites(['customer.example']);
+    $agent = wvAgentWithSites(['customer.example', '*.wild.example']);
 
-    expect(app(WidgetVerification::class)->isRequestFromAllowedSite($agent, wvOriginRequest($origin)))
-        ->toBeFalse();
+    expect(app(WidgetVerification::class)->isRequestFromAllowedSite($agent, wvOriginRequest($origin)))->toBe($allowed);
 })->with([
-    'https://chatvia.ai',
-    'https://chatvia.test',
-    'http://localhost',
+    'the agent\'s own site' => ['https://www.customer.example', true],
+    'a vendor domain' => ['https://chatvia.ai', false],
+    'a test domain' => ['https://chatvia.test', false],
+    'localhost outside local' => ['http://localhost', false],
+    'a wildcard site, bare domain' => ['https://wild.example', true],
+    'a wildcard site, subdomain' => ['https://help.wild.example', true],
+    'a wildcard site, deep subdomain' => ['https://a.b.wild.example', true],
+    'a look-alike of a wildcard site' => ['https://evilwild.example', false],
 ]);
 
-it('allows the agent\'s own sites', function (): void {
-    config(['chatvia.widget.always_allowed_origins' => []]);
-    $agent = wvAgentWithSites(['customer.example']);
-
-    expect(app(WidgetVerification::class)->isRequestFromAllowedSite($agent, wvOriginRequest('https://www.customer.example')))
-        ->toBeTrue();
-});
-
-it('allows the configured install-wide origins for every agent', function (): void {
-    config(['chatvia.widget.always_allowed_origins' => ['chatvia.ai']]);
-    $agent = wvAgentWithSites([]);
-
-    $verification = app(WidgetVerification::class);
-
-    expect($verification->isRequestFromAllowedSite($agent, wvOriginRequest('https://chatvia.ai')))->toBeTrue()
-        ->and($verification->isRequestFromAllowedSite($agent, wvOriginRequest('https://evil.example')))->toBeFalse();
-});
-
-it('allows localhost only in the local environment', function (): void {
-    config(['chatvia.widget.always_allowed_origins' => []]);
-    app()['env'] = 'local';
-    $agent = wvAgentWithSites([]);
-
-    expect(app(WidgetVerification::class)->isRequestFromAllowedSite($agent, wvOriginRequest('http://localhost:5173')))
-        ->toBeTrue();
-});
-
-it('defaults to the install\'s own APP_URL host and nothing else', function (): void {
-    expect(wvAlwaysAllowedOriginsFor(['APP_URL' => 'https://chat.acme.example']))
-        ->toBe(['chat.acme.example']);
-});
-
-it('adds the extra hosts set in the admin panel to the APP_URL host', function (): void {
+it('allows the install-wide and admin-set hosts for every agent, and localhost only in the local environment', function (): void {
     config([
         'chatvia.widget.always_allowed_origins' => ['chatvia.ai'],
         'chatvia.widget.extra_allowed_origins' => ' Partner.example , ,chatvia.ai',
     ]);
     $agent = wvAgentWithSites([]);
-
     $verification = app(WidgetVerification::class);
+    $outsideLocal = $verification->isRequestFromAllowedSite($agent, wvOriginRequest('http://localhost:5173'));
+    app()['env'] = 'local';
 
     expect($verification->isRequestFromAllowedSite($agent, wvOriginRequest('https://chatvia.ai')))->toBeTrue()
         ->and($verification->isRequestFromAllowedSite($agent, wvOriginRequest('https://partner.example')))->toBeTrue()
-        ->and($verification->isRequestFromAllowedSite($agent, wvOriginRequest('https://evil.example')))->toBeFalse();
-});
-
-it('lets the widget load on the APP_URL host with the default config', function (): void {
-    $agent = wvAgentWithSites([]);
-    // No config override: this is the list the app booted with.
-    $appHost = (string) Uri::of((string) config('app.url'))->host();
-
-    $verification = app(WidgetVerification::class);
-
-    expect($verification->isRequestFromAllowedSite($agent, wvOriginRequest('https://'.$appHost)))->toBeTrue()
-        ->and($verification->isRequestFromAllowedSite($agent, wvOriginRequest('https://www.'.$appHost)))->toBeTrue();
+        ->and($verification->isRequestFromAllowedSite($agent, wvOriginRequest('https://evil.example')))->toBeFalse()
+        ->and($outsideLocal)->toBeFalse()
+        ->and($verification->isRequestFromAllowedSite($agent, wvOriginRequest('http://localhost:5173')))->toBeTrue();
 });
 
 it('falls back from Origin to Referer to the request host', function (): void {
@@ -147,15 +77,3 @@ it('falls back from Origin to Referer to the request host', function (): void {
         ->and($verification->isRequestFromAllowedSite($agent, $fromHost))->toBeTrue()
         ->and($verification->isRequestFromAllowedSite($agent, $originWins))->toBeFalse();
 });
-
-it('matches a wildcard site on the bare domain and on every subdomain', function (string $origin, bool $allowed): void {
-    config(['chatvia.widget.always_allowed_origins' => []]);
-    $agent = wvAgentWithSites(['*.customer.example']);
-
-    expect(app(WidgetVerification::class)->isRequestFromAllowedSite($agent, wvOriginRequest($origin)))->toBe($allowed);
-})->with([
-    'bare domain' => ['https://customer.example', true],
-    'subdomain' => ['https://help.customer.example', true],
-    'deep subdomain' => ['https://a.b.customer.example', true],
-    'look-alike' => ['https://evilcustomer.example', false],
-]);

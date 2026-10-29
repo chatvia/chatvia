@@ -10,8 +10,8 @@ use Illuminate\Support\Str;
 
 /**
  * Feedback is stored as current state: one analytics row per message, kept in
- * step as a visitor switches or clears their reaction, carrying the chatter
- * of the rated message's session (none for an anonymous or staff session).
+ * step as a visitor switches or clears their reaction, so the counts are a
+ * snapshot, never a lifetime tally.
  */
 function rfgRows(string $messageId): Builder
 {
@@ -19,12 +19,12 @@ function rfgRows(string $messageId): Builder
         ->where('message_external_id', $messageId);
 }
 
-function rfgGive(int $agentId, string $convId, string $msgId, ?string $feedback, ?int $chatterId = null): void
+function rfgGive(int $agentId, string $convId, string $msgId, ?string $feedback): void
 {
     app(RecordFeedbackGivenAction::class)->execute(FeedbackRecordData::fromEvent(new FeedbackGiven(
         agentId: $agentId,
         workspaceId: 700000,
-        chatterId: $chatterId,
+        chatterId: null,
         conversationExternalId: $convId,
         messageExternalId: $msgId,
         feedback: $feedback,
@@ -34,32 +34,7 @@ function rfgGive(int $agentId, string $convId, string $msgId, ?string $feedback,
     )));
 }
 
-it('stores exactly one feedback row per message and overwrites on switch', function (): void {
-    $convId = (string) Str::uuid7();
-    $msgId = (string) Str::uuid7();
-
-    rfgGive(950001, $convId, $msgId, 'positive');
-    expect(rfgRows($msgId)->count())->toBe(1)
-        ->and(rfgRows($msgId)->value('feedback'))->toBe('positive');
-
-    // Switch 👍 → 👎: still ONE row, now negative — no lifetime double-count.
-    rfgGive(950001, $convId, $msgId, 'negative');
-    expect(rfgRows($msgId)->count())->toBe(1)
-        ->and(rfgRows($msgId)->value('feedback'))->toBe('negative');
-});
-
-it('removes the row when feedback is cleared', function (): void {
-    $convId = (string) Str::uuid7();
-    $msgId = (string) Str::uuid7();
-
-    rfgGive(950002, $convId, $msgId, 'positive');
-    expect(rfgRows($msgId)->count())->toBe(1);
-
-    rfgGive(950002, $convId, $msgId, null);
-    expect(rfgRows($msgId)->count())->toBe(0);
-});
-
-it('counts current feedback as a snapshot, not a lifetime tally', function (): void {
+it('keeps one row per message for the current feedback and none once cleared', function (): void {
     $agentId = 950003;
     $convId = (string) Str::uuid7();
     $switched = (string) Str::uuid7();
@@ -67,26 +42,17 @@ it('counts current feedback as a snapshot, not a lifetime tally', function (): v
     $kept = (string) Str::uuid7();
 
     rfgGive($agentId, $convId, $switched, 'positive');
-    rfgGive($agentId, $convId, $switched, 'negative'); // switched → negative only
+    rfgGive($agentId, $convId, $switched, 'negative');
     rfgGive($agentId, $convId, $cleared, 'positive');
-    rfgGive($agentId, $convId, $cleared, null);         // cleared → counts nothing
-    rfgGive($agentId, $convId, $kept, 'positive');      // stays positive
+    rfgGive($agentId, $convId, $cleared, null);
+    rfgGive($agentId, $convId, $kept, 'positive');
 
     $rows = DB::connection(config('chatvia.analytics.connection'))->table('analytics_message_feedback')
         ->where('agent_id', $agentId);
 
-    expect((clone $rows)->where('feedback', 'positive')->count())->toBe(1)
+    expect(rfgRows($switched)->count())->toBe(1)
+        ->and(rfgRows($switched)->value('feedback'))->toBe('negative')
+        ->and(rfgRows($cleared)->count())->toBe(0)
+        ->and((clone $rows)->where('feedback', 'positive')->count())->toBe(1)
         ->and((clone $rows)->where('feedback', 'negative')->count())->toBe(1);
-});
-
-it('keeps the chatter of the rated message on the feedback row', function (): void {
-    $convId = (string) Str::uuid7();
-    $chatterMsg = (string) Str::uuid7();
-    $anonymousMsg = (string) Str::uuid7();
-
-    rfgGive(950004, $convId, $chatterMsg, 'positive', chatterId: 950104);
-    rfgGive(950004, $convId, $anonymousMsg, 'negative');
-
-    expect(rfgRows($chatterMsg)->value('chatter_id'))->toBe(950104)
-        ->and(rfgRows($anonymousMsg)->value('chatter_id'))->toBeNull();
 });

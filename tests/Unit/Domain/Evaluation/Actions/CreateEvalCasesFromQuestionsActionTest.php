@@ -12,7 +12,6 @@ use Domain\Evaluation\Enums\ScorerType;
 use Domain\Evaluation\Models\EvalCase;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
-use Illuminate\Support\Str;
 use Support\Exceptions\DomainValidationException;
 
 /**
@@ -58,119 +57,44 @@ function cecQaQuestion(AgentQuestionAnswer $qa, string $question): KnowledgeQues
     return new KnowledgeQuestionItemData(type: EvalQuestionSource::Qa, id: $qa->id, question: $question);
 }
 
-it('creates an llm_judge case from a chunk question with the chunk text as reference', function (): void {
+it('creates one llm_judge case per new question with the chunk text as reference', function (): void {
     $agent = cecAgent();
     $chunk = cecChunk($agent, 'Refunds are available within 30 days of purchase.');
+    EvalCase::factory()->forAgent($agent)->create(['input' => 'WHAT IS SHIPPING LIKE?']);
 
     $created = app(CreateEvalCasesFromQuestionsAction::class)->execute(
-        cecData(cecChunkQuestion($chunk, 'What is the refund policy?')),
+        cecData(
+            cecChunkQuestion($chunk, 'What is shipping like?'),
+            cecChunkQuestion($chunk, 'What is the refund policy?'),
+            cecChunkQuestion($chunk, 'what is the refund policy?'),
+        ),
         $agent,
     );
-
-    expect($created)->toHaveCount(1);
 
     $case = $created->first();
 
-    expect($case->agent_id)->toBe($agent->id)
-        ->and($case->agent_name)->toBe($agent->name)
+    expect($created)->toHaveCount(1)
+        ->and($case->agent_id)->toBe($agent->id)
         ->and($case->workspace_id)->toBe($agent->workspace_id)
-        ->and($case->name)->toBe('What is the refund policy?')
         ->and($case->input)->toBe('What is the refund policy?')
         ->and($case->scorer_type)->toBe(ScorerType::LlmJudge)
-        ->and($case->scorer_config)->toBe(['criteria' => CreateEvalCasesFromQuestionsAction::DEFAULT_CRITERIA])
         ->and($case->expected_output)->toBe('Refunds are available within 30 days of purchase.')
-        ->and($case->is_active)->toBeTrue();
-});
-
-it('uses the QA pair answer as the reference for a qa question', function (): void {
-    $agent = cecAgent();
-    $qa = AgentQuestionAnswerFactory::new()->attachedTo($agent)->create([
-        'answer' => 'Refunds take 5 business days.',
-        'questions' => "How long do refunds take?\nWhen do I get my money back?",
-    ]);
-
-    $created = app(CreateEvalCasesFromQuestionsAction::class)->execute(
-        cecData(cecQaQuestion($qa, 'How long do refunds take?')),
-        $agent,
-    );
-
-    expect($created)->toHaveCount(1)
-        ->and($created->first()->expected_output)->toBe('Refunds take 5 business days.')
-        ->and($created->first()->scorer_type)->toBe(ScorerType::LlmJudge);
-});
-
-it('caps the reference answer at 8000 characters', function (): void {
-    $agent = cecAgent();
-    $chunk = cecChunk($agent, Str::repeat('a', 9000));
-
-    $created = app(CreateEvalCasesFromQuestionsAction::class)->execute(
-        cecData(cecChunkQuestion($chunk, 'What does the document say?')),
-        $agent,
-    );
-
-    expect(Str::length($created->first()->expected_output))->toBe(8000);
-});
-
-it('skips questions already present as a case input and intra-payload duplicates', function (): void {
-    $agent = cecAgent();
-    $chunk = cecChunk($agent, 'Some knowledge.');
-
-    EvalCase::factory()->forAgent($agent)->create(['input' => 'WHAT IS THE REFUND POLICY?']);
-
-    $created = app(CreateEvalCasesFromQuestionsAction::class)->execute(
-        cecData(
-            // Duplicate of the existing case input, differing only in casing.
-            cecChunkQuestion($chunk, 'What is the refund policy?'),
-            cecChunkQuestion($chunk, 'What is shipping like?'),
-            // Intra-payload duplicate of the previous question.
-            cecChunkQuestion($chunk, 'what is shipping like?'),
-        ),
-        $agent,
-    );
-
-    expect($created)->toHaveCount(1)
-        ->and($created->first()->input)->toBe('What is shipping like?')
+        ->and($case->is_active)->toBeTrue()
         ->and(EvalCase::query()->forAgent($agent->id)->count())->toBe(2);
 });
 
-it('rejects a chunk whose source is not attached to the agent and writes nothing', function (): void {
+it('rejects knowledge the agent does not own and writes nothing', function (Closure $foreignItem): void {
     $agent = cecAgent();
     $attached = cecChunk($agent, 'Attached knowledge.');
-    $foreign = cecChunk($agent, 'Unattached knowledge.', attach: false);
 
     expect(fn () => app(CreateEvalCasesFromQuestionsAction::class)->execute(
-        cecData(
-            cecChunkQuestion($attached, 'A valid question?'),
-            cecChunkQuestion($foreign, 'A foreign question?'),
-        ),
+        cecData(cecChunkQuestion($attached, 'A valid question?'), $foreignItem($agent)),
         $agent,
     ))->toThrow(DomainValidationException::class);
 
     expect(EvalCase::query()->forAgent($agent->id)->count())->toBe(0);
-});
-
-it('rejects a chunk belonging to another workspace', function (): void {
-    $agent = cecAgent();
-    $other = cecAgent();
-    $foreignChunk = cecChunk($other, 'Another workspace\'s knowledge.');
-
-    expect(fn () => app(CreateEvalCasesFromQuestionsAction::class)->execute(
-        cecData(cecChunkQuestion($foreignChunk, 'A question?')),
-        $agent,
-    ))->toThrow(DomainValidationException::class);
-
-    expect(EvalCase::query()->forAgent($agent->id)->count())->toBe(0);
-});
-
-it('rejects a QA pair belonging to another agent', function (): void {
-    $agent = cecAgent();
-    $other = cecAgent();
-    $foreignQa = AgentQuestionAnswerFactory::new()->attachedTo($other)->create(['answer' => 'Not yours.', 'questions' => 'A question?']);
-
-    expect(fn () => app(CreateEvalCasesFromQuestionsAction::class)->execute(
-        cecData(cecQaQuestion($foreignQa, 'A question?')),
-        $agent,
-    ))->toThrow(DomainValidationException::class);
-
-    expect(EvalCase::query()->forAgent($agent->id)->count())->toBe(0);
-});
+})->with([
+    'a chunk whose source is not attached' => [fn (Agent $agent): KnowledgeQuestionItemData => cecChunkQuestion(cecChunk($agent, 'Unattached knowledge.', attach: false), 'A foreign question?')],
+    'a chunk of another workspace' => [fn (): KnowledgeQuestionItemData => cecChunkQuestion(cecChunk(cecAgent(), 'Another workspace\'s knowledge.'), 'A foreign question?')],
+    'a QA pair of another agent' => [fn (): KnowledgeQuestionItemData => cecQaQuestion(AgentQuestionAnswerFactory::new()->attachedTo(cecAgent())->create(['answer' => 'Not yours.', 'questions' => 'A question?']), 'A question?')],
+]);

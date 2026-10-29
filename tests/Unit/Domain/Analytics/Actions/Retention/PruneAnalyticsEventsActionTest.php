@@ -63,46 +63,31 @@ function paeSessionFirst(string $firstSeenAt): string
     return $id;
 }
 
-it('deletes old message events but keeps feedback and recent rows', function (): void {
+it('deletes old events, quiet conversation metrics and first-seen sessions, and keeps feedback, rollups and recent rows', function (): void {
+    $agent = Agent::factory()->create();
     paeEvent(now()->subDays(400)->toDateTimeString());
     paeEvent(now()->subDays(10)->toDateTimeString());
     paeFeedback(now()->subDays(400)->toDateTimeString());
-
-    $deleted = app(PruneAnalyticsEventsAction::class)->execute(now()->subDays(395));
-
-    $db = app(AnalyticsDatabase::class);
-
-    expect($deleted)->toBe(1)
-        ->and($db->table('analytics_events')->where('workspace_id', 910002)->count())->toBe(1)
-        ->and($db->table('analytics_message_feedback')->where('workspace_id', 910002)->count())->toBe(1);
-});
-
-it('deletes the metrics of old, quiet conversations and old first-seen sessions', function (): void {
     $old = paeMetrics(now()->subDays(420)->toDateTimeString(), now()->subDays(419)->toDateTimeString());
-    // Started long ago but still in use: its next message must not count as a new conversation.
     $ongoing = paeMetrics(now()->subDays(420)->toDateTimeString(), now()->subDays(3)->toDateTimeString());
     $recent = paeMetrics(now()->subDays(5)->toDateTimeString(), now()->subDays(5)->toDateTimeString());
     $oldSession = paeSessionFirst(now()->subDays(400)->toDateTimeString());
     $recentSession = paeSessionFirst(now()->subDays(10)->toDateTimeString());
+    analyticsRollup($agent, now()->subDays(800)->startOfHour()->toDateTimeString(), ['assistant_messages' => 5]);
 
     $deleted = app(PruneAnalyticsEventsAction::class)->execute(now()->subDays(395));
 
-    $metrics = app(AnalyticsDatabase::class)->table('analytics_conversation_metrics')->whereIn('conversation_external_id', [$old, $ongoing, $recent])->pluck('conversation_external_id')->sort()->values()->all();
-    $sessions = app(AnalyticsDatabase::class)->table('analytics_session_firsts')->whereIn('session_external_id', [$oldSession, $recentSession])->pluck('session_external_id')->all();
+    $db = app(AnalyticsDatabase::class);
+    $metrics = $db->table('analytics_conversation_metrics')->whereIn('conversation_external_id', [$old, $ongoing, $recent])->pluck('conversation_external_id')->sort()->values()->all();
+    $sessions = $db->table('analytics_session_firsts')->whereIn('session_external_id', [$oldSession, $recentSession])->pluck('session_external_id')->all();
 
-    expect($deleted)->toBe(2)
+    expect($deleted)->toBe(3)
+        ->and($db->table('analytics_events')->where('workspace_id', 910002)->count())->toBe(1)
+        ->and($db->table('analytics_message_feedback')->where('workspace_id', 910002)->count())->toBe(1)
         ->and($metrics)->toBe(collect([$ongoing, $recent])->sort()->values()->all())
-        ->and($sessions)->toBe([$recentSession]);
-});
-
-it('keeps the hourly and daily rollups however old', function (): void {
-    $agent = Agent::factory()->create();
-    analyticsRollup($agent, now()->subDays(800)->startOfHour()->toDateTimeString(), ['assistant_messages' => 5]);
-
-    app(PruneAnalyticsEventsAction::class)->execute(now()->subDays(395));
-
-    expect(app(AnalyticsDatabase::class)->table('analytics_agent_hourly_rollups')->where('agent_id', $agent->id)->exists())->toBeTrue()
-        ->and(app(AnalyticsDatabase::class)->table('analytics_agent_daily')->where('agent_id', $agent->id)->exists())->toBeTrue();
+        ->and($sessions)->toBe([$recentSession])
+        ->and($db->table('analytics_agent_hourly_rollups')->where('agent_id', $agent->id)->exists())->toBeTrue()
+        ->and($db->table('analytics_agent_daily')->where('agent_id', $agent->id)->exists())->toBeTrue();
 });
 
 it('drops the monthly partitions that ended before the cutoff, counting their rows', function (): void {
@@ -116,7 +101,6 @@ it('drops the monthly partitions that ended before the cutoff, counting their ro
     $deleted = app(PruneAnalyticsEventsAction::class)->execute(now()->addMonthNoOverflow()->startOfMonth()->addDay());
 
     expect($current)->not->toBe('analytics_events_default')
-        // The seeded demo traffic of the testing database goes too.
         ->and($deleted)->toBeGreaterThanOrEqual(2)
         ->and($db->scalar('SELECT to_regclass(?)', [$current]))->toBeNull()
         ->and($db->table('analytics_events')->where('workspace_id', 910002)->count())->toBe(0);

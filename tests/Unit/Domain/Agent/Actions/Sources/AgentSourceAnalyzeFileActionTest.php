@@ -5,7 +5,6 @@ use Domain\Knowledge\Source\File\Data\FileAnalysisData;
 use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
 use Domain\Knowledge\Source\File\Services\FileAnalyzer;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Str;
 
 /**
  * Analysing an upload before it is trained describes the file: its page count
@@ -18,7 +17,7 @@ function asfaAnalyzerReturningPages(int $pages): void
     app()->instance(FileAnalyzer::class, $analyzer);
 }
 
-it('describes a new file', function (): void {
+it('describes an upload by its page count, mime and file type', function (): void {
     asfaAnalyzerReturningPages(3);
     $file = UploadedFile::fake()->createWithContent('notes.txt', 'Fresh content');
 
@@ -28,15 +27,5 @@ it('describes a new file', function (): void {
         ->and($result->mime_type)->toBe('text/plain')
         ->and($result->filetype)->toBe(KnowledgeFileType::Text)
         ->and($result->is_audio_file)->toBeFalse()
-        ->and($result->is_video_file)->toBeFalse();
-});
-
-it('marks an audio upload as audio', function (): void {
-    asfaAnalyzerReturningPages(1);
-    $file = UploadedFile::fake()->createWithContent('call.mp3', "ID3\x03\x00\x00\x00\x00\x00\x00".Str::repeat("\xFF\xFB\x90\x00", 64));
-
-    $result = app(AgentSourceAnalyzeFileAction::class)->execute($file);
-
-    expect($result->is_audio_file)->toBeTrue()
         ->and($result->is_video_file)->toBeFalse();
 });

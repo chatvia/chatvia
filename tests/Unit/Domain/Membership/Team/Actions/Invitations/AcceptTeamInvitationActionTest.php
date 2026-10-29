@@ -23,11 +23,14 @@ use Support\Exceptions\DomainValidationException;
  * shouldn't.
  *  - Expiry: a stale (>7d) link is dead.
  *  - Password: an existing account must prove ownership before being attached.
- * Plus the two happy paths: create-on-first-accept, and attach-existing.
+ *  - Tenancy: an account of another workspace, or a deactivated teammate, is
+ *    refused even with the right password, and a wrong password gets the same
+ *    message whoever holds the email.
+ * Plus the two happy paths: create-on-first-accept, and attach-existing
+ * (the email matched without case).
  * Chatters live in their own table, so a chatter with the invited email is a
  * different person: it never blocks the invite and is never turned into staff.
  */
-
 /**
  * Provision a team owner, returning the team plus a fresh invitation into a
  * non-owner role.
@@ -51,45 +54,39 @@ function atiTeamAndInvitation(string $invitedEmail = 'invitee@example.com'): arr
     return [$team, $invitation, $owner, $role];
 }
 
-it('creates the account on first accept and attaches the team_user membership row', function (): void {
+it('creates the account on first accept, apart from a chatter with the same email, and consumes the invitation', function (): void {
     Event::fake([Registered::class]);
-
-    [$team, $invitation, , $role] = atiTeamAndInvitation();
+    [$team, $invitation, $owner, $role] = atiTeamAndInvitation('chatter@example.com');
+    $chatter = Chatter::factory()->ofWorkspace($owner)->create([
+        'email' => 'chatter@example.com',
+        'password' => Hash::make('chatter-password'),
+    ]);
 
     $user = app(AcceptTeamInvitationAction::class)->execute(new AcceptInvitationData(
-        invitation: $invitation,
+        invitation: $invitation->fresh(),
         password: 'a-real-password-1234',
         name: 'New Teammate',
     ));
 
     expect($user)->toBeInstanceOf(User::class)
-        ->and($user->email)->toBe('invitee@example.com')
+        ->and($user->email)->toBe('chatter@example.com')
         ->and($user->name)->toBe('New Teammate')
         ->and($user->workspaceRole())->toBe(WorkspaceRole::Member)
         ->and($user->workspace()->is($team->workspace))->toBeTrue()
         ->and($user->email_verified_at)->not->toBeNull()
-        ->and(Hash::check('a-real-password-1234', $user->password))->toBeTrue();
-
-    // The membership pivot is the load-bearing grant.
-    expect(DB::table('team_user')
-        ->where('team_id', $team->id)
-        ->where('user_id', $user->id)
-        ->where('role_id', $role->id)
-        ->exists())->toBeTrue();
-
-    // Invitation is consumed.
-    expect(Invitation::whereKey($invitation->id)->exists())->toBeFalse();
-
+        ->and(Hash::check('a-real-password-1234', $user->password))->toBeTrue()
+        ->and(DB::table('team_user')->where('team_id', $team->id)->where('user_id', $user->id)->where('role_id', $role->id)->exists())->toBeTrue()
+        ->and(Invitation::whereKey($invitation->id)->exists())->toBeFalse()
+        ->and(Hash::check('chatter-password', $chatter->fresh()->password))->toBeTrue()
+        ->and($chatter->fresh()->workspace_id)->toBe($owner->workspace()->id);
     Event::assertDispatched(Registered::class);
 });
 
-it('attaches an existing workspace user when the password matches, without recreating the account', function (): void {
+it('attaches an existing teammate, matching the email without case, when the password matches', function (): void {
     Event::fake([Registered::class]);
-
-    [$team, $invitation, $owner, $role] = atiTeamAndInvitation('existing@example.com');
-
+    [$team, $invitation, $owner, $role] = atiTeamAndInvitation('Mixed.Case@Example.com');
     $existing = User::factory()->employee($owner)->create([
-        'email' => 'existing@example.com',
+        'email' => 'mixed.case@example.com',
         'password' => Hash::make('correct-horse-battery'),
     ]);
 
@@ -100,126 +97,54 @@ it('attaches an existing workspace user when the password matches, without recre
     ));
 
     expect($user->id)->toBe($existing->id)
-        ->and(DB::table('team_user')
-            ->where('team_id', $team->id)
-            ->where('user_id', $existing->id)
-            ->where('role_id', $role->id)
-            ->exists())->toBeTrue()
+        ->and(DB::table('team_user')->where('team_id', $team->id)->where('user_id', $existing->id)->where('role_id', $role->id)->exists())->toBeTrue()
         ->and(Invitation::whereKey($invitation->id)->exists())->toBeFalse();
-
-    // No new account was registered for an already-existing user.
     Event::assertNotDispatched(Registered::class);
 });
 
-it('rejects an invitation older than 7 days', function (): void {
-    [, $invitation] = atiTeamAndInvitation();
+it('refuses an invitation link that must not grant access, and grants nothing', function (Closure $arrange, ?string $message): void {
+    [$data, $unchanged] = $arrange();
 
-    // Backdate past the 7-day window (timestamps are auto-set on create).
-    $invitation->forceFill(['created_at' => now()->subDays(8)])->saveQuietly();
+    expect(fn () => app(AcceptTeamInvitationAction::class)->execute($data))->toThrow(DomainValidationException::class, $message);
 
-    expect(fn () => app(AcceptTeamInvitationAction::class)->execute(new AcceptInvitationData(
-        invitation: $invitation->fresh(),
-        password: 'a-real-password-1234',
-        name: 'Too Late',
-    )))->toThrow(DomainValidationException::class, 'This invitation has expired.');
-});
-
-it('creates a separate staff account when a chatter of the workspace has the invited email', function (): void {
-    Event::fake([Registered::class]);
-
-    [$team, $invitation, $owner, $role] = atiTeamAndInvitation('chatter@example.com');
-
-    // An end-user of this workspace that happens to share the invited email.
-    $chatter = Chatter::factory()->ofWorkspace($owner)->create([
-        'email' => 'chatter@example.com',
-        'password' => Hash::make('chatter-password'),
-    ]);
-
-    $user = app(AcceptTeamInvitationAction::class)->execute(new AcceptInvitationData(
-        invitation: $invitation->fresh(),
-        password: 'a-new-staff-password',
-        name: 'Teammate',
-    ));
-
-    expect($user)->toBeInstanceOf(User::class)
-        ->and($user->workspaceRole())->toBe(WorkspaceRole::Member)
-        ->and($user->workspace()->is($owner->workspace()))->toBeTrue()
-        ->and(Hash::check('a-new-staff-password', $user->password))->toBeTrue()
-        ->and(DB::table('team_user')->where('team_id', $team->id)->where('user_id', $user->id)->where('role_id', $role->id)->exists())->toBeTrue();
-
-    // The chatter is untouched: same row, same password, still a chatter.
-    $chatter->refresh();
-    expect(Hash::check('chatter-password', $chatter->password))->toBeTrue()
-        ->and($chatter->workspace_id)->toBe($owner->workspace()->id);
-
-    Event::assertDispatched(Registered::class);
-});
-
-it('rejects a wrong password with the same message, whoever holds the email', function (string $holder): void {
-    [, $invitation, $owner] = atiTeamAndInvitation('existing@example.com');
-
-    $attributes = ['email' => 'existing@example.com', 'password' => Hash::make('the-correct-password')];
-    $holder === 'teammate'
-        ? User::factory()->employee($owner)->create($attributes)
-        : User::factory()->create($attributes);
-
-    expect(fn () => app(AcceptTeamInvitationAction::class)->execute(new AcceptInvitationData(
-        invitation: $invitation->fresh(),
-        password: 'the-WRONG-password',
-        name: 'Imposter',
-    )))->toThrow(DomainValidationException::class, __('The provided password is incorrect.'));
-
-    expect(Invitation::whereKey($invitation->id)->exists())->toBeTrue();
+    $unchanged();
 })->with([
-    'a teammate of this workspace' => 'teammate',
-    // Never says that the account is in another workspace before the password is proven.
-    'the owner of another workspace' => 'owner',
+    'an invitation older than 7 days' => [function (): array {
+        [, $invitation] = atiTeamAndInvitation();
+        $invitation->forceFill(['created_at' => now()->subDays(8)])->saveQuietly();
+
+        return [new AcceptInvitationData(invitation: $invitation->fresh(), password: 'a-real-password-1234', name: 'Too Late'), fn () => expect(User::query()->where('email', 'invitee@example.com')->exists())->toBeFalse()];
+    }, 'This invitation has expired.'],
+    'a wrong password for a teammate' => [function (): array {
+        [, $invitation, $owner] = atiTeamAndInvitation('existing@example.com');
+        User::factory()->employee($owner)->create(['email' => 'existing@example.com', 'password' => Hash::make('the-correct-password')]);
+
+        return [new AcceptInvitationData(invitation: $invitation->fresh(), password: 'the-WRONG-password', name: 'Imposter'), fn () => expect(Invitation::whereKey($invitation->id)->exists())->toBeTrue()];
+    }, 'The provided password is incorrect.'],
+    'a wrong password for the owner of another workspace, with the same message' => [function (): array {
+        [, $invitation] = atiTeamAndInvitation('existing@example.com');
+        User::factory()->create(['email' => 'existing@example.com', 'password' => Hash::make('the-correct-password')]);
+
+        return [new AcceptInvitationData(invitation: $invitation->fresh(), password: 'the-WRONG-password', name: 'Imposter'), fn () => expect(Invitation::whereKey($invitation->id)->exists())->toBeTrue()];
+    }, 'The provided password is incorrect.'],
+    'the owner of another workspace with the right password' => [function (): array {
+        [$team, $invitation] = atiTeamAndInvitation('elsewhere@example.com');
+        $existing = User::factory()->create(['email' => 'elsewhere@example.com', 'password' => Hash::make('correct-horse-battery')]);
+
+        return [new AcceptInvitationData(invitation: $invitation, password: 'correct-horse-battery'), fn () => expect(DB::table('team_user')->where('team_id', $team->id)->where('user_id', $existing->id)->exists())->toBeFalse()
+            ->and(Invitation::whereKey($invitation->id)->exists())->toBeTrue()];
+    }, null],
+    'a teammate of another workspace with the right password' => [function (): array {
+        [$team, $invitation] = atiTeamAndInvitation('elsewhere@example.com');
+        $existing = User::factory()->employee(User::factory()->create())->create(['email' => 'elsewhere@example.com', 'password' => Hash::make('correct-horse-battery')]);
+
+        return [new AcceptInvitationData(invitation: $invitation, password: 'correct-horse-battery'), fn () => expect(DB::table('team_user')->where('team_id', $team->id)->where('user_id', $existing->id)->exists())->toBeFalse()
+            ->and(Invitation::whereKey($invitation->id)->exists())->toBeTrue()];
+    }, null],
+    'a deactivated teammate' => [function (): array {
+        [$team, $invitation, $owner] = atiTeamAndInvitation('sleepy@example.com');
+        $existing = User::factory()->employee($owner)->create(['email' => 'sleepy@example.com', 'password' => Hash::make('correct-horse-battery'), 'deactivated_at' => now()]);
+
+        return [new AcceptInvitationData(invitation: $invitation, password: 'correct-horse-battery'), fn () => expect(DB::table('team_user')->where('team_id', $team->id)->where('user_id', $existing->id)->exists())->toBeFalse()];
+    }, null],
 ]);
-
-it('refuses an account that belongs to another workspace, even with the right password', function (string $kind): void {
-    [$team, $invitation] = atiTeamAndInvitation('elsewhere@example.com');
-
-    $attrs = ['email' => 'elsewhere@example.com', 'password' => Hash::make('correct-horse-battery')];
-    $existing = $kind === 'owner'
-        ? User::factory()->create($attrs)
-        : User::factory()->employee(User::factory()->create())->create($attrs);
-
-    expect(fn () => app(AcceptTeamInvitationAction::class)->execute(new AcceptInvitationData(
-        invitation: $invitation,
-        password: 'correct-horse-battery',
-    )))->toThrow(DomainValidationException::class);
-
-    expect(DB::table('team_user')->where('team_id', $team->id)->where('user_id', $existing->id)->exists())->toBeFalse()
-        ->and(Invitation::whereKey($invitation->id)->exists())->toBeTrue();
-})->with(['owner of another workspace' => ['owner'], 'teammate of another workspace' => ['employee']]);
-
-it('refuses a deactivated teammate', function (): void {
-    [$team, $invitation, $owner] = atiTeamAndInvitation('sleepy@example.com');
-
-    User::factory()->employee($owner)->create([
-        'email' => 'sleepy@example.com',
-        'password' => Hash::make('correct-horse-battery'),
-        'deactivated_at' => now(),
-    ]);
-
-    expect(fn () => app(AcceptTeamInvitationAction::class)->execute(new AcceptInvitationData(
-        invitation: $invitation,
-        password: 'correct-horse-battery',
-    )))->toThrow(DomainValidationException::class);
-});
-
-it('matches the invited email without case', function (): void {
-    [$team, $invitation, $owner] = atiTeamAndInvitation('Mixed.Case@Example.com');
-
-    $existing = User::factory()->employee($owner)->create([
-        'email' => 'mixed.case@example.com',
-        'password' => Hash::make('correct-horse-battery'),
-    ]);
-
-    $user = app(AcceptTeamInvitationAction::class)->execute(new AcceptInvitationData(
-        invitation: $invitation,
-        password: 'correct-horse-battery',
-    ));
-
-    expect($user->id)->toBe($existing->id);
-});

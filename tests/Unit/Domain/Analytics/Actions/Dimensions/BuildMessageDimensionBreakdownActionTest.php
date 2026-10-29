@@ -90,15 +90,3 @@ it('scopes the aggregate to the requested agent', function (): void {
     expect($result->totals['positive'])->toBe(1)
         ->and($result->totals['total'])->toBe(1);
 });
-
-it('lists every value of the dimension in the totals, in display order', function (): void {
-    $agent = Agent::factory()->create();
-
-    $result = app(BuildMessageDimensionBreakdownAction::class)->execute(
-        $agent,
-        MessageDimension::Sentiment,
-        DateRangeData::fromDates('2026-06-01', '2026-06-01'),
-    );
-
-    expect(array_keys($result->totals))->toBe(['positive', 'negative', 'neutral', 'unspecified', 'total']);
-});

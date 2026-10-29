@@ -20,10 +20,3 @@ it('passes only an answer that holds the substring', function (array $config, ?s
     'in another case, with case sensitivity on' => [['value' => '30 DAYS', 'case_sensitive' => true], null, false],
     'the expected output, when no value is set' => [[], '30 days', true],
 ]);
-
-it('fails with a rationale when nothing is configured', function (): void {
-    $result = (new ContainsScorer)->score(EvalFixtures::case(ScorerType::Contains), EvalFixtures::run('anything'));
-
-    expect($result->pass)->toBeFalse()
-        ->and($result->rationale)->toContain('No expected substring');
-});

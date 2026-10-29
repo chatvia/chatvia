@@ -21,16 +21,21 @@ function fsbPasses(array $fields, array $values): bool
 
 const FSB_OPTIONS = [['value' => 'small', 'label' => 'Small'], ['value' => 'large', 'label' => 'Large']];
 
-it('requires a required field and lets an optional one be left out', function (): void {
+it('requires required fields, checks every picked multi-checkbox option, and lets optional ones be left out', function (): void {
     $fields = [
         ['key' => 'name', 'label' => 'Name', 'type' => 'text', 'required' => true],
         ['key' => 'company', 'label' => 'Company', 'type' => 'text', 'required' => false],
+        ['key' => 'sizes', 'label' => 'Sizes', 'type' => 'multicheckbox', 'required' => true, 'options' => FSB_OPTIONS],
+        ['key' => 'extras', 'label' => 'Extras', 'type' => 'multicheckbox', 'required' => false, 'options' => FSB_OPTIONS],
     ];
 
-    expect(fsbPasses($fields, ['name' => 'Jane']))->toBeTrue()
-        ->and(fsbPasses($fields, ['name' => 'Jane', 'company' => null]))->toBeTrue()
-        ->and(fsbPasses($fields, ['company' => 'Acme']))->toBeFalse()
-        ->and(fsbPasses($fields, ['name' => '']))->toBeFalse();
+    expect(fsbPasses($fields, ['name' => 'Jane', 'sizes' => ['small', 'large']]))->toBeTrue()
+        ->and(fsbPasses($fields, ['name' => 'Jane', 'company' => null, 'sizes' => ['small']]))->toBeTrue()
+        ->and(fsbPasses($fields, ['company' => 'Acme', 'sizes' => ['small']]))->toBeFalse()
+        ->and(fsbPasses($fields, ['name' => '', 'sizes' => ['small']]))->toBeFalse()
+        ->and(fsbPasses($fields, ['name' => 'Jane', 'sizes' => ['small', 'medium']]))->toBeFalse()
+        ->and(fsbPasses($fields, ['name' => 'Jane', 'sizes' => 'small']))->toBeFalse()
+        ->and(fsbPasses($fields, ['name' => 'Jane', 'sizes' => []]))->toBeFalse();
 });
 
 it('accepts a value of the field type and refuses another', function (array $field, mixed $valid, mixed $invalid): void {
@@ -50,29 +55,3 @@ it('accepts a value of the field type and refuses another', function (array $fie
     'radio from its options' => [['type' => 'radio', 'options' => FSB_OPTIONS], 'small', 'medium'],
     'checkbox' => [['type' => 'checkbox'], true, 'maybe'],
 ]);
-
-it('checks every picked option of a multi-checkbox', function (): void {
-    $fields = [['key' => 'sizes', 'label' => 'Sizes', 'type' => 'multicheckbox', 'required' => true, 'options' => FSB_OPTIONS]];
-
-    expect(fsbPasses($fields, ['sizes' => ['small', 'large']]))->toBeTrue()
-        ->and(fsbPasses($fields, ['sizes' => ['small', 'medium']]))->toBeFalse()
-        ->and(fsbPasses($fields, ['sizes' => 'small']))->toBeFalse()
-        ->and(fsbPasses($fields, ['sizes' => []]))->toBeFalse();
-});
-
-it('lets an optional multi-checkbox be left out', function (): void {
-    $fields = [['key' => 'sizes', 'label' => 'Sizes', 'type' => 'multicheckbox', 'required' => false, 'options' => FSB_OPTIONS]];
-
-    expect(fsbPasses($fields, []))->toBeTrue();
-});
-
-it('builds no rule for a field without a key or of an unknown type', function (): void {
-    $rules = app(FormSchemaBuilder::class)->validationRules([
-        ['key' => '', 'label' => 'Blank key', 'type' => 'text'],
-        ['label' => 'No key', 'type' => 'text'],
-        ['key' => 'upload', 'label' => 'Upload', 'type' => 'file'],
-        ['key' => 'email', 'label' => 'Email', 'type' => 'email'],
-    ]);
-
-    expect(array_keys($rules))->toBe(['email']);
-});

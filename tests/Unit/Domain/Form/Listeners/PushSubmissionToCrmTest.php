@@ -17,7 +17,8 @@ use Support\Http\WebhookSignature;
  * agent's secret, to the agent's webhook URL. It does nothing unless the
  * webhook is on with a URL and a secret, fails fast on an unsafe URL (a retry
  * cannot fix it), throws on a failed delivery so the queue retries, and once
- * retries are used up failed() counts the failure towards auto-disable.
+ * retries are used up failed() counts the failure towards auto-disable. A
+ * retry sends the same body and delivery id, and a success resets the count.
  */
 const PSTC_URL = 'https://crm.example.com/hooks/leads';
 
@@ -52,115 +53,57 @@ function pstcAgentWithCrm(array $overrides = []): Agent
     return $agent;
 }
 
-it('posts the submission to the CRM webhook', function (): void {
+it('posts the submission signed with the agent\'s secret, the same on a retry, and resets the failure count', function (): void {
     $this->freezeTime();
-    $agent = pstcAgentWithCrm();
-    Http::fake([PSTC_URL => Http::response('', 200)]);
-
-    $event = pstcEvent($agent->id);
-
-    app(PushSubmissionToCrm::class)->handle($event);
-
-    Http::assertSent(fn (Request $request): bool => $request->url() === PSTC_URL
-        && $request->method() === 'POST'
-        && $request->data() === [
-            'event' => 'form.submitted',
-            'delivery_id' => $event->deliveryId,
-            'form' => 'book-a-demo',
-            'form_type' => 'booking',
-            'source' => 'form',
-            'agent_id' => $agent->external_id,
-            'conversation_id' => '0199b2c4-0000-7000-8000-000000000001',
-            'timestamp' => now()->toIso8601String(),
-            'values' => ['email' => 'jane@example.com', 'seats' => 5],
-        ]);
-});
-
-it('sends the same body, delivery id and all, when the queue retries the event', function (): void {
-    $this->freezeTime();
-    $agent = pstcAgentWithCrm();
+    $agent = pstcAgentWithCrm(['webhook_failures' => 3]);
     Http::fake([PSTC_URL => Http::response('', 200)]);
     $event = pstcEvent($agent->id);
 
-    // A retry runs the listener again on the event as the queue stored it.
     app(PushSubmissionToCrm::class)->handle($event);
     app(PushSubmissionToCrm::class)->handle(unserialize(serialize($event)));
 
-    [$first, $retry] = Http::recorded()->map(fn (array $pair): array => $pair[0]->data())->all();
+    $requests = Http::recorded()->map(fn (array $pair): Request => $pair[0]);
 
-    expect($retry)->toBe($first)
-        ->and($first['delivery_id'])->toBe($event->deliveryId)
-        ->and(Str::isUuid($event->deliveryId))->toBeTrue();
+    expect($requests)->toHaveCount(2)
+        ->and($requests->every(fn (Request $request): bool => $request->url() === PSTC_URL
+            && $request->method() === 'POST'
+            && $request->header('X-Chatvia-Event') === ['form.submitted']
+            && $request->header('X-Chatvia-Signature') === ['sha256='.WebhookSignature::sign($request->body(), 'shh')]))->toBeTrue()
+        ->and($requests[1]->data())->toBe($requests[0]->data())
+        ->and($requests[0]->data()['delivery_id'])->toBe($event->deliveryId)
+        ->and($requests[0]->data()['values'])->toBe(['email' => 'jane@example.com', 'seats' => 5])
+        ->and(Str::isUuid($event->deliveryId))->toBeTrue()
+        ->and($agent->fresh()->settings('leads')->get('crm')['webhook_failures'])->toBe(0);
 });
 
-it('signs the body it sends with the agent\'s webhook secret', function (): void {
-    $agent = pstcAgentWithCrm();
-    Http::fake([PSTC_URL => Http::response('', 200)]);
-
-    app(PushSubmissionToCrm::class)->handle(pstcEvent($agent->id));
-
-    Http::assertSent(fn (Request $request): bool => $request->header('X-Chatvia-Event') === ['form.submitted']
-        && $request->header('X-Chatvia-Signature') === ['sha256='.WebhookSignature::sign($request->body(), 'shh')]);
-});
-
-it('sends nothing unless the webhook is on with a URL and a secret', function (array $crm): void {
-    $agent = pstcAgentWithCrm($crm);
+it('sends nothing unless the agent has the webhook on with a URL and a secret', function (Closure $agentId): void {
     Http::fake();
 
-    app(PushSubmissionToCrm::class)->handle(pstcEvent($agent->id));
+    app(PushSubmissionToCrm::class)->handle(pstcEvent($agentId()));
 
     Http::assertNothingSent();
 })->with([
-    'turned off' => [['webhook_enabled' => false]],
-    'no URL' => [['webhook_url' => '']],
-    'no secret' => [['webhook_secret' => null]],
+    'turned off' => [fn (): int => pstcAgentWithCrm(['webhook_enabled' => false])->id],
+    'no URL' => [fn (): int => pstcAgentWithCrm(['webhook_url' => ''])->id],
+    'no secret' => [fn (): int => pstcAgentWithCrm(['webhook_secret' => null])->id],
+    'no CRM settings' => [fn (): int => Agent::factory()->create()->id],
+    'an agent that is gone' => [fn (): int => 999_999_999],
 ]);
 
-it('sends nothing for an agent without CRM settings or one that is gone', function (): void {
-    $agent = Agent::factory()->create();
-    Http::fake();
+it('throws on an unsafe URL or a failed delivery, and counts a spent delivery in failed()', function (string $url, Closure $arrange, string $exception, int $sent): void {
+    $agent = pstcAgentWithCrm(['webhook_url' => $url]);
+    $arrange();
 
-    app(PushSubmissionToCrm::class)->handle(pstcEvent($agent->id));
-    app(PushSubmissionToCrm::class)->handle(pstcEvent(999_999_999));
+    expect(fn () => app(PushSubmissionToCrm::class)->handle(pstcEvent($agent->id)))->toThrow($exception);
 
-    Http::assertNothingSent();
-});
-
-it('fails fast on an unsafe webhook URL instead of retrying', function (): void {
-    // The send-time SSRF check runs outside local and testing.
-    app()['env'] = 'production';
-    $agent = pstcAgentWithCrm(['webhook_url' => 'http://169.254.169.254/latest/meta-data']);
-    Http::fake();
-
-    // Off the queue the exception escapes; on the queue the same path fails
-    // the job at once, which counts towards the auto-disable threshold.
-    expect(fn () => app(PushSubmissionToCrm::class)->handle(pstcEvent($agent->id)))
-        ->toThrow(UnsafeUrlException::class);
-
-    Http::assertNothingSent();
-});
-
-it('throws on a failed delivery so the queue retries', function (): void {
-    $agent = pstcAgentWithCrm();
-    Http::fake([PSTC_URL => Http::response('', 500)]);
-
-    expect(fn () => app(PushSubmissionToCrm::class)->handle(pstcEvent($agent->id)))
-        ->toThrow(RequestException::class);
-});
-
-it('resets the failure counter after a successful delivery', function (): void {
-    $agent = pstcAgentWithCrm(['webhook_failures' => 3]);
-    Http::fake([PSTC_URL => Http::response(['ok' => true])]);
-
-    app(PushSubmissionToCrm::class)->handle(pstcEvent($agent->id));
-
-    expect($agent->fresh()->settings('leads')->get('crm')['webhook_failures'])->toBe(0);
-});
-
-it('counts a spent delivery towards the auto-disable threshold in failed()', function (): void {
-    $agent = pstcAgentWithCrm();
-
+    Http::assertSentCount($sent);
     app(PushSubmissionToCrm::class)->failed(pstcEvent($agent->id), new RuntimeException('down'));
 
     expect($agent->fresh()->settings('leads')->get('crm')['webhook_failures'])->toBe(1);
-});
+})->with([
+    'an unsafe URL, checked at send time outside testing' => ['http://169.254.169.254/latest/meta-data', function (): void {
+        app()['env'] = 'production';
+        Http::fake();
+    }, UnsafeUrlException::class, 0],
+    'a failed delivery' => [PSTC_URL, fn () => Http::fake([PSTC_URL => Http::response('', 500)]), RequestException::class, 1],
+]);

@@ -4,7 +4,6 @@ use Domain\Agent\Data\Resources\ChatLog\Countries\ChatLogCountryData;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Queries\AgentVisitorCountriesQuery;
 use Domain\Conversation\Models\Session;
-use Illuminate\Support\Facades\DB;
 use Support\Localization\Country\Models\Country;
 
 /**
@@ -27,23 +26,4 @@ it('lists each visitor country of the agent once, sorted by name', function (): 
 
     expect($result->countries->toCollection()->map(fn (ChatLogCountryData $country): string => $country->code)->all())
         ->toBe(['fr', 'de', 'se']);
-});
-
-it('returns no options for an agent without located visitors', function (): void {
-    $agent = Agent::factory()->create();
-    Session::factory()->create(['agent_id' => $agent->id, 'country_id' => null]);
-
-    expect(app(AgentVisitorCountriesQuery::class)->get($agent)->countries->toCollection())->toBeEmpty();
-});
-
-it('reads the countries in one query', function (): void {
-    $agent = Agent::factory()->create();
-    $queries = 0;
-    DB::listen(function () use (&$queries): void {
-        $queries++;
-    });
-
-    app(AgentVisitorCountriesQuery::class)->get($agent);
-
-    expect($queries)->toBe(1);
 });

@@ -24,19 +24,32 @@ function taaJoinWithRole(object $test, bool $allAgents, array $agentIds = []): v
     $test->team->members()->attach($test->member->id, ['role_id' => $role->id]);
 }
 
-it('lets the owner reach every agent of the team', function (): void {
+it('lets the owner reach every agent of their workspace, in any of their teams, and never another workspace\'s', function (): void {
+    $secondTeam = app(CreateDefaultTeamAction::class)->execute($this->owner);
+    $agentInSecondTeam = makeTeamAgent($this->owner, 'Second', $secondTeam);
+    $foreignAgent = makeTeamAgent(User::factory()->create(), 'Foreign');
     $access = app(TeamAgentAccess::class);
 
     expect($access->canAccess($this->owner, $this->team, $this->other))->toBeTrue()
         ->and($access->accessibleAgents($this->owner, $this->team)->pluck('id')->sort()->values()->all())
-        ->toBe(collect([$this->granted->id, $this->other->id])->sort()->values()->all());
+        ->toBe(collect([$this->granted->id, $this->other->id])->sort()->values()->all())
+        ->and($access->canAccess($this->owner, $this->team, $agentInSecondTeam))->toBeTrue()
+        ->and($access->canAccess($this->owner, $this->team, $foreignAgent))->toBeFalse();
 });
 
-it('limits a scoped role to its own agents', function (): void {
+it('gives a user nothing without a role and a scoped role only its own agents', function (): void {
+    $withoutRole = [
+        app(TeamAgentAccess::class)->canAccess($this->member, $this->team, $this->granted),
+        app(TeamAgentAccess::class)->accessibleAgents($this->member, $this->team)->all(),
+    ];
+
     taaJoinWithRole($this, allAgents: false, agentIds: [$this->granted->external_id]);
+    app()->forgetInstance(TeamAgentAccess::class);
+    $this->member = $this->member->fresh();
     $access = app(TeamAgentAccess::class);
 
-    expect($access->canAccess($this->member, $this->team, $this->granted))->toBeTrue()
+    expect($withoutRole)->toBe([false, []])
+        ->and($access->canAccess($this->member, $this->team, $this->granted))->toBeTrue()
         ->and($access->canAccess($this->member, $this->team, $this->other))->toBeFalse()
         ->and($access->accessibleAgents($this->member, $this->team)->pluck('id')->all())->toBe([$this->granted->id]);
 });
@@ -48,30 +61,4 @@ it('lets an all-agents role reach every agent of the team but none outside it', 
 
     expect($access->canAccess($this->member, $this->team, $this->other))->toBeTrue()
         ->and($access->canAccess($this->member, $this->team, $outside))->toBeFalse();
-});
-
-it('gives a user without a role in the team nothing', function (): void {
-    $access = app(TeamAgentAccess::class);
-
-    expect($access->canAccess($this->member, $this->team, $this->granted))->toBeFalse()
-        ->and($access->accessibleAgents($this->member, $this->team))->toBeEmpty();
-});
-
-it('never lets a team owner reach another workspace agent', function (): void {
-    // The owner shortcut covers the owner's own agents only, never another
-    // workspace's agent, whatever team is current.
-    $otherOwner = User::factory()->create();
-    $foreignAgent = makeTeamAgent($otherOwner, 'Foreign');
-    $access = app(TeamAgentAccess::class);
-
-    expect($access->canAccess($this->owner, $this->team, $foreignAgent))->toBeFalse()
-        ->and(app(TeamAgentAccess::class)->canAccess($this->owner, $this->team, $foreignAgent))->toBeFalse()
-        ->and($access->canAccess($this->owner, $this->team, $this->granted))->toBeTrue();
-});
-
-it('lets a team owner reach their own agent in another of their teams', function (): void {
-    $secondTeam = app(CreateDefaultTeamAction::class)->execute($this->owner);
-    $agentInSecondTeam = makeTeamAgent($this->owner, 'Second', $secondTeam);
-
-    expect(app(TeamAgentAccess::class)->canAccess($this->owner, $this->team, $agentInSecondTeam))->toBeTrue();
 });

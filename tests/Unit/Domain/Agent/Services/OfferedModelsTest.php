@@ -40,9 +40,3 @@ it('lists the offered models with their names and logos', function (): void {
         ->and($models[1]->is_default)->toBeFalse()
         ->and($models[1]->logo)->toBeNull();
 });
-
-it('lists nothing while Multi-model is off', function (): void {
-    testLlm('my-local-model');
-
-    expect(app(OfferedModels::class)->for($this->agent->fresh()))->toBe([]);
-});

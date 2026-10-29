@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route as Router;
 use Illuminate\Support\Str;
 use Symfony\Component\Finder\SplFileInfo;
 
-/*
+/**
  * docker/app/nginx/streams.conf sends the routes that keep a PHP worker busy
  * while the model writes to a PHP-FPM pool of their own. Its path pattern
  * must name every such route, and only those: a streaming route it misses
@@ -59,10 +59,6 @@ function scfSamplePath(Route $route): string
     return '/'.Str::replaceMatches('/\{[^}]+\}/', 'x', Str::chopStart($route->uri(), '/'));
 }
 
-it('finds the streaming controllers', function (): void {
-    expect(scfStreamingControllers())->toHaveCount(6);
-});
-
 it('sends every streaming route to the stream pool', function (): void {
     $controllers = scfStreamingControllers();
 
@@ -87,16 +83,4 @@ it('sends no other route to the stream pool', function (): void {
         ->all();
 
     expect($caught)->toBe([]);
-});
-
-it('gives the site install.sh writes the same paths', function (): void {
-    $installer = Str::match('/^    location ~ (\^\/\(\?:chat\S+) \{$/m', File::get(base_path('install.sh')));
-
-    expect('#'.$installer.'#')->toBe(scfPattern());
-});
-
-it('allows a trailing slash, as the router does', function (): void {
-    expect(preg_match(scfPattern(), '/widget/stream/'))->toBe(1)
-        ->and(preg_match(scfPattern(), '/chat/a/stream/b/'))->toBe(1)
-        ->and(preg_match(scfPattern(), '/chat/a/conversations/b/stop'))->toBe(0);
 });

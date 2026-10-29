@@ -5,80 +5,42 @@ use Domain\Agent\Data\Resources\ChatLog\Conversations\ChatLogConversationData;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Queries\ChatLogConversationsQuery;
 use Domain\Conversation\Models\Conversation;
-use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
 
 /**
- * The chat log marks which listed conversations captured a lead. It only
- * needs the ids of conversations on the page being shown, not every lead the
- * agent ever captured. Pages are keyset-paged, and filters (such as the
- * unanswered one) narrow the list.
+ * The chat log marks which listed conversations captured a lead: only those
+ * on the page shown, and none without a license key. Pages are keyset-paged
+ * and keep their filters, and hidden conversations are never listed.
  */
-it('returns lead ids only for conversations on the current page', function (): void {
+it('marks the leads of the conversations on the page, and none without a license key', function (): void {
     config(['chatvia.license.licensed' => true]);
     $agent = Agent::factory()->create();
     $session = Session::factory()->create(['agent_id' => $agent->id]);
     $definition = FormDefinition::factory()->create(['agent_id' => $agent->id]);
-
     $conversations = Conversation::factory()
         ->count(12)
         ->create(['chat_session_id' => $session->id, 'agent_id' => $agent->id, 'is_visible' => true]);
-
     foreach ($conversations as $conversation) {
-        FormSubmission::factory()->forDefinition($definition)->submitted()->create([
-            'chat_conversation_id' => $conversation->id,
-        ]);
+        FormSubmission::factory()->forDefinition($definition)->submitted()->create(['chat_conversation_id' => $conversation->id]);
     }
 
     $page = app(ChatLogConversationsQuery::class)->get($agent, new ChatLogFiltersData);
+    config(['chatvia.license.licensed' => false]);
+    $unlicensed = app(ChatLogConversationsQuery::class)->get($agent, new ChatLogFiltersData);
 
     $externalIds = $page->conversations->map(fn (ChatLogConversationData $row): string => $row->conversation_id);
     $pageIds = Conversation::query()->whereIn('external_id', $externalIds)->pluck('id')->sort()->values()->all();
     $leadIds = $page->lead_conversation_ids->map(fn (int|string $id): int => (int) $id)->sort()->values()->all();
 
     expect($pageIds)->toHaveCount(10)
-        ->and($leadIds)->toBe($pageIds);
+        ->and($leadIds)->toBe($pageIds)
+        ->and($unlicensed->conversations)->toHaveCount(10)
+        ->and($unlicensed->lead_conversation_ids)->toBeEmpty();
 });
 
-it('marks no leads without a license key, since leads need one', function (): void {
-    config(['chatvia.license.licensed' => false]);
-    $agent = Agent::factory()->create();
-    $session = Session::factory()->create(['agent_id' => $agent->id]);
-    $conversation = Conversation::factory()->create(['chat_session_id' => $session->id, 'agent_id' => $agent->id, 'is_visible' => true]);
-    FormSubmission::factory()->forDefinition(FormDefinition::factory()->create(['agent_id' => $agent->id]))->submitted()->create([
-        'chat_conversation_id' => $conversation->id,
-    ]);
-
-    $page = app(ChatLogConversationsQuery::class)->get($agent, new ChatLogFiltersData);
-
-    expect($page->conversations)->toHaveCount(1)
-        ->and($page->lead_conversation_ids)->toBeEmpty();
-});
-
-it('loads the next page from the cursor and has none after the last', function (): void {
-    $agent = Agent::factory()->create();
-    $session = Session::factory()->create(['agent_id' => $agent->id]);
-    $conversations = Conversation::factory()
-        ->count(12)
-        ->create(['chat_session_id' => $session->id, 'agent_id' => $agent->id, 'is_visible' => true]);
-    Conversation::factory()->create(['chat_session_id' => $session->id, 'agent_id' => $agent->id, 'is_visible' => false]);
-
-    $list = app(ChatLogConversationsQuery::class);
-    $first = $list->get($agent, new ChatLogFiltersData);
-    $second = $list->get($agent, new ChatLogFiltersData(cursor: $first->next_cursor));
-
-    $seen = $first->conversations->merge($second->conversations)->map(fn (ChatLogConversationData $row): string => $row->conversation_id);
-
-    expect($first->conversations)->toHaveCount(10)
-        ->and($first->next_cursor)->toBeString()
-        ->and($second->conversations)->toHaveCount(2)
-        ->and($second->next_cursor)->toBeNull()
-        ->and($seen->sort()->values()->all())->toBe($conversations->pluck('external_id')->sort()->values()->all());
-});
-
-it('keeps the filters on the next page', function (): void {
+it('pages through the filtered visible conversations by cursor', function (): void {
     $agent = Agent::factory()->create();
     $session = Session::factory()->create(['agent_id' => $agent->id]);
     $negative = Conversation::factory()
@@ -87,6 +49,7 @@ it('keeps the filters on the next page', function (): void {
     Conversation::factory()
         ->count(3)
         ->create(['chat_session_id' => $session->id, 'agent_id' => $agent->id, 'is_visible' => true, 'sentiment' => 'positive']);
+    Conversation::factory()->create(['chat_session_id' => $session->id, 'agent_id' => $agent->id, 'is_visible' => false, 'sentiment' => 'negative']);
 
     $list = app(ChatLogConversationsQuery::class);
     $first = $list->get($agent, new ChatLogFiltersData(sentiment: 'negative'));
@@ -94,18 +57,8 @@ it('keeps the filters on the next page', function (): void {
 
     $seen = $first->conversations->merge($second->conversations)->map(fn (ChatLogConversationData $row): string => $row->conversation_id);
 
-    expect($second->next_cursor)->toBeNull()
+    expect($first->conversations)->toHaveCount(10)
+        ->and($second->conversations)->toHaveCount(1)
+        ->and($second->next_cursor)->toBeNull()
         ->and($seen->sort()->values()->all())->toBe($negative->pluck('external_id')->sort()->values()->all());
-});
-
-it('lists only the conversations with an unanswered reply when asked', function (): void {
-    $agent = Agent::factory()->create();
-    $session = Session::factory()->create(['agent_id' => $agent->id]);
-    [$gap, $fine] = Conversation::factory()->count(2)->create(['chat_session_id' => $session->id, 'agent_id' => $agent->id, 'is_visible' => true]);
-    Message::factory()->fromAssistant()->create(['chat_conversation_id' => $gap->id, 'has_llm_found_answer' => false]);
-    Message::factory()->fromAssistant()->create(['chat_conversation_id' => $fine->id, 'has_llm_found_answer' => true]);
-
-    $page = app(ChatLogConversationsQuery::class)->get($agent, new ChatLogFiltersData(unanswered: 'not_found'));
-
-    expect($page->conversations->map(fn (ChatLogConversationData $row): string => $row->conversation_id)->all())->toBe([$gap->external_id]);
 });

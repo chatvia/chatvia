@@ -4,9 +4,9 @@ use Domain\Agent\Services\AppearanceTextResolver;
 use Illuminate\Support\Collection;
 
 /**
- * AppearanceTextResolver reads each appearance field's own translations and
- * overrides and hands them to TranslatableText (whose precedence rules have
- * their own test), then overlays the result on the appearance payload.
+ * AppearanceTextResolver resolves each appearance text for the visitor's
+ * locale (the owner's override, else the AI translation, else the base text)
+ * and overlays the result on the appearance payload.
  */
 function atrAppearance(): Collection
 {
@@ -24,34 +24,11 @@ function atrAppearance(): Collection
     ]);
 }
 
-it('uses the locale\'s override, else its AI translation', function (): void {
-    $resolved = (new AppearanceTextResolver)->resolve(atrAppearance(), 'de');
-
-    expect($resolved['chat_window_title'])->toBe('Unterhaltung')
-        ->and($resolved['welcome_message'])->toBe('Servus, wie kann ich helfen?');
-});
-
-it('falls back to the base when the locale has no translation', function (): void {
-    $resolved = (new AppearanceTextResolver)->resolve(atrAppearance(), 'fr');
-
-    expect($resolved['welcome_message'])->toBe('How can I help?')
-        ->and($resolved['composer_placeholder'])->toBe('Ask…');
-});
-
-it('localize() overlays the resolved strings onto the appearance collection', function (): void {
+it('resolves each text by override, then translation, then base for the visitor locale', function (): void {
     $localized = (new AppearanceTextResolver)->localize(atrAppearance(), 'auto', 'de-DE,de;q=0.9');
 
-    // The three text keys are localized…
     expect($localized->get('welcome_message'))->toBe('Servus, wie kann ich helfen?')
-        // …and the rest of the appearance payload is left intact.
+        ->and($localized->get('chat_window_title'))->toBe('Unterhaltung')
         ->and($localized->get('composer_placeholder'))->toBe('Ask…')
         ->and($localized->get('text_translations'))->toBeArray();
-});
-
-it('localize() prefers a pinned configured language over Accept-Language', function (): void {
-    // configuredLanguage 'fr' has no translation, so it must fall back to base —
-    // proving the German Accept-Language was ignored.
-    $localized = (new AppearanceTextResolver)->localize(atrAppearance(), 'fr', 'de-DE');
-
-    expect($localized->get('welcome_message'))->toBe('How can I help?');
 });

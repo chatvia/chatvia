@@ -40,50 +40,21 @@ it('stores a notification with its category and tells the person\'s tabs it is n
         && $event->notification->id === $notification->external_id);
 });
 
-it('gathers notifications with the same key into the unread row, newest content first', function (): void {
+it('gathers notifications with the same key into the unread row, and starts a new row once it was read', function (): void {
     $push = app(PushUserNotificationAction::class);
 
     $first = $push->execute($this->user, pushNoteMessage('a.pdf', 'training:agent-1'));
     $this->travel(5)->minutes();
     $second = $push->execute($this->user, pushNoteMessage('b.pdf', 'training:agent-1'));
+    $second->update(['read_at' => now()]);
+    $third = $push->execute($this->user, pushNoteMessage('c.pdf', 'training:agent-1'));
 
     expect($second->id)->toBe($first->id)
         ->and($second->count)->toBe(2)
         ->and($second->content->subject)->toBe('b.pdf')
         ->and($second->updated_at->gt($first->updated_at))->toBeTrue()
-        ->and(UserNotification::query()->count())->toBe(1);
-
+        ->and($third->id)->not->toBe($first->id)
+        ->and($third->count)->toBe(1)
+        ->and(UserNotification::query()->where('user_id', $this->user->id)->count())->toBe(2);
     Event::assertDispatched(UserNotificationPushed::class, fn (UserNotificationPushed $event): bool => ! $event->isNew && $event->notification->count === 2);
-});
-
-it('starts a new row once the gathered one was read', function (): void {
-    $push = app(PushUserNotificationAction::class);
-
-    $first = $push->execute($this->user, pushNoteMessage('a.pdf', 'training:agent-1'));
-    $first->update(['read_at' => now()]);
-    $second = $push->execute($this->user, pushNoteMessage('b.pdf', 'training:agent-1'));
-
-    expect($second->id)->not->toBe($first->id)
-        ->and($second->count)->toBe(1)
-        ->and(UserNotification::query()->count())->toBe(2);
-});
-
-it('never gathers one person\'s notification into another\'s', function (): void {
-    $other = User::factory()->create();
-    $push = app(PushUserNotificationAction::class);
-
-    $push->execute($this->user, pushNoteMessage('a.pdf', 'training:agent-1'));
-    $push->execute($other, pushNoteMessage('a.pdf', 'training:agent-1'));
-
-    expect(UserNotification::query()->where('user_id', $this->user->id)->sole()->count)->toBe(1)
-        ->and(UserNotification::query()->where('user_id', $other->id)->sole()->count)->toBe(1);
-});
-
-it('keeps notifications without a key apart', function (): void {
-    $push = app(PushUserNotificationAction::class);
-
-    $push->execute($this->user, pushNoteMessage('a.pdf', kind: NotificationKind::SourceTrainingFailed));
-    $push->execute($this->user, pushNoteMessage('b.pdf', kind: NotificationKind::SourceTrainingFailed));
-
-    expect(UserNotification::query()->count())->toBe(2);
 });

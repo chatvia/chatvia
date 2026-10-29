@@ -40,38 +40,14 @@ it('signs the presence channel of a conversation in the visitor session', functi
         ]);
 });
 
-it('refuses a channel that is not a conversation presence channel', function (): void {
+it('refuses another channel, a conversation of another session or one through another agent\'s widget', function (Closure $request, BroadcastDenialReason $reason): void {
     $agent = Agent::factory()->create();
     $conversation = baConversation($agent);
+    [$channel, $sessionId, $widgetAgent] = $request($conversation, $agent);
 
-    expect(app(BroadcastAuthorizer::class)->authorize(
-        'private-chat.'.$conversation->external_id,
-        $conversation->session->external_id,
-        '1234.5678',
-        $agent,
-    ))->toBe(BroadcastDenialReason::InvalidChannel);
-});
-
-it('refuses a conversation from another session', function (): void {
-    $agent = Agent::factory()->create();
-    $conversation = baConversation($agent);
-    $otherSession = Session::factory()->create(['agent_id' => $agent->id]);
-
-    expect(app(BroadcastAuthorizer::class)->authorize(
-        'presence-chat.'.$conversation->external_id,
-        $otherSession->external_id,
-        '1234.5678',
-        $agent,
-    ))->toBe(BroadcastDenialReason::UnknownConversation);
-});
-
-it('refuses a conversation through another agent\'s widget', function (): void {
-    $conversation = baConversation(Agent::factory()->create());
-
-    expect(app(BroadcastAuthorizer::class)->authorize(
-        'presence-chat.'.$conversation->external_id,
-        $conversation->session->external_id,
-        '1234.5678',
-        Agent::factory()->create(),
-    ))->toBe(BroadcastDenialReason::UnknownConversation);
-});
+    expect(app(BroadcastAuthorizer::class)->authorize($channel, $sessionId, '1234.5678', $widgetAgent))->toBe($reason);
+})->with([
+    'not a conversation presence channel' => [fn (Conversation $conversation, Agent $agent): array => ['private-chat.'.$conversation->external_id, $conversation->session->external_id, $agent], BroadcastDenialReason::InvalidChannel],
+    'a conversation of another session' => [fn (Conversation $conversation, Agent $agent): array => ['presence-chat.'.$conversation->external_id, Session::factory()->create(['agent_id' => $agent->id])->external_id, $agent], BroadcastDenialReason::UnknownConversation],
+    'another agent\'s widget' => [fn (Conversation $conversation): array => ['presence-chat.'.$conversation->external_id, $conversation->session->external_id, Agent::factory()->create()], BroadcastDenialReason::UnknownConversation],
+]);

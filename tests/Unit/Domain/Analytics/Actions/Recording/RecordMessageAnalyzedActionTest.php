@@ -21,7 +21,7 @@ function rmaDimensionCount(string $table, int $agentId, string $column, string $
     return $count === null ? null : (int) $count;
 }
 
-it('upserts and increments the sentiment and tone daily rollups', function (): void {
+it('counts each analysed dimension in its daily rollup and skips a missing one', function (): void {
     $action = app(RecordMessageAnalyzedAction::class);
     $agentId = 920001;
     $workspaceId = 600001;
@@ -29,27 +29,10 @@ it('upserts and increments the sentiment and tone daily rollups', function (): v
 
     $action->execute(MessageAnalysisRecordData::fromEvent(new MessageAnalyzed($agentId, $workspaceId, 'positive', 'neutral', $when)));
     $action->execute(MessageAnalysisRecordData::fromEvent(new MessageAnalyzed($agentId, $workspaceId, 'positive', 'urgent', $when)));
+    $action->execute(MessageAnalysisRecordData::fromEvent(new MessageAnalyzed($agentId, $workspaceId, 'positive', null, $when)));
 
-    expect(rmaDimensionCount('analytics_agent_sentiment_daily', $agentId, 'sentiment', 'positive'))->toBe(2)
+    expect(rmaDimensionCount('analytics_agent_sentiment_daily', $agentId, 'sentiment', 'positive'))->toBe(3)
         ->and(rmaDimensionCount('analytics_agent_tone_daily', $agentId, 'tone', 'neutral'))->toBe(1)
-        ->and(rmaDimensionCount('analytics_agent_tone_daily', $agentId, 'tone', 'urgent'))->toBe(1);
-});
-
-it('records sentiment even when tone is null', function (): void {
-    $action = app(RecordMessageAnalyzedAction::class);
-    $agentId = 920002;
-
-    $action->execute(MessageAnalysisRecordData::fromEvent(new MessageAnalyzed($agentId, 600002, 'negative', null, Carbon::parse('2026-06-01 10:00'))));
-
-    expect(rmaDimensionCount('analytics_agent_sentiment_daily', $agentId, 'sentiment', 'negative'))->toBe(1)
-        ->and(DB::connection(config('chatvia.analytics.connection'))->table('analytics_agent_tone_daily')->where('agent_id', $agentId)->count())->toBe(0);
-});
-
-it('skips entirely when sentiment and tone are both null', function (): void {
-    $action = app(RecordMessageAnalyzedAction::class);
-    $agentId = 920003;
-
-    $action->execute(MessageAnalysisRecordData::fromEvent(new MessageAnalyzed($agentId, 600003, null, null, Carbon::parse('2026-06-01 10:00'))));
-
-    expect(DB::connection(config('chatvia.analytics.connection'))->table('analytics_agent_sentiment_daily')->where('agent_id', $agentId)->count())->toBe(0);
+        ->and(rmaDimensionCount('analytics_agent_tone_daily', $agentId, 'tone', 'urgent'))->toBe(1)
+        ->and(DB::connection(config('chatvia.analytics.connection'))->table('analytics_agent_tone_daily')->where('agent_id', $agentId)->count())->toBe(2);
 });

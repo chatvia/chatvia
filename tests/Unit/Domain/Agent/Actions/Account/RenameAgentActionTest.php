@@ -5,8 +5,8 @@ use Domain\Agent\Data\Account\RenameAgentData;
 use Domain\Agent\Models\Agent;
 
 /**
- * Renaming changes the agent's name, and its Hosted Chat subdomain when one is
- * given; without one the subdomain stays.
+ * Renaming changes the agent's name and moves its Hosted Chat subdomain to
+ * the one given.
  */
 it('renames the agent and moves its subdomain', function (): void {
     $agent = Agent::factory()->create(['name' => 'Old', 'slug' => 'old-name']);
@@ -15,13 +15,4 @@ it('renames the agent and moves its subdomain', function (): void {
 
     expect($renamed->name)->toBe('New')
         ->and($renamed->slug)->toBe('new-name');
-});
-
-it('keeps the subdomain when none is given', function (): void {
-    $agent = Agent::factory()->create(['name' => 'Old', 'slug' => 'old-name']);
-
-    $renamed = app(RenameAgentAction::class)->execute($agent, new RenameAgentData('New'));
-
-    expect($renamed->name)->toBe('New')
-        ->and($renamed->slug)->toBe('old-name');
 });

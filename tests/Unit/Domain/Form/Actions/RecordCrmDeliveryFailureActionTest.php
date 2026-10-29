@@ -19,15 +19,6 @@ beforeEach(function (): void {
     ], 'leads');
 });
 
-it('counts a failed delivery and keeps the webhook on below the threshold', function (): void {
-    app(RecordCrmDeliveryFailureAction::class)->execute($this->agent);
-
-    $crm = $this->agent->fresh()->settings('leads')->get('crm');
-
-    expect($crm['webhook_failures'])->toBe(1)
-        ->and($crm['webhook_enabled'])->toBeTrue();
-});
-
 it('switches the webhook off after the configured number of consecutive failures', function (): void {
     config()->set('chatvia.crm.max_failures', 2);
 

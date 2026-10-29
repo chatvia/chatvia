@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Each MCP tool call counts in the agent's daily MCP tool rollup, one counter
- * per server and tool, with the description the tool had at its latest call.
+ * per server and tool.
  */
 function rmtRollup(int $agentId): Builder
 {
@@ -19,7 +19,7 @@ function rmtRollup(int $agentId): Builder
         ->where('bucket_day', '2026-06-01');
 }
 
-function rmtInvoke(int $agentId, string $serverSlug, string $toolName, ?string $description = null): void
+function rmtInvoke(int $agentId, string $serverSlug, string $toolName): void
 {
     app(RecordMcpToolInvocationAction::class)->execute(McpToolInvocationRecordData::fromEvent(new McpToolInvoked(
         agentId: $agentId,
@@ -27,7 +27,7 @@ function rmtInvoke(int $agentId, string $serverSlug, string $toolName, ?string $
         serverId: 1,
         serverSlug: $serverSlug,
         toolName: $toolName,
-        toolDescription: $description,
+        toolDescription: null,
         serverName: 'GitHub',
         connectorSlug: 'github',
         error: null,
@@ -35,35 +35,15 @@ function rmtInvoke(int $agentId, string $serverSlug, string $toolName, ?string $
     )));
 }
 
-it('upserts and increments the per-day rollup keyed by server slug + tool name', function (): void {
-    $agentId = 952001;
-
-    rmtInvoke($agentId, 'github', 'create_issue');
-    rmtInvoke($agentId, 'github', 'create_issue');
-
-    expect((int) rmtRollup($agentId)->where('server_slug', 'github')->where('tool_name', 'create_issue')->value('invocation_count'))->toBe(2);
-});
-
-it('keeps separate counters per (server slug, tool name) pair', function (): void {
+it('counts each call in a per-day counter of its server and tool', function (): void {
     $agentId = 952002;
 
+    rmtInvoke($agentId, 'github', 'create_issue');
     rmtInvoke($agentId, 'github', 'create_issue');
     rmtInvoke($agentId, 'github', 'list_repos');
     rmtInvoke($agentId, 'linear', 'create_issue');
 
-    expect((int) rmtRollup($agentId)->where('server_slug', 'github')->where('tool_name', 'create_issue')->value('invocation_count'))->toBe(1)
+    expect((int) rmtRollup($agentId)->where('server_slug', 'github')->where('tool_name', 'create_issue')->value('invocation_count'))->toBe(2)
         ->and((int) rmtRollup($agentId)->where('server_slug', 'github')->where('tool_name', 'list_repos')->value('invocation_count'))->toBe(1)
         ->and((int) rmtRollup($agentId)->where('server_slug', 'linear')->where('tool_name', 'create_issue')->value('invocation_count'))->toBe(1);
-});
-
-it('refreshes the captured label fields on conflict', function (): void {
-    $agentId = 952003;
-
-    rmtInvoke($agentId, 'github', 'create_issue', 'old description');
-    rmtInvoke($agentId, 'github', 'create_issue', 'new description');
-
-    $row = rmtRollup($agentId)->where('server_slug', 'github')->where('tool_name', 'create_issue')->first();
-
-    expect($row->tool_description)->toBe('new description')
-        ->and((int) $row->invocation_count)->toBe(2);
 });

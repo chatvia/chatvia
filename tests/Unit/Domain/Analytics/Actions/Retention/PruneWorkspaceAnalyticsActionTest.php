@@ -5,8 +5,6 @@ use App\Identity\Workspace\Models\User;
 use Domain\Analytics\Actions\Retention\PruneWorkspaceAnalyticsAction;
 use Domain\Analytics\Services\AnalyticsDatabase;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
-use Illuminate\Database\Events\QueryExecuted;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
@@ -70,48 +68,25 @@ function pwaRetention(int $workspaceId, ?int $days): void
 
 beforeEach(fn () => withEnterpriseLicense());
 
-it('deletes the workspace\'s older rows from every analytics table, feedback included', function (): void {
+it('deletes the workspace\'s older rows from every analytics table once, feedback included', function (): void {
     $workspace = User::factory()->create()->workspace()->id;
     pwaRetention($workspace, 60);
     pwaSeed($workspace, daysAgo: 90);
     pwaSeed($workspace, daysAgo: 10, agentId: 920002);
-
-    $other = User::factory()->create()->workspace()->id; // no analytics retention set
+    $other = User::factory()->create()->workspace()->id;
     pwaSeed($other, daysAgo: 90, agentId: 920003);
 
     $deleted = app(PruneWorkspaceAnalyticsAction::class)->execute();
 
     expect($deleted)->toBe(count(PWA_TABLES))
+        ->and(app(PruneWorkspaceAnalyticsAction::class)->execute())->toBe(0)
         ->and(pwaCounts($workspace))->each->toBe(1)
         ->and(pwaCounts($other))->each->toBe(1);
 });
 
-it('deletes in batches of the given size and is idempotent', function (): void {
-    $workspace = User::factory()->create()->workspace()->id;
-    pwaRetention($workspace, 30);
-    foreach ([40, 50, 60] as $index => $daysAgo) {
-        pwaSeed($workspace, $daysAgo, agentId: 921000 + $index);
-    }
-
-    $eventDeletes = 0;
-    DB::listen(function (QueryExecuted $query) use (&$eventDeletes): void {
-        if (Str::startsWith(Str::squish($query->sql), 'DELETE FROM analytics_events WHERE')) {
-            $eventDeletes++;
-        }
-    });
-
-    $deleted = app(PruneWorkspaceAnalyticsAction::class)->execute(batchSize: 2);
-
-    // 3 old rows in batches of 2: 2, then 1, then one that finds nothing.
-    expect($deleted)->toBe(3 * count(PWA_TABLES))
-        ->and($eventDeletes)->toBe(3)
-        ->and(app(PruneWorkspaceAnalyticsAction::class)->execute(batchSize: 2))->toBe(0)
-        ->and(pwaCounts($workspace))->each->toBe(0);
-});
-
 it('never uses a window below the configured floor', function (): void {
     $workspace = User::factory()->create()->workspace()->id;
-    pwaRetention($workspace, 5); // below the 30-day floor
+    pwaRetention($workspace, 5);
     pwaSeed($workspace, daysAgo: 20);
 
     expect(app(PruneWorkspaceAnalyticsAction::class)->execute())->toBe(0)

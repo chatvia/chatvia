@@ -48,34 +48,30 @@ function iacWorkspaceChatters(User $workspace, string $email): Builder
         ->whereRaw('lower(email) = ?', [Str::lower($email)]);
 }
 
-it('provisions a new chatter, attaches the agent pivot, and dispatches AgentChatterInvited', function (): void {
+it('provisions or reuses one pending chatter per lower-cased email and rotates the token on a re-invite', function (): void {
     Event::fake([AgentChatterInvited::class]);
     [$workspace, $agent] = iacWorkspaceAndAgent();
+    $existing = Chatter::factory()->ofWorkspace($workspace)->create(['email' => 'existing@example.com']);
 
-    $result = iacInvite($agent, 'new@example.com');
+    $result = iacInvite($agent, '  New.Person@Example.COM ');
+    $firstToken = AgentChatterInvitation::query()->where('agent_id', $agent->id)->where('email', 'new.person@example.com')->value('token');
+    iacInvite($agent, 'New.Person@example.com');
+    iacInvite($agent, 'EXISTING@example.com');
 
-    $chatter = iacWorkspaceChatters($workspace, 'new@example.com')->first();
+    $chatter = iacWorkspaceChatters($workspace, 'new.person@example.com')->sole();
+    $rows = AgentChatterInvitation::query()->where('agent_id', $agent->id)->where('email', 'new.person@example.com');
 
-    expect($chatter)->toBeInstanceOf(Chatter::class)
-        ->and($chatter->workspace_id)->toBe($workspace->workspace()->id)
+    expect($result->email)->toBe('new.person@example.com')
+        ->and($chatter->email)->toBe('new.person@example.com')
         ->and($chatter->source)->toBe(ChatterSource::Dashboard)
         ->and($chatter->email_verified_at)->toBeNull()
         ->and($chatter->password)->toBeNull()
         ->and($agent->chatters()->whereKey($chatter->id)->exists())->toBeTrue()
-        ->and(AgentChatterInvitation::query()->where('agent_id', $agent->id)->where('email', 'new@example.com')->count())->toBe(1)
-        ->and($result->email)->toBe('new@example.com');
-
+        ->and($rows->count())->toBe(1)
+        ->and($rows->value('token'))->not->toBe($firstToken)
+        ->and(iacWorkspaceChatters($workspace, 'existing@example.com')->count())->toBe(1)
+        ->and($agent->chatters()->whereKey($existing->id)->exists())->toBeTrue();
     Event::assertDispatched(AgentChatterInvited::class);
-});
-
-it('stores the invited email in lower case', function (): void {
-    Event::fake([AgentChatterInvited::class]);
-    [$workspace, $agent] = iacWorkspaceAndAgent();
-
-    $result = iacInvite($agent, '  New.Person@Example.COM ');
-
-    expect($result->email)->toBe('new.person@example.com')
-        ->and(iacWorkspaceChatters($workspace, 'new.person@example.com')->value('email'))->toBe('new.person@example.com');
 });
 
 it('rejects inviting to a public agent', function (): void {
@@ -121,31 +117,3 @@ it('invites an email known elsewhere as a new, pending chatter of this workspace
     'a teammate of this workspace' => 'teammate',
     'the owner of another workspace' => 'staff',
 ]);
-
-it('is idempotent: re-inviting the same email rotates the token and keeps one pending row + one chatter', function (): void {
-    Event::fake([AgentChatterInvited::class]);
-    [$workspace, $agent] = iacWorkspaceAndAgent();
-
-    iacInvite($agent, 'repeat@example.com');
-    $firstToken = AgentChatterInvitation::query()->where('agent_id', $agent->id)->where('email', 'repeat@example.com')->value('token');
-
-    iacInvite($agent, 'Repeat@Example.com');
-
-    $rows = AgentChatterInvitation::query()->where('agent_id', $agent->id)->where('email', 'repeat@example.com');
-
-    expect($rows->count())->toBe(1)
-        ->and($rows->value('token'))->not->toBe($firstToken)
-        ->and(iacWorkspaceChatters($workspace, 'repeat@example.com')->count())->toBe(1);
-});
-
-it('reuses an existing chatter already under the same workspace, without case', function (): void {
-    Event::fake([AgentChatterInvited::class]);
-    [$workspace, $agent] = iacWorkspaceAndAgent();
-
-    $existing = Chatter::factory()->ofWorkspace($workspace)->create(['email' => 'existing@example.com']);
-
-    iacInvite($agent, 'EXISTING@example.com');
-
-    expect(iacWorkspaceChatters($workspace, 'existing@example.com')->count())->toBe(1)
-        ->and($agent->chatters()->whereKey($existing->id)->exists())->toBeTrue();
-});

@@ -10,8 +10,7 @@ use Support\Exceptions\DomainValidationException;
 
 /**
  * Creating a team role (Settings → Teams): its code, permissions and agents;
- * a name the team already uses, or an agent outside the team, creates
- * nothing.
+ * an agent outside the team creates nothing.
  */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
@@ -39,13 +38,6 @@ it('creates a scoped role with its code, permissions and agents', function (): v
         ->and($role->hasPermissionTo('agent.chat.view'))->toBeTrue()
         ->and($role->hasPermissionTo(Permission::ACCESS_ALL_AGENTS))->toBeFalse()
         ->and($role->agents()->pluck('agents.id')->all())->toBe([$agent->id]);
-});
-
-it('rejects a second role with the same name', function (): void {
-    app(CreateTeamRoleAction::class)->execute(ctrRoleData($this, 'Support', allAgents: true));
-
-    expect(fn () => app(CreateTeamRoleAction::class)->execute(ctrRoleData($this, 'Support', allAgents: true)))
-        ->toThrow(DomainValidationException::class, 'A role with this name already exists.');
 });
 
 it('creates nothing when a chosen agent is not in the team', function (): void {

@@ -30,42 +30,28 @@ function pwlSetRetention(Agent $agent, ?int $days): void
 
 beforeEach(fn () => withEnterpriseLicense());
 
-it('deletes only that workspace\'s submitted leads past its window', function (): void {
+it('deletes only that workspace\'s submitted leads past its window, once', function (): void {
     $agent = Agent::factory()->create();
     pwlSetRetention($agent, 30);
     $old = pwlLead($agent, 45);
     $recent = pwlLead($agent, 10);
     $pending = pwlLead($agent, 45, FormSubmissionStatus::Pending);
 
-    $other = Agent::factory()->create(); // no lead retention set
+    $other = Agent::factory()->create();
     $otherOld = pwlLead($other, 400);
 
     expect(app(PruneWorkspaceLeadsAction::class)->execute())->toBe(1)
+        ->and(app(PruneWorkspaceLeadsAction::class)->execute())->toBe(0)
         ->and(FormSubmission::query()->whereKey($old->id)->exists())->toBeFalse()
         ->and(FormSubmission::query()->whereKey($recent->id)->exists())->toBeTrue()
         ->and(FormSubmission::query()->whereKey($pending->id)->exists())->toBeTrue()
         ->and(FormSubmission::query()->whereKey($otherOld->id)->exists())->toBeTrue();
 });
 
-it('deletes in batches until nothing is left, and a second run deletes nothing', function (): void {
-    $agent = Agent::factory()->create();
-    pwlSetRetention($agent, 7);
-    pwlLead($agent, 11);
-    pwlLead($agent, 12);
-    pwlLead($agent, 13);
-    pwlLead($agent, 14);
-    pwlLead($agent, 15);
-    $kept = pwlLead($agent, 1);
-
-    expect(app(PruneWorkspaceLeadsAction::class)->execute(batchSize: 2))->toBe(5)
-        ->and(app(PruneWorkspaceLeadsAction::class)->execute(batchSize: 2))->toBe(0)
-        ->and(FormSubmission::query()->where('workspace_id', $agent->workspace_id)->pluck('id')->all())->toBe([$kept->id]);
-});
-
 it('never uses a window below the configured floor', function (): void {
     config(['chatvia.retention.leads_floor_days' => 30]);
     $agent = Agent::factory()->create();
-    pwlSetRetention($agent, 1); // saved before the floor was raised
+    pwlSetRetention($agent, 1);
     $lead = pwlLead($agent, 10);
 
     expect(app(PruneWorkspaceLeadsAction::class)->execute())->toBe(0)

@@ -12,28 +12,20 @@ use Illuminate\Support\Str;
  * one, so a session without any gets one started. The list itself is
  * ListWidgetConversationsQuery (ListWidgetConversationsQueryTest).
  */
-it('starts one widget conversation for a session that has none', function (): void {
-    $agent = Agent::factory()->create();
-    $sessionId = (string) Str::uuid7();
-
-    $started = app(EnsureWidgetConversationAction::class)->execute($agent, $sessionId);
-
-    $conversations = app(ListWidgetConversationsQuery::class)->get($agent, $sessionId);
-
-    expect($started)->toBeTrue()
-        ->and($conversations)->toHaveCount(1)
-        ->and($conversations[0]->title)->toBe(Conversation::DEFAULT_TITLE)
-        ->and(Conversation::query()->where('external_id', $conversations[0]->id)->value('source'))
-        ->toBe(ConversationSource::Widget);
-});
-
-it('leaves a session that already has a conversation alone', function (): void {
+it('starts one widget conversation for a session that has none, and only once', function (): void {
     $agent = Agent::factory()->create();
     $sessionId = (string) Str::uuid7();
     $ensure = app(EnsureWidgetConversationAction::class);
 
-    $ensure->execute($agent, $sessionId);
+    $started = $ensure->execute($agent, $sessionId);
+    $again = $ensure->execute($agent, $sessionId);
 
-    expect($ensure->execute($agent, $sessionId))->toBeFalse()
-        ->and(app(ListWidgetConversationsQuery::class)->get($agent, $sessionId))->toHaveCount(1);
+    $conversations = app(ListWidgetConversationsQuery::class)->get($agent, $sessionId);
+
+    expect($started)->toBeTrue()
+        ->and($again)->toBeFalse()
+        ->and($conversations)->toHaveCount(1)
+        ->and($conversations[0]->title)->toBe(Conversation::DEFAULT_TITLE)
+        ->and(Conversation::query()->where('external_id', $conversations[0]->id)->value('source'))
+        ->toBe(ConversationSource::Widget);
 });

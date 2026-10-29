@@ -41,8 +41,10 @@ function escvSubmitted(FormDefinition $form, string $name, string $email = 'x@y.
     ]);
 }
 
-it('exports submitted answers as CSV under the field labels', function (): void {
+it('exports only submitted answers of the form as CSV under the field labels', function (): void {
     escvSubmitted($this->form, 'Jane', 'jane@acme.com');
+    FormSubmission::factory()->forDefinition($this->form)->create(['values' => ['name' => 'Pending']]);
+    escvSubmitted(FormDefinition::factory()->forAgent($this->agent)->create(), 'Other form');
 
     $rows = escvRows(app(ExportSubmissionsCsvAction::class)->execute($this->form));
 
@@ -62,40 +64,19 @@ it('exports only the chosen submissions, newest first', function (): void {
     expect(array_column(array_slice($rows, 1), 0))->toBe(['Cid', 'Ann']);
 });
 
-it('leaves out pending submissions and other forms\' submissions', function (): void {
-    escvSubmitted($this->form, 'Jane');
-    FormSubmission::factory()->forDefinition($this->form)->create(['values' => ['name' => 'Pending']]);
-    escvSubmitted(FormDefinition::factory()->forAgent($this->agent)->create(), 'Other form');
-
-    $rows = escvRows(app(ExportSubmissionsCsvAction::class)->execute($this->form));
-
-    expect(array_column(array_slice($rows, 1), 0))->toBe(['Jane']);
-});
-
-it('neutralizes a visitor value that a spreadsheet would run as a formula', function (string $value): void {
-    escvSubmitted($this->form, $value);
-
-    $rows = escvRows(app(ExportSubmissionsCsvAction::class)->execute($this->form));
-
-    // A leading quote makes the spreadsheet show the cell as text.
-    expect($rows[1][0])->toBe("'".$value);
-})->with([
-    'equals' => '=HYPERLINK(1)',
-    'plus' => '+1+1',
-    'minus' => '-1+1',
-    'at' => '@SUM(A1)',
-    'tab' => "\t=1+1",
-    'carriage return' => "\r=1+1",
-]);
-
-it('neutralizes a field label that a spreadsheet would run as a formula', function (): void {
+it('neutralizes visitor values and field labels that a spreadsheet would run as a formula', function (): void {
     $this->form->update(['schema' => [
         ['key' => 'name', 'label' => '=HYPERLINK("https://attacker.test","Name")', 'type' => 'text'],
         ['key' => 'email', 'label' => 'Email', 'type' => 'email'],
     ]]);
-    escvSubmitted($this->form, 'Jane');
+    $values = ['=HYPERLINK(1)', '+1+1', '-1+1', '@SUM(A1)', "\t=1+1", "\r=1+1"];
+    foreach ($values as $value) {
+        escvSubmitted($this->form, $value);
+    }
 
     $rows = escvRows(app(ExportSubmissionsCsvAction::class)->execute($this->form->refresh()));
 
-    expect($rows[0])->toBe(['\'=HYPERLINK("https://attacker.test","Name")', 'Email', 'Submitted at']);
+    expect($rows[0])->toBe(['\'=HYPERLINK("https://attacker.test","Name")', 'Email', 'Submitted at'])
+        ->and(collect(array_slice($rows, 1))->pluck(0)->sort()->values()->all())
+        ->toBe(collect($values)->map(fn (string $value): string => "'".$value)->sort()->values()->all());
 });

@@ -22,11 +22,12 @@ function lwcConversation(Session $session, string $title, array $attributes = []
     ]);
 }
 
-it('lists the session\'s conversations oldest first', function (): void {
+it('lists the session\'s conversations oldest first, without the cleared ones', function (): void {
     $agent = Agent::factory()->create();
     $session = Session::factory()->create(['agent_id' => $agent->id]);
     $first = lwcConversation($session, 'Opening hours');
     $second = lwcConversation($session, 'Refund', ['is_visible' => false]);
+    lwcConversation($session, 'Cleared', ['cleared_at' => now()]);
     lwcConversation(Session::factory()->create(['agent_id' => $agent->id]), 'Another visitor');
 
     $list = app(ListWidgetConversationsQuery::class)->get($agent, $session->external_id);
@@ -37,25 +38,11 @@ it('lists the session\'s conversations oldest first', function (): void {
     ]);
 });
 
-it('leaves out a conversation the visitor cleared', function (): void {
-    $agent = Agent::factory()->create();
-    $session = Session::factory()->create(['agent_id' => $agent->id]);
-    $kept = lwcConversation($session, 'Kept');
-    lwcConversation($session, 'Cleared', ['cleared_at' => now()]);
-
-    $ids = array_column(app(ListWidgetConversationsQuery::class)->get($agent, $session->external_id), 'id');
-
-    expect($ids)->toBe([$kept->external_id]);
-});
-
-it('lists nothing for a session it has never seen', function (): void {
-    expect(app(ListWidgetConversationsQuery::class)->get(Agent::factory()->create(), (string) Str::uuid7()))->toBe([]);
-});
-
-it('lists nothing for a session of another agent', function (): void {
+it('lists nothing for a session of another agent or one it has never seen', function (): void {
     $owner = Agent::factory()->create();
     $session = Session::factory()->create(['agent_id' => $owner->id]);
     lwcConversation($session, 'Private thread');
 
-    expect(app(ListWidgetConversationsQuery::class)->get(Agent::factory()->create(), $session->external_id))->toBe([]);
+    expect(app(ListWidgetConversationsQuery::class)->get(Agent::factory()->create(), $session->external_id))->toBe([])
+        ->and(app(ListWidgetConversationsQuery::class)->get($owner, (string) Str::uuid7()))->toBe([]);
 });

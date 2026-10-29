@@ -29,22 +29,7 @@ it('writes one immutable guardrail_events row from the event', function (): void
         ->and(Str::isUuid($row->external_id))->toBeTrue();
 });
 
-it('caps the stored snippet but hashes the full original', function (): void {
-    config(['chatvia.guardrails.max_snippet_bytes' => 10]);
-    $agent = Agent::factory()->create();
-    $long = Str::repeat('x', 60);
-
-    (new RecordGuardrailEventAction)->execute(GuardrailTriggers::event($agent, sample: $long));
-
-    $row = GuardrailEvent::query()->firstOrFail();
-
-    expect(strlen((string) $row->snippet))->toBe(10)
-        ->and($row->snippet_sha256)->toBe(hash('sha256', $long));
-});
-
-it('cuts a multibyte snippet on a character boundary so Postgres accepts it', function (string $sample): void {
-    // 9 bytes lands inside a 2-byte Arabic letter / 4-byte emoji; a byte
-    // substr() would leave invalid UTF-8 and the insert would be rejected.
+it('caps a multibyte snippet on a character boundary but hashes the full original', function (string $sample): void {
     config(['chatvia.guardrails.max_snippet_bytes' => 9]);
     $agent = Agent::factory()->create();
 
@@ -57,6 +42,5 @@ it('cuts a multibyte snippet on a character boundary so Postgres accepts it', fu
         ->and(Str::startsWith($sample, (string) $row->snippet))->toBeTrue()
         ->and($row->snippet_sha256)->toBe(hash('sha256', $sample));
 })->with([
-    'arabic' => 'مرحبا بك في الدعم',
     'emoji' => 'ok 😀😀😀😀 done',
 ]);

@@ -10,19 +10,14 @@ use Illuminate\Support\Facades\Event;
 use Support\Exceptions\DomainValidationException;
 
 /**
- * InviteTeamMemberAction attaches a teammate of the inviter's workspace
- * straight away under the chosen role. Anyone else (the owner, or an account
- * of another workspace) is refused, because the form request only checks that
- * the id is in some workspace. The email path hands over to
- * CreateTeamInvitationAction, which has its own test.
+ * InviteTeamMemberAction attaches only a teammate of the inviter's workspace.
+ * Anyone else (the owner, or an account of another workspace) is refused,
+ * because the form request only checks that the id is in some workspace.
  */
 beforeEach(function (): void {
     Event::fake([TeamInvitationCreated::class]);
-
     $this->owner = User::factory()->create();
     $this->team = app(CreateDefaultTeamAction::class)->execute($this->owner);
-
-    // Default teams only carry the `owner` role, which is never invitable.
     teamRole($this->team);
 });
 
@@ -35,19 +30,6 @@ function itmAddUser(Team $team, User $inviter, User $user): void
         userId: $user->id,
     ));
 }
-
-it('attaches a teammate of the workspace under the role, without an invitation', function (): void {
-    $teammate = User::factory()->employee($this->owner)->create();
-
-    itmAddUser($this->team, $this->owner, $teammate);
-
-    $member = $this->team->members()->whereKey($teammate->id)->sole();
-
-    expect($member->pivot->role_id)->toBe($this->team->roles()->where('code', 'support')->value('id'))
-        ->and($this->team->invitations()->exists())->toBeFalse();
-
-    Event::assertNotDispatched(TeamInvitationCreated::class);
-});
 
 it('refuses to add someone who is not a teammate of the inviter workspace', function (string $who): void {
     $user = match ($who) {

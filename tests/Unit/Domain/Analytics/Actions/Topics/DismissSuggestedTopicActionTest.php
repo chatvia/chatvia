@@ -17,25 +17,15 @@ function dstSuggestion(Agent $agent, string $label): ConversationTopic
         ->create();
 }
 
-it('drops every suggestion row of the label for the agent', function (): void {
+it('drops every suggestion row of the label for the agent only', function (): void {
     $agent = Agent::factory()->create();
     dstSuggestion($agent, 'Refund Requests');
     dstSuggestion($agent, 'Refund Requests');
     $kept = dstSuggestion($agent, 'Shipping Delays');
+    $foreign = dstSuggestion(Agent::factory()->create(), 'Refund Requests');
 
     app(DismissSuggestedTopicAction::class)->execute($agent, 'Refund Requests');
 
-    expect(ConversationTopic::query()->where('suggested_label', 'Refund Requests')->exists())->toBeFalse()
+    expect(ConversationTopic::query()->where('suggested_label', 'Refund Requests')->pluck('id')->all())->toBe([$foreign->id])
         ->and(ConversationTopic::query()->whereKey($kept->id)->exists())->toBeTrue();
-});
-
-it('leaves another agent\'s identical label untouched', function (): void {
-    $agent = Agent::factory()->create();
-    $other = Agent::factory()->create();
-    dstSuggestion($agent, 'Refund Requests');
-    $foreign = dstSuggestion($other, 'Refund Requests');
-
-    app(DismissSuggestedTopicAction::class)->execute($agent, 'Refund Requests');
-
-    expect(ConversationTopic::query()->whereKey($foreign->id)->exists())->toBeTrue();
 });

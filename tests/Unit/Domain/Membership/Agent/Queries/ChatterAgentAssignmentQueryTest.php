@@ -10,7 +10,7 @@ use Domain\Membership\Agent\Queries\ChatterAgentAssignmentQuery;
  * sheet: protected agents the viewer may manage only, the chatter's grants in
  * `attached`, and nothing from another workspace.
  */
-it('splits the workspace protected agents into attached and available', function (): void {
+it('splits the workspace\'s own protected agents into attached and available', function (): void {
     $owner = User::factory()->create();
     $workspaceId = $owner->workspace()->id;
 
@@ -18,6 +18,7 @@ it('splits the workspace protected agents into attached and available', function
     $other = Agent::factory()->create(['workspace_id' => $workspaceId, 'is_public' => false, 'name' => 'Support']);
     $public = Agent::factory()->create(['workspace_id' => $workspaceId, 'is_public' => true, 'name' => 'Open']);
 
+    $foreign = Agent::factory()->forOwner(User::factory()->create())->create(['is_public' => false]);
     $chatter = Chatter::factory()->ofWorkspace($owner)->create();
     $chatter->agents()->attach($granted->id, ['workspace_id' => $workspaceId]);
 
@@ -25,19 +26,8 @@ it('splits the workspace protected agents into attached and available', function
 
     expect($result->attached->toCollection()->pluck('id')->all())->toBe([$granted->external_id])
         ->and($result->available->toCollection()->pluck('id')->all())->toBe([$other->external_id])
-        ->and($result->available->toCollection()->pluck('id')->all())->not->toContain($public->external_id);
-});
-
-it('leaves another workspace\'s agents out entirely', function (): void {
-    $owner = User::factory()->create();
-    $chatter = Chatter::factory()->ofWorkspace($owner)->create();
-
-    Agent::factory()->forOwner(User::factory()->create())->create(['is_public' => false]);
-
-    $result = app(ChatterAgentAssignmentQuery::class)->get($chatter, $owner);
-
-    expect($result->attached->count())->toBe(0)
-        ->and($result->available->count())->toBe(0);
+        ->and($result->available->toCollection()->pluck('id')->all())->not->toContain($public->external_id)
+        ->and($result->available->toCollection()->pluck('id')->all())->not->toContain($foreign->external_id);
 });
 
 it('leaves out the agents the viewing teammate\'s role does not reach', function (): void {

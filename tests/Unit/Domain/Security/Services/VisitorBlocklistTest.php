@@ -15,22 +15,20 @@ beforeEach(function (): void {
     $this->key = app(VisitorFingerprint::class)->for($this->workspace->id, '198.51.100.4', 'Firefox/130');
 });
 
-it('blocks a visitor with a block in force', function (?string $ends): void {
+it('blocks the visitor\'s fingerprint only while a block is in force', function (?string $ends, bool $blocked): void {
     BlockedVisitor::factory()->create([
         'workspace_id' => $this->workspace->id,
         'visitor_key' => $this->key,
         'expires_at' => $ends === null ? null : now()->modify($ends),
     ]);
 
-    expect($this->blocklist->blocks($this->workspace->id, '198.51.100.4', 'Firefox/130'))->toBeTrue()
+    expect($this->blocklist->blocks($this->workspace->id, '198.51.100.4', 'Firefox/130'))->toBe($blocked)
         ->and($this->blocklist->blocks($this->workspace->id, '198.51.100.4', 'Chrome/129'))->toBeFalse();
-})->with(['until unblocked' => [null], 'for a week' => ['+1 week']]);
-
-it('lets the visitor chat once the block ended', function (): void {
-    BlockedVisitor::factory()->expired()->create(['workspace_id' => $this->workspace->id, 'visitor_key' => $this->key]);
-
-    expect($this->blocklist->blocks($this->workspace->id, '198.51.100.4', 'Firefox/130'))->toBeFalse();
-});
+})->with([
+    'until unblocked' => [null, true],
+    'for a week' => ['+1 week', true],
+    'a block that ended' => ['-1 day', false],
+]);
 
 it('does not block the same visitor in another workspace', function (): void {
     BlockedVisitor::factory()->create(['workspace_id' => $this->workspace->id, 'visitor_key' => $this->key]);

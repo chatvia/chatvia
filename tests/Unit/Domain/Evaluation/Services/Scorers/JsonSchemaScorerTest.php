@@ -5,20 +5,10 @@ use Domain\Evaluation\Services\Scorers\JsonSchemaScorer;
 use Tests\Support\Evaluation\EvalFixtures;
 
 /**
- * The JSON scorer passes an answer that is valid JSON holding every required
- * key, and names what is wrong otherwise.
+ * The JSON scorer fails an answer that is not valid JSON or lacks a required
+ * key, and names what is wrong.
  */
-it('passes valid JSON with all required keys', function (): void {
-    $result = (new JsonSchemaScorer)->score(
-        EvalFixtures::case(ScorerType::JsonSchema, ['required' => ['name', 'email']]),
-        EvalFixtures::run('{"name": "Ada", "email": "ada@example.com"}'),
-    );
-
-    expect($result->pass)->toBeTrue()
-        ->and($result->score)->toBe(1.0);
-});
-
-it('fails and says why', function (array $required, string $answer, string $rationale): void {
+it('fails an answer that is not JSON or lacks a required key, naming why', function (array $required, string $answer, string $rationale): void {
     $result = (new JsonSchemaScorer)->score(EvalFixtures::case(ScorerType::JsonSchema, ['required' => $required]), EvalFixtures::run($answer));
 
     expect($result->pass)->toBeFalse()

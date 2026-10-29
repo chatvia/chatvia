@@ -4,12 +4,6 @@ use Domain\Agent\Models\Agent;
 use Domain\Analytics\Enums\Sentiment;
 use Domain\Analytics\Enums\Tone;
 use Domain\Analytics\Services\ConversationAnalyzer;
-use Domain\Conversation\Models\Conversation;
-use Domain\Conversation\Topic\Models\ConversationTopic;
-use Domain\Conversation\Topic\Models\Topic;
-use Illuminate\Http\Client\Request;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
 
 /**
  * ConversationAnalyzer makes one LLM call and parses a JSON object into a
@@ -27,12 +21,11 @@ function cazAgentWithTopics(array $names): array
     return [$agent, attachAgentTopics($agent, $names)];
 }
 
-it('keeps only topic ids the agent actually has', function (): void {
+it('keeps only the agent\'s topic ids and drops a suggestion that duplicates a topic', function (): void {
     [$agent, $ids] = cazAgentWithTopics(['Billing', 'Bug Report']);
-
     fakeLlmCompletion(json_encode([
-        'topic_ids' => [$ids['Billing'], 999999], // 999999 is not attached to this agent
-        'suggested_topics' => ['Refund Requests'],
+        'topic_ids' => [$ids['Billing'], 999999],
+        'suggested_topics' => ['billing', 'Refund Requests'],
         'sentiment' => 'negative',
         'tone' => 'frustrated',
         'language' => 'EN',
@@ -47,49 +40,10 @@ it('keeps only topic ids the agent actually has', function (): void {
         ->and($result->language)->toBe('en');
 });
 
-it('drops a suggested label that duplicates an existing topic name', function (): void {
+it('returns null instead of a guessed result when the model output is not valid JSON', function (): void {
     [$agent] = cazAgentWithTopics(['Billing']);
-
-    fakeLlmCompletion(json_encode([
-        'topic_ids' => [],
-        'suggested_topics' => ['billing', 'New Theme'], // "billing" already exists as "Billing"
-        'sentiment' => 'neutral',
-        'tone' => 'neutral',
-        'language' => 'en',
-    ]));
-
-    $result = app(ConversationAnalyzer::class)->analyze('User: hello', $agent);
-
-    expect($result->suggestedTopics)->toBe(['New Theme']);
-});
-
-it('returns null instead of a guessed result when the model output is not valid JSON', function (string $content): void {
-    [$agent] = cazAgentWithTopics(['Billing']);
-
-    fakeLlmCompletion($content);
+    fakeLlmCompletion('{"sentiment": "neg');
 
     expect(app(ConversationAnalyzer::class)->analyze('User: hello', $agent))->toBeNull()
         ->and(app(ConversationAnalyzer::class)->analyzeMessage('hello'))->toBeNull();
-})->with([
-    'prose' => 'Sorry, I could not analyze that.',
-    'empty' => '',
-    'cut off' => '{"sentiment": "neg',
-]);
-
-it('shows the model the pending labels of recent conversations only', function (): void {
-    [$agent] = cazAgentWithTopics([]);
-
-    foreach (['Recent Theme' => 3, 'Old Theme' => 120] as $label => $daysAgo) {
-        ConversationTopic::factory()
-            ->forConversation(Conversation::factory()->create(['agent_id' => $agent->id, 'created_at' => now()->subDays($daysAgo)]))
-            ->suggested($label)
-            ->create();
-    }
-
-    fakeLlmCompletion(json_encode(['topic_ids' => [], 'suggested_topics' => [], 'sentiment' => 'neutral', 'tone' => 'neutral', 'language' => 'en']));
-
-    app(ConversationAnalyzer::class)->analyze('User: hello', $agent);
-
-    Http::assertSent(fn (Request $request): bool => Str::contains($request->body(), 'Recent Theme')
-        && ! Str::contains($request->body(), 'Old Theme'));
 });

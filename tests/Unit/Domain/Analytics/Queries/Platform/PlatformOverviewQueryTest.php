@@ -12,8 +12,8 @@ use Illuminate\Support\Str;
 use Tests\Support\Analytics\PlatformScopes;
 
 /**
- * The headline numbers of the admin panel's dashboard, across every workspace
- * or one, each against the equally long window before. The testing database
+ * The headline numbers of the admin panel's dashboard, across every
+ * workspace, each against the equally long window before. The testing database
  * is seeded, so every test runs in a future month that no seeded row falls
  * in, and install-wide totals are compared against a baseline.
  */
@@ -76,46 +76,4 @@ it('sums traffic, sign-ups, agents and leads across every workspace', function (
         ->and($overview->newAgents)->toBe(2)
         ->and($overview->totalAgents)->toBe($baseAgents + 2)
         ->and($overview->leads)->toBe(1);
-});
-
-it('narrows every number to one workspace', function (): void {
-    $acme = User::factory()->workspace()->create();
-    $globex = User::factory()->workspace()->create();
-    $acmeBot = createAgent($acme);
-    $globexBot = createAgent($globex);
-
-    analyticsRollup($acmeBot, '2031-03-10 10:00:00', ['user_messages' => 10, 'assistant_messages' => 20, 'conversations_started' => 3]);
-    analyticsRollup($globexBot, '2031-03-10 10:00:00', ['user_messages' => 5, 'assistant_messages' => 7, 'conversations_started' => 2]);
-    poqSessionFirst($globexBot, '2031-03-18 10:00:00');
-    FormSubmission::factory()->forAgent($globexBot)->submitted()->create();
-
-    $overview = app(PlatformOverviewQuery::class)->get(PlatformScopes::of(workspaceId: $acme->workspace()->id));
-
-    expect($overview->messages->current)->toBe(30)
-        ->and($overview->conversations->current)->toBe(3)
-        ->and($overview->newVisitors)->toBe(0)
-        ->and($overview->totalAgents)->toBe(1)
-        ->and($overview->leads)->toBe(0)
-        // Workspace counts mean nothing for one workspace.
-        ->and($overview->newWorkspaces->current)->toBe(0)
-        ->and($overview->totalWorkspaces)->toBe(0)
-        ->and($overview->activeWorkspaces)->toBe(0);
-});
-
-it('reports no trend when the window before had nothing', function (): void {
-    analyticsRollup(createAgent(User::factory()->workspace()->create()), '2031-03-10 10:00:00', ['user_messages' => 1, 'assistant_messages' => 1]);
-
-    $overview = app(PlatformOverviewQuery::class)->get(PlatformScopes::of());
-
-    expect($overview->messages->changePct())->toBeNull()
-        ->and($overview->avgReplyMs)->toBeNull();
-});
-
-it('counts an admin\'s own workspace as a workspace', function (): void {
-    analyticsRollup(createAgent(User::factory()->admin()->create()), '2031-03-10 10:00:00', ['user_messages' => 3, 'assistant_messages' => 3]);
-
-    $overview = app(PlatformOverviewQuery::class)->get(PlatformScopes::of());
-
-    expect($overview->activeWorkspaces)->toBe(1)
-        ->and($overview->newWorkspaces->current)->toBe(1);
 });

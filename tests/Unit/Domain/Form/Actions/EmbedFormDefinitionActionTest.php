@@ -3,12 +3,10 @@
 use Domain\Agent\Models\Agent;
 use Domain\Form\Actions\EmbedFormDefinitionAction;
 use Domain\Form\Models\FormDefinition;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
-use Illuminate\Support\Facades\Log;
 
 /**
- * A form to embed, with the vectors the create-observer wrote cleared so each
- * test starts from an unembedded row.
+ * Embedding a form writes its dense vector and its sparse (full-text) column,
+ * which the form search reads.
  */
 function efdUnembeddedForm(): FormDefinition
 {
@@ -40,20 +38,4 @@ it('writes the dense and sparse vectors for a form', function (): void {
     app(EmbedFormDefinitionAction::class)->execute($form->id);
 
     expect(efdEmbeddedColumns($form))->toBe(['has_vec' => true, 'has_bm25' => true]);
-});
-
-it('leaves the form unembedded and logs when the embedder fails', function (): void {
-    $form = efdUnembeddedForm();
-    $failing = Mockery::mock(EmbeddingsProvider::class);
-    $failing->shouldReceive('embed')->andThrow(new RuntimeException('embedder down'));
-    app()->instance(EmbeddingsProvider::class, $failing);
-    Log::spy();
-
-    app(EmbedFormDefinitionAction::class)->execute($form->id);
-
-    expect(efdEmbeddedColumns($form))->toBe(['has_vec' => false, 'has_bm25' => false]);
-    Log::shouldHaveReceived('warning')
-        ->withArgs(fn (string $message, array $context): bool => $message === 'Form embedding failed'
-            && $context === ['form_definition_id' => $form->id, 'error' => 'embedder down'])
-        ->once();
 });

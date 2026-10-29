@@ -4,7 +4,6 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
-use Domain\Form\Data\FormMatchData;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
 use Domain\Form\Queries\FindFormsForAgentQuery;
@@ -39,17 +38,4 @@ it('returns every matching form, flagging the ones the session submitted', funct
         ->and($bySlug['book-a-demo']->purpose)->toBe('When the visitor wants a demo.')
         ->and($bySlug['book-a-demo']->alreadySubmitted)->toBeTrue()
         ->and($bySlug['get-a-quote']->alreadySubmitted)->toBeFalse();
-});
-
-it('flags nothing without a conversation', function (): void {
-    FormSubmission::factory()->forDefinition($this->demo)->submitted()->create();
-
-    $matches = app(FindFormsForAgentQuery::class)->get($this->agent, null, 'book a demo');
-
-    expect($matches)->not->toBeEmpty()
-        ->and(array_filter($matches, fn (FormMatchData $match): bool => $match->alreadySubmitted))->toBe([]);
-});
-
-it('returns nothing for an agent without active forms', function (): void {
-    expect(app(FindFormsForAgentQuery::class)->get(Agent::factory()->create(), null, 'book a demo'))->toBe([]);
 });

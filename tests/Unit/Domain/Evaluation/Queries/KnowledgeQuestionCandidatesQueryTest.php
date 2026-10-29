@@ -23,26 +23,12 @@ function lkqCandidates(Agent $agent): array
         ->all();
 }
 
-it('lists QA-pair questions, deduped, and flags ones already used as a case input', function (): void {
-    $agent = createAgent(User::factory()->create());
-    AgentQuestionAnswerFactory::new()->attachedTo($agent)->create(['questions' => "How long do refunds take?\nHow long do refunds take?\nWhen do I get my money back?"]);
-    EvalCase::factory()->forAgent($agent)->create(['input' => 'how long do refunds take?']);
-
-    $candidates = lkqCandidates($agent);
-
-    expect(array_keys($candidates))->toBe(['How long do refunds take?', 'When do I get my money back?'])
-        ->and($candidates['How long do refunds take?']['already_added'])->toBeTrue()
-        ->and($candidates['When do I get my money back?']['already_added'])->toBeFalse()
-        ->and($candidates['How long do refunds take?']['type'])->toBe('qa')
-        ->and($candidates['How long do refunds take?']['source'])->toBe('Refunds');
-});
-
-it('lists the questions of the agent\'s chunks after its QA pairs, flagging used ones', function (): void {
+it('lists the deduped QA questions, then the agent\'s chunk questions, flagging used ones', function (): void {
     $agent = createAgent(User::factory()->create());
     $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
     $file->agents()->attach($agent->id);
     Chunk::factory()->forSource($file)->create(['questions' => "What is A?\nWhat is B?"]);
-    AgentQuestionAnswerFactory::new()->attachedTo($agent)->create(['questions' => 'How do refunds work?']);
+    AgentQuestionAnswerFactory::new()->attachedTo($agent)->create(['questions' => "How do refunds work?\nhow do refunds work?"]);
     EvalCase::factory()->forAgent($agent)->create(['input' => 'what is a?']);
 
     $candidates = lkqCandidates($agent);
@@ -51,11 +37,6 @@ it('lists the questions of the agent\'s chunks after its QA pairs, flagging used
         ->and($candidates['What is A?']['type'])->toBe('chunk')
         ->and($candidates['What is A?']['source'])->toBe('File')
         ->and($candidates['What is A?']['already_added'])->toBeTrue()
-        ->and($candidates['What is B?']['already_added'])->toBeFalse();
-});
-
-it('returns an empty list for an agent with no knowledge', function (): void {
-    $agent = createAgent(User::factory()->create());
-
-    expect(app(KnowledgeQuestionCandidatesQuery::class)->get($agent))->toBeEmpty();
+        ->and($candidates['What is B?']['already_added'])->toBeFalse()
+        ->and(app(KnowledgeQuestionCandidatesQuery::class)->get($agent))->toHaveCount(3);
 });

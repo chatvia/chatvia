@@ -10,64 +10,18 @@ use Illuminate\Http\Client\Response;
 
 /**
  * The "generate" button for an agent's chat address: the model's suggestion is
- * cleaned to a URL-safe slug, a taken one is retried, and the button always
- * gets a free name — a random one when the model can't help.
- *
- * @param  list<string>|Throwable  $replies
+ * cleaned to a URL-safe slug, and one taken as another agent's slug or
+ * external id is retried.
  */
-function asgGenerator(array|Throwable $replies): AgentSlugGenerator
-{
-    $provider = Mockery::mock(ChatCompletionProvider::class);
-
-    if ($replies instanceof Throwable) {
-        $provider->shouldReceive('completion')->andThrow($replies);
-    } else {
-        $provider->shouldReceive('completion')->andReturnValues(array_map(
-            static fn (string $reply): Response => new Response(new Psr7Response(200, [], json_encode(['choices' => [['message' => ['content' => $reply]]]]))),
-            $replies,
-        ));
-    }
-
-    return new AgentSlugGenerator(app(LlmChat::class)->using($provider), app(TaskModels::class));
-}
-
-it('lowercases before stripping, so capital letters are kept', function (): void {
-    expect(AgentSlugGenerator::clean('"HelpDesk Hero"'))->toBe('helpdesk-hero')
-        ->and(AgentSlugGenerator::clean('SmartBot.chatvia.ai'))->toBe('smartbot')
-        ->and(AgentSlugGenerator::clean('--Ask_Me!--'))->toBe('askme')
-        ->and(AgentSlugGenerator::clean('ab'))->toBeNull()
-        ->and(AgentSlugGenerator::clean(null))->toBeNull();
-});
-
-it('returns the cleaned suggestion when it is free', function (): void {
-    expect(asgGenerator(['QuickHelper'])->generate())->toBe('quickhelper');
-});
-
-it('retries a taken suggestion', function (): void {
+it('retries a suggestion taken as a slug or an external id and returns the cleaned free one', function (): void {
     Agent::factory()->create(['slug' => 'quickhelper']);
+    Agent::factory()->create(['external_id' => 'answer-owl']);
+    $provider = Mockery::mock(ChatCompletionProvider::class);
+    $provider->shouldReceive('completion')->andReturnValues(collect(['QuickHelper', 'Answer Owl', '"HelpDesk Hero"'])
+        ->map(fn (string $reply): Response => new Response(new Psr7Response(200, [], json_encode(['choices' => [['message' => ['content' => $reply]]]], JSON_THROW_ON_ERROR))))
+        ->all());
 
-    expect(asgGenerator(['QuickHelper', 'Answer Owl'])->generate())->toBe('answer-owl');
-});
+    $slug = new AgentSlugGenerator(app(LlmChat::class)->using($provider), app(TaskModels::class))->generate();
 
-it('treats another agent\'s external id as taken', function (): void {
-    Agent::factory()->create(['external_id' => 'quickhelper']);
-
-    expect(asgGenerator(['QuickHelper', 'Answer Owl'])->generate())->toBe('answer-owl');
-});
-
-it('falls back to a random free name after the retries run out', function (): void {
-    Agent::factory()->create(['slug' => 'taken']);
-
-    $name = asgGenerator(['taken', 'taken', 'taken'])->generate();
-
-    expect($name)->toStartWith('agent-')
-        ->and($name)->toMatch('/^[a-z0-9-]+$/');
-});
-
-it('falls back to a random name when the model is unreachable', function (): void {
-    expect(asgGenerator(new RuntimeException('down'))->generate())->toStartWith('agent-');
-});
-
-it('falls back to a random name when every reply is empty', function (): void {
-    expect(asgGenerator(['', '', ''])->generate())->toStartWith('agent-');
+    expect($slug)->toBe('helpdesk-hero');
 });

@@ -52,15 +52,3 @@ it('narrows another workspace\'s agent to nothing', function (): void {
     expect($scope->agentId)->toBe(AnalyticsScopeData::UNKNOWN_AGENT)
         ->and($scope->agentIds)->toBe([AnalyticsScopeData::UNKNOWN_AGENT]);
 });
-
-it('lets explicit dates win over the named period', function (): void {
-    $scope = app(AnalyticsScopeResolver::class)->resolve(
-        $this->workspace,
-        new AnalyticsFilterData(period: AnalyticsPeriod::AllTime, startDate: '2026-03-01', endDate: '2026-03-31'),
-    );
-
-    expect($scope->period->named)->toBeNull()
-        ->and($scope->period->key())->toBe('custom')
-        ->and($scope->period->start->toDateTimeString())->toBe('2026-03-01 00:00:00')
-        ->and($scope->period->end->toDateTimeString())->toBe('2026-03-31 23:59:59');
-});

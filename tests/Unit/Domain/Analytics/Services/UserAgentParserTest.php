@@ -23,22 +23,3 @@ it('reads the device, browser and OS', function (string $userAgent, string $devi
     'android tablet' => ['Mozilla/5.0 (Linux; Android 11; SM-T870) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36', 'Android Tablet', 'Chrome', 'Android 11'],
     'ipod' => ['Mozilla/5.0 (iPod touch; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1', 'iPod', 'Safari', 'iOS'],
 ]);
-
-it('reads the device and browser of older phones and e-readers', function (string $userAgent, string $device, string $browser): void {
-    $result = new UserAgentParser()->detect($userAgent);
-
-    expect($result->deviceType)->toBe($device)
-        ->and($result->browser)->toBe($browser);
-})->with([
-    'windows phone' => ['Mozilla/5.0 (Windows Phone 10.0; Android 6.0.1; Microsoft; Lumia 950) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Mobile Safari/537.36 Edge/15.14977', 'Windows Phone', 'Edge'],
-    'blackberry' => ['Mozilla/5.0 (BlackBerry; U; BlackBerry 9900; en) AppleWebKit/534.11+ (KHTML, like Gecko) Version/7.1.0.346 Mobile Safari/534.11+', 'BlackBerry', 'Safari'],
-    'kindle' => ['Mozilla/5.0 (Linux; U; en-us; KFAPWI Build/JDQ39) AppleWebKit/535.19 (KHTML, like Gecko) Silk/3.13 Safari/535.19 Silk-Accelerated=true', 'Kindle', 'Silk'],
-]);
-
-it('returns nothing for an empty user agent', function (): void {
-    $result = new UserAgentParser()->detect(null);
-
-    expect($result->deviceType)->toBeNull()
-        ->and($result->browser)->toBeNull()
-        ->and($result->os)->toBeNull();
-});

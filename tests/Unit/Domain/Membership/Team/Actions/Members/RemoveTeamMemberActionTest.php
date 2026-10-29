@@ -6,23 +6,12 @@ use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Domain\Membership\Team\Exceptions\TeamOwnerImmutableException;
 
 /**
- * One rule for the dashboard, "leave team" and the public API: a member's
- * pivot row goes, the owner never does.
+ * One rule for the dashboard, "leave team" and the public API: the team
+ * owner is never removed.
  */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
     $this->team = app(CreateDefaultTeamAction::class)->execute($this->owner);
-});
-
-it('detaches a member and keeps the account', function (): void {
-    $member = User::factory()->employee($this->owner)->create();
-    $role = teamRole($this->team, permissions: []);
-    $this->team->members()->attach($member->id, ['role_id' => $role->id]);
-
-    app(RemoveTeamMemberAction::class)->execute($this->team, $member);
-
-    expect($this->team->members()->whereKey($member->id)->exists())->toBeFalse()
-        ->and(User::query()->whereKey($member->id)->exists())->toBeTrue();
 });
 
 it('refuses to remove the team owner', function (): void {

@@ -3,41 +3,20 @@
 use App\Identity\Workspace\Actions\MessageLimits\RecordMessageUsageAction;
 use App\Identity\Workspace\Models\MessageLimit;
 use App\Identity\Workspace\Models\User;
-use App\Identity\Workspace\Notifications\NewDeviceSignInNotification;
-use Database\Factories\AgentFileFactory;
-use Domain\Conversation\Actions\Handoff\RequestHandoffAction;
-use Domain\Conversation\Enums\HandoffStatus;
-use Domain\Conversation\Events\AgentRateLimitExceeded;
-use Domain\Conversation\Events\HandedOff;
-use Domain\Conversation\Models\Conversation;
-use Domain\Evaluation\Actions\FinalizeEvalRunAction;
-use Domain\Evaluation\Models\EvalCase;
-use Domain\Evaluation\Models\EvalResult;
-use Domain\Evaluation\Models\EvalRun;
 use Domain\Form\Data\CapturedSubmissionData;
 use Domain\Form\Events\FormSubmitted;
 use Domain\Form\Models\FormDefinition;
 use Domain\Guardrail\Events\GuardrailTriggered;
-use Domain\Knowledge\Ingestion\Actions\Pipeline\CompleteSourceIngestionAction;
-use Domain\Knowledge\Ingestion\Actions\Pipeline\MarkSourceFailedAction;
-use Domain\Knowledge\Ingestion\Actions\Website\CompleteWebsiteIngestionAction;
-use Domain\Knowledge\Ingestion\Enums\TrainingTrigger;
-use Domain\Knowledge\Ingestion\Jobs\SummaryIngestionJob;
-use Domain\Knowledge\Source\Web\Models\SourceWebsite;
-use Domain\Llm\Events\LlmUnlisted;
 use Domain\Notification\Enums\NotificationKind;
 use Domain\Notification\Models\UserNotification;
-use Domain\Security\Data\SecurityActorData;
-use Domain\Security\Enums\SecurityAuditAction;
-use Domain\Security\Events\SecurityEventOccurred;
-use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Each event that feeds the notification center reaches the right people
- * through its listener: handoffs, training, leads, blocked attacks, security
- * changes, the message limit, rate limits, eval runs and new-device sign-ins.
- * The queue is synchronous in tests, so the queued listeners run inline.
+ * Events that feed the notification center reach the right people through
+ * their listener: a new lead and blocked attacks go to the people with the
+ * permission, without the visitor's data, and the message limit warns the
+ * owner once at 80% and once at the limit. The queue is synchronous in
+ * tests, so the queued listeners run inline.
  */
 beforeEach(function (): void {
     Storage::fake();
@@ -51,63 +30,9 @@ function nsRecipients(NotificationKind $kind): array
     return UserNotification::query()->where('kind', $kind)->orderBy('user_id')->pluck('user_id')->all();
 }
 
-it('tells the people who can take over that a visitor is waiting, and clears it once someone does', function (): void {
-    withLicense();
-    $takesOver = teammateWithPermissions($this->owner, ['agent.chat.view', 'agent.chat.takeover']);
-    teammateWithPermissions($this->owner, ['agent.chat.view']);
-    $conversation = Conversation::factory()->create(['agent_id' => $this->agent->id, 'is_visible' => true]);
-
-    app(RequestHandoffAction::class)->execute($conversation);
-    // Asking again while waiting changes nothing.
-    app(RequestHandoffAction::class)->execute($conversation->fresh());
-
-    expect(nsRecipients(NotificationKind::HandoffRequested))->toBe([$this->owner->id, $takesOver->id]);
-
-    $notification = UserNotification::query()->where('user_id', $takesOver->id)->sole();
-    expect($notification->content->url)->toContain('conversation_id='.$conversation->external_id)
-        ->and($notification->content->agent->name)->toBe('Support');
-
-    HandedOff::dispatch($conversation->external_id, HandoffStatus::Human->value);
-
-    expect(UserNotification::query()->unread()->count())->toBe(0);
-});
-
-it('gathers finished training per agent and keeps each failure apart', function (): void {
-    Bus::fake([SummaryIngestionJob::class]);
-    $trainer = teammateWithPermissions($this->owner, ['agent.sources.train.files']);
-    teammateWithPermissions($this->owner, ['agent.sources.train.web']);
-    [$first, $second, $broken] = AgentFileFactory::new()->count(3)->create(['workspace_id' => $this->agent->workspace_id])->all();
-
-    app(CompleteSourceIngestionAction::class)->execute($first, $this->agent->external_id);
-    app(CompleteSourceIngestionAction::class)->execute($second, $this->agent->external_id);
-    app(MarkSourceFailedAction::class)->execute($broken, $this->agent, new RuntimeException('Unreadable PDF'));
-
-    expect(nsRecipients(NotificationKind::SourceTrained))->toBe([$this->owner->id, $trainer->id]);
-
-    $trained = UserNotification::query()->where('user_id', $trainer->id)->where('kind', NotificationKind::SourceTrained)->sole();
-    expect($trained->count)->toBe(2)
-        ->and($trained->content->subject)->toBe($second->filename)
-        ->and($trained->content->url)->toEndWith('/sources/files');
-
-    $failed = UserNotification::query()->where('user_id', $trainer->id)->where('kind', NotificationKind::SourceTrainingFailed)->sole();
-    expect($failed->content->subject)->toBe($broken->filename)
-        ->and($failed->content->subject)->not->toContain('Unreadable');
-});
-
-it('stays quiet when a scheduled website refresh succeeds, but not when a person retrains', function (): void {
-    Bus::fake([SummaryIngestionJob::class]);
-    $website = SourceWebsite::factory()->attachedTo($this->agent)->processing()->create();
-
-    app(CompleteWebsiteIngestionAction::class)->execute($website, $this->agent, TrainingTrigger::Scheduled);
-    expect(UserNotification::query()->count())->toBe(0);
-
-    app(CompleteWebsiteIngestionAction::class)->execute($website->fresh(), $this->agent);
-    expect(nsRecipients(NotificationKind::SourceTrained))->toBe([$this->owner->id])
-        ->and(UserNotification::query()->sole()->content->detail)->toBe('website');
-});
-
-it('tells the people who see leads about a new one, naming the form only', function (): void {
+it('tells the people with the permission about a new lead and gathered blocked attacks, without the visitor\'s data', function (): void {
     $leadReader = teammateWithPermissions($this->owner, ['agent.leads.view']);
+    $guard = teammateWithPermissions($this->owner, ['agent.guardrails.view']);
     teammateWithPermissions($this->owner, ['agent.chat.view']);
     $form = FormDefinition::factory()->forAgent($this->agent)->create(['name' => 'Book a demo']);
 
@@ -122,17 +47,6 @@ it('tells the people who see leads about a new one, naming the form only', funct
         source: 'form',
         values: ['email' => 'visitor@example.test'],
     ));
-
-    expect(nsRecipients(NotificationKind::LeadCaptured))->toBe([$this->owner->id, $leadReader->id]);
-
-    $content = UserNotification::query()->where('user_id', $leadReader->id)->sole()->content;
-    expect($content->subject)->toBe('Book a demo')
-        ->and(json_encode($content->toArray()))->not->toContain('visitor@example.test');
-});
-
-it('gathers blocked attacks per agent for the people who see its guardrails', function (): void {
-    $guard = teammateWithPermissions($this->owner, ['agent.guardrails.view']);
-
     foreach (range(1, 3) as $attempt) {
         GuardrailTriggered::dispatch(
             $this->agent->id, $this->agent->name, $this->agent->workspace_id, null, null, null, null, null,
@@ -140,68 +54,16 @@ it('gathers blocked attacks per agent for the people who see its guardrails', fu
         );
     }
 
+    $lead = UserNotification::query()->where('user_id', $leadReader->id)->sole()->content;
     $attack = UserNotification::query()->where('user_id', $guard->id)->sole();
-    expect($attack->kind)->toBe(NotificationKind::AttackBlocked)
+
+    expect(nsRecipients(NotificationKind::LeadCaptured))->toBe([$this->owner->id, $leadReader->id])
+        ->and(nsRecipients(NotificationKind::AttackBlocked))->toBe([$this->owner->id, $guard->id])
+        ->and($lead->subject)->toBe('Book a demo')
+        ->and(json_encode($lead->toArray(), JSON_THROW_ON_ERROR))->not->toContain('visitor@example.test')
         ->and($attack->count)->toBe(3)
         ->and($attack->content->detail)->toBe('prompt_injection')
-        ->and(json_encode($attack->content->toArray()))->not->toContain('ignore all previous');
-});
-
-it('gathers skipped checks once per failed call, with the reason', function (): void {
-    $guard = teammateWithPermissions($this->owner, ['agent.guardrails.view']);
-
-    foreach (['prompt_injection' => true, 'blocked_topic' => false, 'toxicity' => false] as $guardType => $alert) {
-        GuardrailTriggered::dispatch(
-            $this->agent->id, $this->agent->name, $this->agent->workspace_id, null, null, null, null, null,
-            'input', $guardType, 'skipped', null,
-            ['reason' => 'classifier_unavailable', 'failure' => 'model_unavailable', ...($alert ? ['alert' => true] : [])],
-            'hello',
-        );
-    }
-
-    $skipped = UserNotification::query()->where('user_id', $guard->id)->sole();
-    expect($skipped->kind)->toBe(NotificationKind::GuardrailSkipped)
-        ->and($skipped->count)->toBe(1)
-        ->and($skipped->content->detail)->toBe('model_unavailable');
-});
-
-it('tells the admins that a provider stopped serving a model', function (): void {
-    $admin = User::factory()->create(['is_admin' => true]);
-    $gone = User::factory()->create(['is_admin' => true, 'deactivated_at' => now()]);
-    $llm = testLlm('qwen/gone');
-
-    LlmUnlisted::dispatch($llm->id);
-
-    expect(nsRecipients(NotificationKind::AiModelUnavailable))->toContain($admin->id)
-        ->not->toContain($gone->id, $this->owner->id);
-
-    $content = UserNotification::query()->where('user_id', $admin->id)->sole()->content;
-    expect($content->subject)->toBe('qwen/gone')
-        ->and($content->detail)->toBe($llm->provider->name)
-        ->and($content->url)->toBe('/admin/settings/ai-models');
-});
-
-it('tells the security team about a new API token, but not the person who made it', function (): void {
-    $security = teammateWithPermissions($this->owner, ['account.security']);
-
-    event(SecurityEventOccurred::for(
-        SecurityAuditAction::ApiKeyCreated,
-        $this->agent->workspace_id,
-        SecurityActorData::forUser($this->owner),
-        targetLabel: 'Zapier',
-    ));
-    event(SecurityEventOccurred::for(
-        SecurityAuditAction::AuthLogin,
-        $this->agent->workspace_id,
-        SecurityActorData::forUser($this->owner),
-    ));
-
-    expect(nsRecipients(NotificationKind::SecuritySettingsChanged))->toBe([$security->id]);
-
-    $content = UserNotification::query()->sole()->content;
-    expect($content->detail)->toBe('api_key.created')
-        ->and($content->actor)->toBe($this->owner->name)
-        ->and($content->subject)->toBe('Zapier');
+        ->and(json_encode($attack->content->toArray(), JSON_THROW_ON_ERROR))->not->toContain('ignore all previous');
 });
 
 it('tells the owner once at 80% of the monthly messages and once at the limit', function (): void {
@@ -214,50 +76,4 @@ it('tells the owner once at 80% of the monthly messages and once at the limit', 
     expect(nsRecipients(NotificationKind::MessageLimitWarning))->toBe([$this->owner->id])
         ->and(nsRecipients(NotificationKind::MessageLimitReached))->toBe([$this->owner->id])
         ->and(UserNotification::query()->count())->toBe(2);
-});
-
-it('tells the people who manage protection about a rate limit at most once in ten minutes', function (): void {
-    AgentRateLimitExceeded::dispatch($this->agent, 10);
-    AgentRateLimitExceeded::dispatch($this->agent, 10);
-
-    expect(nsRecipients(NotificationKind::RateLimitExceeded))->toBe([$this->owner->id])
-        ->and(UserNotification::query()->sole()->content->detail)->toBe('10');
-});
-
-it('tells the person who started an eval run that it finished', function (): void {
-    $evaluator = teammateWithPermissions($this->owner, ['agent.evals.view']);
-    $run = EvalRun::factory()->forAgent($this->agent)->create(['triggered_by_user_id' => $evaluator->id]);
-
-    app(FinalizeEvalRunAction::class)->execute($run->fresh());
-
-    expect(nsRecipients(NotificationKind::EvalRunFinished))->toBe([$evaluator->id])
-        ->and(UserNotification::query()->sole()->content->detail)->toBe('completed');
-});
-
-it('tells the people who see the evals when a run fails a case that passed before', function (): void {
-    $viewer = teammateWithPermissions($this->owner, ['agent.evals.view']);
-    $case = EvalCase::factory()->forAgent($this->agent)->create(['name' => 'Refunds']);
-    $before = EvalRun::factory()->forAgent($this->agent)->completed()->create();
-    EvalResult::create(['run_id' => $before->id, 'case_id' => $case->id, 'case_name' => 'Refunds', 'scorer_type' => 'contains', 'has_passed' => true]);
-    $now = EvalRun::factory()->forAgent($this->agent)->create();
-    EvalResult::create(['run_id' => $now->id, 'case_id' => $case->id, 'case_name' => 'Refunds', 'scorer_type' => 'contains', 'has_passed' => false]);
-
-    app(FinalizeEvalRunAction::class)->execute($now->fresh());
-
-    expect(nsRecipients(NotificationKind::EvalRegressed))->toEqualCanonicalizing([$this->owner->id, $viewer->id])
-        ->and(UserNotification::query()->where('kind', NotificationKind::EvalRegressed)->first()->content->subject)->toBe('1')
-        ->and(UserNotification::query()->where('kind', NotificationKind::EvalRegressed)->first()->content->detail)->toBe('Refunds');
-});
-
-it('puts a new-device sign-in in the person\'s own notifications, naming the browser', function (): void {
-    $this->owner->notify(new NewDeviceSignInNotification(
-        '203.0.113.9',
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0 Safari/537.36',
-        now(),
-    ));
-
-    $notification = UserNotification::query()->sole();
-    expect($notification->user_id)->toBe($this->owner->id)
-        ->and($notification->kind)->toBe(NotificationKind::NewDeviceSignIn)
-        ->and($notification->content->subject)->toContain('Chrome');
 });

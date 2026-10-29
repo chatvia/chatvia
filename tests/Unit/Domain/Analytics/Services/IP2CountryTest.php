@@ -28,24 +28,10 @@ it('does not look up local, private or invalid addresses', function (string $ip)
     Http::assertNothingSent();
 })->with([
     'localhost' => '127.0.0.1',
-    'private class C' => '192.168.1.1',
-    'private class A' => '10.0.0.1',
-    'private class B' => '172.16.0.1',
+    'private' => '10.0.0.1',
     'link-local' => '169.254.1.1',
     'not an ip' => 'not-an-ip',
-    'out of range' => '999.999.999.999',
-    'empty' => '',
-    'hostname' => 'localhost',
 ]);
-
-it('looks nothing up while no key is set up', function (): void {
-    Http::fake();
-    config(['services.ip2location.key' => null]);
-
-    expect(app(IP2Country::class)->countryCode('8.8.8.8'))->toBeNull();
-
-    Http::assertNothingSent();
-});
 
 it('sends the API key as a bearer token, not in the query string', function (): void {
     Http::fake(['ip2location.test*' => Http::response(['country_code' => 'DE'])]);

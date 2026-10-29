@@ -8,51 +8,25 @@ use Domain\Agent\Models\AgentStarter;
 use Domain\Llm\Operations\Translate\TextTranslator;
 
 /**
- * Saving an agent's conversation starters keeps one ordered list, gives each
- * starter an id and drops blank ones. How their translations are made and
- * kept is in StartersAndBubblesTranslationTest.
+ * Saving an agent's conversation starters replaces the one ordered list the
+ * agent keeps, gives each starter its own id and drops blank ones.
  */
-beforeEach(function (): void {
-    $this->agent = createAgent(User::factory()->create());
-    // Default: no real LLM calls. Tests that assert translations re-mock below.
+it('replaces the starters with one ordered list, an id per starter and no blanks', function (): void {
+    $agent = createAgent(User::factory()->create());
     $this->mock(TextTranslator::class)->shouldReceive('translate')->andReturn([]);
-});
-
-it('writes the agent starters as an ordered list and assigns each an id', function (): void {
-    $result = app(SetAgentStartersAction::class)->execute($this->agent, new UpdateStartersData(starters: [
-        new StarterData(null, 'First?', 'SparklesIcon'),
-        new StarterData(null, 'Second?'),
-    ]));
-
-    expect($result->pluck('text')->all())->toBe(['First?', 'Second?'])
-        ->and($result->pluck('icon')->all())->toBe(['SparklesIcon', null])
-        ->and($result[0]->id)->not->toBeEmpty()
-        ->and($result[1]->id)->not->toBeEmpty()
-        ->and($result[0]->id)->not->toBe($result[1]->id);
-
-    expect(array_column($this->agent->starterSet()->first()->starters, 'text'))->toBe(['First?', 'Second?']);
-});
-
-it('replaces existing starters and keeps a single row', function (): void {
     $action = app(SetAgentStartersAction::class);
+    $action->execute($agent, new UpdateStartersData(starters: [new StarterData(null, 'old')]));
 
-    $action->execute($this->agent, new UpdateStartersData(starters: [new StarterData(null, 'old')]));
-    $action->execute($this->agent->fresh(), new UpdateStartersData(starters: [
-        new StarterData(null, 'new-a'),
-        new StarterData(null, 'new-b', 'BoltIcon'),
-    ]));
-
-    expect(AgentStarter::where('agent_id', $this->agent->id)->count())->toBe(1)
-        ->and(array_column($this->agent->fresh()->starterSet->starters, 'text'))->toBe(['new-a', 'new-b']);
-});
-
-it('reindexes sparse keys, drops blanks, and defaults a missing icon to null', function (): void {
-    $result = app(SetAgentStartersAction::class)->execute($this->agent, new UpdateStartersData(starters: [
-        3 => new StarterData(null, 'b'),
-        5 => new StarterData(null, '   '), // blank → dropped
+    $result = $action->execute($agent->fresh(), new UpdateStartersData(starters: [
+        3 => new StarterData(null, 'b', 'BoltIcon'),
+        5 => new StarterData(null, '   '),
         7 => new StarterData(null, 'a'),
     ]));
 
     expect($result->pluck('text')->all())->toBe(['b', 'a'])
-        ->and($result[0]->icon)->toBeNull();
+        ->and($result->pluck('icon')->all())->toBe(['BoltIcon', null])
+        ->and($result[0]->id)->not->toBeEmpty()
+        ->and($result[0]->id)->not->toBe($result[1]->id)
+        ->and(AgentStarter::query()->where('agent_id', $agent->id)->count())->toBe(1)
+        ->and(array_column($agent->fresh()->starterSet->starters, 'text'))->toBe(['b', 'a']);
 });

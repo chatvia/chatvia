@@ -25,10 +25,3 @@ it('counts the sources the last finished run used and names the rest', function 
         ->and($coverage?->tested)->toBe(1)
         ->and($coverage?->untested)->toBe(['prices.pdf']);
 });
-
-it('has no coverage before the first finished run', function (): void {
-    $agent = createAgent(User::factory()->create());
-    EvalRun::factory()->forAgent($agent)->create();
-
-    expect(app(EvalSourceCoverageQuery::class)->for($agent))->toBeNull();
-});

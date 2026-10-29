@@ -1192,8 +1192,9 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     /**
      * A service choice (reranker, documents, speech, voice): each provider
      * by its product name, marked connected or not (one that is not cannot
-     * be picked), with the choices that need no key (Self-hosted, Off). There
-     * is no "Automatic": the list shows the service in use. A new pick is
+     * be picked, so the connected ones come first), then the choices that
+     * need no key (Self-hosted, Off). There is no "Automatic": the list
+     * shows the service in use. A new pick is
      * checked with a real call as it is saved, and refused when the call
      * fails; an unchanged one is not called again.
      *
@@ -1213,6 +1214,11 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 }
 
                 return $name.($provider->isConnected() ? ' (connected)' : ' (not connected)');
+            })
+            ->sortBy(fn (string $name, string $value): int => match (AiProvider::tryFrom($value)?->isConnected()) {
+                true => 0,
+                false => 1,
+                null => 2,
             })
             ->all();
 
@@ -1481,6 +1487,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     private function embeddingChoice(): Field
     {
         $providers = collect(EmbeddingProvider::cases())
+            ->sortBy(fn (EmbeddingProvider $provider): int => $provider->account()->isConnected() ? 0 : 1)
             ->mapWithKeys(fn (EmbeddingProvider $provider): array => [$provider->value => $provider->label().($provider->account()->isConnected() ? '' : ' (not connected)')])
             ->all();
 

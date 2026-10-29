@@ -19,10 +19,10 @@ use Illuminate\Support\Str;
  * video models listed, and the providers whose chat models agents can use.
  * It marks the chips on Settings → AI providers.
  */
-final class AiProviderUsage
+final readonly class AiProviderUsage
 {
     public function __construct(
-        private readonly MediaModelCatalog $media,
+        private MediaModelCatalog $media,
     ) {}
 
     /** The provider a capability runs on now; null when none does (or, for chat and image and video generation, when several may). */

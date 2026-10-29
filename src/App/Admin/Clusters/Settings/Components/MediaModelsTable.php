@@ -135,7 +135,7 @@ class MediaModelsTable extends Component implements HasActions, HasSchemas, HasT
                     ->required()
                     ->native(false)
                     ->live()
-                    ->afterStateUpdated(fn (Set $set) => $set('models', [])),
+                    ->afterStateUpdated(fn (Set $set): mixed => $set('models', [])),
                 ...collect(self::NOTES[$this->kind] ?? [])->map(fn (array $note, string $service): Callout => Callout::make($note[0])
                     ->description($note[1])
                     ->icon(Heroicon::OutlinedInformationCircle)

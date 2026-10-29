@@ -1228,6 +1228,18 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     margin-bottom: 1.5rem;
 }
 
+/* On the sign-in page the icon is larger than in the sidebar, as on the
+ * dashboard's sign-in pages; the panel's logo height is set inline. */
+.fi-simple-header .fi-logo:has(.cv-brand) {
+    height: 2.5rem !important;
+
+    & .cv-brand svg,
+    & .cv-brand img {
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+}
+
 .fi-simple-header-heading {
     font-size: 1.5rem;
     font-weight: 600;
@@ -1248,69 +1260,18 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
 .cv-brand {
     display: inline-flex;
     align-items: center;
-    gap: 0.625rem;
-    max-width: 100%;
-    line-height: 1;
-    white-space: nowrap;
-}
-
-.cv-brand__mark {
-    display: grid;
-    flex: none;
-    place-items: center;
-    width: 1.875rem;
-    height: 1.875rem;
-    border-radius: 0.5rem;
-    background-color: var(--cv-primary);
-    color: var(--cv-on-primary);
-    box-shadow: var(--cv-shadow-button);
-
-    & svg {
-        width: 1.25rem;
-        height: 1.25rem;
-    }
-}
-
-/* The app's name is the admin's own (Settings → Platform): a long one is cut. */
-.cv-brand__name {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 1rem;
-    font-weight: 600;
-    letter-spacing: -0.02em;
     color: var(--cv-text);
-}
 
-.cv-brand__tag {
-    padding: 0.1875rem 0.4375rem;
-    border-radius: var(--cv-radius-pill);
-    background-color: var(--cv-card);
-    box-shadow: inset 0 0 0 1px var(--cv-border-strong);
-    font-size: 0.6875rem;
-    font-weight: 500;
-    letter-spacing: 0.01em;
-    color: var(--cv-text-muted);
-}
+    & svg,
+    & img {
+        width: 1.75rem;
+        height: 1.75rem;
+    }
 
-/* The version that runs, after the "Admin" tag, with a dot while a newer
- * release is out. */
-.cv-brand__version {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    font-size: 0.6875rem;
-    font-weight: 500;
-    font-variant-numeric: tabular-nums;
-    color: var(--cv-text-muted);
-}
-
-.cv-brand__version--update::after {
-    content: '';
-    width: 0.375rem;
-    height: 0.375rem;
-    border-radius: 999px;
-    background-color: var(--warning-500);
+    /* The install's own icon keeps its shape inside the square. */
+    & img {
+        object-fit: contain;
+    }
 }
 
 /* The setup's mark stands on the dotted page above the card, drawn in the

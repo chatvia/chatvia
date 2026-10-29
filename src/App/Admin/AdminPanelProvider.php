@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Admin;
 
 use App\Admin\Pages\Setup;
+use App\Admin\Settings\CustomLogo;
 use App\Admin\Settings\ModelLogoController;
 use App\Http\Middleware\Web\DenyCrossOriginFraming;
 use App\Identity\Workspace\Models\User;
@@ -71,7 +72,8 @@ class AdminPanelProvider extends PanelProvider
             ->brandName(fn (): string => config('app.name').' Admin')
             ->brandLogo(fn (): Factory|\Illuminate\Contracts\View\View => view('admin.brand'))
             ->brandLogoHeight('2rem')
-            ->favicon(asset('images/favicons/favicon.svg'))
+            // The install's own favicon (Settings → Platform), or the ChatVia.ai one.
+            ->favicon(fn (CustomLogo $logo): ?string => $logo->isSet() ? $logo->favicon('favicon-96x96.png') : asset('images/favicons/favicon.svg'))
             // The setup shows the mark alone, large, above its card, instead of the logo.
             ->renderHook(PanelsRenderHook::SIMPLE_LAYOUT_START, fn (): Factory|\Illuminate\Contracts\View\View => view('admin.setup-logo'), scopes: Setup::class)
             ->authGuard('admin')

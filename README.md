@@ -140,7 +140,8 @@ under every chat, some features need a license key, and running ChatVia.ai
 as a hosted service for others needs a SaaS key. Without a key an install
 holds one workspace and has no API, no voice conversations, no live chat,
 no capabilities (charts, calendar booking, forms and leads, image, audio and
-video generation), no custom domains, the default Splitting settings and no
-sentiment, tone, topics or sources analytics (condition 4 of the license).
+video generation), no custom domains, the default Splitting settings, no
+sentiment, tone, topics or sources analytics and no logo or favicons of its
+own in place of the ChatVia.ai ones (condition 4 of the license).
 License keys, and what each one unlocks, are explained at
 **[chatvia.ai/license](https://chatvia.ai/license)**.

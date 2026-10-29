@@ -302,6 +302,9 @@
     "settings/platform#language": [
         "Default language"
     ],
+    "settings/platform#logo": [
+        "Icon"
+    ],
     "settings/platform#pdf-maker": [
         "Make PDFs with",
         "Account ID",

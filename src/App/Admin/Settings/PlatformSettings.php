@@ -7,8 +7,8 @@ namespace App\Admin\Settings;
 use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
 
 /**
- * Install-wide options that fit nowhere else: the app's name, the default
- * language, the tracking code, visitor location, where Horizon sends
+ * Install-wide options that fit nowhere else: the app's name and logo, the
+ * default language, the tracking code, visitor location, where Horizon sends
  * alerts, how many queue workers it may run, where the programs that read
  * files are, whether the panel shows its Logs page, and when the admin
  * setup of the install was completed, whether agents may use custom
@@ -23,6 +23,10 @@ class PlatformSettings extends AdminSettings
     /** The name people see in browser tabs, the dashboard, the admin panel and emails. */
     #[ConfigKey('app.name')]
     public ?string $app_name = null;
+
+    /** An icon that replaces the ChatVia.ai mark: its path on the `assets` disk ({@see CustomLogo}). */
+    #[ConfigKey('chatvia.logo')]
+    public ?string $logo = null;
 
     #[ConfigKey('app.locale')]
     public ?string $default_locale = null;

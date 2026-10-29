@@ -91,6 +91,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Logo
+    |--------------------------------------------------------------------------
+    |
+    | The path, on the `assets` disk, of an icon of the install's own that
+    | replaces the ChatVia.ai mark in the admin panel and on the sign-in
+    | pages. Set in the admin panel (Settings → Platform); it needs a license
+    | key, and without one the mark shows. Null shows the mark.
+    |
+    */
+
+    'logo' => null,
+
+    /*
+    |--------------------------------------------------------------------------
     | Sentry
     |--------------------------------------------------------------------------
     |

@@ -43,9 +43,11 @@ subject to the following conditions:
    d. serve an agent's hosted chat on a custom domain (a domain other than
       the install's own);
    e. change the options of how texts are split into chunks (the Splitting
-      settings); or
+      settings);
    f. read the sentiment, tone, topics and sources analytics of its
-      conversations.
+      conversations; or
+   g. show a logo or favicons (the icons of browser tabs) of its own in place
+      of the ChatVia.ai ones.
 
    You may not change the Software, by any means, to go past these limits
    without a license key.

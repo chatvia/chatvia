@@ -6,6 +6,8 @@ namespace App\Admin\Clusters\Settings\Pages;
 
 use App\Admin\Clusters\Settings\AdminSettingsPage;
 use App\Admin\Clusters\Settings\SettingsCard;
+use App\Admin\Settings\Actions\MakeFaviconsAction;
+use App\Admin\Settings\CustomLogo;
 use App\Admin\Settings\Data\ConnectionCheckData;
 use App\Admin\Settings\HorizonWorkers;
 use App\Admin\Settings\PdfMaker;
@@ -19,6 +21,7 @@ use BackedEnum;
 use Closure;
 use Domain\Agent\Models\AgentDomain;
 use Filament\Actions\Action;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -28,11 +31,15 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Uri;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use Support\License\Entitlements;
 
 /**
- * Install-wide options: the app's name, default language, the tracking code,
+ * Install-wide options: the app's name and logo, default language, the tracking code,
  * visitor location, alerts, error reports to Sentry, what makes PDFs, update
  * checks, the number of queue workers, where the programs that read files
  * are, and the panel's Logs page. The chat widget's options are on
@@ -94,7 +101,7 @@ class ManagePlatformSettings extends AdminSettingsPage
 
     public static function description(): string
     {
-        return 'App name, language, tracking code, visitor location, Sentry, PDF maker, updates, queue workers, programs and logs.';
+        return 'App name, logo, language, tracking code, visitor location, Sentry, PDF maker, updates, queue workers, programs and logs.';
     }
 
     /**
@@ -107,6 +114,56 @@ class ManagePlatformSettings extends AdminSettingsPage
         parent::save();
 
         $this->dispatch('refresh-sidebar');
+    }
+
+    /**
+     * A new icon gets its favicons, or is turned down when they cannot be
+     * made, so a saved icon always has them. A replaced or removed icon is
+     * deleted with its favicons.
+     */
+    #[\Override]
+    protected function saveSettings(): void
+    {
+        $settings = app(PlatformSettings::class);
+        $before = $settings->logo;
+
+        parent::saveSettings();
+
+        $logo = $settings->logo;
+
+        if ($logo === $before) {
+            return;
+        }
+
+        if (filled($logo) && ! $this->makeFavicons($logo)) {
+            $this->deleteLogo($logo);
+            $settings->logo = $before;
+            $settings->save();
+            $this->fillCards();
+
+            throw ValidationException::withMessages([
+                'data.logo' => __('The favicons could not be made from this picture. Try another PNG, WebP or JPEG.'),
+            ]);
+        }
+
+        if (filled($before)) {
+            $this->deleteLogo($before);
+        }
+    }
+
+    private function makeFavicons(string $logo): bool
+    {
+        return rescue(function () use ($logo): bool {
+            app(MakeFaviconsAction::class)->execute($logo);
+
+            return true;
+        }, false);
+    }
+
+    private function deleteLogo(string $logo): void
+    {
+        Storage::disk('assets')->delete($logo);
+        Storage::disk('assets')->deleteDirectory(CustomLogo::faviconDirectory($logo));
     }
 
     public static function overviewGroup(): string
@@ -125,6 +182,13 @@ class ManagePlatformSettings extends AdminSettingsPage
             SettingsCard::make('app_name', 'App name', 'The name people see in browser tabs, the dashboard, the admin panel and emails.', Heroicon::OutlinedTag, fn (): array => [
                 $this->text('app_name', 'App name')->maxLength(60),
             ])->summary(fn (): string => (string) $this->valueInUse('app_name')),
+            SettingsCard::make('logo', __('Logo'), __('Your own icon in place of the ChatVia.ai mark, in the admin panel and on the sign-in and sign-up pages, and the favicons made from it. Needs a license key.'), Heroicon::OutlinedPhoto, fn (): array => [
+                $this->logoUpload(),
+            ])->summary(fn (): string => match (true) {
+                ! app(Entitlements::class)->licensed() => __('ChatVia.ai mark · needs a license key'),
+                filled(app(PlatformSettings::class)->logo) => __('Your own icon'),
+                default => __('ChatVia.ai mark'),
+            }),
             SettingsCard::make('language', 'Language', 'The language for people who have not chosen one, and for messaging channels.', Heroicon::OutlinedLanguage, fn (): array => [
                 $this->choice('default_locale', 'Default language', $this->languages()),
             ])->summary(fn (): string => $this->languages()[(string) $this->valueInUse('default_locale')] ?? $this->shown($this->valueInUse('default_locale'))),
@@ -222,6 +286,32 @@ class ManagePlatformSettings extends AdminSettingsPage
             ])->summary(fn (): string => $this->valueInUse('logs_page_enabled') === true ? __('Logs page on') : __('Logs page off'))
                 ->advanced(),
         ];
+    }
+
+    /**
+     * The icon upload: a square picture on the public disk. Without a license
+     * key it is greyed out, and a saved icon stays saved but is not shown.
+     */
+    private function logoUpload(): FileUpload
+    {
+        return FileUpload::make('logo')
+            ->label(__('Icon'))
+            ->disk('assets')
+            ->directory(CustomLogo::DIRECTORY)
+            ->visibility('public')
+            ->image()
+            ->acceptedFileTypes(['image/png', 'image/webp', 'image/jpeg'])
+            ->maxSize(2048)
+            // Cropped to a square in the browser; the favicons need it at least this big.
+            ->imageAspectRatio('1:1')
+            ->automaticallyCropImagesToAspectRatio()
+            ->rule(Rule::dimensions()->minWidth(CustomLogo::MIN_SIZE)->minHeight(CustomLogo::MIN_SIZE))
+            ->validationMessages(['dimensions' => __('Use a picture of at least :size × :size pixels.', ['size' => CustomLogo::MIN_SIZE])])
+            ->imagePreviewHeight('64')
+            ->disabled(fn (): bool => ! app(Entitlements::class)->licensed())
+            ->helperText(fn (): string => app(Entitlements::class)->licensed()
+                ? __('A square PNG, WebP or JPEG of at least 512 × 512 pixels and up to 2 MB. The favicons, the small icons in browser tabs, are made from it too. Pick one that is easy to see in light and dark mode. Remove it to show the ChatVia.ai mark and favicons again.')
+                : __('Add a license key under License to use your own icon.'));
     }
 
     /** The version that runs, then whether a newer one is out. */

@@ -18,6 +18,7 @@ use App\Http\Controllers\Connector\ConnectorOAuthCallbackController;
 use App\Http\Controllers\CustomDomains\CustomDomainLookupController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KnowledgeFiles\SourceFileViewController;
+use App\Http\Controllers\WebManifestController;
 use App\Http\Middleware\Web\ContentSecurityPolicy;
 use Domain\Llm\Services\ModelsDevCatalog;
 use Illuminate\Support\Facades\Route;
@@ -25,6 +26,9 @@ use Illuminate\Support\Facades\Route;
 // `/` has no landing page: guests go to the login form, signed-in users to
 // their dashboard.
 Route::get('/', HomeController::class)->name('home');
+
+// The home-screen manifest, with the app's name and favicons (Settings → Platform).
+Route::get('/site.webmanifest', WebManifestController::class)->name('web-manifest');
 
 // Authenticated dashboard. URLs carry no language segment: the rendered
 // language follows the signed-in user's saved `users.locale` (SetLocale). Each

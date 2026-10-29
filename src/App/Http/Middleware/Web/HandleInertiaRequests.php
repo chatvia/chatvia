@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware\Web;
 
+use App\Admin\Settings\CustomLogo;
 use App\Http\Auth\BotCheck;
 use App\Http\Middleware\Chat\ChatHandleInertiaRequests;
 use App\Identity\Workspace\Enums\SocialProvider;
@@ -32,6 +33,7 @@ class HandleInertiaRequests extends Middleware
         private readonly BotCheck $botCheck,
         private readonly Entitlements $entitlements,
         private readonly TeamRoleResolver $roles,
+        private readonly CustomLogo $customLogo,
     ) {}
 
     /**
@@ -45,6 +47,9 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            // The install's own icon for the sign-in pages (Settings →
+            // Platform, licensed installs only), or null for the ChatVia.ai mark.
+            'logo' => $this->customLogo->url(...),
             // The Cloudflare Turnstile bot check of the public forms (Settings →
             // Security): its site key and the forms it protects, or null.
             'turnstile' => $this->botCheck->forPages(...),

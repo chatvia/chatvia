@@ -40,6 +40,9 @@ export interface CurrentTeam {
 
 export interface SharedData extends PageProps {
     name: string;
+    // The install's own icon (Settings → Platform, licensed installs only),
+    // shown on the sign-in pages in place of the ChatVia.ai mark; null for the mark.
+    logo: string | null;
     // Whether the "Powered by ChatVia.ai" credit shows under the hosted chat
     // (the admin panel's License page). Shared on hosted chat pages only.
     poweredBy?: boolean;

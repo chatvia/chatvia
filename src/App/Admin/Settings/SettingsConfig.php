@@ -94,13 +94,16 @@ final class SettingsConfig
         $values['chatvia.license.enterprise'] = $license->allows($values['chatvia.license.key'] ?? null, LicenseFeature::Enterprise);
 
         // Any valid key lifts the free-use limits. Without one, texts are split
-        // with the defaults; saved Splitting options stay saved but unused.
+        // with the defaults and the ChatVia.ai mark shows in place of the
+        // install's logo; the saved options and logo stay saved but unused.
         $values['chatvia.license.licensed'] = $license->allowsHidingCredit($values['chatvia.license.key'] ?? null);
 
         if (! $values['chatvia.license.licensed']) {
             foreach (self::SPLITTING_KEYS as $key) {
                 $values[$key] = $this->defaults[$key] ?? null;
             }
+
+            $values['chatvia.logo'] = null;
         }
 
         $hash = md5(serialize($values));

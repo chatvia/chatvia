@@ -195,19 +195,21 @@ async function createNewConversation(message: string, attachments: ChatAttachmen
                             </div>
                         </div>
 
-                        <div v-if="canSendMessages && resolvedStarters.length > 0" class="mt-6 flex flex-wrap justify-center gap-2.5">
+                        <div v-if="canSendMessages && resolvedStarters.length > 0" class="mt-5 flex flex-wrap justify-center gap-2">
                             <button
                                 v-for="(starter, index) in resolvedStarters"
                                 :key="index"
+                                type="button"
+                                dir="auto"
                                 @click="selectedStarter = starter.text"
-                                class="group border-border bg-card hover:border-muted-foreground/30 hover:bg-muted/60 flex cursor-pointer items-center gap-2 rounded-2xl border px-4 py-2.5 text-start shadow-sm transition-all duration-150 hover:-translate-y-px hover:shadow-md"
+                                class="group border-border bg-background hover:border-muted-foreground/30 hover:bg-muted/60 focus-visible:ring-ring/50 inline-flex max-w-full cursor-pointer items-center justify-center gap-1.5 rounded-full border px-3.5 py-1.5 text-center transition-colors duration-150 focus-visible:ring-2 focus-visible:outline-none"
                             >
                                 <HeroIcon
                                     v-if="starter.icon"
                                     :name="starter.icon"
-                                    class="text-muted-foreground group-hover:text-primary h-4 w-4 shrink-0 transition-colors"
+                                    class="text-muted-foreground group-hover:text-primary h-3.5 w-3.5 shrink-0 transition-colors"
                                 />
-                                <span class="text-foreground/80 group-hover:text-foreground line-clamp-2 max-w-[280px] text-sm leading-snug">
+                                <span class="text-foreground/75 group-hover:text-foreground line-clamp-2 text-[13px] leading-snug text-balance">
                                     {{ starter.text }}
                                 </span>
                             </button>

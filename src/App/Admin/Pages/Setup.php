@@ -10,6 +10,7 @@ use App\Admin\Forms\ModelPicker;
 use App\Admin\RequireSetup;
 use App\Admin\Settings\Actions\ActivateLicenseAction;
 use App\Admin\Settings\Actions\CompleteSetupAction;
+use App\Admin\Settings\Actions\RemoveLicenseAction;
 use App\Admin\Settings\AiProviderCheck;
 use App\Admin\Settings\AiProviderIcon;
 use App\Admin\Settings\AiSettings;
@@ -106,6 +107,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Async;
 use Livewire\Attributes\Renderless;
+use Support\License\Entitlements;
 use Support\License\LicenseFeature;
 
 /**
@@ -118,9 +120,14 @@ use Support\License\LicenseFeature;
  *    turned on here when the database has it loaded; and pg_partman,
  *    which analytics needs, with a warning and a link to the docs when missing.
  *    Next with a service down asks first ({@see serverDownAction()}).
- * 2. AI provider: the main provider and its key (its model list checks it);
+ * 2. License (optional): what a key adds to a free install, with a link to
+ *    buy one, and the key, activated at chatvia.ai and saved on Next
+ *    ({@see activateLicense()}), the one thing saved before Finish setup.
+ *    On an address only this computer opens, the field says the key is
+ *    tied to it until removed. The steps after it lock what needs a license.
+ * 3. AI provider: the main provider and its key (its model list checks it);
  *    more providers can be added later in Settings → AI providers.
- * 3. Models: the chat models agents can use (one or more, one of them the
+ * 4. Models: the chat models agents can use (one or more, one of them the
  *    default for new agents; the provider's recommended ones are picked,
  *    {@see ModelPresets}), the model for quick tasks (guardrails, follow-up
  *    questions, titles…: a small one when the provider has one, else
@@ -133,36 +140,32 @@ use Support\License\LicenseFeature;
  *    checked with a test embedding, and the
  *    reranker: OpenRouter (its live list of rerankers), Cohere, a server
  *    of your own or none, checked with a test question.
- * 4. Ingestion, in three sections. Document reader: Mistral OCR, Azure
+ * 5. Ingestion, in three sections. Document reader: Mistral OCR, Azure
  *    Document Intelligence or none (the default); without a reader, PDF,
  *    Word, slides and images cannot be uploaded. Web scraper: Firecrawl
  *    or none (the default); without it, websites cannot be added as
  *    knowledge. AI enhancement: on (the default) or off, for files, web
  *    pages, texts and the summary of each source together; Settings →
  *    Knowledge and AI models turn them on one by one.
- * 5. Voice, in two sections. Speech to text: Scaleway AI, OpenAI or none
+ * 6. Voice, in two sections. Speech to text: Scaleway AI, OpenAI or none
  *    (the default); without it, audio and video files cannot be uploaded
  *    and voice messages stay audio. Voice conversations: OpenAI's Realtime
- *    API or none (the default); it needs an OpenAI key even when agents
- *    answer with another provider, and each agent still turns calls on in
- *    its own setup.
- * 6. Storage: private files, public images and backups, each on this
+ *    API or none (the default); it needs a license (a free install locks
+ *    the choice on Disable, with a link to buy one) and an OpenAI key even
+ *    when agents answer with another provider, and each agent still turns
+ *    calls on in its own setup.
+ * 7. Storage: private files, public images and backups, each on this
  *    server (the default) or in an S3-compatible bucket of its own (each
  *    bucket checked with a test file).
- * 7. Mailer: none (the default) or a mail service. Without one nobody
+ * 8. Mailer: none (the default) or a mail service. Without one nobody
  *    receives sign-up, password or invitation emails.
- * 8. Observability: Spectra, the log of every AI call (the default), or
+ * 9. Observability: Spectra, the log of every AI call (the default), or
  *    none. What it saves of each call is changed in Settings →
  *    Observability.
- * 9. App: the app's name, which the sender name of emails follows until it
- *    is changed in the Mailer step; and the license (optional): what a key
- *    adds to a free install, with a link to buy one, and the key, activated
- *    at chatvia.ai and saved on Next ({@see activateLicense()}), the one
- *    thing saved before Finish setup. On an address only this computer
- *    opens, the field says the key is tied to it until removed.
- * 10. Final: "Congratulations", a link to the workspace sign-in page for
- *    after Finish setup, and the Finish setup button itself, in the middle
- *    in place of the action bar.
+ * 10. Final: the app's name, which the sender name of emails follows until
+ *    it is changed in the Mailer step; "Congratulations", a link to the
+ *    workspace sign-in page for after Finish setup, and the Finish setup
+ *    button itself, in the middle in place of the action bar.
  *
  * Each step starts on the safe choice ("Disable …", "This server", Spectra
  * on) unless it is set up already: what `.env` suggests is not a choice. The one
@@ -324,7 +327,7 @@ class Setup extends SimplePage
             'website_import' => filled(config('services.firecrawl.key')) ? self::FIRECRAWL : self::NOT_NOW,
             'enhancement' => filter_var(config('chatvia.ai.chunker.enhance'), FILTER_VALIDATE_BOOL) ? self::ENHANCE : self::NOT_NOW,
             'transcriber' => collect($this->speechOptions())->containsStrict(app(AiSettings::class)->transcriber) ? app(AiSettings::class)->transcriber : self::NOT_NOW,
-            'voice' => collect($this->voiceOptions())->containsStrict(app(AiSettings::class)->voice) ? app(AiSettings::class)->voice : self::NOT_NOW,
+            'voice' => $this->voiceLicensed() && collect($this->voiceOptions())->containsStrict(app(AiSettings::class)->voice) ? app(AiSettings::class)->voice : self::NOT_NOW,
             'storage_driver' => app(StorageSettings::class)->driver === 's3' ? 's3' : 'local',
             'public_files' => filled(app(StorageSettings::class)->s3_public_bucket) ? 'bucket' : 'local',
             'backup_files' => match (true) {
@@ -380,6 +383,7 @@ class Setup extends SimplePage
         return $schema->components([
             Wizard::make([
                 $this->serverStep(),
+                $this->licenseStep(),
                 $this->connectStep(),
                 $this->modelsStep(),
                 $this->ingestionStep(),
@@ -387,13 +391,21 @@ class Setup extends SimplePage
                 $this->storageStep(),
                 $this->emailStep(),
                 $this->observabilityStep(),
-                $this->appStep(),
                 $this->finalStep(),
             ])
                 ->contained(false)
                 ->extraAttributes(['class' => 'cv-setup-wizard'])
                 // The last step has no action bar: its own Finish setup button replaces it.
-                ->extraAlpineAttributes(['x-bind:class' => "{ 'cv-setup-wizard--last': isLastStep() }"])
+                ->extraAlpineAttributes([
+                    'x-bind:class' => "{ 'cv-setup-wizard--last': isLastStep() }",
+                    // Filament opens and checks off only the steps before the one on
+                    // screen. Going back must not lock or uncheck the steps already
+                    // reached: they stay open, and data-reached lets the theme keep
+                    // the ones passed checked off.
+                    'x-init' => 'let reached = -1; const reach = () => { reached = Math.max(reached, getStepIndex(step)); $el.dataset.reached = reached }; $nextTick(reach); $watch(\'step\', reach); isStepAccessible = (key) => { const index = getStepIndex(key); return index !== -1 && index !== getStepIndex(step) && index <= Math.max(reached, getStepIndex(step)) }',
+                    // A step ahead is reached through the server, which checks the step on screen first.
+                    'x-on:click.capture' => "const button = \$event.target.closest('.fi-sc-wizard-header-step-btn'); if (! button) return; const index = Array.from(\$refs.header.querySelectorAll('.fi-sc-wizard-header-step-btn')).indexOf(button); const current = getStepIndex(step); if (index <= current) return; \$event.stopPropagation(); \$wire.goToReachedStep(current, getSteps()[index])",
+                ])
                 // Shown on every step but the last, in the bar with Back and Next.
                 ->cancelAction($this->wayOutLink()),
         ]);
@@ -408,14 +420,14 @@ class Setup extends SimplePage
         $this->checkReader();
         $this->checkFirecrawl();
         $this->checkServiceKey('transcriber', 'transcription_api_key');
-        $this->checkServiceKey('voice', 'voice_api_key');
+        $this->checkVoiceKey();
         $this->checkStorage();
 
         $account = $this->account($state);
         $embedding = $this->embeddingProvider($state);
         $reader = AiProvider::tryFrom((string) ($state['document_reader'] ?? ''));
         $transcriber = AiProvider::tryFrom((string) ($state['transcriber'] ?? ''));
-        $voice = AiProvider::tryFrom((string) ($state['voice'] ?? ''));
+        $voice = $this->voiceLicensed() ? AiProvider::tryFrom((string) ($state['voice'] ?? '')) : null;
 
         $model = app(CompleteSetupAction::class)->execute(new SetupData(
             chatKind: $this->chatKind($state),
@@ -439,7 +451,6 @@ class Setup extends SimplePage
             documentApiKey: $reader instanceof AiProvider && ! $this->reusesEarlierKey('document_reader', $state) ? $this->filled($state, 'document_api_key') : null,
             documentEndpoint: $reader === AiProvider::Azure ? $this->filled($state, 'document_endpoint') : null,
             firecrawlApiKey: ($state['website_import'] ?? null) === self::FIRECRAWL ? $this->filled($state, 'firecrawl_api_key') : null,
-            enhanceKnowledge: ($state['enhancement'] ?? null) !== self::NOT_NOW,
             transcriber: $transcriber,
             transcriptionApiKey: $transcriber instanceof AiProvider && ! $this->reusesEarlierKey('transcriber', $state) ? $this->filled($state, 'transcription_api_key') : null,
             voice: $voice,
@@ -455,6 +466,7 @@ class Setup extends SimplePage
             ),
             recordAiCalls: ($state['observability'] ?? null) !== self::NOT_NOW,
             appName: $this->filled($state, 'app_name'),
+            enhanceKnowledge: ($state['enhancement'] ?? null) !== self::NOT_NOW,
         ));
 
         Cache::forget($this->modelCacheKey());
@@ -501,6 +513,37 @@ class Setup extends SimplePage
                     ->schema([$this->analyticsCallout()]),
             ])
             ->afterValidation(fn () => $this->confirmServer());
+    }
+
+    /**
+     * Right after the server: a key typed here is activated at once, so the
+     * steps after it unlock what the license allows (voice conversations
+     * need one).
+     */
+    private function licenseStep(): Step
+    {
+        return Step::make('License')
+            ->description('Free or licensed')
+            ->icon(Heroicon::OutlinedCheckBadge)
+            ->schema([
+                Section::make('License (optional)')
+                    ->description('ChatVia.ai is free to use, with a few limits. A license key lifts them and supports its development. The next steps lock what needs a license.')
+                    ->icon(Heroicon::OutlinedCheckBadge)
+                    ->schema([
+                        $this->licenseCallout(),
+                        TextInput::make('license_key')
+                            ->label('License key')
+                            ->password()
+                            ->revealable()
+                            ->autocomplete('off')
+                            ->placeholder('cvl1.…')
+                            ->helperText(fn (): string => $this->runsOnLocalAddress()
+                                ? 'Paste the whole key from your email. Next activates it at chatvia.ai for this address, which only this computer opens: remove it on the License page before ChatVia.ai moves to its real address.'
+                                : 'Paste the whole key from your email. Next activates it for this site at chatvia.ai. You can also add it later on the License page.')
+                            ->visible(fn (): bool => $this->licenseStatus() !== LicenseStatus::Valid),
+                    ]),
+            ])
+            ->afterValidation(fn () => $this->showingErrors(fn () => $this->activateLicense()));
     }
 
     private function connectStep(): Step
@@ -698,6 +741,20 @@ class Setup extends SimplePage
                     ->description('Visitors can talk with an agent in a live call, in the hosted chat and the chat widget. The agent listens, answers out loud and uses its tools. This uses the OpenAI Realtime API, so it needs an OpenAI key, also when your agents answer with another provider.')
                     ->icon(Heroicon::OutlinedPhone)
                     ->schema([
+                        Callout::make('Voice conversations need a license')
+                            ->description('A free install has no voice conversations. Add a license key on the License step to turn them on.')
+                            ->icon(Heroicon::OutlinedLockClosed)
+                            ->warning()
+                            ->actions([
+                                Action::make('buyVoiceLicense')
+                                    ->label('Buy a license')
+                                    ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
+                                    ->iconPosition('after')
+                                    ->url(fn (): ?string => config('chatvia.license.buy_url'))
+                                    ->openUrlInNewTab()
+                                    ->visible(fn (): bool => filled(config('chatvia.license.buy_url'))),
+                            ])
+                            ->visible(fn (): bool => ! $this->voiceLicensed()),
                         CardRadio::make('voice')
                             ->hiddenLabel()
                             ->options([
@@ -712,15 +769,19 @@ class Setup extends SimplePage
                                 ...collect($voice)->mapWithKeys(fn (AiProvider $service): array => [$service->value => AiProviderIcon::of($service)])->all(),
                                 self::NOT_NOW => Heroicon::OutlinedNoSymbol,
                             ])
+                            ->disabled(fn (): bool => ! $this->voiceLicensed())
                             ->required()
                             ->live(),
-                        $this->keyCallout('voice'),
-                        $this->serviceKeyField('voice_api_key', 'voice', 'getVoiceKey'),
+                        // A locked choice saves as Disable, so its key is neither asked nor required.
+                        $this->keyCallout('voice')
+                            ->hidden(fn (): bool => ! $this->voiceLicensed()),
+                        $this->serviceKeyField('voice_api_key', 'voice', 'getVoiceKey')
+                            ->hidden(fn (): bool => ! $this->voiceLicensed()),
                     ]),
             ])
             ->afterValidation(fn () => $this->showingErrors(function (): void {
                 $this->checkServiceKey('transcriber', 'transcription_api_key');
-                $this->checkServiceKey('voice', 'voice_api_key');
+                $this->checkVoiceKey();
             }));
     }
 
@@ -948,7 +1009,10 @@ class Setup extends SimplePage
             ->icon(Heroicon::OutlinedEye)
             ->schema([
                 Section::make('Spectra')
-                    ->description('Spectra keeps a log of every call ChatVia.ai makes to an AI service: which model answered, how many tokens it used, what it cost and how long it took. It helps you see what your agents cost, and find out why an answer was slow or wrong. The log stays on this server, in a database of its own, and only admins can open it.')
+                    ->description(fn (): HtmlString => new HtmlString(
+                        'Spectra keeps a log of every call ChatVia.ai makes to an AI service: which model answered, how many tokens it used, what it cost and how long it took. It helps you see what your agents cost, and find out why an answer was slow or wrong. The log stays on this server, in a database of its own, and only admins can open it. '
+                        .'Spectra can be accessed at <a href="'.e(url((string) config('spectra.dashboard.path'))).'" target="_blank" rel="noopener" class="underline">'.e(url((string) config('spectra.dashboard.path'))).'</a>.'
+                    ))
                     ->icon(Heroicon::OutlinedCpuChip)
                     ->schema([
                         CardRadio::make('observability')
@@ -972,14 +1036,14 @@ class Setup extends SimplePage
             ]);
     }
 
-    private function appStep(): Step
+    private function finalStep(): Step
     {
-        return Step::make('App')
-            ->description('Its name and license')
-            ->icon(Heroicon::OutlinedTag)
+        return Step::make('Final')
+            ->description('Name it and sign in')
+            ->icon(Heroicon::OutlinedCheckBadge)
             ->schema([
-                Section::make('App name')
-                    ->description('The name people see in browser tabs, the dashboard, the admin panel and emails. You can change it later in Settings → Platform.')
+                Section::make('What would you like to name your app?')
+                    ->description('People see the name in browser tabs, the dashboard, the admin panel and emails. You can change it later in Settings → Platform.')
                     ->icon(Heroicon::OutlinedTag)
                     ->schema([
                         TextInput::make('app_name')
@@ -994,32 +1058,6 @@ class Setup extends SimplePage
                                 }
                             }),
                     ]),
-                Section::make('License (optional)')
-                    ->description('ChatVia.ai is free to use, with a few limits. A license key lifts them and supports its development.')
-                    ->icon(Heroicon::OutlinedCheckBadge)
-                    ->schema([
-                        $this->licenseCallout(),
-                        TextInput::make('license_key')
-                            ->label('License key')
-                            ->password()
-                            ->revealable()
-                            ->autocomplete('off')
-                            ->placeholder('cvl1.…')
-                            ->helperText(fn (): string => $this->runsOnLocalAddress()
-                                ? 'Paste the whole key from your email. Next activates it at chatvia.ai for this address, which only this computer opens: remove it on the License page before ChatVia.ai moves to its real address.'
-                                : 'Paste the whole key from your email. Next activates it for this site at chatvia.ai. You can also add it later on the License page.')
-                            ->visible(fn (): bool => $this->licenseStatus() !== LicenseStatus::Valid),
-                    ]),
-            ])
-            ->afterValidation(fn () => $this->showingErrors(fn () => $this->activateLicense()));
-    }
-
-    private function finalStep(): Step
-    {
-        return Step::make('Final')
-            ->description('Finish and sign in')
-            ->icon(Heroicon::OutlinedCheckBadge)
-            ->schema([
                 View::make('admin.setup.complete')
                     ->viewData(['loginUrl' => route('login')]),
             ]);
@@ -1481,7 +1519,8 @@ class Setup extends SimplePage
 
     /**
      * Where the license stands: what a key adds while there is none, with a
-     * link to buy one, or the saved key's type and licensee.
+     * link to buy one, or the saved key's type and licensee, with a way to
+     * remove it (to try the free install, or to move the key elsewhere).
      */
     private function licenseCallout(): Callout
     {
@@ -1508,11 +1547,26 @@ class Setup extends SimplePage
                     ->url(fn (): ?string => config('chatvia.license.buy_url'))
                     ->openUrlInNewTab()
                     ->visible(fn (): bool => filled(config('chatvia.license.buy_url')) && $this->licenseStatus() !== LicenseStatus::Valid),
+                Action::make('removeLicense')
+                    ->label('Remove license')
+                    ->icon(Heroicon::OutlinedTrash)
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->modalHeading('Remove the license?')
+                    ->modalDescription('The free limits come back, and the steps after this one leave out what needs a license. The key is freed at chatvia.ai, so you can use it on another install or add it again here.')
+                    ->modalSubmitActionLabel('Remove license')
+                    ->action(function (): void {
+                        app(RemoveLicenseAction::class)->execute();
+                        $this->data['voice'] = self::NOT_NOW;
+
+                        Notification::make()->success()->title('License removed')->send();
+                    })
+                    ->visible(fn (): bool => $this->licenseStatus() !== LicenseStatus::Missing),
             ]);
     }
 
     /**
-     * The app step's license check: a typed key is activated for this
+     * The license step's check: a typed key is activated for this
      * domain at chatvia.ai and saved at once, so it works whether the setup
      * is finished or skipped. The field is emptied once it is, so going back
      * and on does not activate it again.
@@ -1898,6 +1952,35 @@ class Setup extends SimplePage
             });
     }
 
+    /**
+     * A click in the step list on a step ahead that was reached before. The
+     * step on screen is checked first, as Next checks it (so a license key
+     * typed there is activated), then the wizard goes straight to that step.
+     */
+    public function goToReachedStep(int $currentStepIndex, string $step): void
+    {
+        $wizard = $this->wizard();
+
+        if (! $wizard instanceof Wizard) {
+            return;
+        }
+
+        $steps = $this->wizardSteps($wizard);
+
+        if (! isset($steps[$currentStepIndex + 1])) {
+            return;
+        }
+
+        $wizard->nextStep($currentStepIndex, $steps[$currentStepIndex]->getKey());
+
+        // Still here: the step did not pass, or it opened one of its windows.
+        if ($wizard->getCurrentStepIndex() !== $currentStepIndex + 1) {
+            return;
+        }
+
+        $this->dispatch('next-wizard-step', key: $wizard->getKey(), step: $step, currentStep: $steps[$currentStepIndex + 1]->getKey());
+    }
+
     // --- Checks ----------------------------------------------------------------
 
     /**
@@ -2236,18 +2319,33 @@ class Setup extends SimplePage
     /** Moves the wizard on from the step with this label, as Next does. */
     private function leaveStep(string $label): void
     {
-        $wizard = $this->form->getComponent(fn (mixed $component): bool => $component instanceof Wizard, withActions: false);
+        $wizard = $this->wizard();
 
         if (! $wizard instanceof Wizard) {
             return;
         }
 
-        $steps = array_values(array_filter($wizard->getChildSchema()->getComponents(), fn (mixed $component): bool => $component instanceof Step));
-        $index = array_find_key($steps, fn (Step $step): bool => $step->getLabel() === $label);
+        $index = array_find_key($this->wizardSteps($wizard), fn (Step $step): bool => $step->getLabel() === $label);
 
         if (is_int($index)) {
             $wizard->nextStep($index);
         }
+    }
+
+    private function wizard(): ?Wizard
+    {
+        $wizard = $this->form->getComponent(fn (mixed $component): bool => $component instanceof Wizard, withActions: false);
+
+        return $wizard instanceof Wizard ? $wizard : null;
+    }
+
+    /** @return list<Step> */
+    private function wizardSteps(Wizard $wizard): array
+    {
+        return collect($wizard->getChildSchema()->getComponents())
+            ->whereInstanceOf(Step::class)
+            ->values()
+            ->all();
     }
 
     /** The ingestion step's check: Firecrawl accepts the key typed. */
@@ -2293,6 +2391,20 @@ class Setup extends SimplePage
         if (! $check->connected) {
             throw ValidationException::withMessages(['data.'.($earlier ?? $keyField) => $check->message]);
         }
+    }
+
+    /** The voice conversations' key check, asked only while the license allows them. */
+    private function checkVoiceKey(): void
+    {
+        if ($this->voiceLicensed()) {
+            $this->checkServiceKey('voice', 'voice_api_key');
+        }
+    }
+
+    /** Whether the license allows voice conversations: a free install has none, so the Voice step locks them on Disable. */
+    private function voiceLicensed(): bool
+    {
+        return app(Entitlements::class)->voice();
     }
 
     /**

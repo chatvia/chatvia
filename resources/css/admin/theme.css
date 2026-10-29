@@ -1486,6 +1486,68 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     color: var(--cv-text);
 }
 
+/* After going back, the steps passed further on stay checked off. The
+ * wizard's data-reached is the index of the furthest step reached, so the
+ * steps before it are done. Filament marks only the steps before the one on
+ * screen, so these rules repeat its done look. */
+.cv-setup-wizard[data-reached='1'] .fi-sc-wizard-header-step:nth-child(-n + 1),
+.cv-setup-wizard[data-reached='2'] .fi-sc-wizard-header-step:nth-child(-n + 2),
+.cv-setup-wizard[data-reached='3'] .fi-sc-wizard-header-step:nth-child(-n + 3),
+.cv-setup-wizard[data-reached='4'] .fi-sc-wizard-header-step:nth-child(-n + 4),
+.cv-setup-wizard[data-reached='5'] .fi-sc-wizard-header-step:nth-child(-n + 5),
+.cv-setup-wizard[data-reached='6'] .fi-sc-wizard-header-step:nth-child(-n + 6),
+.cv-setup-wizard[data-reached='7'] .fi-sc-wizard-header-step:nth-child(-n + 7),
+.cv-setup-wizard[data-reached='8'] .fi-sc-wizard-header-step:nth-child(-n + 8),
+.cv-setup-wizard[data-reached='9'] .fi-sc-wizard-header-step:nth-child(-n + 9),
+.cv-setup-wizard[data-reached='10'] .fi-sc-wizard-header-step:nth-child(-n + 10),
+.cv-setup-wizard[data-reached='11'] .fi-sc-wizard-header-step:nth-child(-n + 11),
+.cv-setup-wizard[data-reached='12'] .fi-sc-wizard-header-step:nth-child(-n + 12) {
+    &:not(.fi-active, .fi-completed) {
+        & .fi-sc-wizard-header-step-icon-ctn {
+            border-color: var(--cv-primary);
+            background-color: var(--cv-primary);
+            box-shadow: 0 2px 6px -1px color-mix(in oklch, var(--cv-primary) 45%, transparent);
+
+            & .fi-icon {
+                color: white;
+            }
+
+            /* The check comes first, the step's own icon second; Alpine hides the check inline. */
+            & > .fi-icon:first-child {
+                display: block !important;
+            }
+
+            & > .fi-icon:last-child {
+                display: none !important;
+            }
+        }
+
+        & .fi-sc-wizard-header-step-label {
+            color: var(--cv-text);
+        }
+    }
+}
+
+@media (min-width: 48rem) {
+    .cv-setup-wizard[data-reached='1'] .fi-sc-wizard-header-step:nth-child(-n + 1),
+    .cv-setup-wizard[data-reached='2'] .fi-sc-wizard-header-step:nth-child(-n + 2),
+    .cv-setup-wizard[data-reached='3'] .fi-sc-wizard-header-step:nth-child(-n + 3),
+    .cv-setup-wizard[data-reached='4'] .fi-sc-wizard-header-step:nth-child(-n + 4),
+    .cv-setup-wizard[data-reached='5'] .fi-sc-wizard-header-step:nth-child(-n + 5),
+    .cv-setup-wizard[data-reached='6'] .fi-sc-wizard-header-step:nth-child(-n + 6),
+    .cv-setup-wizard[data-reached='7'] .fi-sc-wizard-header-step:nth-child(-n + 7),
+    .cv-setup-wizard[data-reached='8'] .fi-sc-wizard-header-step:nth-child(-n + 8),
+    .cv-setup-wizard[data-reached='9'] .fi-sc-wizard-header-step:nth-child(-n + 9),
+    .cv-setup-wizard[data-reached='10'] .fi-sc-wizard-header-step:nth-child(-n + 10),
+    .cv-setup-wizard[data-reached='11'] .fi-sc-wizard-header-step:nth-child(-n + 11),
+    .cv-setup-wizard[data-reached='12'] .fi-sc-wizard-header-step:nth-child(-n + 12) {
+        &:not(.fi-active, .fi-completed):not(:last-child)::after {
+            background-color: transparent;
+            background-image: linear-gradient(to bottom, var(--cv-primary), color-mix(in oklab, var(--cv-primary) 70%, var(--cv-card)));
+        }
+    }
+}
+
 @keyframes cv-step-halo {
     0%,
     100% {

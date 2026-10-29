@@ -28,7 +28,7 @@
     "src/App/Admin/Clusters/Settings/Pages/ManageStorageSettings.php": 2,
     "src/App/Admin/Clusters/Settings/SettingsSearch.php": 3,
     "src/App/Admin/Pages/Dashboard.php": 1,
-    "src/App/Admin/Pages/Setup.php": 30,
+    "src/App/Admin/Pages/Setup.php": 29,
     "src/App/Admin/Pages/Status.php": 4,
     "src/App/Admin/Resources/Workspaces/RelationManagers/AgentsRelationManager.php": 4,
     "src/App/Admin/Settings/Actions/CompleteSetupAction.php": 1,

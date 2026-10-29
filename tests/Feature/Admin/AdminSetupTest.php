@@ -76,13 +76,14 @@ function setupNotDone(): void
     $platform->save();
 }
 
-/** The setup page past its server step, with every service running. */
+/** The setup page past its server and license steps, with every service running. */
 function setupPage(User $admin): Testable
 {
     return adminPage(Setup::class, $admin)
         ->set('server', setupServicesRunning())
         ->goToNextWizardStep()
-        ->assertWizardCurrentStep(2);
+        ->goToNextWizardStep()
+        ->assertWizardCurrentStep(3);
 }
 
 /**
@@ -309,55 +310,80 @@ function setupLicensable(): void
     ]);
 }
 
-/** The setup page on its App step (name and license), every service running. */
-function setupAppStep(User $admin): Testable
+/** The setup page on its License step, right after the server, every service running. */
+function setupLicenseStep(User $admin): Testable
 {
     return adminPage(Setup::class, $admin)
         ->set('server', setupServicesRunning())
-        ->goToWizardStep(9)
-        ->assertWizardCurrentStep(9);
+        ->goToNextWizardStep()
+        ->assertWizardCurrentStep(2);
 }
 
-it('encourages a license on the step before the last, and activates a typed key on Next', function (): void {
+it('asks for a license right after the server, activates a typed key on Next, and then offers voice conversations', function (): void {
     setupLicensable();
     Http::fake(['licenses.test/api/licenses/activate' => Http::response(['key' => LicenseKeys::activatedFor('chat.acme.com')])]);
 
-    setupAppStep($this->admin)
-        ->assertSeeInOrder(['App name', 'License (optional)', 'Get the most out of ChatVia.ai', 'no limits on agents, teams or replies', 'Buy a license'])
+    setupLicenseStep($this->admin)
+        ->assertSeeInOrder(['License (optional)', 'Get the most out of ChatVia.ai', 'no limits on agents, teams or replies', 'Buy a license'])
+        ->assertSee('Voice conversations need a license')
         ->assertFormFieldVisible('license_key')
         ->fillForm(['license_key' => LicenseKeys::BOUGHT_KEY])
-        ->goToWizardStep(10)
+        ->goToWizardStep(3)
         ->assertHasNoFormErrors()
-        ->assertWizardCurrentStep(10)
+        ->assertWizardCurrentStep(3)
         ->assertNotified('License activated')
-        ->assertSet('data.license_key', null);
+        ->assertSet('data.license_key', null)
+        ->assertSee(['Speech to text and live calls', 'Voice conversations'])
+        ->assertDontSee('Voice conversations need a license');
 
     expect(savedSetting(BrandSettings::class, 'license_key'))->toBe(LicenseKeys::activatedFor('chat.acme.com'));
 });
 
-it('stays on the App step when chatvia.ai refuses the license key', function (): void {
+it('stays on the License step when chatvia.ai refuses the license key', function (): void {
     setupLicensable();
     Http::fake(['licenses.test/api/licenses/activate' => Http::response(['message' => 'This key is active on another domain.'], 422)]);
 
-    setupAppStep($this->admin)
+    setupLicenseStep($this->admin)
         ->fillForm(['license_key' => LicenseKeys::BOUGHT_KEY])
-        ->goToWizardStep(10)
+        ->goToWizardStep(3)
         ->assertHasFormErrors(['license_key' => 'This key is active on another domain.'])
-        ->assertWizardCurrentStep(9);
+        ->assertWizardCurrentStep(2);
 
     expect(savedSetting(BrandSettings::class, 'license_key'))->toBeNull();
 });
 
-it('goes on without a license key', function (): void {
+it('jumps ahead to a step reached before only once the step on screen passes', function (): void {
     setupLicensable();
-    Http::fake();
+    Http::fake(['licenses.test/api/licenses/activate' => Http::response(['message' => 'This key is active on another domain.'], 422)]);
 
-    setupAppStep($this->admin)
-        ->goToWizardStep(10)
+    setupLicenseStep($this->admin)
+        ->fillForm(['license_key' => LicenseKeys::BOUGHT_KEY])
+        ->call('goToReachedStep', 1, 'form.ingestion::data::wizard-step')
+        ->assertHasFormErrors(['license_key' => 'This key is active on another domain.'])
+        ->assertNotDispatched('next-wizard-step')
+        ->fillForm(['license_key' => null])
+        ->call('goToReachedStep', 1, 'form.ingestion::data::wizard-step')
         ->assertHasNoFormErrors()
-        ->assertWizardCurrentStep(10);
+        ->assertDispatched('next-wizard-step', step: 'form.ingestion::data::wizard-step');
+});
 
-    Http::assertNotSent(fn (Request $request): bool => Str::contains($request->url(), 'licenses.test'));
+it('goes on without a license key, and locks voice conversations', function (): void {
+    setupLicensable();
+    setupFakeScaleway($this->dimensions);
+
+    setupLicenseStep($this->admin)
+        ->goToWizardStep(3)
+        ->assertHasNoFormErrors()
+        ->assertWizardCurrentStep(3)
+        ->assertSee('Voice conversations need a license')
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
+        ->goToWizardStep(4)
+        ->fillForm(['voice' => 'openai'])
+        ->call('complete')
+        ->assertHasNoFormErrors();
+
+    Http::assertNotSent(fn (Request $request): bool => Str::contains($request->url(), 'licenses.test') || Str::contains($request->url(), 'api.openai.com'));
+    expect(savedSetting(AiSettings::class, 'voice'))->toBe('none');
 });
 
 it('takes a license key on an address only this computer opens, and says it is tied to it', function (): void {
@@ -365,13 +391,13 @@ it('takes a license key on an address only this computer opens, and says it is t
     config(['app.url' => 'http://localhost:8080', 'chatvia.license.api_url' => 'https://licenses.test/api/licenses']);
     Http::fake(['licenses.test/api/licenses/activate' => Http::response(['key' => LicenseKeys::activatedFor('localhost')])]);
 
-    setupAppStep($this->admin)
+    setupLicenseStep($this->admin)
         ->assertSee(['Get the most out of ChatVia.ai', 'best added once ChatVia.ai runs at its real address', 'remove it on the License page'])
         ->assertFormFieldVisible('license_key')
         ->fillForm(['license_key' => LicenseKeys::BOUGHT_KEY])
-        ->goToWizardStep(10)
+        ->goToWizardStep(3)
         ->assertHasNoFormErrors()
-        ->assertWizardCurrentStep(10);
+        ->assertWizardCurrentStep(3);
 
     expect(savedSetting(BrandSettings::class, 'license_key'))->toBe(LicenseKeys::activatedFor('localhost'));
 });
@@ -380,7 +406,7 @@ it('shows who a saved license key is licensed to, and asks for no other', functi
     setupLicensable();
     saveSettings(BrandSettings::class, ['license_key' => LicenseKeys::activatedFor('chat.acme.com')]);
 
-    setupAppStep($this->admin)
+    setupLicenseStep($this->admin)
         ->assertSee(['Pro license, licensed to Acme Ltd', 'Every feature is on.'])
         ->assertDontSee('Buy a license')
         ->assertFormFieldHidden('license_key');
@@ -388,7 +414,7 @@ it('shows who a saved license key is licensed to, and asks for no other', functi
 
 it('starts on OpenRouter, lists the providers by name, and says what each provider gives', function (): void {
     setupPage($this->admin)
-        ->assertWizardCurrentStep(2)
+        ->assertWizardCurrentStep(3)
         ->assertFormSet(['provider' => 'openrouter', 'embedding_provider' => 'openrouter'])
         ->assertSeeInOrder(['Anthropic', 'Google Gemini', 'Groq', 'Mistral', 'OpenAI', 'OpenRouter', 'Scaleway AI', 'Your own server'])
         ->assertSee(['Open models hosted in Europe.', 'Your own server'])
@@ -404,9 +430,9 @@ it('checks the key with the provider\'s model list before the next step', functi
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->assertHasNoFormErrors()
-        ->assertWizardCurrentStep(3)
+        ->assertWizardCurrentStep(4)
         ->assertSee('Connected to Scaleway AI')
         // The recommended model the provider lists (gpt-oss-120b is not
         // one), for chat, quick tasks and image descriptions.
@@ -442,8 +468,8 @@ it('picks a few OpenRouter chat models from different makers, and a small one fo
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'openrouter', 'api_key' => 'sk-or-test'])
-        ->goToWizardStep(3)
-        ->assertWizardCurrentStep(3)
+        ->goToWizardStep(4)
+        ->assertWizardCurrentStep(4)
         // One per maker, default first; a model that cannot call tools is
         // passed over for the next of its maker, a maker with none listed
         // (Qwen) is left out, and a model that is no preset (gpt-oss-120b,
@@ -465,10 +491,10 @@ it('stops on the first step when OpenRouter refuses the key, although its model 
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'openrouter', 'api_key' => 'sk-or-wrong'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->assertHasFormErrors(['api_key' => 'OpenRouter refused the API key. Check that you copied all of it.'])
         ->assertDispatched('form-validation-error')
-        ->assertWizardCurrentStep(2);
+        ->assertWizardCurrentStep(3);
 });
 
 it('stops on the first step when the provider refuses the key', function (): void {
@@ -476,9 +502,9 @@ it('stops on the first step when the provider refuses the key', function (): voi
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'wrong-key'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->assertHasFormErrors(['api_key'])
-        ->assertWizardCurrentStep(2);
+        ->assertWizardCurrentStep(3);
 });
 
 it('lets the admin turn image descriptions off, although a recommended model reads images', function (): void {
@@ -486,7 +512,7 @@ it('lets the admin turn image descriptions off, although a recommended model rea
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->assertFormSet(['describe_images' => true])
         ->fillForm(['describe_images' => false])
         ->assertFormFieldHidden('vision_model')
@@ -503,7 +529,7 @@ it('asks for a model once image descriptions are turned on', function (): void {
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->fillForm(['vision_model' => null])
         ->call('complete')
         ->assertHasFormErrors(['vision_model' => 'required']);
@@ -517,7 +543,7 @@ it('saves the Scaleway key once, for chat and for embeddings', function (): void
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->fillForm(['chat_models' => ['gemma-4-26b-a4b-it']])
         ->call('complete')
         ->assertHasNoFormErrors()
@@ -558,9 +584,9 @@ it('makes the embeddings with the OpenRouter key, with a model from its list', f
         // The Scaleway model it started with goes with Scaleway.
         ->assertFormSet(['embedding_provider' => 'openrouter', 'embedding_model' => 'openai/text-embedding-3-small'])
         ->fillForm(['api_key' => 'sk-or-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->assertHasNoFormErrors()
-        ->assertWizardCurrentStep(3)
+        ->assertWizardCurrentStep(4)
         // No recommended model is listed: the first model that calls tools
         // is, and quick tasks use it too.
         ->assertFormSet(['chat_models' => ['meta-llama/llama-4-maverick'], 'quick_task_model' => null, 'describe_images' => false, 'vision_model' => null])
@@ -593,9 +619,9 @@ it('asks for an embedding service in the Models step when the provider makes no 
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'groq', 'api_key' => 'gsk-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->assertHasNoFormErrors()
-        ->assertWizardCurrentStep(3)
+        ->assertWizardCurrentStep(4)
         ->assertSee('Groq does not make them, so pick a service that does.')
         ->fillForm(['embedding_provider' => 'cohere', 'embedding_api_key' => 'co-test'])
         ->assertFormSet(['embedding_model' => config('services.cohere.embedding_model')])
@@ -620,10 +646,10 @@ it('stops on the models step when the embedding service refuses its key', functi
 
     $page = setupPage($this->admin)
         ->fillForm(['provider' => 'groq', 'api_key' => 'gsk-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->fillForm(['embedding_provider' => 'cohere', 'embedding_api_key' => 'wrong'])
         ->tap(setupModelsAnswer(...))
-        ->goToWizardStep(4)
+        ->goToWizardStep(5)
         ->assertActionMounted('testModels');
 
     $page->call('testModel', 'embeddings', 'embeddings')->assertReturned(fn (array $result): bool => $result['state'] === 'failed' && filled($result['message']));
@@ -639,7 +665,7 @@ it('makes the embeddings with another provider than the chat, with its own key',
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'openrouter', 'api_key' => 'sk-or-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->assertFormSet(['embedding_provider' => 'openrouter'])
         ->fillForm(['embedding_provider' => 'jina'])
         ->assertFormFieldVisible('embedding_api_key')
@@ -658,7 +684,7 @@ it('makes the embeddings with Voyage AI, with its own key', function (): void {
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'openrouter', 'api_key' => 'sk-or-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->fillForm(['embedding_provider' => 'voyage'])
         ->assertFormFieldVisible('embedding_api_key')
         ->fillForm(['embedding_api_key' => 'pa-test'])
@@ -677,7 +703,7 @@ it('stops on Finish when the embedding model returns another vector size', funct
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->call('complete')
         ->assertHasFormErrors(['embedding_model']);
 
@@ -692,10 +718,10 @@ it('stays on the step when the reranker\'s test question fails', function (): vo
 
     $page = setupPage($this->admin)
         ->fillForm(['provider' => 'openrouter', 'api_key' => 'sk-or-test'])
-        ->goToWizardStep(3)
-        ->assertWizardCurrentStep(3)
-        ->tap(setupModelsAnswer(...))
         ->goToWizardStep(4)
+        ->assertWizardCurrentStep(4)
+        ->tap(setupModelsAnswer(...))
+        ->goToWizardStep(5)
         ->assertActionMounted('testModels');
 
     $page->call('testModel', 'reranker', 'reranker')->assertReturned(fn (array $result): bool => $result['state'] === 'failed' && Str::contains((string) $result['message'], 'No endpoints found'));
@@ -710,8 +736,8 @@ it('starts the reranker on OpenRouter with the key of the first step, from its l
 
     $page = setupPage($this->admin)
         ->fillForm(['provider' => 'openrouter', 'api_key' => 'sk-or-test'])
-        ->goToWizardStep(3)
-        ->assertWizardCurrentStep(3)
+        ->goToWizardStep(4)
+        ->assertWizardCurrentStep(4)
         ->assertFormSet(['reranker' => 'openrouter', 'openrouter_rerank_model' => 'cohere/rerank-4-pro'])
         ->assertFormFieldHidden('rerank_api_key')
         ->assertSee('Uses the OpenRouter key you entered in AI provider');
@@ -738,15 +764,15 @@ it('starts the reranker on "Disable reranker" for another provider, and checks C
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->assertFormSet(['reranker' => 'none'])
         ->fillForm(['reranker' => 'cohere'])
         ->assertFormFieldVisible('rerank_api_key')
         ->fillForm(['rerank_api_key' => 'co-test', 'cohere_rerank_model' => 'rerank-v4.0-fast'])
         ->tap(setupModelsAnswer(...))
-        ->goToWizardStep(4)
+        ->goToWizardStep(5)
         ->assertHasNoFormErrors()
-        ->assertWizardCurrentStep(4)
+        ->assertWizardCurrentStep(5)
         ->call('complete')
         ->assertHasNoFormErrors();
 
@@ -764,7 +790,7 @@ it('reranks with the Cohere key typed for the embeddings', function (): void {
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'groq', 'api_key' => 'gsk-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->fillForm(['embedding_provider' => 'cohere', 'embedding_api_key' => 'co-test', 'reranker' => 'cohere'])
         ->assertFormFieldHidden('rerank_api_key')
         ->assertSee('Uses the Cohere key above')
@@ -783,10 +809,10 @@ it('stops on the models step when the reranker refuses its key', function (): vo
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->fillForm(['reranker' => 'cohere', 'rerank_api_key' => 'wrong'])
         ->tap(setupModelsAnswer(...))
-        ->goToWizardStep(4)
+        ->goToWizardStep(5)
         ->assertActionMounted('testModels')
         ->call('testModel', 'reranker', 'reranker')
         ->assertReturned(fn (array $result): bool => $result['state'] === 'failed' && filled($result['message']))
@@ -801,7 +827,7 @@ it('reranks with a server of your own', function (): void {
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->fillForm(['reranker' => 'custom'])
         ->assertFormFieldHidden('rerank_api_key')
         ->fillForm(['rerank_custom_url' => 'https://reranker.example.com/v1/', 'rerank_custom_model' => 'Qwen/Qwen3-Reranker-4B', 'rerank_custom_key' => 'own-key'])
@@ -825,7 +851,7 @@ it('adds a server of your own and takes a typed model name when it lists none', 
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'custom', 'server_name' => 'Office Ollama', 'server_url' => 'http://ollama.test:11434/v1', 'embedding_provider' => 'cohere', 'embedding_api_key' => 'co-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->assertHasNoFormErrors()
         ->assertFormFieldVisible('chat_model_id')
         ->fillForm(['chat_model_id' => 'llama3.1:8b'])
@@ -848,7 +874,7 @@ it('saves the Azure OpenAI endpoint with its key and takes a typed deployment na
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'azure_openai', 'api_key' => 'az-test', 'chat_endpoint' => 'https://res.openai.azure.com/', 'embedding_provider' => 'cohere', 'embedding_api_key' => 'co-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->assertHasNoFormErrors()
         ->assertFormFieldVisible('chat_model_id')
         ->fillForm(['chat_model_id' => 'gpt-4.1'])
@@ -875,7 +901,7 @@ it('keeps the embedding service once sources are trained', function (): void {
         ->assertSee('Embeddings are already set up')
         ->assertFormFieldHidden('embedding_provider')
         ->fillForm(['provider' => 'openrouter', 'api_key' => 'sk-or-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->assertHasNoFormErrors()
         ->call('complete')
         ->assertHasNoFormErrors();
@@ -888,7 +914,7 @@ it('lets agents use several chat models, one of them the default', function (): 
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->fillForm(['chat_models' => ['gpt-oss-120b', 'gemma-4-26b-a4b-it'], 'default_model' => 'gemma-4-26b-a4b-it'])
         ->call('complete')
         ->assertHasNoFormErrors();
@@ -904,7 +930,7 @@ it('changes the chat models in a list with boxes to tick, keeping the default on
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->assertFormSet(['chat_models' => ['gemma-4-26b-a4b-it']])
         // The suggested model shows as a badge, with the button that changes it.
         ->assertSeeInOrder(['Models agents can use', 'gemma-4-26b-a4b-it', 'Manage models'])
@@ -931,7 +957,7 @@ it('lists the chosen chat models first, then the suggested ones, then the rest',
 
     $page = setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->assertFormSet(['chat_models' => ['gemma-4-26b-a4b-it', 'llama-3.3-70b-instruct']])
         ->callAction('manageChatModels', data: ['models' => ['gpt-oss-120b', 'gemma-4-26b-a4b-it']])
         ->mountAction('manageChatModels')
@@ -957,7 +983,7 @@ it('warns when a chosen chat model cannot call tools, and still keeps it', funct
 
     $page = setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->assertSet('modelsWithoutTools', ['gpt-oss-120b'])
         ->callAction('manageChatModels', data: ['models' => ['gemma-4-26b-a4b-it']])
         ->assertDontSee('cannot call tools')
@@ -983,7 +1009,7 @@ it('lists only the models that read images for image descriptions', function ():
 
     $page = setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->fillForm(['describe_images' => true]);
 
     $field = $page->instance()->form->getFlatFields(withHidden: true)['vision_model'];
@@ -1001,7 +1027,7 @@ it('lists only the models that read PDF files and images for chat file uploads, 
 
     $page = setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         // Scaleway has no recommended model that reads PDF files.
         ->assertFormSet(['chat_files' => false, 'files_model' => null])
         ->fillForm(['chat_files' => true]);
@@ -1023,7 +1049,7 @@ it('tests each chosen chat model as the test window opens: it answers, is busy, 
 
     $page = setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->callAction('manageChatModels', data: ['models' => ['gemma-4-26b-a4b-it', 'gpt-oss-120b', 'llama-3.3-70b-instruct']])
         ->mountAction(TestAction::make('testChat')->schemaComponent('chat', schema: 'form'))
         ->assertActionMounted(TestAction::make('testChat')->schemaComponent('chat', schema: 'form'));
@@ -1052,12 +1078,12 @@ it('tests the chat models, the embedding model and the reranker on Next, and goe
 
     $page = setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->callAction('manageChatModels', data: ['models' => ['gemma-4-26b-a4b-it', 'gpt-oss-120b']])
         ->fillForm(['reranker' => 'cohere', 'rerank_api_key' => 'co-test', 'cohere_rerank_model' => 'rerank-v4.0-fast'])
-        ->goToWizardStep(4)
+        ->goToWizardStep(5)
         ->assertActionMounted('testModels')
-        ->assertWizardCurrentStep(3, 'form')
+        ->assertWizardCurrentStep(4, 'form')
         ->assertMountedActionModalSee(['Testing the models', 'Chat models', 'gemma-4-26b-a4b-it', 'gpt-oss-120b', 'Embeddings', 'Reranker', 'rerank-v4.0-fast', 'Continue', 'Back to models']);
 
     // Continue before the test is done keeps the window open.
@@ -1073,11 +1099,11 @@ it('tests the chat models, the embedding model and the reranker on Next, and goe
 
     $page->callMountedAction()
         ->assertActionNotMounted('testModels')
-        ->assertWizardCurrentStep(4);
+        ->assertWizardCurrentStep(5);
 
     // Tested once: Next goes on without the window, until a key changes.
-    $page->goToWizardStep(4)->assertActionNotMounted('testModels')->assertWizardCurrentStep(4);
-    $page->fillForm(['rerank_api_key' => 'co-other'])->goToWizardStep(4)->assertActionMounted('testModels');
+    $page->goToWizardStep(5)->assertActionNotMounted('testModels')->assertWizardCurrentStep(5);
+    $page->fillForm(['rerank_api_key' => 'co-other'])->goToWizardStep(5)->assertActionMounted('testModels');
 });
 
 it('runs the model tests side by side, each keeping its answer outside the page state', function (): void {
@@ -1086,9 +1112,9 @@ it('runs the model tests side by side, each keeping its answer outside the page 
 
     $page = setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
-        ->callAction('manageChatModels', data: ['models' => ['gemma-4-26b-a4b-it', 'gpt-oss-120b']])
         ->goToWizardStep(4)
+        ->callAction('manageChatModels', data: ['models' => ['gemma-4-26b-a4b-it', 'gpt-oss-120b']])
+        ->goToWizardStep(5)
         ->assertActionMounted('testModels');
 
     // Tests that run at once each send the page as it was: one answering
@@ -1104,7 +1130,7 @@ it('runs the model tests side by side, each keeping its answer outside the page 
 
     $page->callMountedAction()
         ->assertActionNotMounted('testModels')
-        ->assertWizardCurrentStep(4);
+        ->assertWizardCurrentStep(5);
 });
 
 it('keeps the wizard on the models step while something did not answer, and says what to do', function (): void {
@@ -1116,9 +1142,9 @@ it('keeps the wizard on the models step while something did not answer, and says
 
     $page = setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
-        ->callAction('manageChatModels', data: ['models' => ['gemma-4-26b-a4b-it', 'gpt-oss-120b']])
         ->goToWizardStep(4)
+        ->callAction('manageChatModels', data: ['models' => ['gemma-4-26b-a4b-it', 'gpt-oss-120b']])
+        ->goToWizardStep(5)
         ->assertActionMounted('testModels')
         ->assertMountedActionModalSee('To go on, change or remove what did not answer, then press Next again.');
 
@@ -1132,9 +1158,9 @@ it('keeps the wizard on the models step while something did not answer, and says
     // Without the model that failed, the rest answered: Next goes on.
     $page->call('unmountAction')
         ->callAction('manageChatModels', data: ['models' => ['gemma-4-26b-a4b-it']])
-        ->goToWizardStep(4)
+        ->goToWizardStep(5)
         ->assertActionNotMounted('testModels')
-        ->assertWizardCurrentStep(4);
+        ->assertWizardCurrentStep(5);
 });
 
 it('shows each section of the test window as one card: how many are done, the model asked, and a mark per model', function (): void {
@@ -1154,7 +1180,7 @@ it('tests the embedding model with the key typed', function (): void {
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->fillForm(['embedding_provider' => 'qwen'])
         ->assertActionVisible(TestAction::make('testEmbeddings')->schemaComponent('embeddings', schema: 'form'))
         ->call('testModel', 'embeddings', 'embeddings')
@@ -1167,7 +1193,7 @@ it('shows the model for image descriptions a cat, and gives its description', fu
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->fillForm(['describe_images' => true, 'vision_model' => 'gemma-4-26b-a4b-it'])
         ->call('testModel', 'images', 'gemma-4-26b-a4b-it')
         ->assertReturned(['state' => 'passed', 'message' => 'A cartoon orange cat smiling.']);
@@ -1182,7 +1208,7 @@ it('sends the model for chat file uploads a one-page PDF file, and gives its sum
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->fillForm(['chat_files' => true, 'files_model' => 'gemma-4-26b-a4b-it'])
         ->assertFormComponentActionVisible('files_model', 'testFiles')
         ->call('testModel', 'files', 'gemma-4-26b-a4b-it')
@@ -1198,7 +1224,7 @@ it('names each model in the list, with its id under the name', function (): void
 
     $list = setupPage($this->admin)
         ->fillForm(['provider' => 'openrouter', 'api_key' => 'sk-or-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->assertSee('Llama 4 Maverick')
         ->mountAction('manageChatModels')
         ->instance()
@@ -1214,7 +1240,7 @@ it('takes only chat models from the provider\'s list', function (): void {
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->fillForm(['chat_models' => ['gpt-oss-120b', 'made-up-model']])
         ->call('complete')
         ->assertHasFormErrors(['chat_models']);
@@ -1228,14 +1254,14 @@ it('reads documents with Azure, with its key and endpoint checked', function ():
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
-        ->tap(setupModelsAnswer(...))
         ->goToWizardStep(4)
+        ->tap(setupModelsAnswer(...))
+        ->goToWizardStep(5)
         ->assertHasNoFormErrors()
         ->assertFormSet(['document_reader' => 'none'])
         ->assertSee(['PDF, Word, PowerPoint and image files are not read', 'Only text, Markdown, Excel, CSV and ebook files are read.', 'images/logos/services/firecrawl.svg'])
         ->fillForm(['document_reader' => 'azure', 'document_api_key' => 'az-key', 'document_endpoint' => 'https://docs.cognitiveservices.azure.com/'])
-        ->goToWizardStep(5)
+        ->goToWizardStep(6)
         ->assertHasNoFormErrors()
         ->call('complete')
         ->assertHasNoFormErrors();
@@ -1250,20 +1276,20 @@ it('warns before going on without a document reader, and goes on once agreed', f
 
     $page = setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
-        ->tap(setupModelsAnswer(...))
         ->goToWizardStep(4)
-        ->assertFormSet(['document_reader' => 'none'])
+        ->tap(setupModelsAnswer(...))
         ->goToWizardStep(5)
+        ->assertFormSet(['document_reader' => 'none'])
+        ->goToWizardStep(6)
         ->assertActionMounted('noReader')
         ->assertMountedActionModalSee(['Continue without a document reader?', 'PDF, Word, slides and images cannot be read', 'the app reads them itself', 'Continue without one', 'Choose a reader'])
-        ->assertWizardCurrentStep(4, 'form')
+        ->assertWizardCurrentStep(5, 'form')
         ->callMountedAction()
-        ->assertWizardCurrentStep(5)
+        ->assertWizardCurrentStep(6)
         ->assertSet('noReaderConfirmed', true);
 
     // Agreed once: Next does not ask again, until the choice changes.
-    $page->goToWizardStep(5)->assertActionNotMounted('noReader')->assertWizardCurrentStep(5);
+    $page->goToWizardStep(6)->assertActionNotMounted('noReader')->assertWizardCurrentStep(6);
     $page->fillForm(['document_reader' => 'azure'])->fillForm(['document_reader' => 'none'])->assertSet('noReaderConfirmed', false);
 });
 
@@ -1273,7 +1299,7 @@ it('stops on the ingestion step when Azure refuses the key', function (): void {
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test', 'document_reader' => 'azure', 'document_api_key' => 'wrong', 'document_endpoint' => 'https://docs.cognitiveservices.azure.com'])
-        ->goToWizardStep(5)
+        ->goToWizardStep(6)
         ->assertHasFormErrors(['document_api_key']);
 });
 
@@ -1286,12 +1312,12 @@ it('reads documents with the Mistral key of the first step', function (): void {
     setupPage($this->admin)
         ->fillForm(['provider' => 'mistral', 'api_key' => 'mistral-test'])
         ->assertFormSet(['document_reader' => 'mistral'])
-        ->goToWizardStep(3)
-        ->tap(setupModelsAnswer(...))
         ->goToWizardStep(4)
+        ->tap(setupModelsAnswer(...))
+        ->goToWizardStep(5)
         ->assertSee('Uses the Mistral key you entered in AI provider')
         ->assertFormFieldHidden('document_api_key')
-        ->goToWizardStep(5)
+        ->goToWizardStep(6)
         ->assertHasNoFormErrors()
         ->call('complete')
         ->assertHasNoFormErrors();
@@ -1306,7 +1332,7 @@ it('starts every optional service on its "Disable" choice and storage on this se
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway'])
         ->assertFormSet(['reranker' => 'none', 'document_reader' => 'none', 'website_import' => 'none', 'transcriber' => 'none', 'voice' => 'none', 'storage_driver' => 'local', 'mailer' => 'log'])
-        ->assertSee(['Documents and websites', 'Speech to text and live calls', 'Mailer', 'A log of every AI call'])
+        ->assertSee(['Documents and websites', 'Speech to text', 'Mailer', 'A log of every AI call'])
         ->assertDontSee('Optional:');
 });
 
@@ -1315,7 +1341,7 @@ it('turns the services left at their "Disable" choice off, so Automatic does not
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->call('complete')
         ->assertHasNoFormErrors();
 
@@ -1332,20 +1358,20 @@ it('imports websites with Firecrawl, with its key checked', function (): void {
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
-        ->tap(setupModelsAnswer(...))
         ->goToWizardStep(4)
+        ->tap(setupModelsAnswer(...))
+        ->goToWizardStep(5)
         ->assertSee('To learn from a website, agents need Firecrawl.')
         ->assertFormFieldHidden('firecrawl_api_key')
         ->fillForm(['website_import' => 'firecrawl'])
-        ->goToWizardStep(5)
+        ->goToWizardStep(6)
         ->assertHasFormErrors(['firecrawl_api_key' => 'required'])
         ->fillForm(['firecrawl_api_key' => 'fc-test'])
-        ->goToWizardStep(5)
+        ->goToWizardStep(6)
         // The key works; the step still asks about the missing document reader.
         ->assertActionMounted('noReader')
         ->callMountedAction()
-        ->assertWizardCurrentStep(5)
+        ->assertWizardCurrentStep(6)
         ->assertHasNoFormErrors()
         ->call('complete')
         ->assertHasNoFormErrors();
@@ -1362,7 +1388,7 @@ it('stops on the ingestion step when Firecrawl refuses the key', function (): vo
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test', 'website_import' => 'firecrawl', 'firecrawl_api_key' => 'wrong'])
-        ->goToWizardStep(5)
+        ->goToWizardStep(6)
         ->assertHasFormErrors(['firecrawl_api_key'])
         ->assertActionNotMounted('noReader');
 });
@@ -1372,14 +1398,14 @@ it('turns speech to text on with the key of the first step', function (): void {
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->set('noReaderConfirmed', true)
-        ->goToWizardStep(5)
+        ->goToWizardStep(6)
         ->assertSee('Agents can then learn from audio and video files and search what is said in them')
         ->fillForm(['transcriber' => 'scaleway'])
         ->assertSee('Uses the Scaleway AI key you entered in AI provider')
         ->assertFormFieldHidden('transcription_api_key')
-        ->goToWizardStep(6)
+        ->goToWizardStep(7)
         ->assertHasNoFormErrors()
         ->call('complete')
         ->assertHasNoFormErrors();
@@ -1394,11 +1420,11 @@ it('asks for the key of a speech service on another account, and checks it', fun
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test', 'transcriber' => 'openai'])
         ->assertFormFieldVisible('transcription_api_key')
-        ->goToWizardStep(3)
-        ->goToWizardStep(6)
+        ->goToWizardStep(4)
+        ->goToWizardStep(7)
         ->assertHasFormErrors(['transcription_api_key' => 'required'])
         ->fillForm(['transcription_api_key' => 'sk-openai'])
-        ->goToWizardStep(6)
+        ->goToWizardStep(7)
         ->assertHasNoFormErrors()
         ->call('complete')
         ->assertHasNoFormErrors();
@@ -1435,11 +1461,12 @@ it('stops on the voice step when the speech service refuses its key', function (
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test', 'transcriber' => 'openai', 'transcription_api_key' => 'wrong'])
-        ->goToWizardStep(6)
+        ->goToWizardStep(7)
         ->assertHasFormErrors(['transcription_api_key']);
 });
 
 it('turns voice conversations on with the OpenAI key of the first step, and explains what they need', function (): void {
+    withLicense();
     Http::fake([
         'api.openai.com/v1/models' => Http::response(['data' => [['id' => 'gpt-6-luna'], ['id' => 'gpt-6.1-sol']]]),
         'api.openai.com/v1/embeddings' => Http::response(['data' => [['index' => 0, 'embedding' => array_fill(0, $this->dimensions, 0.1)]]]),
@@ -1447,9 +1474,9 @@ it('turns voice conversations on with the OpenAI key of the first step, and expl
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'openai', 'api_key' => 'sk-openai'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->set('noReaderConfirmed', true)
-        ->goToWizardStep(5)
+        ->goToWizardStep(6)
         ->assertSee(['This uses the OpenAI Realtime API, so it needs an OpenAI key', 'Each agent still turns calls on in its own setup'])
         ->assertFormSet(['voice' => 'none'])
         ->fillForm(['voice' => 'openai'])
@@ -1462,22 +1489,24 @@ it('turns voice conversations on with the OpenAI key of the first step, and expl
 });
 
 it('asks for an OpenAI key for voice conversations on another provider, and checks it', function (): void {
+    withLicense();
     setupFakeScaleway($this->dimensions);
     Http::fake(['api.openai.com/*' => Http::response(['error' => ['message' => 'Incorrect API key']], 401)]);
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test', 'voice' => 'openai'])
         ->assertFormFieldVisible('voice_api_key')
-        ->goToWizardStep(3)
-        ->goToWizardStep(6)
+        ->goToWizardStep(4)
+        ->goToWizardStep(7)
         ->assertHasFormErrors(['voice_api_key' => 'required'])
         ->fillForm(['voice_api_key' => 'wrong'])
-        ->goToWizardStep(6)
+        ->goToWizardStep(7)
         ->assertHasFormErrors(['voice_api_key'])
         ->assertDispatched('form-validation-error');
 });
 
 it('asks for an OpenAI key once when speech to text and voice conversations both use it', function (): void {
+    withLicense();
     setupFakeScaleway($this->dimensions);
 
     setupPage($this->admin)
@@ -1485,8 +1514,8 @@ it('asks for an OpenAI key once when speech to text and voice conversations both
         ->assertFormFieldVisible('transcription_api_key')
         ->assertFormFieldHidden('voice_api_key')
         ->assertSee('Uses the OpenAI key above')
-        ->goToWizardStep(3)
-        ->goToWizardStep(6)
+        ->goToWizardStep(4)
+        ->goToWizardStep(7)
         ->assertHasFormErrors(['transcription_api_key' => 'required']);
 });
 
@@ -1498,7 +1527,7 @@ it('records AI calls with Spectra by default, and says what Spectra is', functio
         ->assertFormSet(['observability' => 'spectra'])
         ->assertSee(['Spectra keeps a log of every call ChatVia.ai makes to an AI service', 'Record AI calls with Spectra', 'Settings → Observability'])
         ->assertDontSee('Spectra is left out of this install')
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->call('complete')
         ->assertHasNoFormErrors();
 
@@ -1511,7 +1540,7 @@ it('turns Spectra off when the admin chooses "Disable Spectra"', function (): vo
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test', 'observability' => 'none'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->call('complete')
         ->assertHasNoFormErrors();
 
@@ -1529,7 +1558,7 @@ it('turns AI enhancement of files and texts on when the admin chooses "Enable AI
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test', 'enhancement' => 'enhance'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->call('complete')
         ->assertHasNoFormErrors();
 
@@ -1550,7 +1579,7 @@ it('asks for S3 details, and stops when the storage does not work', function ():
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test', 'storage_driver' => 's3'])
-        ->goToWizardStep(7)
+        ->goToWizardStep(8)
         ->assertHasFormErrors(['s3_private_region', 's3_private_key', 's3_private_secret', 's3_private_bucket'])
         ->fillForm([
             's3_private_endpoint' => 'http://127.0.0.1:9',
@@ -1559,7 +1588,7 @@ it('asks for S3 details, and stops when the storage does not work', function ():
             's3_private_secret' => 'secret',
             's3_private_bucket' => 'files',
         ])
-        ->goToWizardStep(7)
+        ->goToWizardStep(8)
         ->assertHasFormErrors(['s3_private_bucket']);
 });
 
@@ -1595,7 +1624,7 @@ it('checks the public and backups buckets with their own connections, and shows 
             's3_backup_key' => 'key',
             's3_backup_secret' => 'secret',
         ])
-        ->goToWizardStep(7)
+        ->goToWizardStep(8)
         ->assertHasFormErrors(['s3_public_bucket'])
         ->assertHasNoFormErrors(['s3_private_bucket', 's3_backup_bucket']);
 });
@@ -1627,7 +1656,7 @@ it('keeps backups in the private bucket with its fields filled in and locked, an
         ])
         ->assertFormSet(['s3_backup_bucket' => 'files', 's3_backup_region' => 'fr-par', 's3_backup_key' => 'key'])
         ->assertFormFieldDisabled('s3_backup_region')
-        ->goToWizardStep(7)
+        ->goToWizardStep(8)
         ->assertHasNoFormErrors(['s3_private_bucket', 's3_backup_bucket'])
         ->fillForm(['storage_driver' => 'local'])
         ->assertFormSet(['backup_files' => 'local']);
@@ -1662,7 +1691,7 @@ it('sends email with the provider set up, or warns that nobody gets email', func
 
     $page = setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->assertFormSet(['mailer' => 'log'])
         ->assertSee('Without email, nobody receives emails')
         ->fillForm(['mailer' => 'smtp', 'smtp_host' => 'smtp.example.com', 'smtp_port' => 587, 'smtp_password' => 'mail-secret', 'from_address' => 'support@acme.test'])
@@ -1675,7 +1704,7 @@ it('sends email with the provider set up, or warns that nobody gets email', func
         ->and(savedSetting(MailSettings::class, 'from_address'))->toBe('support@acme.test');
 });
 
-it('names the app on the App step, and the sender name of emails follows until it is changed', function (): void {
+it('names the app on the Final step, and the sender name of emails follows until it is changed', function (): void {
     setupFakeScaleway($this->dimensions);
 
     adminPage(Setup::class, $this->admin)
@@ -1685,7 +1714,7 @@ it('names the app on the App step, and the sender name of emails follows until i
         ->assertFormSet(['from_name' => 'Acme Support'])
         ->goToNextWizardStep()
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->fillForm(['mailer' => 'smtp', 'smtp_host' => 'smtp.example.com', 'smtp_port' => 587, 'smtp_password' => 'mail-secret', 'from_address' => 'support@acme.test', 'from_name' => 'Acme Team'])
         ->fillForm(['app_name' => 'Acme Help'])
         ->assertFormSet(['from_name' => 'Acme Team'])
@@ -1697,12 +1726,15 @@ it('names the app on the App step, and the sender name of emails follows until i
         ->and(config('app.name'))->toBe('Acme Help');
 });
 
-it('needs an app name before the last step', function (): void {
-    setupAppStep($this->admin)
-        ->fillForm(['app_name' => ''])
-        ->goToWizardStep(10)
-        ->assertHasFormErrors(['app_name' => 'required'])
-        ->assertWizardCurrentStep(9);
+it('needs an app name to finish', function (): void {
+    setupFakeScaleway($this->dimensions);
+
+    setupPage($this->admin)
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test', 'app_name' => ''])
+        ->call('complete')
+        ->assertHasFormErrors(['app_name' => 'required']);
+
+    expect(savedSetting(PlatformSettings::class, 'setup_status'))->not->toBe('completed');
 });
 
 it('ends on a final step that says congratulations and links to the workspace sign-in', function (): void {
@@ -1710,12 +1742,12 @@ it('ends on a final step that says congratulations and links to the workspace si
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->goToWizardStep(3)
+        ->goToWizardStep(4)
         ->fillForm(['chat_models' => ['gpt-oss-120b'], 'default_model' => 'gpt-oss-120b'])
         ->goToWizardStep(10)
         ->assertHasNoFormErrors()
         ->assertWizardCurrentStep(10)
-        ->assertSeeInOrder(['Congratulations', 'Finish setup', '/login'])
+        ->assertSeeInOrder(['What would you like to name your app?', 'Congratulations', 'Finish setup', '/login'])
         ->assertDontSee(['Your choices', 'Default values'])
         ->call('complete')
         ->assertHasNoFormErrors();

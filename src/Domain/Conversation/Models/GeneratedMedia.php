@@ -118,6 +118,12 @@ class GeneratedMedia extends Model
         ], absolute: false)));
     }
 
+    /** When a started video has had all its time (`chatvia.ai.video_max_wait_minutes`). */
+    public function videoDeadline(): Carbon
+    {
+        return ($this->created_at ?? now())->copy()->addMinutes(max(1, (int) config('chatvia.ai.video_max_wait_minutes')));
+    }
+
     protected function casts(): array
     {
         return [

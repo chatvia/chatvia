@@ -8,6 +8,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Media\GeneratedMediaData;
 use Domain\Conversation\Enums\GeneratedMediaFailure;
 use Domain\Conversation\Enums\GeneratedMediaStatus;
+use Domain\Conversation\Enums\VideoCheckResult;
 use Domain\Conversation\Events\GeneratedMediaUpdated;
 use Domain\Conversation\Jobs\CheckGeneratedVideoJob;
 use Domain\Conversation\Models\GeneratedMedia;
@@ -27,7 +28,8 @@ use Throwable;
 /**
  * Asks the video service that started a video (the one kept on the item,
  * {@see MediaGenerators}) whether it is made. While it is not,
- * it asks again in a little while ({@see CheckGeneratedVideoJob}), so no
+ * it says {@see VideoCheckResult::Waiting} and {@see CheckGeneratedVideoJob}
+ * puts itself back on the queue to ask again in a little while, so no
  * worker waits on a video; a service that cannot be reached for a moment is
  * asked again too. Once made, the video is saved under the agent's folder
  * ({@see GeneratedMediaFiles}), the item turns ready, the service's copy is
@@ -47,14 +49,14 @@ class CheckGeneratedVideoAction
         private readonly FailGeneratedMediaAction $fail,
     ) {}
 
-    public function execute(GeneratedMedia $media): void
+    public function execute(GeneratedMedia $media): VideoCheckResult
     {
         $taskId = $media->task_id ?? '';
         $agent = $media->agent;
         $conversation = $media->conversation;
 
         if ($media->status !== GeneratedMediaStatus::Pending || $taskId === '' || ! $agent instanceof Agent || $conversation === null) {
-            return;
+            return VideoCheckResult::Settled;
         }
 
         try {
@@ -62,9 +64,7 @@ class CheckGeneratedVideoAction
             $video = $videos->check($taskId);
         } catch (Throwable $e) {
             if ($this->isMomentary($e)) {
-                $this->checkLater($media);
-
-                return;
+                return $this->checkLater($media);
             }
 
             Log::warning('A generated video could not be made', [
@@ -76,13 +76,11 @@ class CheckGeneratedVideoAction
 
             $this->fail->execute($media, $e instanceof VideoGenerationFailedException && $e->refused ? GeneratedMediaFailure::Refused : GeneratedMediaFailure::Failed);
 
-            return;
+            return VideoCheckResult::Settled;
         }
 
         if (! $video instanceof GeneratedVideoData) {
-            $this->checkLater($media);
-
-            return;
+            return $this->checkLater($media);
         }
 
         $path = $this->files->pathFor($agent, $conversation->external_id, $media, $video->extension());
@@ -109,27 +107,27 @@ class CheckGeneratedVideoAction
         if ($saved === 0) {
             Storage::disk(GeneratedMedia::DISK)->delete($path);
 
-            return;
+            return VideoCheckResult::Settled;
         }
 
         $videos->forget($taskId);
         $media->refresh();
 
         GeneratedMediaUpdated::dispatch($conversation->external_id, GeneratedMediaData::fromModel($media));
+
+        return VideoCheckResult::Settled;
     }
 
-    /** Checks again in a little while, unless the video has had all its time. */
-    private function checkLater(GeneratedMedia $media): void
+    /** Asks for another check, unless the video has had all its time. */
+    private function checkLater(GeneratedMedia $media): VideoCheckResult
     {
-        $deadline = ($media->created_at ?? now())->copy()->addMinutes(max(1, (int) config('chatvia.ai.video_max_wait_minutes')));
-
-        if ($deadline->isPast()) {
+        if ($media->videoDeadline()->isPast()) {
             $this->fail->execute($media, GeneratedMediaFailure::TimedOut);
 
-            return;
+            return VideoCheckResult::Settled;
         }
 
-        CheckGeneratedVideoJob::dispatch($media)->delay(now()->addSeconds(self::INTERVAL_SECONDS));
+        return VideoCheckResult::Waiting;
     }
 
     /** The service could not be reached this time; the video may still be on its way. */

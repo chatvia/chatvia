@@ -7,6 +7,7 @@ use Domain\Conversation\Actions\Media\CheckGeneratedVideoAction;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Enums\GeneratedMediaFailure;
 use Domain\Conversation\Enums\GeneratedMediaStatus;
+use Domain\Conversation\Enums\VideoCheckResult;
 use Domain\Conversation\Events\GeneratedMediaUpdated;
 use Domain\Conversation\Jobs\CheckGeneratedVideoJob;
 use Domain\Conversation\Models\Conversation;
@@ -14,20 +15,19 @@ use Domain\Conversation\Models\GeneratedMedia;
 use Domain\Llm\Exceptions\VideoGenerationFailedException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Tests\Support\Llm\FakeVideoGenerator;
 
 /**
- * Checking on a started video: asked again later while it is made (or the
+ * Checking on a started video: waiting while it is made (or the
  * service cannot be reached for a moment), saved and ready once made, and
  * failed when refused, failed or out of time, which gives its video slot
- * back. The chat is told whenever the video settles.
+ * back. The chat is told whenever the video settles. While it waits, the
+ * queued check puts itself back on the queue instead of starting a new job.
  */
 beforeEach(function (): void {
     Storage::fake(GeneratedMedia::DISK);
     Event::fake([GeneratedMediaUpdated::class]);
-    Queue::fake();
     $this->conversation = Conversation::factory()->create(['source' => ConversationSource::HostedChat]);
 });
 
@@ -40,11 +40,9 @@ it('asks again later while the video is being made', function (): void {
     FakeVideoGenerator::install([null]);
     $media = cgvMedia();
 
-    app(CheckGeneratedVideoAction::class)->execute($media);
+    expect(app(CheckGeneratedVideoAction::class)->execute($media))->toBe(VideoCheckResult::Waiting)
+        ->and($media->refresh()->status)->toBe(GeneratedMediaStatus::Pending);
 
-    expect($media->refresh()->status)->toBe(GeneratedMediaStatus::Pending);
-
-    Queue::assertPushedOn('generation', CheckGeneratedVideoJob::class, fn (CheckGeneratedVideoJob $job): bool => $job->media->is($media));
     Event::assertNotDispatched(GeneratedMediaUpdated::class);
 });
 
@@ -52,17 +50,15 @@ it('asks again later when the service cannot be reached for a moment', function 
     FakeVideoGenerator::install([new VideoGenerationFailedException('Down.', previous: new ConnectionException('timed out'))]);
     $media = cgvMedia();
 
-    app(CheckGeneratedVideoAction::class)->execute($media);
-
-    expect($media->refresh()->status)->toBe(GeneratedMediaStatus::Pending);
-    Queue::assertPushed(CheckGeneratedVideoJob::class);
+    expect(app(CheckGeneratedVideoAction::class)->execute($media))->toBe(VideoCheckResult::Waiting)
+        ->and($media->refresh()->status)->toBe(GeneratedMediaStatus::Pending);
 });
 
 it('saves a made video, forgets the service\'s copy and tells the chat', function (): void {
     $videos = FakeVideoGenerator::install(['mp4-bytes']);
     $media = cgvMedia();
 
-    app(CheckGeneratedVideoAction::class)->execute($media);
+    expect(app(CheckGeneratedVideoAction::class)->execute($media))->toBe(VideoCheckResult::Settled);
 
     $media->refresh();
     expect($media->status)->toBe(GeneratedMediaStatus::Ready)
@@ -72,7 +68,6 @@ it('saves a made video, forgets the service\'s copy and tells the chat', functio
         ->and($media->size_bytes)->toBe(9)
         ->and($videos->forgotten)->toBe(['fake-task-1']);
 
-    Queue::assertNotPushed(CheckGeneratedVideoJob::class);
     Event::assertDispatched(GeneratedMediaUpdated::class, fn (GeneratedMediaUpdated $event): bool => $event->media->id === $media->external_id
         && $event->media->status === GeneratedMediaStatus::Ready
         && $event->media->url !== null);
@@ -101,24 +96,28 @@ it('gives up on a video not made in time', function (): void {
     FakeVideoGenerator::install([null]);
     $media = cgvMedia(['created_at' => now()->subMinutes(16)]);
 
-    app(CheckGeneratedVideoAction::class)->execute($media);
-
-    expect($media->refresh()->status)->toBe(GeneratedMediaStatus::Failed)
+    expect(app(CheckGeneratedVideoAction::class)->execute($media))->toBe(VideoCheckResult::Settled)
+        ->and($media->refresh()->status)->toBe(GeneratedMediaStatus::Failed)
         ->and($media->failure)->toBe(GeneratedMediaFailure::TimedOut);
-
-    Queue::assertNotPushed(CheckGeneratedVideoJob::class);
 });
 
 it('leaves a settled video, or one not started, alone', function (array $state): void {
     $videos = FakeVideoGenerator::install(['mp4-bytes']);
     $media = cgvMedia($state);
 
-    app(CheckGeneratedVideoAction::class)->execute($media);
-
-    expect($videos->forgotten)->toBe([]);
-    Queue::assertNotPushed(CheckGeneratedVideoJob::class);
+    expect(app(CheckGeneratedVideoAction::class)->execute($media))->toBe(VideoCheckResult::Settled)
+        ->and($videos->forgotten)->toBe([]);
     Event::assertNotDispatched(GeneratedMediaUpdated::class);
 })->with([
     'failed' => [['status' => GeneratedMediaStatus::Failed, 'failure' => GeneratedMediaFailure::TimedOut]],
     'not started' => [['task_id' => null]],
 ]);
+
+it('puts the queued check back on the queue while the video is being made', function (): void {
+    FakeVideoGenerator::install([null]);
+    $job = new CheckGeneratedVideoJob(cgvMedia())->withFakeQueueInteractions();
+
+    $job->handle(app(CheckGeneratedVideoAction::class));
+
+    $job->assertReleased(CheckGeneratedVideoAction::INTERVAL_SECONDS);
+});

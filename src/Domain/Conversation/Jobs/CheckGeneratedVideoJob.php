@@ -4,28 +4,33 @@ declare(strict_types=1);
 
 namespace Domain\Conversation\Jobs;
 
+use DateTimeInterface;
 use Domain\Conversation\Actions\Media\CheckGeneratedVideoAction;
 use Domain\Conversation\Actions\Media\FailGeneratedMediaAction;
 use Domain\Conversation\Enums\GeneratedMediaFailure;
+use Domain\Conversation\Enums\VideoCheckResult;
 use Domain\Conversation\Models\GeneratedMedia;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Attributes\DeleteWhenMissingModels;
+use Illuminate\Queue\Attributes\FailOnTimeout;
+use Illuminate\Queue\Attributes\MaxExceptions;
 use Illuminate\Queue\Attributes\Queue;
 use Illuminate\Queue\Attributes\Timeout;
-use Illuminate\Queue\Attributes\Tries;
 use Throwable;
 
 /**
- * Checks once whether a started video is made, on the `generation` queue
- * like {@see GenerateMediaJob}. The action dispatches the next check while
- * the video is not ready, so no worker sleeps while a video is made.
+ * Checks whether a started video is made, on the `generation` queue like
+ * {@see GenerateMediaJob}. While the video is not ready, the job puts itself
+ * back on the queue for the next check, so it stays one job (pending in
+ * Horizon until the video settles) and no worker sleeps while it is made.
  */
 #[Queue('generation')]
-// One try: the action itself schedules the next check.
-#[Tries(1)]
+// Waiting is bounded by retryUntil(); a crash fails the video at once.
+#[MaxExceptions(1)]
 // Fetching a made video takes up to 180 seconds; below the pool's 300.
 #[Timeout(240)]
+#[FailOnTimeout]
 // The conversation, and with it the item, may be deleted while the video is made.
 #[DeleteWhenMissingModels]
 class CheckGeneratedVideoJob implements ShouldQueue
@@ -38,7 +43,18 @@ class CheckGeneratedVideoJob implements ShouldQueue
 
     public function handle(CheckGeneratedVideoAction $action): void
     {
-        $action->execute($this->media);
+        if ($action->execute($this->media) === VideoCheckResult::Waiting) {
+            $this->release(CheckGeneratedVideoAction::INTERVAL_SECONDS);
+        }
+    }
+
+    /**
+     * A little past the video's own deadline, so the action's last check can
+     * still find it made; past this, {@see failed()} times it out.
+     */
+    public function retryUntil(): DateTimeInterface
+    {
+        return $this->media->videoDeadline()->addMinute();
     }
 
     /** The check ran out of time or crashed: the chat must not wait for good. */

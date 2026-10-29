@@ -134,11 +134,21 @@ export default defineConfig({
     },
     build: {
         chunkSizeWarningLimit: 1000,
-        minify: 'terser',
-        terserOptions: {
-            compress: {
-                drop_console: true,
-                drop_debugger: true,
+        // Rolldown's native minifier: much faster than terser, about the same output size.
+        minify: 'oxc',
+        rolldownOptions: {
+            // The plugin-timings notice fires on every build: the Vue, Tailwind
+            // and Wayfinder plugins run in JavaScript, so it is never actionable.
+            checks: {
+                bundlerTimings: false,
+            },
+            output: {
+                minify: {
+                    compress: {
+                        dropConsole: true,
+                        dropDebugger: true,
+                    },
+                },
             },
         },
         cssMinify: 'lightningcss', // Better CSS minification

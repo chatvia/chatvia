@@ -112,6 +112,8 @@ readonly MIN_PASSWORD=12
 readonly INSTALLER_URL="https://chatvia.ai/install.sh"
 readonly INSTALL_COUNT_URL="https://chatvia.ai/api/installs"
 readonly NEWS_EMAIL_URL="https://chatvia.ai/api/subscribers"
+# Sent with both: a fixed header that chatvia.ai requires, to turn away stray posts.
+readonly INSTALLER_MARKER="1"
 
 # The complete installation.
 readonly NATIVE_DOCS="https://chatvia.ai/docs/guide/installation/ubuntu"
@@ -2032,6 +2034,7 @@ count_install() {
     esac
     curl -fsS -o /dev/null --max-time 5 -X POST \
         -H 'Content-Type: application/json' -H 'Accept: application/json' \
+        -H "X-Chatvia-Installer: $INSTALLER_MARKER" \
         --data "{\"mode\":\"$MODE\",\"os\":\"$(install_os)\"}" \
         "${CHATVIA_COUNT_URL:-$INSTALL_COUNT_URL}" >/dev/null 2>&1 || true
 }
@@ -2060,6 +2063,7 @@ send_news_email() {
     email=${email//\"/\\\"}
     curl -fsS -o /dev/null --max-time 5 -X POST \
         -H 'Content-Type: application/json' -H 'Accept: application/json' \
+        -H "X-Chatvia-Installer: $INSTALLER_MARKER" \
         --data "{\"email\":\"$email\"}" \
         "${CHATVIA_NEWS_URL:-$NEWS_EMAIL_URL}" >/dev/null 2>&1 || true
 }

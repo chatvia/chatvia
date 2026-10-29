@@ -112,6 +112,8 @@ readonly MIN_PASSWORD=12
 readonly INSTALLER_URL="https://chatvia.ai/install.sh"
 readonly INSTALL_COUNT_URL="https://chatvia.ai/api/installs"
 readonly NEWS_EMAIL_URL="https://chatvia.ai/api/subscribers"
+# Sent with both: a fixed header that chatvia.ai requires, to turn away stray posts.
+readonly INSTALLER_MARKER="1"
 
 # The complete installation.
 readonly NATIVE_DOCS="https://chatvia.ai/docs/guide/installation/ubuntu"

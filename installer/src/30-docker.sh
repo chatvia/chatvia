@@ -913,6 +913,7 @@ count_install() {
     esac
     curl -fsS -o /dev/null --max-time 5 -X POST \
         -H 'Content-Type: application/json' -H 'Accept: application/json' \
+        -H "X-Chatvia-Installer: $INSTALLER_MARKER" \
         --data "{\"mode\":\"$MODE\",\"os\":\"$(install_os)\"}" \
         "${CHATVIA_COUNT_URL:-$INSTALL_COUNT_URL}" >/dev/null 2>&1 || true
 }
@@ -941,6 +942,7 @@ send_news_email() {
     email=${email//\"/\\\"}
     curl -fsS -o /dev/null --max-time 5 -X POST \
         -H 'Content-Type: application/json' -H 'Accept: application/json' \
+        -H "X-Chatvia-Installer: $INSTALLER_MARKER" \
         --data "{\"email\":\"$email\"}" \
         "${CHATVIA_NEWS_URL:-$NEWS_EMAIL_URL}" >/dev/null 2>&1 || true
 }

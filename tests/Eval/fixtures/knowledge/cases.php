@@ -17,7 +17,8 @@ declare(strict_types=1);
  *   about the whole collection, so the facts are spread wide.
  *
  * The documents are resources/admin/samples/chunking/{markdown.md,text.txt,transcript.txt}
- * and fixtures/knowledge/{arabic.md,catalogue.md,terms.txt,trips.md,riyadh.md}:
+ * and fixtures/knowledge/{arabic.md,catalogue.md,terms.txt,trips.md,riyadh.md,
+ * footwear.md,routes.md,company.txt,jeddah.md}:
  * one made-up outdoor shop, so questions can join facts across documents.
  */
 return [
@@ -169,4 +170,167 @@ return [
     ['query' => 'Which guided trips do you offer, and what do they cost?', 'kind' => 'global', 'expect' => ['169 per person', '349 per person', '690 per person', '595 per person']],
     ['query' => 'What do I need to know before I rent gear from you?', 'kind' => 'global', 'expect' => ['at least 18 years old', '50 for each tent', 'ends on Monday before 12:00', 'cleaning fee of 15', 'Lakeside and city centre shops']],
     ['query' => 'ما الخدمات التي يقدمها متجر الرياض في موسم التخييم؟', 'kind' => 'global', 'expect' => ['نوفر خدمة الحجز المسبق للتأجير', 'خيمة صحراوية لأربعة أشخاص', 'أساسيات التخييم في البر', 'مدة الإصلاح المعتادة خمسة أيام عمل']],
+    // The footwear, poles and water catalogue (Markdown). Six boots share one
+    // table layout, so the ranking has to tell them apart.
+    ['query' => 'Can I hire walking boots from you for a weekend?', 'expect' => 'You cannot rent boots or poles from us'],
+    ['query' => 'What is the price of the Fennick Mid?', 'expect' => '| Price | 139 |'],
+    ['query' => 'How much does a pair of Ridgeline Mid boots weigh?', 'expect' => '| Weight, pair | 1,150 g |'],
+    ['query' => 'Is there a Gore-Tex style lining in the Ridgeline Leather?', 'expect' => 'None, the leather is waxed'],
+    ['query' => 'Which shoe sizes is the Highpass made in?', 'expect' => '| Sizes | 38 to 48 |'],
+    ['query' => 'Can I try on hiking boots at the airport before my flight?', 'expect' => 'the only boots in stock in the Airport shop'],
+    ['query' => 'How cold can it get before the Frostline stops keeping my feet warm?', 'expect' => 'down to about -30 °C'],
+    ['query' => 'My foot is 273 mm long. What EU size should I order?', 'expect' => '| 43 | 9 | 10 | 11 | 273 mm |'],
+    ['query' => 'How much space should there be behind my heel when I try boots on?', 'expect' => 'One finger should fit behind your heel'],
+    ['query' => 'My toes keep banging the front of my boots on the way down. How should I tie them?', 'expect' => 'wrap the laces around each hook twice'],
+    ['query' => 'How many kilometres before full-grain leather boots are comfortable?', 'expect' => 'About 60 km over two to three weeks'],
+    ['query' => 'Is it fine to dry soaked boots by the campfire?', 'expect' => 'next to a stove or a camp fire'],
+    ['query' => 'What should I use to waterproof suede boots?', 'expect' => 'Nubuck Spray, 200 ml'],
+    ['query' => 'How much do you charge to put new soles on my boots?', 'expect' => 'New sole, glued and stitched | 79'],
+    ['query' => 'Can I send back boots I already took on a hike?', 'expect' => 'if it is not worn outside'],
+    ['query' => 'Are cotton socks OK for hiking?', 'expect' => 'do not wear cotton on walks'],
+    ['query' => 'Why would I wear a thin sock under my hiking sock?', 'expect' => 'rub against each other instead of against your skin'],
+    ['query' => 'What do the thick knee-length socks cost?', 'expect' => '| Thick | Knee | 26 |'],
+    ['query' => 'What keeps grit and little stones out of my trail shoes?', 'expect' => 'small stones and sand get into the boot'],
+    ['query' => 'I am 170 cm tall. How long should my walking sticks be?', 'expect' => '| 166 to 175 cm | 115 cm |'],
+    ['query' => 'Are carbon trekking poles more fragile than aluminium ones?', 'expect' => 'it can snap when it is hit sideways'],
+    ['query' => 'Does a water filter make stream water safe from viruses?', 'expect' => 'A filter does not remove viruses'],
+    ['query' => 'My water filter froze in the tent last night. Can I keep using it?', 'expect' => 'Ice cracks the fibres'],
+    ['query' => 'Is there paracetamol or ibuprofen in your first aid kits?', 'expect' => 'We do not put medicines such as painkillers in our kits'],
+    ['query' => 'Should I pop a small blister on my heel?', 'expect' => 'leave a small, closed blister alone'],
+
+    // Not covered, but close to the footwear, sock and water topics.
+    ['query' => 'Do you sell a UV light pen to clean drinking water?', 'expect' => null],
+    ['query' => 'Do you have heated socks with batteries?', 'expect' => null],
+    ['query' => 'Do you sell rubber wellington boots for the garden?', 'expect' => null],
+
+    // Multi-hop: a trip names the boots it needs, the footwear catalogue has
+    // the model and its price; Trail Club gives the repair discount.
+    ['query' => 'What boots does the High route trip ask for, and which of your boots is that and what does it cost?', 'kind' => 'multi-hop', 'expect' => ['walking boots with a stiff sole', '| Price | 299 |']],
+    ['query' => 'Which of your boots should I bring on the Winter plateau trip, and what does it cost?', 'kind' => 'multi-hop', 'expect' => ['and winter boots', '| Price | 329 |']],
+    ['query' => 'As a Gold member, what do I pay the workshop to resole my walking boots?', 'kind' => 'multi-hop', 'expect' => ['10% off all repairs', 'New sole, glued and stitched | 79']],
+
+    // Global: boot care is spread over several sections.
+    ['query' => 'What do I need to do to make my hiking boots last for years?', 'kind' => 'global', 'expect' => ['Never take a new pair on a long trip straight from the box', 'next to a stove or a camp fire', 'wax every four to six walking days', 'New sole, glued and stitched | 79', 'Tread that wears down is normal use']],
+
+    // The self-guided routes (Markdown): general sections.
+    ['query' => 'Which walkers is a black route meant for?', 'expect' => 'high mountain ground, with scrambling'],
+    ['query' => 'What happens if a ranger finds my tent somewhere it is not allowed?', 'expect' => 'fine of 150'],
+    ['query' => 'Lightning is close and we are a group of four on a hill. How far apart should we stand?', 'expect' => 'at least fifteen metres apart'],
+    ['query' => 'How deep should the hole be when I need a poo in the hills?', 'expect' => '15 to 20 cm deep'],
+    ['query' => 'Do I have to sign up to get the route tracks for my phone?', 'expect' => 'You do not need an account'],
+    ['query' => 'Is there a reward for telling you about a fallen tree on a trail?', 'expect' => 'gets 50 Trail Club points'],
+
+    // The self-guided routes (Markdown): one route each. The routes look
+    // alike, so the ranking has to find the right one.
+    ['query' => 'Where can I top up my bottle on the Harbour Loop?', 'expect' => 'drinking tap outside the rowing club'],
+    ['query' => 'Is wild camping OK at Grey Tarn?', 'expect' => 'flat grass at the east shore of the tarn'],
+    ['query' => 'There is no water on the Three Lakes Ridge, so where do I fill up first?', 'expect' => 'fountain in front of Elsby church'],
+    ['query' => 'Will there still be snow on the Kessel Pass path in early summer?', 'expect' => 'until the end of June'],
+    ['query' => 'What time is the final train back from Fennhausen after the Kessel Pass hike?', 'expect' => '19:40'],
+    ['query' => 'Can my dog come along on the Fennhausen Meadows walk in July?', 'expect' => 'Dogs are not welcome in the meadows'],
+    ['query' => 'How tall is the waterfall at Marten Falls?', 'expect' => 'drops 40 metres'],
+    ['query' => 'How much water do I need to bring for the Corran Ridge Traverse?', 'expect' => 'Carry at least three litres'],
+    ['query' => 'When is the café in Ashdown Woods open?', 'expect' => 'from Wednesday to Sunday, from 10:00 to 18:00'],
+    ['query' => 'What is the fare for the boat over to Birchmere?', 'expect' => 'costs 6 for an adult'],
+    ['query' => 'Can I hike the Haldane Gorge in March?', 'expect' => 'closed from 1 November to 30 April'],
+    ['query' => 'Do I have to bring my own helmet for Haldane Gorge?', 'expect' => 'lend them for free at the hut'],
+    ['query' => 'How do I get from Fennhausen to the start of the Wenmoor Plateau Crossing?', 'expect' => 'take bus 90'],
+    ['query' => 'Why are there red flags along the Stavely Fort Walk some days?', 'expect' => 'shooting range'],
+    ['query' => 'Can I spend the night on top of Larkhope Hill to watch the sun come up?', 'expect' => 'bivvy bag without a tent'],
+    ['query' => 'In which months can I not walk the upper part of the Old Mine Trail?', 'expect' => 'closed from November to March'],
+    ['query' => 'Is there public transport to the Aldmoor snowshoe loop?', 'expect' => 'winter bus 95'],
+    ['query' => 'Can I pitch a tent on the river bank on the way to Elsby?', 'expect' => 'Camping on the banks has been banned'],
+    ['query' => 'When is the path to the tip of Osprey Point shut?', 'expect' => 'from 1 April to 31 July'],
+    ['query' => 'The scree at the end of the Rothwick Horseshoe looks scary in the rain. Is there another way down?', 'expect' => 'marked with red and blue stripes'],
+
+    // Not covered, though close to the routes guide: nothing should come back.
+    ['query' => 'How long is the Silver Lake trail, and which bus goes to its start?', 'expect' => null],
+    ['query' => 'Is there a self-guided hut-to-hut route across the Dolomites in your guide?', 'expect' => null],
+    ['query' => 'How do I get to the start of the Hollow Crag via ferrata?', 'expect' => null],
+
+    // Multi-hop: a route joined with another chunk of the guide, or with the
+    // help centre or the catalogue.
+    ['query' => 'Which of your shops is closest to the Marten Falls walk, and is it open on Sundays?', 'kind' => 'multi-hop', 'expect' => ['Airport, at the other end of the bus 7 line', 'Every day, 7:00 to 22:00']],
+    ['query' => 'What grade is the Corran Ridge Traverse, and who is that grade meant for?', 'kind' => 'multi-hop', 'expect' => ['Black, for the scramble over the Teeth', 'Only for people who can read a map well']],
+    ['query' => 'On the Wenmoor Plateau Crossing, what must I do before I drink from the tarns, and can I order gas for my stove online before I go?', 'kind' => 'multi-hop', 'expect' => ['safe once you boil it or use a filter', 'Gas cartridges cannot be sent by post']],
+
+    // Global: the facts are spread over the whole routes guide.
+    ['query' => 'Which of your self-guided routes are easy enough for a family, and how long is each one?', 'kind' => 'global', 'expect' => ['6.5 km, a loop', '7.9 km, a loop', '5.4 km, a loop', '12.6 km, one way', '18.0 km, one way', '7.2 km, there and back']],
+
+    // The business, school and company guide (plain text).
+    ['query' => 'We just opened a business account. How much can we owe you on unpaid invoices?', 'expect' => 'starts with a credit limit of 2,500'],
+    ['query' => 'What discount does our company get on a single order of 6,000 euros?', 'expect' => 'Tier 2: from 5,000 in one order, 8% off'],
+    ['query' => 'How early do I need to ask if my class wants to borrow tents for a school camp?', 'expect' => 'at least six weeks before the trip'],
+    ['query' => 'How many tents can our scout group borrow in one go?', 'expect' => 'up to 15 tents, 40 sleeping bags'],
+    ['query' => 'What does the school pay if the kids lose some of the borrowed gear?', 'expect' => 'maximum of 300 for one loan'],
+    ['query' => 'How big does our hiking club have to be to get a partner agreement?', 'expect' => 'at least 25 paying members'],
+    ['query' => 'Can our rangers try on the uniform jackets before we order them?', 'expect' => 'Ask for a size kit'],
+    ['query' => 'Can you stitch our logo onto waterproof jackets?', 'expect' => 'We never embroider a waterproof jacket'],
+    ['query' => 'Is there a one-off charge to put our company logo on clothing?', 'expect' => 'a setup fee of 45'],
+    ['query' => 'How long before our charity trail run should we ask you to sponsor it?', 'expect' => 'at least three months before the event'],
+    ['query' => 'How much of the material in your clothes is recycled?', 'expect' => '64% of the fabric in our own clothing'],
+    ['query' => 'How big is the carbon footprint of Pinewood?', 'expect' => '1,920 tonnes of CO2 equivalent'],
+    ['query' => 'Do you pad your parcels with plastic bubble wrap?', 'expect' => 'never with plastic air cushions or foam'],
+    ['query' => 'My old fleece is full of holes and nobody can wear it. Can I give it to you?', 'expect' => 'drop it in the green End of Trail box'],
+    ['query' => 'I applied for a job in your shop. When will I get a reply?', 'expect' => 'Within ten working days you hear from us'],
+    ['query' => 'Are internships at Pinewood paid?', 'expect' => 'an allowance of 650 a month'],
+    ['query' => 'I am a journalist writing about outdoor brands. Who should I talk to?', 'expect' => 'Sofia Marino leads communications'],
+    ['query' => 'Can I bring my guide dog into your shops?', 'expect' => 'other assistance dogs are always welcome'],
+    ['query' => 'Is there a calm time to visit with my autistic son, without loud music?', 'expect' => 'every Tuesday from 10:00 to 11:00'],
+    ['query' => 'What does it cost to have a present wrapped when I order online?', 'expect' => 'for 3.50 per item'],
+    ['query' => 'I think I left my phone in the airport shop. Where does it end up?', 'expect' => "airport's own lost and found office"],
+    ['query' => 'I am not happy with the reply to my complaint. Who looks at it next?', 'expect' => 'customer service manager, Daniel Okafor'],
+    ['query' => 'How long do you keep the CCTV recordings from your shops?', 'expect' => 'We keep the images for 28 days'],
+    ['query' => 'Who started Pinewood Outdoor?', 'expect' => 'Anna Lindqvist and Pieter Brandsma'],
+    ['query' => 'Can I get into the Lakeside shop in a wheelchair?', 'expect' => 'gentle ramp and an automatic door'],
+
+    // Not covered, but close to what the guide talks about: nothing should come back.
+    ['query' => 'Can I open a Pinewood franchise shop in my town?', 'expect' => null],
+    ['query' => 'What is the Pinewood share price, and where can I buy shares?', 'expect' => null],
+    ['query' => 'How much profit did Pinewood make last year?', 'expect' => null],
+
+    // Multi-hop: the guide joined with the help centre and the catalogue, and
+    // two passages of the guide itself.
+    ['query' => 'Where do we pick up the tents our school borrows, and what is the street address of that shop?', 'kind' => 'multi-hop', 'expect' => ['at the back door next to the workshop', '4 Harbour Road']],
+    ['query' => 'We want our logo on Storm Jackets for our guides. How is the logo put on, and what does one jacket cost?', 'kind' => 'multi-hop', 'expect' => ['always a transfer print', 'It weighs 420 g in size M and costs 249']],
+    ['query' => 'How much worn-out gear did the take-back programme collect in 2025, and what do I get for each bag I bring?', 'kind' => 'multi-hop', 'expect' => ['collected 6.3 tonnes of worn-out gear', 'a voucher of 5 for each full bag']],
+
+    // Global: the facts are spread over many passages of the guide.
+    ['query' => 'Apart from selling gear, what services do your shops offer visitors?', 'kind' => 'global', 'expect' => ['we wrap presents for free', 'Backpack fitting, 30 minutes', 'every till has a hearing loop', 'into the lost property box', 'Pinewood Gear Swap']],
+
+    // The Jeddah store guide (Arabic Markdown).
+    ['query' => 'ما عنوان فرعكم في جدة بالضبط؟', 'expect' => 'مبنى "مرسى النورس"'],
+    ['query' => 'هل أدفع رسوماً لركن سيارتي عند زيارة فرع جدة؟', 'expect' => 'الساعات الثلاث الأولى مجانية'],
+    ['query' => 'كيف أصل إلى متجر جدة بالمواصلات العامة؟', 'expect' => 'الحافلة رقم ٧'],
+    ['query' => 'متى يفتح فرع جدة أبوابه يوم الجمعة؟', 'expect' => 'من الساعة الواحدة ظهراً حتى الحادية عشرة ليلاً'],
+    ['query' => 'ما مواعيد فرع جدة في الليل خلال شهر رمضان؟', 'expect' => 'من التاسعة والنصف مساءً حتى الثالثة فجراً'],
+    ['query' => 'هل فرع جدة مفتوح في أيام عيد الفطر؟', 'expect' => 'في عيد الفطر نغلق أول يومين'],
+    ['query' => 'بكم أستأجر كاميرا تصوير تحت الماء ليوم كامل؟', 'expect' => 'كاميرا مائية | ٦٠ ريالاً | ٩٥ ريالاً'],
+    ['query' => 'ماذا تحسبون إذا تأخرت في إرجاع معدات السنوركل؟', 'expect' => '١٠ ريالات عن كل ساعة'],
+    ['query' => 'كم تكلف باقة المبيت على البحر لعائلة من أربعة أفراد؟', 'expect' => 'لأربعة أشخاص بسعر ١٦٠ ريالاً'],
+    ['query' => 'أين أنصب خيمتي على الشاطئ حتى لا يصلها الماء في الليل؟', 'expect' => 'فوق خط المد العالي'],
+    ['query' => 'لسعني قنديل بحر، ماذا أفعل؟', 'expect' => 'اشطف المكان بماء البحر'],
+    ['query' => 'في أي يوم تقام دورة الإسعافات الأولية في جدة؟', 'expect' => 'كل يوم ثلاثاء من السادسة مساءً'],
+    ['query' => 'كم رسوم شحن طلبي من جدة إلى المدينة المنورة؟', 'expect' => 'من يومين إلى ثلاثة أيام عمل | ٣٢ ريالاً'],
+    ['query' => 'بدلة الغطس عندي فيها شق، كم يكلف إصلاحها؟', 'expect' => 'رقعة لشق في بدلة النيوبرين | ٤٥ ريالاً'],
+    ['query' => 'هل توجد أوقات تسوق خاصة بالسيدات في فرع جدة؟', 'expect' => 'كل يوم ثلاثاء وخميس من التاسعة صباحاً'],
+    // Asked in English, answered by the Arabic text.
+    ['query' => 'How many loyalty points do I earn for each riyal I spend?', 'expect' => 'نقطة واحدة عن كل ١٠ ريالات'],
+    ['query' => 'Can I return a snorkel mask after I have opened the package?', 'expect' => 'لا نقبل إرجاع الأقنعة وأنابيب التنفس'],
+    ['query' => 'What should I do if a current pulls me out to sea while snorkelling?', 'expect' => 'اسبح موازياً للشاطئ'],
+    ['query' => 'How much is the sunset boat tour in Jeddah?', 'expect' => 'جولة الغروب على الساحل | ساعتان | ١٢٠ ريالاً'],
+    ['query' => 'How old do you have to be for the sea kayak course?', 'expect' => 'لمن عمره اثنا عشر عاماً فما فوق'],
+
+    // Not covered: nothing should come back.
+    ['query' => 'هل لديكم فرع في الدمام، وما مواعيده؟', 'expect' => null],
+    ['query' => 'Do you offer PADI scuba diving certification in Jeddah?', 'expect' => null],
+    ['query' => 'هل يمكنني استئجار دراجة مائية (جت سكي) من فرع جدة؟', 'expect' => null],
+
+    // Multi-hop: the answer joins facts from two chunks.
+    ['query' => 'أريد حجز رحلة الغطس للنساء فقط، متى تكون ومن أي رصيف تنطلق القوارب؟', 'kind' => 'multi-hop', 'expect' => ['رحلة غطس سطحي للنساء فقط في الجمعة الأولى', 'الرصيف رقم ٤']],
+    ['query' => 'If I book the reef snorkelling boat trip as a loyalty member, do I get a discount, and do I earn points on it?', 'kind' => 'multi-hop', 'expect' => ['خصم ١٠٪ إذا حجزوا من مكتب التأجير', 'رحلات القوارب لا تُحسب عليها نقاط']],
+    ['query' => 'كم يكلف تغيير سحاب باب الخيمة في ورشة الرياض، وكم يكلف تغيير سحاب خيمة الشاطئ في ورشة جدة؟', 'kind' => 'multi-hop', 'expect' => ['تغيير سحّاب باب الخيمة | ٧٠ ريالاً', 'تغيير سحّاب خيمة الشاطئ | ٦٥ ريالاً']],
+
+    // Global: the facts are spread over the whole guide.
+    ['query' => 'لخّص لي كل الخدمات التي يقدمها متجر جدة.', 'kind' => 'global', 'expect' => ['الطقم البحري الكامل', 'باقة ليلة على الشاطئ', 'قوارب اللؤلؤة الزرقاء', 'الإسعافات الأولية على الشاطئ', 'ورشة جدة متخصصة في معدات البحر', 'يرسل متجر جدة الطلبات بنفسه']],
 ];

@@ -629,7 +629,10 @@ class Setup extends SimplePage
                             ->visible(fn (Get $get): bool => $get('website_import') === self::FIRECRAWL),
                     ]),
                 Section::make('AI enhancement')
-                    ->description('AI writes a short summary and likely questions for each part of what agents learn, so they find the right part more often.')
+                    ->description(new HtmlString(
+                        'AI writes a short summary and likely questions for each part of what agents learn, so they find the right part more often. '
+                        .'<a href="'.e(config('chatvia.docs_url').'/guide/how-it-works/knowledge#how-much-it-helps').'" target="_blank" rel="noopener" class="underline">See the test results</a>'
+                    ))
                     ->icon(Heroicon::OutlinedSparkles)
                     ->schema([
                         CardRadio::make('enhancement')

@@ -147,10 +147,11 @@ checkpoint, but a starved tool can't be called at all.
 
 `KnowledgeRetrievalEvalTest.php` measures the agent's knowledge search
 (`HybridChunkSearch` → relevance check → `KnowledgeBase::search`). Each run it
-splits and embeds eight documents of one made-up outdoor shop for a fresh
-agent — the three chunking samples in `resources/admin/samples/chunking/`, a product
-catalogue, terms of sale, a trips and courses guide, and two Arabic pages in
-[`fixtures/knowledge/`](fixtures/knowledge/) (46 chunks at the default size) —
+splits and embeds twelve documents of one made-up outdoor shop: the three
+chunking samples in `resources/admin/samples/chunking/`, a product catalogue,
+terms of sale, a trips and courses guide, a footwear catalogue, a hiking
+routes guide, a business and company guide, and three Arabic pages in
+[`fixtures/knowledge/`](fixtures/knowledge/) (148 chunks at the default size) —
 then asks the labelled questions in
 [`fixtures/knowledge/cases.php`](fixtures/knowledge/cases.php). The set is
 bigger than the 25 candidates the reranker scores, so the search's ranking
@@ -208,11 +209,53 @@ the baseline for retrieval that follows links between chunks (a knowledge graph)
 
 ## Baseline
 
-2026-10-25, 46 chunks: 72 single-fact questions, 10 uncovered, 4 follow-ups,
-22 multi-hop and 12 global. OpenRouter only: `qwen/qwen3-embedding-8b`,
-`cohere/rerank-4-pro` at 0.7, enhancement and follow-ups with
-`google/gemma-4-26b-a4b-it`, 5 chunks to the model, 400-token chunks. Without
-a reranker, the similarity bar is 0.35.
+2026-10-29, 148 chunks: 168 single-fact questions, 22 uncovered, 4
+follow-ups, 34 multi-hop and 16 global. OpenRouter only:
+`qwen/qwen3-embedding-8b` (halfvec, 1024 dimensions, binary HNSW index, exact
+search), `cohere/rerank-4-pro` at 0.75 over 25 candidates, enhancement and
+follow-ups with `google/gemma-4-26b-a4b-it`, 5 chunks to the model, 400-token
+chunks (smallest 128, no overlap). Without a reranker, the similarity bar is
+0.35.
+
+```bash
+OPENROUTER_API_KEY=… EVAL_EMBEDDING_PROVIDER=openrouter \
+EVAL_EMBEDDING_MODEL=qwen/qwen3-embedding-8b EVAL_CHAT_MODEL=google/gemma-4-26b-a4b-it \
+EVAL_RERANKER=openrouter EVAL_ENRICH=1 \
+vendor/bin/pest --testsuite=Eval --filter='knowledge retrieval quality'
+# no reranker: EVAL_RERANKER=none EVAL_SIMILARITY_THRESHOLD=0.35; plain: drop EVAL_ENRICH
+```
+
+| | Plain, reranker | Enriched, reranker | Plain, no reranker | Enriched, no reranker |
+|---|---|---|---|---|
+| Single-fact hit@5 / MRR before the check | 91.7% / 0.827 | 92.9% / 0.834 | 91.7% / 0.826 | 91.7% / 0.826 |
+| Single-fact answered | 91.7% | 95.8% | 91.7% | 92.9% |
+| Uncovered left empty | 86.4% | 86.4% | 45.5% | 45.5% |
+| Follow-ups answered | 100.0% | 100.0% | 100.0% | 100.0% |
+| Multi-hop: facts / every fact given | 83.8% / 70.6% | 86.8% / 73.5% | 83.8% / 73.5% | 82.4% / 70.6% |
+| Global: facts / every fact given | 70.1% / 37.5% | 70.1% / 31.2% | 51.9% / 18.8% | 58.4% / 18.8% |
+
+What it says:
+
+- With a reranker, enhancement answers 7 more of the 168 single-fact
+  questions (91.7% → 95.8%), and multi-hop gets a little better. Without
+  one it answers 2 more, and the ranking barely moves. On the 46-chunk set
+  it was the other way round (the gain was bigger without a reranker), so
+  treat the size of the gain as unsettled.
+- The new uncovered questions sound close to the knowledge (a Dammam store,
+  a via ferrata, heated socks). The 0.35 similarity bar lets more than half
+  of them through, with or without enhancement; the reranker blocks 86.4%.
+  Its sweep puts the best balance at 0.80 on both sets (enriched: 94.0% of
+  right passages kept, every uncovered question blocked); the bar stays 0.75
+  until a second run agrees.
+- English questions about the Arabic Jeddah guide are the weakest spot.
+  Without enhancement none of the 5 is even among the candidates; with it,
+  one reaches the top 5 and the other four rank 8 to 21.
+
+### 46-chunk set, 2026-10-25
+
+The first larger set: eight documents, 72 single-fact questions, 10
+uncovered, 4 follow-ups, 22 multi-hop and 12 global, same models, reranker
+at 0.7.
 
 | | Plain, reranker | Plain, no reranker | Enriched, reranker | Enriched, no reranker |
 |---|---|---|---|---|

@@ -45,6 +45,7 @@ use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
+use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Middleware as GuzzleMiddleware;
 use Illuminate\Queue\Attributes\Queue;
 use Illuminate\Queue\Attributes\Timeout;
@@ -648,8 +649,9 @@ function evalUseRealModels(): EmbeddingsProvider
     Http::allowStrayRequests();
 
     // Free API tiers cap tokens per minute: wait and ask again after a 429.
+    // A provider that stops answering for a while gets the same retries.
     Http::globalMiddleware(GuzzleMiddleware::retry(
-        static fn (int $retries, RequestInterface $request, ?ResponseInterface $response = null): bool => $retries < 10 && $response?->getStatusCode() === 429,
+        static fn (int $retries, RequestInterface $request, ?ResponseInterface $response = null, ?Throwable $exception = null): bool => $retries < 10 && ($response?->getStatusCode() === 429 || $exception instanceof ConnectException),
         static fn (): int => 20_000,
     ));
 

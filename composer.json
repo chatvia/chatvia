@@ -168,6 +168,9 @@
         "refactor:check": "Show pending Rector refactorings without changing files.",
         "ci:check": "Run every CI gate locally, fixing what tools can fix: composer validate + audit, npm audit (production deps), Rector and Pint (fix), PHPStan, Wayfinder routes, Prettier and ESLint (fix), vue-tsc, the frontend tests (Vitest), i18n check and the test suite."
     },
+    "conflict": {
+        "phpstan/phpstan": "2.3.4"
+    },
     "extra": {
         "laravel": {
             "dont-discover": [

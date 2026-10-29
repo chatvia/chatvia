@@ -427,7 +427,7 @@ fails:
   every morning, because new advisories appear without a push.
 - `php-quality.yml`: Composer validate, Pint, Rector, PHPStan (steps 1, 4, 5
   and 6).
-- `frontend.yml`: Prettier, ESLint, TypeScript, Vitest, Translations, Build
+- `typescript-quality.yml`: Prettier, ESLint, TypeScript, Vitest, Translations, Build
   (steps 7 to 11, plus `npm run build`).
 - `tests.yml`: Pest (step 12).
 

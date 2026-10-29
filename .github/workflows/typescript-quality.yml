@@ -1,4 +1,4 @@
-name: Frontend quality
+name: TypeScript quality
 
 on:
   push:
@@ -21,7 +21,7 @@ permissions:
 # gets a group of its own, so it is never cancelled and never waits for an
 # older run to finish.
 concurrency:
-  group: frontend-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  group: typescript-quality-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # One job per tool, side by side, so each passes or fails on its own. None of

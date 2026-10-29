@@ -43,9 +43,9 @@ jobs:
     permissions:
       contents: read
 
-  frontend:
-    name: Frontend quality
-    uses: ./.github/workflows/frontend.yml
+  typescript-quality:
+    name: TypeScript quality
+    uses: ./.github/workflows/typescript-quality.yml
     permissions:
       contents: read
 
@@ -63,7 +63,7 @@ jobs:
 
   image:
     name: Build and push
-    needs: [tests, php-quality, frontend, security, scripts]
+    needs: [tests, php-quality, typescript-quality, security, scripts]
     runs-on: ubuntu-latest
 
     permissions:

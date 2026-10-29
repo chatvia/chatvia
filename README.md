@@ -13,7 +13,7 @@
 <p align="center">
   <a href="https://github.com/chatvia/chatvia/actions/workflows/tests.yml"><img height="24" src="https://github.com/chatvia/chatvia/actions/workflows/tests.yml/badge.svg?branch=main" alt="Tests"></a>
   <a href="https://github.com/chatvia/chatvia/actions/workflows/php-quality.yml"><img height="24" src="https://github.com/chatvia/chatvia/actions/workflows/php-quality.yml/badge.svg?branch=main" alt="PHP quality"></a>
-  <a href="https://github.com/chatvia/chatvia/actions/workflows/frontend.yml"><img height="24" src="https://github.com/chatvia/chatvia/actions/workflows/frontend.yml/badge.svg?branch=main" alt="Frontend quality"></a>
+  <a href="https://github.com/chatvia/chatvia/actions/workflows/typescript-quality.yml"><img height="24" src="https://github.com/chatvia/chatvia/actions/workflows/typescript-quality.yml/badge.svg?branch=main" alt="TypeScript quality"></a>
   <a href="https://github.com/chatvia/chatvia/actions/workflows/security.yml"><img height="24" src="https://github.com/chatvia/chatvia/actions/workflows/security.yml/badge.svg?branch=main" alt="Security audit"></a>
   <a href="https://github.com/chatvia/chatvia/actions/workflows/scripts.yml"><img height="24" src="https://github.com/chatvia/chatvia/actions/workflows/scripts.yml/badge.svg?branch=main" alt="Scripts"></a>
   <br>

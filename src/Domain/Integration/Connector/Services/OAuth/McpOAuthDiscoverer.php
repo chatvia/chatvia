@@ -34,7 +34,7 @@ class McpOAuthDiscoverer
 {
     public function discover(string $mcpUrl, ?ConnectorData $connector = null): OAuthServerMetadataData
     {
-        $authServers = $this->fetchProtectedResource($mcpUrl, $this->resourceMetadataCandidates($mcpUrl), requireResource: $connector === null);
+        $authServers = $this->fetchProtectedResource($mcpUrl, $this->resourceMetadataCandidates($mcpUrl), requireResource: ! $connector instanceof ConnectorData);
 
         if ($authServers === []) {
             throw new McpOAuthException('The MCP server did not advertise any authorization servers.');

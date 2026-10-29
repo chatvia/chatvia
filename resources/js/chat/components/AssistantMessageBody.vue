@@ -18,7 +18,7 @@ import { sanitizeUntrustedHtml } from '@/shared/lib/sanitizeHtml';
 import type { MessageSource } from '@/shared/types/chat';
 import type { ToolArtifact } from '@/shared/types/stream';
 import { useClipboard } from '@vueuse/core';
-import hljs from 'highlight.js';
+import hljs from 'highlight.js/lib/common';
 import { Marked } from 'marked';
 import markedAlert from 'marked-alert';
 import markedCodePreview from 'marked-code-preview';

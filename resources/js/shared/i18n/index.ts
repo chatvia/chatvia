@@ -74,8 +74,9 @@ export const LOCALES: readonly LocaleMeta[] = [
 type MessageSchema = typeof en;
 
 // Lazy importers for every non-default locale. Vite code-splits each JSON into
-// its own chunk so only the active language is fetched over the wire.
-const localeLoaders = import.meta.glob<{ default: MessageSchema }>('./locales/*.json');
+// its own chunk so only the active language is fetched over the wire. English
+// is left out: it is imported eagerly above.
+const localeLoaders = import.meta.glob<{ default: MessageSchema }>(['./locales/*.json', '!./locales/en.json']);
 
 const loadedLocales = new Set<SupportedLocale>(['en']);
 

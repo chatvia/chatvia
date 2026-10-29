@@ -15,7 +15,7 @@ import { getInitials } from '@/shared/composables/useInitials';
 import { sanitizeUntrustedHtml } from '@/shared/lib/sanitizeHtml';
 import { logs } from '@/routes/agents';
 import { Link, router } from '@inertiajs/vue3';
-import hljs from 'highlight.js';
+import hljs from 'highlight.js/lib/common';
 import { User } from 'lucide-vue-next';
 import { Marked } from 'marked';
 import { markedHighlight } from 'marked-highlight';

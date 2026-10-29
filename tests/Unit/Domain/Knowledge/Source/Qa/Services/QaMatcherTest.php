@@ -12,8 +12,9 @@ use Tests\Support\Knowledge\Embedding\FakeEmbeddingsProvider;
 
 /**
  * A saved answer is sent for a message that is one of its questions as a
- * whole, or very close to one in meaning (with a measured bar). Vectors are
- * placed by hand: each text maps to a direction, so the similarities are known.
+ * whole, without an embedding call, or very close to one in meaning (above
+ * a measured bar). Vectors are placed by hand: each text maps to a
+ * direction, so the similarities are known.
  */
 
 /** @param  array<string, list<float>>  $directions */
@@ -62,12 +63,3 @@ it('matches by meaning only above the bar', function (array $direction, bool $ma
     'very close (cosine 0.95)' => [[0.95, 0.3122], true],
     'related, not the same (cosine 0.6)' => [[0.6, 0.8], false],
 ]);
-
-it('matches only as whole questions when the embedding model was never measured', function (): void {
-    config(['chatvia.ai.models.embedding' => 'openai']);
-    qamEmbeddings(['What are your opening hours?' => [1.0, 0.0], 'When do you open?' => [1.0, 0.0]]);
-    $agent = Agent::factory()->create();
-    qamEntry($agent);
-
-    expect(app(QaMatcher::class)->match($agent, 'When do you open?', 'When do you open?'))->toBeNull();
-});

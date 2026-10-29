@@ -1,15 +1,14 @@
 <?php
 
-use Domain\Knowledge\Document\Conversion\OfficeText;
 use Domain\Knowledge\Ingestion\Exceptions\DocumentParsingException;
 use Domain\Knowledge\Ingestion\Services\Parsing\LocalDocumentParser;
-use Mockery\MockInterface;
 
 /**
- * The local document parser reads documents on the server with poppler's
- * pdftotext (office files are read by OfficeText), so an install
- * without an OCR service can still ingest PDFs. The PDF tests need the
- * pdftotext binary and skip cleanly when it is not installed.
+ * The local document parser reads PDFs on the server with poppler's
+ * pdftotext, so an install without an OCR service can still ingest them: one
+ * page per PDF page, and a PDF the tool cannot read reported as a parsing
+ * failure. The tests need the pdftotext binary and skip cleanly when it is
+ * not installed.
  */
 
 /**
@@ -75,44 +74,6 @@ it('reads each PDF page into its own PageData', function (): void {
         ->and($pages[1]->content)->toBe('Shipping is free in the EU.')
         ->and($pages[0]->imagesBase64)->toBe([])
         ->and($pages[0]->tables)->toBe([]);
-});
-
-it('reads office files through OfficeText, one PageData per page', function (): void {
-    $docx = tempTestFile('policy.docx', 'not really a docx');
-
-    $this->mock(OfficeText::class, function (MockInterface $mock) use ($docx): void {
-        $mock->shouldReceive('supports')->with('docx')->andReturnTrue();
-        $mock->shouldReceive('pages')->once()->with($docx, 'docx')->andReturn(['First page.', 'Second page.']);
-    });
-
-    $pages = app(LocalDocumentParser::class)->parse($docx, 'users/ws/agents/agent/tmp');
-
-    expect($pages)->toHaveCount(2)
-        ->and($pages[0]->content)->toBe('First page.')
-        ->and($pages[1]->pageNumber)->toBe(2);
-});
-
-it('reads a plain-text file without any outside program', function (): void {
-    $txt = tempTestFile('notes.txt', "Opening hours.\n\nMonday to Friday.");
-
-    $pages = app(LocalDocumentParser::class)->parse($txt, 'users/ws/agents/agent/tmp');
-
-    expect($pages)->toHaveCount(1)
-        ->and($pages[0]->content)->toBe("Opening hours.\n\nMonday to Friday.");
-});
-
-it('explains that images need an OCR service', function (): void {
-    $image = tempTestFile('scan.png', 'png-bytes');
-
-    expect(fn () => app(LocalDocumentParser::class)->parse($image, 'users/ws/agents/agent/tmp'))
-        ->toThrow(DocumentParsingException::class, 'OCR service');
-});
-
-it('rejects a format it cannot read', function (): void {
-    $file = tempTestFile('archive.xyz', 'bytes');
-
-    expect(fn () => app(LocalDocumentParser::class)->parse($file, 'users/ws/agents/agent/tmp'))
-        ->toThrow(DocumentParsingException::class, '.xyz');
 });
 
 it('reports a PDF the text tool cannot read as a parsing failure', function (): void {

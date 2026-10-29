@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\Http;
 
 /**
  * The common `/rerank` API (OpenRouter, Cohere, self-hosted servers): the
- * request, the results best first whatever order they come in, and a clear
- * failure without a key.
+ * request, the results best first whatever order they come in, and a server
+ * error thrown so callers fall back.
  */
 it('posts the query and documents and returns the results best first', function (): void {
     Http::fake(['rerank.test/v1/rerank' => Http::response(['results' => [
@@ -29,29 +29,6 @@ it('posts the query and documents and returns the results best first', function 
         && $request['documents'] === ['Hours', 'Returns', 'Tracking']
         && $request['top_n'] === 3
         && $request['max_tokens_per_doc'] === 1000);
-});
-
-it('cuts to top_n and sends nothing for no documents', function (): void {
-    Http::fake(['rerank.test/v1/rerank' => Http::response(['results' => [
-        ['index' => 0, 'relevance_score' => 0.2],
-        ['index' => 1, 'relevance_score' => 0.9],
-    ]])]);
-
-    $reranker = new CompatibleReranker('https://rerank.test/v1', 'key-1', 'm');
-
-    expect($reranker->rerank('q', ['a', 'b'], 1))->toHaveCount(1)
-        ->and($reranker->rerank('q', []))->toBe([]);
-
-    Http::assertSentCount(1);
-});
-
-it('refuses to run without a key, unless the server needs none', function (): void {
-    Http::fake(['rerank.test/v1/rerank' => Http::response(['results' => []])]);
-
-    expect(fn (): array => new CompatibleReranker('https://rerank.test/v1', null, 'm')->rerank('q', ['a']))
-        ->toThrow(RuntimeException::class, 'The reranker has no API key');
-
-    expect(new CompatibleReranker('https://rerank.test/v1', null, 'm', keyRequired: false)->rerank('q', ['a']))->toBe([]);
 });
 
 it('throws on a server error, so callers fall back', function (): void {

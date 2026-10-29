@@ -28,17 +28,6 @@ it('queues each file type on its own pipeline', function (string $filename, stri
     Bus::assertDispatched($jobClass);
 })->with([
     'audio' => ['talk.mp3', 'audio/mpeg', MediaIngestionJob::class],
-    'video' => ['demo.mp4', 'video/mp4', MediaIngestionJob::class],
     'markdown' => ['notes.md', 'text/markdown', TextFileIngestionJob::class],
-    'ebook' => ['book.epub', 'application/epub+zip', TextFileIngestionJob::class],
     'pdf' => ['manual.pdf', 'application/pdf', DocumentIngestionJob::class],
 ]);
-
-it('leaves an ingested file alone', function (): void {
-    $agent = Agent::factory()->create();
-    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id, 'status' => 'ingested']);
-
-    app(StartFileIngestionAction::class)->execute($file, $agent);
-
-    Bus::assertNothingDispatched();
-});

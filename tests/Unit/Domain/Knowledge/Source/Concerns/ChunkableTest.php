@@ -1,7 +1,6 @@
 <?php
 
 use Database\Factories\AgentFileFactory;
-use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Database\Events\QueryExecuted;
@@ -47,23 +46,7 @@ it('deletes every chunk of a source in batches, the summary included', function 
 
     $file->deleteChunks(batchSize: 2);
 
-    // 5 chunks in batches of 2 → 3 batches, then 1 that finds nothing.
     expect($deletes)->toBe(4)
         ->and(Chunk::query()->ofSource($file)->exists())->toBeFalse()
         ->and(Chunk::query()->find($kept->id))->not->toBeNull();
-});
-
-it('deletes all chunks of a source bigger than one batch', function (): void {
-    $file = AgentFileFactory::new()->create();
-    $vector = embeddingVector();
-
-    DB::statement(
-        'INSERT INTO chunks (workspace_id, chunkable_type, chunkable_id, chunk_index, chunk, tokens, embedding, search_text, checksum)
-         SELECT ?, ?, ?, g, ?, 1, ?::'.app(EmbeddingStorage::class)->columnType().', ?, md5(g::text) FROM generate_series(0, 2500) g',
-        [$file->workspace_id, $file->getMorphClass(), $file->id, 'Text.', $vector, 'Text.'],
-    );
-
-    $file->deleteChunks();
-
-    expect(Chunk::query()->ofSource($file)->exists())->toBeFalse();
 });

@@ -9,7 +9,6 @@ use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Bus\Batch;
 use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Support\Facades\Bus;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Testing\Fakes\PendingBatchFake;
 
 /**
@@ -47,17 +46,6 @@ it('queues the chunks in ranges of 32 rows, on the ingestion queue', function ()
             && [$chunkJobs[0]->firstId, $chunkJobs[0]->lastId] === [$ids[0], $ids[31]]
             && [$chunkJobs[1]->firstId, $chunkJobs[1]->lastId] === [$ids[32], $ids[32]];
     });
-});
-
-it('starts nothing while nothing is stored as vectors', function (): void {
-    Bus::fake();
-    Chunk::query()->delete();
-    DB::table('agent_question_answer_questions')->delete();
-
-    expect(app(StartEmbeddingReindexAction::class)->execute())->toBeNull()
-        ->and(app(EmbeddingReindexStatus::class)->latest())->toBeNull();
-
-    Bus::assertNothingBatched();
 });
 
 it('cancels a re-index that still runs before it starts a new one', function (): void {

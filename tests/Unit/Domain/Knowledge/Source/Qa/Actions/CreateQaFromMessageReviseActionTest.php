@@ -7,7 +7,6 @@ use Domain\Conversation\Models\Session;
 use Domain\Knowledge\Source\Qa\Actions\CreateQaFromMessageReviseAction;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Str;
 
 /**
  * Revising a reply in the chat log turns the owner's correction into a curated
@@ -40,34 +39,16 @@ it('creates a Q&A from the correction and links the reply to it', function (): v
         ->and($reply->fresh()->agent_question_answer_id)->toBe($qa->id);
 });
 
-it('cuts the title to the first hundred characters of the question', function (): void {
-    $agent = Agent::factory()->create();
-    $reply = cqmrReply($agent);
-    $question = Str::repeat('é', 150);
-
-    $qa = app(CreateQaFromMessageReviseAction::class)->execute($agent, (string) $reply->id, $question, 'Answer');
-
-    expect(Str::length($qa->title))->toBe(100)
-        ->and($qa->questions)->toBe($question);
-});
-
-it('refuses a reply of another agent and writes nothing', function (): void {
+it('refuses a reply of another agent or a visitor message and writes nothing', function (): void {
     $agent = Agent::factory()->create();
     $foreignReply = cqmrReply(Agent::factory()->create());
+    $visitorMessage = cqmrReply($agent, role: 'user');
 
     expect(fn () => app(CreateQaFromMessageReviseAction::class)->execute($agent, (string) $foreignReply->id, 'Q', 'A'))
+        ->toThrow(ModelNotFoundException::class)
+        ->and(fn () => app(CreateQaFromMessageReviseAction::class)->execute($agent, (string) $visitorMessage->id, 'Q', 'A'))
         ->toThrow(ModelNotFoundException::class);
 
     expect(AgentQuestionAnswer::query()->where('agent_id', $agent->id)->exists())->toBeFalse()
         ->and($foreignReply->fresh()->agent_question_answer_id)->toBeNull();
-});
-
-it('refuses a visitor message', function (): void {
-    $agent = Agent::factory()->create();
-    $visitorMessage = cqmrReply($agent, role: 'user');
-
-    expect(fn () => app(CreateQaFromMessageReviseAction::class)->execute($agent, (string) $visitorMessage->id, 'Q', 'A'))
-        ->toThrow(ModelNotFoundException::class);
-
-    expect(AgentQuestionAnswer::query()->where('agent_id', $agent->id)->exists())->toBeFalse();
 });

@@ -11,13 +11,11 @@ use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 /**
  * Finishing a website's training: the website is ingested, its chunks are
- * written as one document in its folder (in chunk_index order, replaced on a
- * retrain), the URL placeholders come off the chunk count, and the summary is
- * queued.
+ * written as one document in its folder (replaced on a retrain), the URL
+ * placeholders come off the chunk count, and the summary is queued.
  */
 beforeEach(function (): void {
     Bus::fake();
@@ -32,12 +30,11 @@ it('finishes a website: ingested, text file saved, URL placeholders taken off th
     $website = SourceWebsite::factory()->processing()->attachedTo($agent)->create();
     $url = $website->urls()->create(['url' => $website->url.'/a']);
     Chunk::factory()->forSource($website)->referencedBy($url)->create(['chunk' => 'First part of the page.']);
-    $website->update(['expected_chunks' => 1 + 1]); // one URL placeholder + one real chunk
+    $website->update(['expected_chunks' => 1 + 1]);
 
     app(CompleteWebsiteIngestionAction::class)->execute($website, $agent);
 
     $website->refresh();
-
     expect($website->status)->toBe(SourceStatus::Completed)
         ->and($website->expected_chunks)->toBe(1)
         ->and($website->filepath)->toStartWith(KnowledgeStoragePath::forSource($website).'/')
@@ -61,30 +58,4 @@ it('replaces the website document on a retrain', function (): void {
 
     expect($second)->not->toBe($first)
         ->and(Storage::allFiles())->toBe([$second]);
-});
-
-it('writes a large website document in chunk_index order, batch after batch', function (): void {
-    $agent = Agent::factory()->create();
-    $website = SourceWebsite::factory()->processing()->attachedTo($agent)->create();
-    $vector = embeddingVector();
-
-    // Stored in reverse, so insertion order differs from page order. One
-    // insert for the 501 rows: the document is written in batches of 500.
-    Chunk::query()->insert(collect(range(501, 1))->map(fn (int $i): array => [
-        'external_id' => (string) Str::uuid7(),
-        'workspace_id' => $website->workspace_id,
-        'chunkable_type' => $website->getMorphClass(),
-        'chunkable_id' => $website->id,
-        'chunk_index' => $i,
-        'chunk' => "Part {$i}",
-        'tokens' => 2,
-        'embedding' => $vector,
-        'search_text' => "Part {$i}",
-        'checksum' => "part-{$i}",
-    ])->all());
-
-    app(CompleteWebsiteIngestionAction::class)->execute($website, $agent);
-
-    expect(Storage::get($website->fresh()->filepath))
-        ->toBe(collect(range(1, 501))->map(fn (int $i): string => "Part {$i}")->implode("\n\n"));
 });

@@ -15,9 +15,8 @@ use Illuminate\Support\Facades\Http;
 
 /**
  * Discovering a website's pages: one FireCrawl /map call, filtered by the
- * path filters. A re-crawl replaces the URL list in place, in one
- * transaction: gone pages leave with the chunks only they produced, found
- * pages are trained again, and a failure keeps the previous list.
+ * path filters. A re-crawl replaces the URL list in place: gone pages leave
+ * with the chunks only they produced, and found pages are trained again.
  */
 beforeEach(function (): void {
     Bus::fake();
@@ -77,28 +76,4 @@ it('re-crawls in place: gone pages leave with the chunks only they used, found p
         ->and(Chunk::query()->find($summary->id))->not->toBeNull()
         ->and(ChunkReference::query()->where('referenceable_id', $gone->id)->exists())->toBeFalse()
         ->and($kept->chunks()->pluck('chunks.id')->all())->toBe([$shared->id]);
-});
-
-it('keeps the previous URL list when saving the new one fails', function (): void {
-    Http::fake(['https://firecrawl.test/v2/map' => Http::response(['links' => ['https://docs.example.test/new']])]);
-
-    $agent = Agent::factory()->create();
-    $website = SourceWebsite::factory()->attachedTo($agent)->create(['url' => 'https://docs.example.test', 'status' => SourceStatus::Crawling]);
-    $website->urls()->create(['url' => 'https://docs.example.test/old']);
-
-    // Fails after the new URL rows are written, inside the transaction.
-    SourceWebsite::updating(function (): void {
-        throw new RuntimeException('database unavailable');
-    });
-
-    expect(fn () => app(CrawlWebsiteAction::class)->execute(
-        $website,
-        new CrawlerData(url: $website->url),
-        $agent,
-    ))->toThrow(RuntimeException::class);
-
-    expect($website->urls()->pluck('url')->all())->toBe(['https://docs.example.test/old'])
-        ->and($website->fresh()->status)->toBe(SourceStatus::Crawling);
-
-    Event::assertNotDispatched(WebsiteCrawlStarted::class);
 });

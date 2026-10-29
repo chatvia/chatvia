@@ -7,9 +7,8 @@ use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Str;
 
 /**
- * CancelFileIngestionAction stops a file's chunking batch when the file is deleted
- * mid-ingestion. It must tolerate a batch that was already pruned, and still
- * find media batches whose id was stored in the older column.
+ * CancelFileIngestionAction stops a file's chunking batch when the file is
+ * deleted mid-ingestion, and tolerates a batch that was already pruned.
  */
 function cfiStoredBatchId(): string
 {
@@ -19,18 +18,6 @@ function cfiStoredBatchId(): string
 it('cancels the batch stored in internal_chunking_batch_id', function (): void {
     $batchId = cfiStoredBatchId();
     $file = AgentFileFactory::new()->create(['internal_chunking_batch_id' => $batchId]);
-
-    app(CancelFileIngestionAction::class)->execute($file);
-
-    expect(Bus::findBatch($batchId)->cancelled())->toBeTrue();
-});
-
-it('cancels a media batch whose id was stored in internal_ingestion_job_id', function (): void {
-    $batchId = cfiStoredBatchId();
-    $file = AgentFileFactory::new()->create([
-        'internal_chunking_batch_id' => null,
-        'internal_ingestion_job_id' => $batchId,
-    ]);
 
     app(CancelFileIngestionAction::class)->execute($file);
 

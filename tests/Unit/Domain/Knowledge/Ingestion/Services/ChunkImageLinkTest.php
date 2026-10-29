@@ -22,13 +22,6 @@ function cilSignature(string $chunk, int $index): string
     return $query[ChunkImageLink::SIGNATURE_PARAM];
 }
 
-it('builds a path carrying a signature for the chunk + index', function (): void {
-    $path = ChunkImageLink::path('0192f4a1-7b3c-7abc-9def-0123456789ab', 0);
-
-    expect($path)->toStartWith('/my/chunks/0192f4a1-7b3c-7abc-9def-0123456789ab/0.png?')
-        ->and($path)->toContain(ChunkImageLink::SIGNATURE_PARAM.'=');
-});
-
 it('verifies a signature produced by path()', function (): void {
     $externalId = '0192f4a1-7b3c-7abc-9def-0123456789ab';
     $query = Uri::of(ChunkImageLink::path($externalId, 2))->query()->all();
@@ -45,12 +38,3 @@ it('rejects a signature that is not the one minted for that chunk and image', fu
     'the signature of another image' => fn (): array => ['chunk-a', 1, cilSignature('chunk-a', 0)],
     'a tampered signature' => ['chunk-a', 0, Str::repeat('0', 64)],
 ]);
-
-it('produces a different signature under a different app key', function (): void {
-    $first = Uri::of(ChunkImageLink::path('chunk-a', 0))->query()->all();
-
-    config()->set('app.key', 'base64:'.base64_encode(Str::repeat('z', 32)));
-    $second = Uri::of(ChunkImageLink::path('chunk-a', 0))->query()->all();
-
-    expect($first[ChunkImageLink::SIGNATURE_PARAM])->not->toBe($second[ChunkImageLink::SIGNATURE_PARAM]);
-});

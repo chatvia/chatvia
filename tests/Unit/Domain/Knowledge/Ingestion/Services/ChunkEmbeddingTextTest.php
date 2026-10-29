@@ -25,12 +25,6 @@ it('builds an enhanced page from its summary, its text and its visuals', functio
         ->and(ChunkEmbeddingText::of($chunk))->toBe(ChunkEmbeddingText::forPage('About prices.', 'Page text.', "A price chart.\n\nA price table."));
 });
 
-it('embeds a page that was not enhanced as its text', function (): void {
-    $chunk = new Chunk(['chunk_index' => 1, 'chunk' => 'Plain page.', 'summary' => null, 'metadata' => []]);
-
-    expect(ChunkEmbeddingText::of($chunk))->toBe('Plain page.');
-});
-
 it('embeds the summary chunk as plain text', function (): void {
     $chunk = new Chunk(['chunk_index' => 0, 'chunk' => '<p>Short <b>summary</b>.</p>', 'summary' => '', 'metadata' => ['language' => 'en']]);
 

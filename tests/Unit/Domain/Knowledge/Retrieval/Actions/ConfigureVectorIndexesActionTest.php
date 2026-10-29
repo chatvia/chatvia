@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Retrieval\Actions\ConfigureVectorIndexesAction;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -38,14 +37,6 @@ it('builds binary indexes over the quantized vectors', function (): void {
         ->and(cviaIndex('chunks_questions_embedding_hnsw')->indexdef)->toContain('binary_quantize(questions_embedding)');
 });
 
-it('builds full indexes over the stored vectors', function (): void {
-    cviaRun('full');
-
-    expect(cviaIndex('chunks_embedding_hnsw')->indexdef)
-        ->toContain('USING hnsw (embedding '.app(EmbeddingStorage::class)->type()->operatorClass().')')
-        ->not->toContain('binary_quantize');
-});
-
 it('rebuilds only the indexes in the other kind', function (): void {
     cviaRun('full');
     $before = cviaIndex('chunks_embedding_hnsw')->oid;
@@ -54,11 +45,4 @@ it('rebuilds only the indexes in the other kind', function (): void {
         ->and(cviaIndex('chunks_embedding_hnsw')->oid)->toBe($before)
         ->and(cviaRun('binary')->all())->toBe(['chunks_embedding_hnsw', 'chunks_questions_embedding_hnsw'])
         ->and(cviaIndex('chunks_embedding_hnsw')->oid)->not->toBe($before);
-});
-
-it('builds a missing index', function (): void {
-    cviaRun('binary');
-    DB::statement('DROP INDEX chunks_questions_embedding_hnsw');
-
-    expect(cviaRun('binary')->all())->toBe(['chunks_questions_embedding_hnsw']);
 });

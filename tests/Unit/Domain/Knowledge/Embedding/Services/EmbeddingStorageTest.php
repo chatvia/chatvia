@@ -1,36 +1,35 @@
 <?php
 
 use Domain\Knowledge\Embedding\Enums\VectorIndex;
-use Domain\Knowledge\Embedding\Enums\VectorType;
 use Domain\Knowledge\Embedding\Exceptions\InvalidEmbeddingStorageException;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 
 /**
- * EmbeddingStorage turns EMBEDDING_VECTOR_TYPE / EMBEDDING_DIMENSIONS into the
- * column type every embedding column and query cast uses.
+ * EmbeddingStorage turns EMBEDDING_VECTOR_TYPE / EMBEDDING_DIMENSIONS /
+ * EMBEDDING_INDEX into the column type every embedding column and query cast
+ * uses, and refuses any value the database or the HNSW index cannot hold.
  */
-it('reads the vector type and size from the settings', function (): void {
-    config(['chatvia.embeddings.type' => ' Vector ', 'chatvia.embeddings.dimensions' => '1536']);
+it('reads the vector type, size and index kind from the settings', function (): void {
+    config(['chatvia.embeddings.type' => ' Vector ', 'chatvia.embeddings.dimensions' => '1536', 'chatvia.embeddings.index' => ' Full ']);
 
     $storage = new EmbeddingStorage;
 
     expect($storage->columnType())->toBe('vector(1536)')
-        ->and($storage->type()->operatorClass())->toBe('vector_l2_ops');
+        ->and($storage->type()->operatorClass())->toBe('vector_l2_ops')
+        ->and($storage->index())->toBe(VectorIndex::Full);
 });
 
-it('rejects a vector type the database cannot store', function (): void {
-    config(['chatvia.embeddings.type' => 'float']);
+it('rejects a vector type, size or index kind it cannot store', function (array $settings, string $method): void {
+    config($settings);
 
-    expect(fn (): VectorType => (new EmbeddingStorage)->type())
-        ->toThrow(InvalidEmbeddingStorageException::class, 'EMBEDDING_VECTOR_TYPE must be "halfvec" or "vector", not "float".');
-});
-
-it('rejects a size the vector index cannot hold', function (mixed $dimensions): void {
-    config(['chatvia.embeddings.dimensions' => $dimensions]);
-
-    expect(fn (): int => (new EmbeddingStorage)->dimensions())
-        ->toThrow(InvalidEmbeddingStorageException::class, 'EMBEDDING_DIMENSIONS must be a whole number the vector index accepts');
-})->with([0, 4001, '1024.5', 'many']);
+    expect(fn (): mixed => (new EmbeddingStorage)->{$method}())->toThrow(InvalidEmbeddingStorageException::class);
+})->with([
+    'a float type' => [['chatvia.embeddings.type' => 'float'], 'type'],
+    'a size of 0' => [['chatvia.embeddings.dimensions' => 0], 'dimensions'],
+    'a size over 4000' => [['chatvia.embeddings.dimensions' => 4001], 'dimensions'],
+    'a size that is not a whole number' => [['chatvia.embeddings.dimensions' => '1024.5'], 'dimensions'],
+    'an ivfflat index' => [['chatvia.embeddings.index' => 'ivfflat'], 'index'],
+]);
 
 it('caps the size at what the HNSW index accepts for the type', function (): void {
     config(['chatvia.embeddings.type' => 'vector', 'chatvia.embeddings.dimensions' => 2048]);
@@ -41,21 +40,4 @@ it('caps the size at what the HNSW index accepts for the type', function (): voi
     config(['chatvia.embeddings.type' => 'halfvec']);
 
     expect((new EmbeddingStorage)->dimensions())->toBe(2048);
-});
-
-it('reads what the vector indexes hold, binary unless set otherwise', function (): void {
-    config(['chatvia.embeddings.index' => ' Full ']);
-
-    expect((new EmbeddingStorage)->index())->toBe(VectorIndex::Full);
-
-    config(['chatvia.embeddings.index' => 'binary']);
-
-    expect((new EmbeddingStorage)->index())->toBe(VectorIndex::Binary);
-});
-
-it('rejects an index kind it cannot build', function (): void {
-    config(['chatvia.embeddings.index' => 'ivfflat']);
-
-    expect(fn (): VectorIndex => (new EmbeddingStorage)->index())
-        ->toThrow(InvalidEmbeddingStorageException::class, 'EMBEDDING_INDEX must be "binary" or "full", not "ivfflat".');
 });

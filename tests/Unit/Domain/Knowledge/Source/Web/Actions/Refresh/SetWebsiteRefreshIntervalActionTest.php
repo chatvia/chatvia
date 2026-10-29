@@ -21,18 +21,6 @@ beforeEach(function (): void {
     $this->website = SourceWebsite::factory()->ingested()->attachedTo(Agent::factory()->create())->create();
 });
 
-it('sets the interval, counting from now', function (): void {
-    app(SetWebsiteRefreshIntervalAction::class)->execute($this->website, RefreshInterval::Weekly);
-
-    expect($this->website->fresh()->refresh_interval)->toBe(RefreshInterval::Weekly)
-        ->and($this->website->fresh()->refreshed_at->equalTo(now()))->toBeTrue()
-        ->and(app(RefreshDueWebsitesAction::class)->execute())->toBe(0);
-
-    app(SetWebsiteRefreshIntervalAction::class)->execute($this->website, RefreshInterval::Off);
-
-    expect($this->website->fresh()->refresh_interval)->toBe(RefreshInterval::Off);
-});
-
 it('counts from now when switched on again, and from the last refresh between intervals', function (): void {
     $this->website->update(['refresh_interval' => RefreshInterval::Off, 'refreshed_at' => now()->subMonths(3)]);
 

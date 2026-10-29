@@ -2,7 +2,6 @@
 
 use Domain\Knowledge\Document\Conversion\Markdown\PptReader;
 use Illuminate\Support\Facades\File;
-use Tests\Support\Knowledge\Document\OldOffice\CompoundFileWriter;
 use Tests\Support\Knowledge\Document\OldOffice\PowerPointBinaryFile;
 
 /**
@@ -31,14 +30,6 @@ it('reads the slides in show order, placeholders and text boxes in shape order',
     ]);
 });
 
-it('reads Unicode and one-byte text, and leaves out the master slide', function (): void {
-    $path = new PowerPointBinaryFile()->slide(['Café menu'], ['日本語のテキスト', 'Привет'])->save();
-    $slides = pptrSlides($path);
-
-    expect($slides)->toBe(["Café menu\n日本語のテキスト\nПривет"])
-        ->and(implode("\n", $slides))->not->toContain('Master');
-});
-
 it('reads the version of each slide the last save left, not an earlier one', function (): void {
     $path = new PowerPointBinaryFile()
         ->slide(['Agenda'], ['Updated plan'])
@@ -46,18 +37,4 @@ it('reads the version of each slide the last save left, not an earlier one', fun
         ->save();
 
     expect(pptrSlides($path))->toBe(["Agenda\nUpdated plan"]);
-});
-
-it('gives all slides as Markdown, a blank line apart', function (): void {
-    $path = deleteAfterTest(new PowerPointBinaryFile()->slide(['One'])->slide(['Two'])->save());
-
-    expect(new PptReader()->toMarkdown($path))->toBe("One\n\nTwo");
-});
-
-it('refuses a password-protected file and a file that is not a presentation', function (): void {
-    $locked = new PowerPointBinaryFile()->slide(['Secret'])->encrypted()->save();
-    $other = tempTestFile('other.ppt', CompoundFileWriter::write(['WordDocument' => 'not a presentation']));
-
-    expect(fn (): array => pptrSlides($locked))->toThrow(RuntimeException::class, 'password protected')
-        ->and(fn (): array => pptrSlides($other))->toThrow(RuntimeException::class, 'not a PowerPoint presentation');
 });

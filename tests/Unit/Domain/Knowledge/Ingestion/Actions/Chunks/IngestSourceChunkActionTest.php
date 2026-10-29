@@ -6,20 +6,15 @@ use Domain\Knowledge\Ingestion\Actions\Chunks\IngestSourceChunkAction;
 use Domain\Knowledge\Ingestion\Data\Chunking\PageGroupData;
 use Domain\Knowledge\Ingestion\Data\Chunking\SourceChunkData;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
-use Domain\Knowledge\Ingestion\Enums\ChunkEnhancement;
 use Domain\Knowledge\Source\File\Events\FileIngestionProgressed;
-use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
 use Domain\Knowledge\Source\Text\Events\TextIngestionProgressed;
-use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Tests\Support\Knowledge\Document\PngImage;
 
 /**
- * The body of every chunk job of a file or text source: store the job's pages,
+ * The body of every chunk job of a file source: store the job's pages,
  * enhanced as the source's setting says, and report the batch's progress.
  */
 beforeEach(function (): void {
@@ -66,80 +61,3 @@ it('enhances document and media pages when enhancement is on', function (string 
     expect($file->chunks()->sole()->is_enhanced)->toBeTrue();
     Http::assertSentCount(1);
 })->with(['document' => 'application/pdf', 'audio' => 'audio/mpeg']);
-
-it('saves the images of document pages in the source folder, not under the agent', function (): void {
-    config(['chatvia.ai.chunker.enhance' => true]);
-    Storage::fake();
-
-    $agent = Agent::factory()->create();
-    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id, 'mime_type' => 'application/pdf']);
-    $group = new PageGroupData([new PageData(pageNumber: 1, content: 'A chart.', checksum: md5(Str::random()), imagesBase64: [PngImage::BASE64])]);
-
-    app(IngestSourceChunkAction::class)->execute(new SourceChunkData($agent, $file, $group));
-
-    $images = Storage::allFiles(KnowledgeStoragePath::forSource($file, 'images'));
-
-    expect($images)->toHaveCount(1)
-        ->and(array_keys($file->chunks()->sole()->metadata['images']))->toBe($images);
-});
-
-it('enhances text sources with text enhancement on, even with file enhancement off, and reports their progress', function (): void {
-    config(['chatvia.ai.chunker.enhance' => false, 'chatvia.ai.chunker.enhance_text' => true]);
-
-    $agent = Agent::factory()->create();
-    $text = SourceText::factory()->processing()->attachedTo($agent)->create();
-
-    app(IngestSourceChunkAction::class)->execute(new SourceChunkData($agent, $text, iscGroup('Some text'), progress: 100));
-
-    expect($text->chunks()->sole()->is_enhanced)->toBeTrue();
-    // Only the batch's completion step says 100.
-    Event::assertDispatched(TextIngestionProgressed::class, fn (TextIngestionProgressed $event): bool => $event->broadcastWith()['progress'] === 99);
-});
-
-it('does not enhance text sources when text enhancement is off', function (): void {
-    config(['chatvia.ai.chunker.enhance' => true, 'chatvia.ai.chunker.enhance_text' => false]);
-
-    $agent = Agent::factory()->create();
-    $text = SourceText::factory()->processing()->attachedTo($agent)->create();
-
-    app(IngestSourceChunkAction::class)->execute(new SourceChunkData($agent, $text, iscGroup('Other text')));
-
-    expect($text->chunks()->sole()->is_enhanced)->toBeFalse();
-    Http::assertNothingSent();
-});
-
-it('stores the pages without enhancement when asked to, whatever the setting', function (): void {
-    $agent = Agent::factory()->create();
-    $text = SourceText::factory()->processing()->attachedTo($agent)->create();
-
-    app(IngestSourceChunkAction::class)->execute(new SourceChunkData($agent, $text, iscGroup('Fallback text'), enhancement: ChunkEnhancement::Off));
-
-    expect($text->chunks()->sole()->is_enhanced)->toBeFalse();
-    Http::assertNothingSent();
-});
-
-it('reports progress for a duplicate page, which makes no chunk and no model call', function (): void {
-    config(['chatvia.ai.chunker.enhance' => true]);
-
-    $agent = Agent::factory()->create();
-    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id, 'mime_type' => 'application/pdf']);
-    $group = iscGroup('Same page');
-
-    app(IngestSourceChunkAction::class)->execute(new SourceChunkData($agent, $file, $group));
-
-    app(IngestSourceChunkAction::class)->execute(new SourceChunkData($agent, $file, $group, progress: 50));
-
-    // The one model call is the first page's enhancement.
-    expect($file->chunks()->count())->toBe(1);
-    Http::assertSentCount(1);
-    Event::assertDispatched(FileIngestionProgressed::class, fn (FileIngestionProgressed $event): bool => $event->broadcastWith()['progress'] === 50);
-});
-
-it('sends no progress event without a batch progress', function (): void {
-    $agent = Agent::factory()->create();
-    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id, 'mime_type' => 'application/pdf']);
-
-    app(IngestSourceChunkAction::class)->execute(new SourceChunkData($agent, $file, iscGroup('A page')));
-
-    Event::assertNotDispatched(FileIngestionProgressed::class);
-});

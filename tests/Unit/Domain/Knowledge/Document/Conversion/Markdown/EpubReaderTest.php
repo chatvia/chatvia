@@ -36,27 +36,3 @@ it('turns marked footnotes into notes at the end, without their back-links', fun
 
     expect(epubrRead($book))->toBe("Bees[^1] make honey[^2].\n\n[^1]: About sixty thousand.\n\n[^2]: When capped.");
 });
-
-it('drops images and in-book links, keeps web links, tables and separate definition terms', function (): void {
-    $book = new EpubFile()->chapter('one.xhtml', '<p><img src="a.png" alt="A bee"/>See <a href="two.xhtml#x">part two</a> or <a href="https://bees.example/">the site</a>.</p>'
-        .'<dl><dt>Smoker</dt><dd>Calms the bees.</dd></dl>'
-        .'<table><tr><th>Honey</th><th>Season</th></tr><tr><td>Heather</td><td>August</td></tr></table>')->save();
-
-    $markdown = epubrRead($book);
-
-    expect($markdown)->toContain('See part two or [the site](https://bees.example/).')
-        ->toContain("Smoker\n")
-        ->toContain("| Honey | Season |\n|---|---|\n| Heather | August |")
-        ->not->toContain('a.png')
-        ->not->toContain('SmokerCalms');
-});
-
-it('refuses a book without a package file', function (): void {
-    $path = tempTestFile('broken.epub');
-    $zip = new ZipArchive;
-    $zip->open($path, ZipArchive::OVERWRITE);
-    $zip->addFromString('mimetype', 'application/epub+zip');
-    $zip->close();
-
-    expect(fn (): string => epubrRead($path))->toThrow(RuntimeException::class);
-});

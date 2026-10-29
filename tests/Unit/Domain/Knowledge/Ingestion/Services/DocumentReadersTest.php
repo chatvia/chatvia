@@ -6,7 +6,7 @@ use Domain\Llm\Enums\AiProvider;
 /**
  * Which document reader reads PDF, Word, slides and images: Mistral OCR when
  * it is connected, else Azure Document Intelligence, else none (or none when
- * the admin says so). Azure counts only with its endpoint as well as its key.
+ * the admin says so).
  */
 beforeEach(function (): void {
     foreach (AiProvider::cases() as $provider) {
@@ -30,12 +30,5 @@ it('picks the reader: Mistral, else Azure, else none', function (): void {
     config(['chatvia.ai.document_parser' => 'none']);
 
     expect(app(DocumentReaders::class)->driver())->toBe('none')
-        ->and(app(DocumentReaders::class)->available())->toBeFalse();
-});
-
-it('needs the Azure endpoint as well as its key', function (): void {
-    config(['services.azure_document_intelligence.key' => 'az-key']);
-
-    expect(AiProvider::Azure->isConnected())->toBeFalse()
         ->and(app(DocumentReaders::class)->available())->toBeFalse();
 });

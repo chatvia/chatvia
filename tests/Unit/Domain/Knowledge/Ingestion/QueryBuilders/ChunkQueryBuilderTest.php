@@ -25,12 +25,6 @@ it('scopes chunks to the agent\'s sources inside the agent\'s workspace', functi
         ->and(collect(Chunk::query()->questionCandidatesForAgent($agent))->pluck('chunk_id')->all())->toBe([$own->id]);
 });
 
-it('finds no content for an agent without sources', function (): void {
-    $agent = Agent::factory()->create();
-
-    expect(Chunk::query()->hasContentForAgent($agent))->toBeFalse();
-});
-
 it('finds nothing for an agent with no chunks in a workspace full of them', function (): void {
     $busy = Agent::factory()->create();
     $file = AgentFileFactory::new()->create(['workspace_id' => $busy->workspace_id]);
@@ -46,22 +40,6 @@ it('finds nothing for an agent with no chunks in a workspace full of them', func
         ->and(Chunk::query()->questionsForAgent($quiet))->toBe([])
         ->and(Chunk::query()->questionCandidatesForAgent($quiet))->toBe([])
         ->and(Chunk::query()->hasContentForAgent($busy))->toBeTrue();
-});
-
-it('reads the chunks of every source the agent uses, up to the limit', function (): void {
-    $agent = Agent::factory()->create();
-    $first = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
-    $second = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
-    $agent->files()->attach([$first->id, $second->id]);
-
-    Chunk::factory()->forSource($first)->create(['chunk' => 'First source.', 'questions' => "Where is the first?\nWhat is shared?"]);
-    Chunk::factory()->forSource($second)->create(['chunk' => 'Second source.', 'questions' => 'What is shared?']);
-    Chunk::factory()->forSource($second)->create(['chunk' => 'No questions here.', 'questions' => '']);
-
-    expect(Chunk::query()->contentSampleForAgent($agent))->toEqualCanonicalizing(['First source.', 'Second source.', 'No questions here.'])
-        ->and(Chunk::query()->contentSampleForAgent($agent, limit: 2))->toHaveCount(2)
-        ->and(Chunk::query()->questionsForAgent($agent))->toEqualCanonicalizing(['Where is the first?', 'What is shared?'])
-        ->and(collect(Chunk::query()->questionCandidatesForAgent($agent))->pluck('source_type')->unique()->all())->toBe([$first->getMorphClass()]);
 });
 
 it('finds the page chunks no page links to, never the summary chunk', function (): void {

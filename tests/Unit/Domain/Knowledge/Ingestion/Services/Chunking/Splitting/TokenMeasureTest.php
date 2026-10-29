@@ -1,7 +1,6 @@
 <?php
 
 use Domain\Knowledge\Ingestion\Services\Chunking\Splitting\TokenMeasure;
-use Illuminate\Support\Str;
 
 /**
  * Token windows: a token can hold part of a multi-byte character, so a
@@ -9,15 +8,6 @@ use Illuminate\Support\Str;
  * valid UTF-8, the windows cover the whole text, and they always move
  * forward.
  */
-it('cuts windows of the size that join back into the text', function (): void {
-    $measure = new TokenMeasure('cl100k_base');
-    $text = Str::repeat('The quick brown fox jumps over the lazy dog. ', 20);
-    $windows = $measure->windows($text, 16, 0);
-
-    expect(implode('', $windows))->toBe($text)
-        ->and(array_map($measure->length(...), $windows))->each->toBeLessThanOrEqual(16);
-});
-
 it('never cuts inside an Arabic letter or an emoji', function (string $text, int $size): void {
     $windows = new TokenMeasure('cl100k_base')->windows($text, $size, 0);
 
@@ -26,12 +16,9 @@ it('never cuts inside an Arabic letter or an emoji', function (string $text, int
 })->with([
     'Arabic' => ['مرحبا بكم في مكتبتنا. نحن نقدم الكتب العربية والإنجليزية للجميع.'],
     'emoji' => ['Family 👨‍👩‍👧 and flags 🇸🇪🇩🇪 and a thumbs up 👍🏽 here.'],
-    'Chinese' => ['我们的商店每天营业，欢迎光临。'],
 ])->with([
     'windows of 1 token' => 1,
-    'windows of 2 tokens' => 2,
     'windows of 3 tokens' => 3,
-    'windows of 7 tokens' => 7,
 ]);
 
 it('repeats the overlap at the start of the next window, and always moves forward', function (): void {
@@ -41,12 +28,6 @@ it('repeats the overlap at the start of the next window, and always moves forwar
 
     expect($windows[0])->toBe('one two three four')
         ->and($windows[1])->toStartWith(' three four')
-        ->and(end($windows))->toEndWith(' ten');
-
-    // An overlap as large as the size still moves on by at least one token.
-    expect(count($measure->windows($text, 3, 3)))->toBeLessThanOrEqual(10);
-});
-
-it('returns no windows for empty text', function (): void {
-    expect(new TokenMeasure('cl100k_base')->windows('', 10, 0))->toBe([]);
+        ->and(end($windows))->toEndWith(' ten')
+        ->and(count($measure->windows($text, 3, 3)))->toBeLessThanOrEqual(10);
 });

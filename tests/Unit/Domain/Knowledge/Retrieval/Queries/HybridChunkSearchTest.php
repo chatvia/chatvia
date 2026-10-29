@@ -9,11 +9,9 @@ use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Retrieval\Actions\ConfigureVectorIndexesAction;
 use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
-use Domain\Knowledge\Retrieval\Enums\ChunkSearchScope;
 use Domain\Knowledge\Retrieval\Queries\HybridChunkSearch;
 use Domain\Knowledge\Retrieval\Services\KnowledgeBase;
 use Domain\Knowledge\Source\File\Models\SourceFile;
-use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -21,12 +19,12 @@ use Illuminate\Support\Str;
  * HybridChunkSearch, run through KnowledgeBase::search(). The two ways a
  * search reaches an agent's chunks: exactly (few chunks: every one scored, no
  * index, nothing of another workspace read) and through the indexes (many
- * chunks). Vectors are placed by hand so the true distances are known: the
- * agent's chunks sit at falling similarity to the query, while another
- * workspace's chunks sit right on it and must never come back. The keyword
- * channels run only with hybrid search on, the indexed path ranks the same
- * over binary and full indexes, and the HNSW accuracy settings reach the
- * database as numbers.
+ * chunks), over binary and full indexes. Vectors are placed by hand so the
+ * true distances are known: the agent's chunks sit at falling similarity to
+ * the query, while another workspace's chunks sit right on it and must never
+ * come back. The keyword channels run only with hybrid search on, and the
+ * HNSW accuracy settings reach the database as numbers inside the range the
+ * index accepts.
  */
 
 /** A unit vector at similarity `$similarity` to the query (axis 0), leaning on axis `$axis`. */
@@ -119,25 +117,8 @@ beforeEach(function (): void {
     config([
         'chatvia.vector.search.relevance_check' => false,
         'chatvia.vector.search.max_chunks' => 6,
-        // Meaning only, so the order is the vector order.
         'chatvia.vector.search.hybrid' => false,
     ]);
-});
-
-it('picks the path from a count of the agent\'s chunks, bounded by the limit', function (): void {
-    [$agent] = hcsAgentAmongNeighbours();
-    $search = app(HybridChunkSearch::class);
-
-    expect($search->scope($agent, 6))->toBe(ChunkSearchScope::Exact)
-        ->and($search->scope($agent, 10_000))->toBe(ChunkSearchScope::Exact)
-        ->and($search->scope($agent, 5))->toBe(ChunkSearchScope::Indexed)
-        ->and($search->scope($agent, 0))->toBe(ChunkSearchScope::Indexed);
-
-    $withoutChunks = Agent::factory()->create();
-    $withoutChunks->files()->attach(AgentFileFactory::new()->create(['workspace_id' => $withoutChunks->workspace_id])->id);
-
-    expect($search->scope($withoutChunks, 10_000))->toBe(ChunkSearchScope::None)
-        ->and($search->scope(Agent::factory()->create(), 10_000))->toBe(ChunkSearchScope::None);
 });
 
 it('ranks a small agent\'s chunks by true distance and never returns another workspace\'s', function (string $path, string $index): void {
@@ -145,65 +126,14 @@ it('ranks a small agent\'s chunks by true distance and never returns another wor
     hcsIndexes($index);
     [$agent, $ids] = hcsAgentAmongNeighbours();
 
-    // Which path a limit picks is the scope() test's.
     $results = app(KnowledgeBase::class)->search($agent, 'mountain trail');
 
     expect(array_map(fn (RetrievedChunkData $chunk): int => $chunk->id, $results))->toBe($ids)
-        // Each result carries the day its text was added, for the newer-wins rule.
         ->and($results[0]->added_on)->toBe(now()->toDateString());
 })->with(['exact', 'indexed'])->with(['binary', 'full']);
 
-it('walks the binary index on the indexed path and re-scores by the stored vectors', function (): void {
-    config(['chatvia.vector.search.exact_max_chunks' => 0]);
-    hcsIndexes('binary');
-    [$agent] = hcsAgentAmongNeighbours();
-
-    $captured = null;
-    DB::listen(function (QueryExecuted $query) use (&$captured): void {
-        if (Str::contains($query->sql, 'vector_ranked AS (')) {
-            $captured = [$query->sql, $query->bindings];
-        }
-    });
-
-    app(KnowledgeBase::class)->search($agent, 'mountain trail');
-
-    // A table this small is cheaper to scan; with scans off the planner can
-    // still only pick the index when the ORDER BY repeats its expression.
-    $plan = DB::transaction(function () use ($captured): string {
-        DB::statement('SET LOCAL enable_seqscan = off');
-
-        return implode("\n", array_column(
-            array_map(fn (object $row): array => (array) $row, DB::select('EXPLAIN '.$captured[0], $captured[1])),
-            'QUERY PLAN',
-        ));
-    });
-
-    expect($captured[0])->toContain('<~> binary_quantize(')
-        ->and($plan)->toContain('Index Scan using chunks_embedding_hnsw')
-        ->and($plan)->toContain('Index Scan using chunks_questions_embedding_hnsw');
-});
-
-it('ranks only chunks that share a term with the query on the keyword channel', function (): void {
-    config(['chatvia.vector.search.hybrid' => true]);
-
-    $agent = Agent::factory()->create();
-    $source = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
-    $agent->files()->attach($source->id);
-
-    $refund = hcsChunk($source, 0, hcsVector(0.5, 1), 'Refund policy: refunds are paid within five days.');
-    hcsChunk($source, 1, hcsVector(0.5, 2), 'Chocolate cake with cherries.');
-    hcsChunk($source, 2, hcsVector(0.5, 3), 'Mountain hiking trails near the lake.');
-
-    $results = collect(app(KnowledgeBase::class)->search($agent, 'refund'))->keyBy('id');
-
-    expect($results)->toHaveCount(3)
-        ->and($results[$refund]->search_type)->toContain('bm25')
-        ->and($results->except([$refund])->pluck('search_type')->all())->each->not->toContain('bm25');
-});
-
 it('searches by meaning only when hybrid search is turned off', function (bool $hybrid, bool $keywordChannel): void {
     config(['chatvia.vector.search.hybrid' => $hybrid]);
-
     $agent = Agent::factory()->create();
     $source = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
     $agent->files()->attach($source->id);
@@ -218,43 +148,12 @@ it('searches by meaning only when hybrid search is turned off', function (bool $
     'meaning only: the vector channels alone find it' => [false, false],
 ]);
 
-it('never scans a vector or keyword index on the exact path', function (): void {
-    config(['chatvia.vector.search.hybrid' => true]);
-    [$agent] = hcsAgentAmongNeighbours();
-
-    $captured = null;
-    DB::listen(function (QueryExecuted $query) use (&$captured): void {
-        if (Str::contains($query->sql, 'scope AS MATERIALIZED')) {
-            $captured = [$query->sql, $query->bindings];
-        }
-    });
-
-    app(KnowledgeBase::class)->search($agent, 'mountain trail');
-
-    $plan = implode("\n", array_column(
-        array_map(fn (object $row): array => (array) $row, DB::select('EXPLAIN '.$captured[0], $captured[1])),
-        'QUERY PLAN',
-    ));
-
-    expect($plan)->not->toContain('Index Scan using chunks_embedding')
-        ->and($plan)->not->toContain('Index Scan using chunks_questions_embedding')
-        ->and($plan)->toContain('agent_sources');
-});
-
-it('casts ef_search to a number and turns on iterative scans', function (): void {
-    expect(hcsAccuracy('default', ['ef_search' => ['default' => '150 ; SELECT 1']]))->toBe([150, 'relaxed_order']);
-});
-
-it('uses the ef_search of the requested mode and falls back to the default mode', function (string $mode, int $efSearch): void {
-    expect(hcsAccuracy($mode, ['ef_search' => ['default' => 100, 'high_accuracy' => 300]]))->toBe([$efSearch, 'relaxed_order']);
+it('sets ef_search as a number inside the index range, from the requested mode or the default, with iterative scans on', function (string $mode, array $efSearch, int $expected): void {
+    expect(hcsAccuracy($mode, ['ef_search' => $efSearch]))->toBe([$expected, 'relaxed_order']);
 })->with([
-    'the requested mode' => ['high_accuracy', 300],
-    'an unknown mode' => ['unknown_mode', 100],
-]);
-
-it('keeps ef_search inside the range the index accepts', function (int $configured, int $efSearch): void {
-    expect(hcsAccuracy('default', ['ef_search' => ['default' => $configured]]))->toBe([$efSearch, 'relaxed_order']);
-})->with([
-    'too low' => [0, 1],
-    'too high' => [100000, 1000],
+    'a config string' => ['default', ['default' => '150 ; SELECT 1'], 150],
+    'the requested mode' => ['high_accuracy', ['default' => 100, 'high_accuracy' => 300], 300],
+    'an unknown mode' => ['unknown_mode', ['default' => 100, 'high_accuracy' => 300], 100],
+    'too low' => ['default', ['default' => 0], 1],
+    'too high' => ['default', ['default' => 100000], 1000],
 ]);

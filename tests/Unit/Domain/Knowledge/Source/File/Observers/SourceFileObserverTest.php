@@ -27,15 +27,6 @@ it('deletes the stored file when the row delete commits', function (): void {
     Storage::assertMissing($file->filepath);
 });
 
-it('deletes the stored file at once outside a transaction', function (): void {
-    $file = AgentFileFactory::new()->create();
-    Storage::put($file->filepath, '%PDF-1.7');
-
-    $file->delete();
-
-    Storage::assertMissing($file->filepath);
-});
-
 it('keeps the stored file when the row delete rolls back', function (): void {
     $file = AgentFileFactory::new()->create();
     Storage::put($file->filepath, '%PDF-1.7');

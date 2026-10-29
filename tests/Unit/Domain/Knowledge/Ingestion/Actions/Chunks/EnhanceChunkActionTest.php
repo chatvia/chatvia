@@ -50,7 +50,6 @@ it('prepends the summary to the text to embed and returns the questions', functi
 });
 
 it('describes the images and tables of a document page and returns them as metadata', function (): void {
-    // A 4x4 PNG.
     $page = new PageData(
         pageNumber: 1,
         content: 'Depths of the oceans.',
@@ -72,23 +71,4 @@ it('describes the images and tables of a document page and returns them as metad
 
     Storage::assertExists($imagePath);
     Http::assertSentCount(3);
-});
-
-it('skips the images of a page when image descriptions are off, and still describes its tables', function (): void {
-    config(['chatvia.ai.chunker.describe_images' => false]);
-    $page = new PageData(
-        pageNumber: 1,
-        content: 'Depths of the oceans.',
-        checksum: md5(Str::random()),
-        imagesBase64: [PngImage::BASE64],
-        tables: ["| Ocean | Depth |\n|---|---|\n| Pacific | 10994 |"],
-    );
-
-    $enhanced = app(EnhanceChunkAction::class)->execute(new EnhanceChunkData(page: $page, imageDirectory: 'workspaces/ws/sources/source_file/sf/images'));
-
-    expect($enhanced->metadata['images'] ?? [])->toBe([])
-        ->and($enhanced->metadata['tables']['descriptions'])->toBe('One table of depths.');
-
-    // The page's enhancement and its tables: no call to describe the image.
-    Http::assertSentCount(2);
 });

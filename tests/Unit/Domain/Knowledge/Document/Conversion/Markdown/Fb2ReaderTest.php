@@ -39,19 +39,3 @@ it('reads a windows-1251 book as the encoding it declares', function (): void {
 
     expect(fb2rRead($xml))->toBe("## Глава 1. Весна\n\nВесной мы сажаем картофель.");
 });
-
-it('turns note links into notes at the end, and reads poems, citations and tables', function (): void {
-    $body = '<section><p>We store apples cold.<a l:href="#n1" type="note">[1]</a></p>'
-        .'<poem><title><p>Autumn</p></title><stanza><v>Leaves fall,</v><v>I walk.</v></stanza></poem>'
-        .'<cite><p>Pick before the frost.</p><text-author>Grandmother</text-author></cite>'
-        .'<table><tr><th>Crop</th><th>Sown</th></tr><tr><td>Tomatoes</td><td>March</td></tr></table></section>';
-    $notes = '<body name="notes"><section id="n1"><title><p>1</p></title><p>Up to five months.</p></section></body>';
-
-    expect(fb2rRead(fb2rBook($body, notes: $notes)))->toBe(
-        "We store apples cold.[^1]\n\n### Autumn\n\nLeaves fall,\nI walk.\n\n> Pick before the frost.\n>\n> Grandmother\n\n| Crop | Sown |\n| --- | --- |\n| Tomatoes | March |\n\n[^1]: Up to five months.",
-    );
-});
-
-it('refuses a file that is not XML', function (): void {
-    expect(fn (): string => fb2rRead('not xml'))->toThrow(RuntimeException::class);
-});

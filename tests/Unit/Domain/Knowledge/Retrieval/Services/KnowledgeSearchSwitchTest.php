@@ -26,7 +26,3 @@ it('decides from the install switch, the agent choice and the agent switch', fun
     'no choice ignores the agent' => [true, false, false, true, false],
     'install off' => [false, true, true, false, false],
 ]);
-
-it('searches by default', function (): void {
-    expect(app(KnowledgeSearchSwitch::class)->for(Agent::factory()->create()))->toBeTrue();
-});

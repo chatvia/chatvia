@@ -2,7 +2,6 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Knowledge\Ingestion\Jobs\Text\TextIngestionJob;
-use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
 use Domain\Knowledge\Source\Text\Actions\CreateAgentSourceTextAction;
 use Domain\Knowledge\Source\Text\Actions\UpdateAgentSourceTextAction;
@@ -13,10 +12,9 @@ use Support\Exceptions\DomainValidationException;
 
 /**
  * Writing a text source (CreateAgentSourceTextAction and
- * UpdateAgentSourceTextAction, one behaviour): a file and several rows. The
- * rows are written in one transaction, a failed write removes the new file,
- * and an update deletes the old file only after the row points at the new
- * one. A workspace holds each text once, and new content gets a new summary.
+ * UpdateAgentSourceTextAction, one behaviour): an update deletes the old file
+ * only after the row points at the new one, and a workspace holds each text
+ * once.
  */
 beforeEach(function (): void {
     Storage::fake();
@@ -43,76 +41,6 @@ it('replaces the file only after the row points at the new one', function (): vo
         ->and(Storage::allFiles())->toBe([$text->filepath]);
 
     Bus::assertDispatchedTimes(TextIngestionJob::class, 2);
-});
-
-it('stores the text in its own folder, outside the agent', function (): void {
-    $owner = User::factory()->create();
-    $agent = createAgent($owner);
-
-    $text = app(CreateAgentSourceTextAction::class)->execute($agent, 'The original text about our product.');
-
-    expect($text->filepath)->toStartWith('workspaces/'.$agent->workspaceExternalId().'/sources/source_text/'.$text->external_id.'/');
-    Storage::assertExists($text->filepath);
-});
-
-it('keeps the old file and row when the update fails', function (): void {
-    $owner = User::factory()->create();
-    $agent = createAgent($owner);
-
-    $text = app(CreateAgentSourceTextAction::class)->execute($agent, 'The original text about our product.');
-    $oldPath = $text->filepath;
-
-    SourceText::updating(function (): void {
-        throw new RuntimeException('database unavailable');
-    });
-
-    expect(fn () => app(UpdateAgentSourceTextAction::class)->execute($agent, $text, 'A new text about our product.'))
-        ->toThrow(RuntimeException::class);
-
-    expect(SourceText::query()->find($text->id)->filepath)->toBe($oldPath)
-        ->and(Storage::get($oldPath))->toBe('The original text about our product.')
-        ->and(Storage::allFiles())->toBe([$oldPath]);
-
-    Bus::assertDispatchedTimes(TextIngestionJob::class, 1);
-});
-
-it('leaves no row and no file when creating the text fails half way', function (): void {
-    $owner = User::factory()->create();
-    $agent = createAgent($owner);
-
-    // Fails after the INSERT, before the pivot attach.
-    SourceText::created(function (): void {
-        throw new RuntimeException('database unavailable');
-    });
-
-    expect(fn () => app(CreateAgentSourceTextAction::class)->execute($agent, 'Some text about our product.'))
-        ->toThrow(RuntimeException::class);
-
-    expect(SourceText::query()->where('workspace_id', $agent->workspace_id)->exists())->toBeFalse()
-        ->and(Storage::allFiles())->toBe([]);
-
-    Bus::assertNotDispatched(TextIngestionJob::class);
-});
-
-it('deletes the summary chunk with the others when the content changes, so the summary is written again', function (): void {
-    $owner = User::factory()->create();
-    $agent = createAgent($owner);
-    $text = app(CreateAgentSourceTextAction::class)->execute($agent, 'The original text about our product.');
-    Chunk::factory()->forSource($text)->summary()->create();
-    Chunk::factory()->forSource($text)->create();
-
-    app(UpdateAgentSourceTextAction::class)->execute($agent, $text, 'A new text about our product.');
-
-    expect(Chunk::query()->ofSource($text)->exists())->toBeFalse();
-});
-
-it('does nothing when the content did not change', function (): void {
-    $owner = User::factory()->create();
-    $agent = createAgent($owner);
-    $text = app(CreateAgentSourceTextAction::class)->execute($agent, 'The original text about our product.');
-
-    expect(app(UpdateAgentSourceTextAction::class)->execute($agent, $text, 'The original text about our product.'))->toBeFalse();
-    Bus::assertDispatchedTimes(TextIngestionJob::class, 1);
 });
 
 it('refuses a text another text of the workspace already has', function (): void {

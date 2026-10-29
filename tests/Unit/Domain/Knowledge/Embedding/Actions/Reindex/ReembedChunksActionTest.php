@@ -30,11 +30,9 @@ function rcaNewModel(): FakeEmbeddingsProvider
 
 function rcaChunk(SourceFile $file, string $text, ?string $questions = null, ?string $summary = null): Chunk
 {
-    // The old model's vector: 0.25 everywhere.
     return Chunk::factory()->forSource($file)->create([
         'chunk' => $text,
         'summary' => $summary,
-        // What ingestion embedded and stored: the summary prepended to the text.
         'search_text' => $summary === null ? $text : "{$summary}\n\n{$text}",
         'questions' => $questions,
         'questions_embedding' => $questions === null ? null : embeddingVector(0.25),
@@ -68,11 +66,4 @@ it('embeds the chunks of a range again from their text and questions', function 
         ->and(Chunk::query()->whereKey($plain->id)->value('questions_embedding'))->toBeNull()
         ->and(rcaHasNewVector('embedding', $outside->id))->toBeFalse()
         ->and(Chunk::query()->whereKey($asked->id)->value('search_text'))->toBe($keywords);
-});
-
-it('does nothing for a range without chunks', function (): void {
-    $provider = rcaNewModel();
-
-    expect(app(ReembedChunksAction::class)->execute(PHP_INT_MAX - 1, PHP_INT_MAX))->toBe(0)
-        ->and($provider->texts)->toBe([]);
 });

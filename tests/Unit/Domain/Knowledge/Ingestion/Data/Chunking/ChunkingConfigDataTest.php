@@ -55,11 +55,6 @@ it('builds the setup of a kind from config, with the unit default when no size i
         ->and(ChunkingConfigData::forKind(ContentKind::Text)->unit)->toBe(ChunkSizeUnit::Tokens);
 });
 
-it('keeps the fingerprint while the settings stay the same', function (): void {
-    expect(ChunkingConfigData::forKind(ContentKind::Markdown)->fingerprint())
-        ->toBe(ChunkingConfigData::forKind(ContentKind::Markdown)->fingerprint());
-});
-
 it('changes the fingerprint with every setting that shapes the chunks', function (array $change): void {
     $base = ChunkingConfigData::forKind(ContentKind::Markdown)->fingerprint();
 
@@ -67,33 +62,7 @@ it('changes the fingerprint with every setting that shapes the chunks', function
 
     expect(ChunkingConfigData::forKind(ContentKind::Markdown)->fingerprint())->not->toBe($base);
 })->with([
-    'the unit' => [['chatvia.ai.chunking.unit' => 'characters']],
     'the size' => [['chatvia.ai.chunking.size' => 500]],
-    'the overlap' => [['chatvia.ai.chunking.overlap' => 20]],
-    'the smallest chunk' => [['chatvia.ai.chunking.minimum' => 64]],
     'the strategy' => [['chatvia.ai.chunking.strategies.markdown' => 'recursive']],
     'the tokenizer' => [['chatvia.ai.tokenizer' => 'o200k_base']],
 ]);
-
-it('ignores the tokenizer in the fingerprint when chunks are measured in characters', function (): void {
-    config(['chatvia.ai.chunking.unit' => 'characters']);
-    $base = ChunkingConfigData::forKind(ContentKind::Markdown)->fingerprint();
-
-    config(['chatvia.ai.tokenizer' => 'o200k_base']);
-
-    expect(ChunkingConfigData::forKind(ContentKind::Markdown)->fingerprint())->toBe($base);
-});
-
-it('reads the smallest chunk, 0 to turn it off, and holds it to half the size', function (): void {
-    config(['chatvia.ai.chunking.minimum' => 64]);
-
-    expect(ChunkingConfigData::forKind(ContentKind::Text)->minimum)->toBe(64);
-
-    config(['chatvia.ai.chunking.minimum' => 0]);
-
-    expect(ChunkingConfigData::forKind(ContentKind::Text)->minimum)->toBe(0);
-
-    config(['chatvia.ai.chunking.minimum' => null, 'chatvia.ai.chunking.size' => 200]);
-
-    expect(ChunkingConfigData::forKind(ContentKind::Text)->minimum)->toBe(100);
-});

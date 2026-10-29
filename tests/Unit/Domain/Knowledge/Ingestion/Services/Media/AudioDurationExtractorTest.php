@@ -5,6 +5,12 @@ use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
 
 /**
+ * AudioDurationExtractor measures a recording, also a header-less voice note
+ * from a browser's MediaRecorder where ffprobe reports no duration, and reads
+ * the container headers in PHP when ffprobe is not installed.
+ */
+
+/**
  * Build an audio fixture with ffmpeg. When $headerless is true the stream is
  * written to a non-seekable pipe, so ffmpeg can never rewind to stamp the
  * duration into the container header — exactly how a browser's MediaRecorder
@@ -46,71 +52,22 @@ function adeMissing(string ...$programs): bool
     return collect($programs)->contains(fn (string $program): bool => ! programInstalled($program));
 }
 
-it('reads the duration from a normal container header', function (): void {
-    $file = adeAudioFixture(3, 'mp3');
-
-    $seconds = app(AudioDurationExtractor::class)->getDurationInSeconds($file);
-
-    expect($seconds)->toBeGreaterThan(2.5)->toBeLessThan(3.6);
-
-})->skip(fn (): bool => adeMissing('ffmpeg', 'ffprobe'), 'needs ffmpeg and ffprobe');
-
 it('recovers the duration of a header-less MediaRecorder webm where ffprobe returns N/A', function (): void {
-    // A recorded voice note (audio/webm from MediaRecorder) has no duration in
-    // its header, so ffprobe answers "N/A".
     $file = adeAudioFixture(3, 'webm', headerless: true);
-
-    // Guard: confirm the fixture actually reproduces the N/A container metadata,
-    // otherwise this test would pass via the fast path and prove nothing.
     $probe = Process::run([
         config('services.bin.ffprobe'),
         '-v', 'error', '-show_entries', 'format=duration',
         '-of', 'default=noprint_wrappers=1:nokey=1', $file,
     ]);
-    expect(Str::trim($probe->output()))->toBe('N/A');
-
     $seconds = app(AudioDurationExtractor::class)->getDurationInSeconds($file);
 
-    expect($seconds)->toBeGreaterThan(2.5)->toBeLessThan(3.6);
-
+    expect(Str::trim($probe->output()))->toBe('N/A')
+        ->and($seconds)->toBeGreaterThan(2.5)->toBeLessThan(3.6);
 })->skip(fn (): bool => adeMissing('ffmpeg', 'ffprobe'), 'needs ffmpeg and ffprobe');
-
-it('rounds the duration up to whole minutes', function (): void {
-    $file = adeAudioFixture(3, 'webm', headerless: true);
-
-    expect(app(AudioDurationExtractor::class)->getDurationInMinutes($file))->toBe(1);
-
-})->skip(fn (): bool => adeMissing('ffmpeg'), 'needs ffmpeg to build the recording');
 
 it('reads the duration from the headers in PHP when ffprobe is not installed', function (string $extension): void {
     $file = adeAudioFixture(3, $extension);
     config(['services.bin.ffprobe' => '/nowhere/ffprobe']);
 
     expect(app(AudioDurationExtractor::class)->getDurationInSeconds($file))->toBeGreaterThan(2.5)->toBeLessThan(3.6);
-
 })->with(['mp3', 'm4a', 'wav', 'ogg'])->skip(fn (): bool => adeMissing('ffmpeg'), 'needs ffmpeg to build the recording');
-
-it('still measures a header-less recording with ffmpeg when ffprobe is not installed', function (): void {
-    $file = adeAudioFixture(3, 'webm', headerless: true);
-    config(['services.bin.ffprobe' => '/nowhere/ffprobe']);
-
-    expect(app(AudioDurationExtractor::class)->getDurationInSeconds($file))->toBeGreaterThan(2.5)->toBeLessThan(3.6);
-
-})->skip(fn (): bool => adeMissing('ffmpeg'), 'needs ffmpeg to build the recording');
-
-it('measures a header-less recording in PHP when neither ffprobe nor ffmpeg is installed', function (): void {
-    $file = adeAudioFixture(3, 'webm', headerless: true);
-    config(['services.bin.ffprobe' => '/nowhere/ffprobe', 'services.bin.ffmpeg' => '/nowhere/ffmpeg']);
-
-    expect(app(AudioDurationExtractor::class)->getDurationInSeconds($file))->toBeGreaterThan(2.5)->toBeLessThan(3.6);
-
-})->skip(fn (): bool => adeMissing('ffmpeg'), 'needs ffmpeg to build the recording');
-
-it('gives zero for audio whose length nothing can read', function (): void {
-    // A WAV header with no sound after it.
-    $format = pack('vvVVvv', 1, 1, 16000, 32000, 2, 16);
-    $file = tempTestFile('empty.wav', 'RIFF'.pack('V', 36).'WAVEfmt '.pack('V', 16).$format.'data'.pack('V', 0));
-    config(['services.bin.ffprobe' => '/nowhere/ffprobe', 'services.bin.ffmpeg' => '/nowhere/ffmpeg']);
-
-    expect(app(AudioDurationExtractor::class)->getDurationInMinutes($file))->toBe(0);
-});

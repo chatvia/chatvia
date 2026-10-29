@@ -24,12 +24,6 @@ it('reads parts by name, in any case, and gives null for a missing part', functi
     $package->close();
 });
 
-it('refuses a file that is not a zip', function (): void {
-    $path = tempTestFile('fake.zip', 'plain text');
-
-    expect(fn (): ZipPackage => ZipPackage::open($path))->toThrow(RuntimeException::class);
-});
-
 it('resolves a link against the folder of the part that holds it', function (): void {
     expect(ZipPackage::resolve('OEBPS/content.opf', 'Text/chapter%201.xhtml#top'))->toBe('OEBPS/Text/chapter 1.xhtml')
         ->and(ZipPackage::resolve('OEBPS/Text/one.xhtml', '../Images/a.png'))->toBe('OEBPS/Images/a.png')

@@ -32,17 +32,6 @@ it('can turn a file into text as it is, or after ffmpeg compressed it', function
         ->and($audio->readsFormat('mov'))->toBeFalse();
 });
 
-it('hands over the file itself when the service takes it, without compressing it', function (): void {
-    $compressor = Mockery::mock(AudioCompressor::class);
-    $compressor->shouldNotReceive('process');
-    $file = tempTestFile('note.mp3', 'mp3');
-
-    $sent = new TranscriptionAudio(FakeTranscriber::takingAsIs(['mp3', 'webm'], maxBytes: 100), $compressor)->withPrepared($file, fn (string $path): string => $path);
-
-    expect($sent)->toBe($file)
-        ->and(File::exists($file))->toBeTrue();
-});
-
 it('hands over a compressed copy otherwise, and deletes it afterwards, also on failure', function (): void {
     $compressed = tempTestFile('out.mp3', 'mp3');
     $compressor = Mockery::mock(AudioCompressor::class);

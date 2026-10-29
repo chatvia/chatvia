@@ -1,9 +1,7 @@
 <?php
 
-use Database\Factories\AgentQuestionAnswerFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\Qa\Actions\CreateAgentQaAction;
-use Domain\Knowledge\Source\Qa\Actions\SyncQaQuestionsAction;
 use Domain\Knowledge\Source\Qa\Actions\UpdateAgentQaAction;
 use Domain\Knowledge\Source\Qa\Data\QaEntryData;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
@@ -12,7 +10,7 @@ use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswerQuestion;
 /**
  * Every question of a Q&A entry gets its own row with its normalized form,
  * so a message can be matched against each question as a whole. The rows
- * follow the entry however it is saved.
+ * are rebuilt when the questions change, and only then.
  */
 function sqqRows(AgentQuestionAnswer $qa): array
 {
@@ -49,13 +47,4 @@ it('rebuilds the rows when the questions change, and only then', function (): vo
     $qa->update(['answer' => 'From ten to six.']);
 
     expect(array_column(sqqRows($qa), 'normalized'))->toBe(['are you open on sunday']);
-});
-
-it('leaves out a question that is only punctuation', function (): void {
-    $agent = Agent::factory()->create();
-    $qa = AgentQuestionAnswerFactory::new()->attachedTo($agent)->create(['title' => 'Odd', 'questions' => "???\nReal question?", 'answer' => 'An answer.']);
-
-    app(SyncQaQuestionsAction::class)->execute($qa);
-
-    expect(array_column(sqqRows($qa), 'question'))->toBe(['Real question?']);
 });

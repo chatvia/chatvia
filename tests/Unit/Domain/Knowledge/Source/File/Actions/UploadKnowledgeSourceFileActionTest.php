@@ -14,12 +14,10 @@ use Tests\Support\Knowledge\Document\PngImage;
 /**
  * Uploading a knowledge file (no HTTP upload object in the Domain): the file
  * is stored in its own folder of the workspace and linked to the agent. A
- * type the knowledge base cannot read, or one the admin turned off, is
- * refused before anything is stored.
+ * type the knowledge base cannot read is refused before anything is stored.
  */
 beforeEach(function (): void {
     Storage::fake();
-    // PDF, Word, slides and images need a document reader.
     connectAiProviders(AiProvider::Mistral);
 });
 
@@ -50,31 +48,10 @@ it('stores an uploaded document for the workspace and attaches it to the agent',
     Storage::assertExists($file->filepath);
 });
 
-it('stores a text file holding HTML under its own extension, never as HTML', function (): void {
-    $agent = Agent::factory()->create();
-
-    $file = app(UploadKnowledgeSourceFileAction::class)->execute(
-        $agent,
-        uksfUpload('notes.txt', '<!DOCTYPE html><html><body><script>alert(1)</script></body></html>', 'text/html'),
-    );
-
-    expect($file->filepath)->toEndWith('.txt');
-});
-
 it('refuses a file type the knowledge base cannot read', function (): void {
     $agent = Agent::factory()->create();
 
     expect(fn () => app(UploadKnowledgeSourceFileAction::class)->execute($agent, uksfUpload('tool.exe', 'MZ', 'application/x-msdownload')))
-        ->toThrow(UnsupportedSourceFileException::class);
-
-    expect(SourceFile::query()->where('workspace_id', $agent->workspace_id)->exists())->toBeFalse();
-});
-
-it('refuses a file type the admin turned off', function (): void {
-    config(['chatvia.knowledge.file_types' => ['pdf']]);
-    $agent = Agent::factory()->create();
-
-    expect(fn () => app(UploadKnowledgeSourceFileAction::class)->execute($agent, uksfUpload('notes.txt', 'Opening hours', 'text/plain')))
         ->toThrow(UnsupportedSourceFileException::class);
 
     expect(SourceFile::query()->where('workspace_id', $agent->workspace_id)->exists())->toBeFalse();

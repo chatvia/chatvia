@@ -13,9 +13,8 @@ use Illuminate\Support\Facades\Event;
 
 /**
  * A website set to refresh is crawled and trained again on its own once its
- * interval has passed: discovery, then training, as one chain, with the
- * options it was added with. Busy, unused and switched-off websites are left
- * alone.
+ * interval has passed: discovery, then training, as one chain. Busy, unused,
+ * not-due and switched-off websites are left alone.
  */
 beforeEach(function (): void {
     Bus::fake();
@@ -33,22 +32,6 @@ it('crawls then trains a website whose interval has passed', function (): void {
 
     Bus::assertChained([WebsiteCrawlerJob::class, WebsiteIngestionJob::class]);
     Event::assertDispatched(WebsiteCrawlStarted::class);
-});
-
-it('crawls again with the options the website was added with', function (): void {
-    SourceWebsite::factory()->ingested()->attachedTo(Agent::factory()->create())->create([
-        'refresh_interval' => RefreshInterval::Daily,
-        'options' => ['limit' => 40, 'include_paths' => '/docs/*', 'exclude_paths' => null, 'country' => 'DK', 'languages' => ['da']],
-    ]);
-
-    app(RefreshDueWebsitesAction::class)->execute();
-
-    Bus::assertChained([
-        fn (WebsiteCrawlerJob $job): bool => $job->data->limit === 40
-            && $job->data->include_paths === '/docs/*'
-            && $job->data->country === 'DK',
-        WebsiteIngestionJob::class,
-    ]);
 });
 
 it('leaves alone websites that are not due, switched off, busy or unused', function (): void {

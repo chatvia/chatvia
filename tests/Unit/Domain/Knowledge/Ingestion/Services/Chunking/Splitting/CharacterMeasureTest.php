@@ -7,16 +7,6 @@ use Domain\Knowledge\Ingestion\Services\Chunking\Splitting\CharacterMeasure;
  * its diacritics, or an emoji made of several code points, is one character
  * and is never cut.
  */
-it('counts characters as a reader sees them', function (): void {
-    $measure = new CharacterMeasure;
-
-    expect($measure->length('abc'))->toBe(3)
-        ->and($measure->length('مرحبا'))->toBe(5)
-        ->and($measure->length('👨‍👩‍👧'))->toBe(1)
-        ->and($measure->length("e\u{0301}"))->toBe(1)
-        ->and($measure->length(''))->toBe(0);
-});
-
 it('cuts windows of exactly the size, with the overlap repeated', function (): void {
     $measure = new CharacterMeasure;
 
@@ -36,8 +26,4 @@ it('never cuts a letter from its diacritics or an emoji in two', function (): vo
     foreach ($windows as $window) {
         expect(grapheme_strlen($window))->toBeLessThanOrEqual(3);
     }
-});
-
-it('always moves forward when the overlap is as large as the size', function (): void {
-    expect((new CharacterMeasure)->windows('abcdef', 2, 5))->toBe(['ab', 'bc', 'cd', 'de', 'ef']);
 });

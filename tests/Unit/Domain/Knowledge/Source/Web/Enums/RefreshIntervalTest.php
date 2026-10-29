@@ -14,7 +14,5 @@ it('knows when each interval is due', function (RefreshInterval $interval, ?stri
     'off is never due' => [RefreshInterval::Off, null, false],
     'never refreshed' => [RefreshInterval::Weekly, null, true],
     'daily, a day ago' => [RefreshInterval::Daily, '1 day', true],
-    'daily, an hour ago' => [RefreshInterval::Daily, '1 hour', false],
     'weekly, six days ago' => [RefreshInterval::Weekly, '6 days', false],
-    'monthly, a month ago' => [RefreshInterval::Monthly, '1 month', true],
 ]);

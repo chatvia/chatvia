@@ -16,16 +16,17 @@ use Support\Http\WebhookSignature;
  * any non-2xx answer — including a redirect it refuses to follow —
  * as a failed delivery.
  */
-it('posts the payload signed with the shared webhook signature', function (): void {
-    Http::fake(['*' => Http::response('', 200)]);
+it('posts the payload signed over the exact body, and treats a redirect as a failed delivery', function (): void {
+    Http::fake([
+        'hooks.example.com/*' => Http::response('', 200),
+        'moved.example.com/*' => Http::response('', 302, ['Location' => 'http://169.254.169.254/latest/meta-data']),
+    ]);
+    $sender = app(SignedWebhookSender::class);
 
-    app(SignedWebhookSender::class)->send(
-        url: 'https://hooks.example.com/in',
-        event: 'policy.changed',
-        payload: ['a' => 1, 'b' => 'two'],
-        secret: 'shh-secret',
-    );
+    $sender->send(url: 'https://hooks.example.com/in', event: 'policy.changed', payload: ['a' => 1, 'b' => 'two'], secret: 'shh-secret');
 
+    expect(fn () => $sender->send('https://moved.example.com/in', 'e', [], 's'))->toThrow(RequestException::class);
+    Http::assertSentCount(2);
     Http::assertSent(function (ClientRequest $request): bool {
         $body = $request->body();
 
@@ -36,22 +37,12 @@ it('posts the payload signed with the shared webhook signature', function (): vo
     });
 });
 
-it('treats a redirect as a failed delivery instead of following it', function (): void {
-    Http::fake(['*' => Http::response('', 302, ['Location' => 'http://169.254.169.254/latest/meta-data'])]);
-
-    expect(fn () => app(SignedWebhookSender::class)->send('https://hooks.example.com/in', 'e', [], 's'))
-        ->toThrow(RequestException::class);
-
-    Http::assertSentCount(1);
-});
-
 it('refuses internal targets at send time outside local and testing', function (string $url): void {
     app()['env'] = 'production';
     Http::fake();
 
     expect(fn () => app(SignedWebhookSender::class)->send($url, 'e', [], 's'))
         ->toThrow(UnsafeUrlException::class);
-
     Http::assertNothingSent();
 })->with([
     'loopback' => 'https://127.0.0.1/hook',
@@ -68,7 +59,6 @@ it('sends a webhook to the address that was checked, even if DNS changes afterwa
     SafeUrl::resolveHostsUsing(function (string $host) use (&$answers): array {
         return array_shift($answers) ?? ['10.0.0.5'];
     });
-
     $pinned = null;
     Http::fake(function (ClientRequest $request, array $options) use (&$pinned): PromiseInterface {
         $pinned = $options['curl'][CURLOPT_RESOLVE] ?? null;

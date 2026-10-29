@@ -2,7 +2,6 @@
 
 use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
-use App\Identity\Workspace\Models\Workspace;
 use App\Mcp\McpCallerResolver;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
@@ -22,7 +21,7 @@ function mcrRequest(string $path, array $headers): Request
     return $request;
 }
 
-it('resolves the agent, its conversation, the chatter and the connector key', function (): void {
+it('resolves the agent, its conversation, the chatter and the connector key, and treats empty headers as no caller', function (): void {
     $agent = Agent::factory()->create();
     $conversation = Conversation::factory()->create(['agent_id' => $agent->id]);
 
@@ -32,6 +31,10 @@ it('resolves the agent, its conversation, the chatter and the connector key', fu
         'X-Chatvia-Chatter-Id' => 'chatter-uuid',
         'Authorization' => 'Bearer connector-key',
     ]));
+    $empty = app(McpCallerResolver::class)->resolve(mcrRequest('/mcp/forms', [
+        'X-Chatvia-Agent-Id' => '',
+        'Authorization' => 'Bearer ',
+    ]));
 
     expect($caller->agentExternalId)->toBe($agent->external_id)
         ->and($caller->agent?->is($agent))->toBeTrue()
@@ -39,7 +42,11 @@ it('resolves the agent, its conversation, the chatter and the connector key', fu
         ->and($caller->conversation?->is($conversation))->toBeTrue()
         ->and($caller->chatterExternalId)->toBe('chatter-uuid')
         ->and($caller->connectorApiKey)->toBe('connector-key')
-        ->and($caller->workspace)->toBeNull();
+        ->and($caller->workspace)->toBeNull()
+        ->and($empty->agentExternalId)->toBeNull()
+        ->and($empty->agent)->toBeNull()
+        ->and($empty->conversationExternalId)->toBeNull()
+        ->and($empty->connectorApiKey)->toBeNull();
 });
 
 it('keeps the raw ids but no models for unknown or foreign records', function (): void {
@@ -50,79 +57,36 @@ it('keeps the raw ids but no models for unknown or foreign records', function ()
         'X-Chatvia-Agent-Id' => $agent->external_id,
         'X-Chatvia-Conversation-Id' => $foreignConversation->external_id,
     ]));
-
-    expect($caller->conversationExternalId)->toBe($foreignConversation->external_id)
-        ->and($caller->conversation)->toBeNull();
-
     $ghost = app(McpCallerResolver::class)->resolve(mcrRequest('/mcp/forms', ['X-Chatvia-Agent-Id' => 'ghost']));
 
-    expect($ghost->agentExternalId)->toBe('ghost')
+    expect($caller->conversationExternalId)->toBe($foreignConversation->external_id)
+        ->and($caller->conversation)->toBeNull()
+        ->and($ghost->agentExternalId)->toBe('ghost')
         ->and($ghost->agent)->toBeNull();
 });
 
-it('treats missing and empty headers as no caller', function (): void {
-    $caller = app(McpCallerResolver::class)->resolve(mcrRequest('/mcp/forms', [
-        'X-Chatvia-Agent-Id' => '',
-        'Authorization' => 'Bearer ',
-    ]));
-
-    expect($caller->agentExternalId)->toBeNull()
-        ->and($caller->agent)->toBeNull()
-        ->and($caller->conversationExternalId)->toBeNull()
-        ->and($caller->connectorApiKey)->toBeNull();
-});
-
-it('honours a workspace caller only on the analytics chat servers', function (string $path, bool $honoured): void {
-    $workspace = User::factory()->create()->workspace();
-
-    $caller = app(McpCallerResolver::class)->resolve(mcrRequest($path, ['X-Chatvia-Workspace-Id' => $workspace->external_id]));
-
-    expect($caller->workspace?->is($workspace) ?? false)->toBe($honoured);
-})->with([
-    'account analytics' => ['/mcp/account-analytics', true],
-    'charts' => ['/mcp/charts', true],
-    'weather' => ['/mcp/weather', false],
-    'forms' => ['/mcp/forms', false],
-]);
-
-it('runs an agent\'s call on an analytics server for the agent, never in workspace mode', function (string $path): void {
+it('honours a bare workspace caller only on the analytics chat servers, never beside an agent id or for a person\'s id', function (): void {
     $agent = Agent::factory()->create();
-
-    $caller = app(McpCallerResolver::class)->resolve(mcrRequest($path, [
-        'X-Chatvia-Agent-Id' => $agent->external_id,
-        'X-Chatvia-Workspace-Id' => $agent->workspace->external_id,
-    ]));
-
-    expect($caller->agent?->is($agent))->toBeTrue()
-        ->and($caller->workspace)->toBeNull();
-})->with([
-    'account analytics' => ['/mcp/account-analytics'],
-    'charts' => ['/mcp/charts'],
-]);
-
-it('ignores the workspace header when an unknown agent id comes with it', function (): void {
-    $workspace = User::factory()->create()->workspace();
-
-    $caller = app(McpCallerResolver::class)->resolve(mcrRequest('/mcp/account-analytics', [
-        'X-Chatvia-Agent-Id' => 'ghost',
-        'X-Chatvia-Workspace-Id' => $workspace->external_id,
-    ]));
-
-    expect($caller->agent)->toBeNull()
-        ->and($caller->workspace)->toBeNull();
-});
-
-it('ignores a workspace id that names a chatter or a staff account', function (): void {
+    $workspace = $agent->workspace;
     $chatter = Chatter::factory()->create();
-    $owner = User::factory()->create();
-    $teammate = User::factory()->employee($owner)->create();
+    $teammate = User::factory()->employee($workspace->owner)->create();
+    $resolve = fn (string $path, array $headers) => app(McpCallerResolver::class)->resolve(mcrRequest($path, $headers));
+    $bare = ['X-Chatvia-Workspace-Id' => $workspace->external_id];
 
-    $resolve = fn (string $externalId): ?Workspace => app(McpCallerResolver::class)
-        ->resolve(mcrRequest('/mcp/account-analytics', ['X-Chatvia-Workspace-Id' => $externalId]))
-        ->workspace;
+    $agentCall = $resolve('/mcp/account-analytics', ['X-Chatvia-Agent-Id' => $agent->external_id, ...$bare]);
+    $chartsAgentCall = $resolve('/mcp/charts', ['X-Chatvia-Agent-Id' => $agent->external_id, ...$bare]);
+    $ghostCall = $resolve('/mcp/account-analytics', ['X-Chatvia-Agent-Id' => 'ghost', ...$bare]);
 
-    expect($resolve($chatter->external_id))->toBeNull()
-        ->and($resolve($owner->external_id))->toBeNull()
-        ->and($resolve($teammate->external_id))->toBeNull()
-        ->and($resolve($owner->workspace()->external_id)?->is($owner->workspace()))->toBeTrue();
+    expect($resolve('/mcp/account-analytics', $bare)->workspace?->is($workspace))->toBeTrue()
+        ->and($resolve('/mcp/charts', $bare)->workspace?->is($workspace))->toBeTrue()
+        ->and($resolve('/mcp/weather', $bare)->workspace)->toBeNull()
+        ->and($resolve('/mcp/forms', $bare)->workspace)->toBeNull()
+        ->and($agentCall->agent?->is($agent))->toBeTrue()
+        ->and($agentCall->workspace)->toBeNull()
+        ->and($chartsAgentCall->workspace)->toBeNull()
+        ->and($ghostCall->agent)->toBeNull()
+        ->and($ghostCall->workspace)->toBeNull()
+        ->and($resolve('/mcp/account-analytics', ['X-Chatvia-Workspace-Id' => $chatter->external_id])->workspace)->toBeNull()
+        ->and($resolve('/mcp/account-analytics', ['X-Chatvia-Workspace-Id' => $workspace->owner->external_id])->workspace)->toBeNull()
+        ->and($resolve('/mcp/account-analytics', ['X-Chatvia-Workspace-Id' => $teammate->external_id])->workspace)->toBeNull();
 });

@@ -25,34 +25,26 @@ function waAccountWithoutWorkspace(): User
 }
 
 it('refuses a second workspace without a license key', function (): void {
-    expect(app(WorkspaceAllowance::class)->canCreate())->toBeFalse()
-        ->and(app(WorkspaceAllowance::class)->signUpOpen())->toBeFalse();
-
     $account = waAccountWithoutWorkspace();
     $count = Workspace::query()->count();
 
-    expect(fn () => app(CreateWorkspaceAction::class)->execute($account))
-        ->toThrow(WorkspaceLimitReachedException::class);
-
-    expect(Workspace::query()->count())->toBe($count);
+    expect(app(WorkspaceAllowance::class)->canCreate())->toBeFalse()
+        ->and(app(WorkspaceAllowance::class)->signUpOpen())->toBeFalse()
+        ->and(fn () => app(CreateWorkspaceAction::class)->execute($account))->toThrow(WorkspaceLimitReachedException::class)
+        ->and(Workspace::query()->count())->toBe($count);
 });
 
-it('allows more workspaces with a license key', function (): void {
+it('allows more workspaces with a license key, with sign-up still closed while the admin switch is off', function (): void {
     withLicense();
-
-    expect(app(WorkspaceAllowance::class)->canCreate())->toBeTrue()
-        ->and(app(WorkspaceAllowance::class)->signUpOpen())->toBeTrue();
+    $openBefore = app(WorkspaceAllowance::class)->signUpOpen();
 
     $workspace = app(CreateWorkspaceAction::class)->execute(waAccountWithoutWorkspace());
-
-    expect($workspace->exists)->toBeTrue();
-});
-
-it('keeps sign-up closed while the admin switch is off, even with a key', function (): void {
-    withLicense();
     config(['chatvia.registration_enabled' => false]);
 
-    expect(app(WorkspaceAllowance::class)->signUpOpen())->toBeFalse();
+    expect(app(WorkspaceAllowance::class)->canCreate())->toBeTrue()
+        ->and($openBefore)->toBeTrue()
+        ->and($workspace->exists)->toBeTrue()
+        ->and(app(WorkspaceAllowance::class)->signUpOpen())->toBeFalse();
 });
 
 it('keeps workspaces made with a key after the key is removed, but refuses new ones', function (): void {

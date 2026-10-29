@@ -36,33 +36,23 @@ function srwHandle(Request $request): int
         ->getStatusCode();
 }
 
-it('shares the workspace id with the jobs the request queues', function (): void {
+it('lets a record of the caller\'s workspace through and shares its id with queued jobs', function (): void {
     $owner = User::factory()->create();
 
-    srwHandle(srwRequest($owner, 'agent', createAgent($owner)));
+    $status = srwHandle(srwRequest($owner, 'agent', createAgent($owner)));
 
-    expect(Context::getHidden('workspace_id'))->toBe($owner->workspace()->id)
+    expect($status)->toBe(200)
+        ->and(Context::getHidden('workspace_id'))->toBe($owner->workspace()->id)
         ->and(Context::get('workspace_id'))->toBeNull();
 });
 
-it('lets through a record of the caller\'s workspace', function (): void {
-    $owner = User::factory()->create();
-
-    expect(srwHandle(srwRequest($owner, 'agent', createAgent($owner))))->toBe(200);
-});
-
-it('answers 404 for a record of another workspace', function (): void {
+it('answers 404 for a record of another workspace but lets a shared built-in record through', function (): void {
     $caller = User::factory()->create();
     $foreignAgent = Agent::factory()->create();
-
-    expect(fn (): int => srwHandle(srwRequest($caller, 'agent', $foreignAgent)))
-        ->toThrow(NotFoundHttpException::class);
-});
-
-it('lets through a built-in record every workspace shares', function (): void {
     $systemTopic = Topic::query()->create(['topic' => 'General '.Str::random(6), 'description' => 'Built in']);
 
-    expect(srwHandle(srwRequest(User::factory()->create(), 'topic', $systemTopic)))->toBe(200);
+    expect(fn (): int => srwHandle(srwRequest($caller, 'agent', $foreignAgent)))->toThrow(NotFoundHttpException::class)
+        ->and(srwHandle(srwRequest($caller, 'topic', $systemTopic)))->toBe(200);
 });
 
 it('answers 404 for a teammate of another workspace and lets one of its own through', function (): void {

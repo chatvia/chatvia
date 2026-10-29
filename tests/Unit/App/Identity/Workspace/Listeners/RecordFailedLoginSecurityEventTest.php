@@ -20,11 +20,16 @@ beforeEach(function (): void {
     $this->listener = new RecordFailedLoginSecurityEvent($this->request);
 });
 
-it('records a failed attempt for the account with the attempted email', function (): void {
+it('audits a failed attempt for the account found by email or by the guard, never the password, and skips an unknown email', function (): void {
     $user = User::factory()->create(['email' => 'dana@acme.test']);
+    $resolved = User::factory()->employee()->create();
 
     $this->listener->handle(new Failed('web', null, ['email' => 'dana@acme.test', 'password' => 'guess-1']));
+    $this->listener->handle(new Failed('web', $resolved, ['email' => $resolved->email, 'password' => 'guess-1']));
+    $this->listener->handle(new Failed('web', null, ['email' => 'nobody@acme.test', 'password' => 'guess-1']));
+    $this->listener->handle(new Failed('web', null, ['password' => 'guess-1']));
 
+    Event::assertDispatchedTimes(SecurityEventOccurred::class, 2);
     Event::assertDispatched(SecurityEventOccurred::class, fn (SecurityEventOccurred $event): bool => $event->action === 'auth.login_failed'
         && $event->workspaceId === $user->workspace()->id
         && $event->userId === $user->id
@@ -32,20 +37,6 @@ it('records a failed attempt for the account with the attempted email', function
         && $event->ip === '203.0.113.5'
         && json_decode($event->metadata, true) === ['email' => 'dana@acme.test']
         && ! Str::contains($event->metadata, 'guess-1'));
-});
-
-it('records a failed attempt for the account the guard resolved', function (): void {
-    $user = User::factory()->employee()->create();
-
-    $this->listener->handle(new Failed('web', $user, ['email' => $user->email, 'password' => 'guess-1']));
-
-    Event::assertDispatched(SecurityEventOccurred::class, fn (SecurityEventOccurred $event): bool => $event->workspaceId === $user->workspace()->id
-        && $event->userId === $user->id);
-});
-
-it('skips an email that no account has', function (): void {
-    $this->listener->handle(new Failed('web', null, ['email' => 'nobody@acme.test', 'password' => 'guess-1']));
-    $this->listener->handle(new Failed('web', null, ['password' => 'guess-1']));
-
-    Event::assertNotDispatched(SecurityEventOccurred::class);
+    Event::assertDispatched(SecurityEventOccurred::class, fn (SecurityEventOccurred $event): bool => $event->workspaceId === $resolved->workspace()->id
+        && $event->userId === $resolved->id);
 });

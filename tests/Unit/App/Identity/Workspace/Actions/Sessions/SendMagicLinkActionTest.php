@@ -45,12 +45,12 @@ function smlSentSignIn(string $email, ?Agent $agent = null): ?MagicLinkSignIn
     return MagicLink::query()->findOrFail($id)->action;
 }
 
-it('sends a dashboard link to the account with the email, whatever its case and spacing', function (string $typed): void {
+it('sends a dashboard link to the staff account with the email, whatever its case and spacing', function (): void {
     Notification::fake();
     User::factory()->create(['email' => 'user@example.test']);
 
     app(SendMagicLinkAction::class)->execute(
-        new SendMagicLinkData(email: $typed),
+        new SendMagicLinkData(email: '  USER@Example.test  '),
         redirectUrl: '/dashboard',
     );
 
@@ -58,109 +58,46 @@ it('sends a dashboard link to the account with the email, whatever its case and 
         MagicLinkNotification::class,
         fn (MagicLinkNotification $notification, array $channels, object $notifiable): bool => $notifiable->routes['mail'] === 'user@example.test',
     );
-})->with([
-    'as stored' => 'user@example.test',
-    'mixed case with spaces' => '  USER@Example.test  ',
-]);
-
-it('silently no-ops when no user matches the email', function (): void {
-    Notification::fake();
-
-    app(SendMagicLinkAction::class)->execute(
-        new SendMagicLinkData(email: 'unknown@example.test'),
-        redirectUrl: '/dashboard',
-    );
-
-    Notification::assertNothingSent();
 });
 
-it('sends no dashboard link to a chatter', function (): void {
+it('silently sends nothing to an unknown, deactivated or unreachable account', function (): void {
     Notification::fake();
+    $agent = createAgent(User::factory()->workspace()->create());
     Chatter::factory()->create(['email' => 'chatter-only@example.test']);
-
-    app(SendMagicLinkAction::class)->execute(
-        new SendMagicLinkData(email: 'chatter-only@example.test'),
-        redirectUrl: '/dashboard',
-    );
-
-    Notification::assertNothingSent();
-});
-
-it('silently no-ops for a staff account that cannot reach the scoped agent', function (): void {
-    $agent = createAgent(User::factory()->workspace()->create());
-    // A staff account is found by email in any workspace; the owner of another
-    // workspace is found and then refused by canAccessAgent().
+    User::factory()->create(['email' => 'off@example.test', 'deactivated_at' => now()]);
     User::factory()->workspace()->create(['email' => 'outsider@example.test']);
-
-    expect(smlSentSignIn('outsider@example.test', $agent))->toBeNull();
-});
-
-it('silently no-ops for a chatter of the workspace who was not granted the agent', function (): void {
-    Notification::fake();
-    $agent = createAgent(User::factory()->workspace()->create());
     Chatter::factory()->ofWorkspace($agent->workspace)->create(['email' => 'ungranted@example.test']);
-
-    app(SendMagicLinkAction::class)->execute(
-        new SendMagicLinkData(email: 'ungranted@example.test'),
+    Chatter::factory()->grantedTo($agent)->deactivated()->create(['email' => 'off-chatter@example.test']);
+    $send = fn (string $email, ?Agent $scope = null) => app(SendMagicLinkAction::class)->execute(
+        new SendMagicLinkData(email: $email),
         redirectUrl: '/dashboard',
-        agent: $agent,
+        agent: $scope,
     );
+
+    $send('unknown@example.test');
+    $send('chatter-only@example.test');
+    $send('off@example.test');
+    $send('outsider@example.test', $agent);
+    $send('ungranted@example.test', $agent);
+    $send('off-chatter@example.test', $agent);
 
     Notification::assertNothingSent();
 });
 
-it('signs a chatter of the agent\'s workspace in to the agent\'s chat', function (): void {
-    $agent = createAgent(User::factory()->workspace()->create());
-    $chatter = Chatter::factory()->grantedTo($agent)->create(['email' => 'chatter@example.test']);
-
-    $signIn = smlSentSignIn('  CHATTER@example.test ', $agent);
-
-    expect($signIn)->not->toBeNull()
-        ->and($signIn?->chatterId)->toBe($chatter->id)
-        ->and($signIn?->userId)->toBeNull()
-        ->and($signIn?->agentId)->toBe($agent->id);
-});
-
-it('prefers the workspace\'s chatter over a staff account with the same email', function (): void {
+it('signs the workspace\'s chatter in to the agent\'s chat ahead of staff with the same email, otherwise staff who can reach it', function (): void {
     $owner = User::factory()->workspace()->create(['email' => 'shared@example.test']);
     $agent = createAgent($owner);
     $chatter = Chatter::factory()->grantedTo($agent)->create(['email' => 'shared@example.test']);
+    $staffOwner = User::factory()->workspace()->create(['email' => 'owner@example.test']);
+    $staffAgent = createAgent($staffOwner);
 
-    $signIn = smlSentSignIn('shared@example.test', $agent);
+    $chatterSignIn = smlSentSignIn('  SHARED@example.test ', $agent);
+    $staffSignIn = smlSentSignIn('owner@example.test', $staffAgent);
 
-    expect($signIn?->chatterId)->toBe($chatter->id)
-        ->and($signIn?->userId)->toBeNull();
-});
-
-it('signs staff who can reach the agent in to its chat when no chatter has the email', function (): void {
-    $owner = User::factory()->workspace()->create(['email' => 'owner@example.test']);
-    $agent = createAgent($owner);
-
-    $signIn = smlSentSignIn('owner@example.test', $agent);
-
-    expect($signIn?->userId)->toBe($owner->id)
-        ->and($signIn?->chatterId)->toBeNull()
-        ->and($signIn?->agentId)->toBe($agent->id);
-});
-
-it('silently no-ops when the account is deactivated', function (): void {
-    Notification::fake();
-    User::factory()->create([
-        'email' => 'off@example.test',
-        'deactivated_at' => now(),
-    ]);
-
-    app(SendMagicLinkAction::class)->execute(
-        new SendMagicLinkData(email: 'off@example.test'),
-        redirectUrl: '/dashboard',
-    );
-
-    Notification::assertNothingSent();
-});
-
-it('silently no-ops for a deactivated chatter', function (): void {
-    $agent = createAgent(User::factory()->workspace()->create());
-    Chatter::factory()->grantedTo($agent)->deactivated()->create(['email' => 'off-chatter@example.test']);
-
-    expect(smlSentSignIn('off-chatter@example.test', $agent))->toBeNull();
+    expect($chatterSignIn?->chatterId)->toBe($chatter->id)
+        ->and($chatterSignIn?->userId)->toBeNull()
+        ->and($chatterSignIn?->agentId)->toBe($agent->id)
+        ->and($staffSignIn?->userId)->toBe($staffOwner->id)
+        ->and($staffSignIn?->chatterId)->toBeNull()
+        ->and($staffSignIn?->agentId)->toBe($staffAgent->id);
 });

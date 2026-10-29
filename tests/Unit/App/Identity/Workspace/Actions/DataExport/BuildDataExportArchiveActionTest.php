@@ -24,36 +24,6 @@ use Illuminate\Support\Facades\Storage;
  * columns or secrets, the stored files copied in. A failed step marks the
  * export failed and leaves no files behind.
  */
-it('packages user data into a zip and marks the export ready', function (): void {
-    Event::fake([DataExportReady::class]);
-    Storage::fake('local');
-
-    $user = User::factory()->create();
-
-    $export = DataExport::factory()->create(['user_id' => $user->id]);
-
-    app(BuildDataExportArchiveAction::class)->execute($export);
-
-    $export->refresh();
-
-    expect($export->status)->toBe(DataExportStatus::Ready)
-        ->and($export->file_path)->toStartWith('workspaces/'.$user->workspace()->external_id.'/members/'.$user->external_id.'/data-exports/')
-        ->and($export->file_path)->toEndWith('.zip')
-        ->and($export->file_size)->toBeGreaterThan(0)
-        ->and($export->expires_at)->not->toBeNull();
-
-    expect(Storage::disk('local')->exists($export->file_path))->toBeTrue();
-
-    expect(bdeEntries($export))->toContain('README.txt')
-        ->toContain('profile.json')
-        ->toContain('agents.json')
-        ->toContain('conversations.json')
-        ->toContain('messages.json')
-        ->toContain('message-limit.json');
-
-    Event::assertDispatched(DataExportReady::class);
-});
-
 /**
  * Read one entry of the export archive.
  */
@@ -146,26 +116,26 @@ function bdeJson(DataExport $export, string $name): array
     return json_decode((string) bdeEntry($export, $name), true, flags: JSON_THROW_ON_ERROR);
 }
 
-it('exports every conversation of the workspace, trashed ones too, in queries no bigger than one batch', function (): void {
-    ['export' => $export, 'conversations' => $conversations, 'maxBindings' => $maxBindings] = bdeBuildBigWorkspace();
+it('packages the owner\'s whole workspace in batches, with exported columns only and every stored file under a flat name', function (): void {
+    ['export' => $export, 'agent' => $agent, 'conversations' => $conversations, 'file' => $file, 'maxBindings' => $maxBindings] = bdeBuildBigWorkspace();
 
-    expect($export->status)->toBe(DataExportStatus::Ready)
-        ->and(collect(bdeJson($export, 'conversations.json'))->pluck('id')->sort()->values()->all())->toBe($conversations->modelKeys())
-        ->and(bdeJson($export, 'messages.json'))->toHaveCount(10)
-        // No query carries more parameters than one batch of ids (plus a few).
-        ->and($maxBindings)->toBeLessThanOrEqual(6);
-});
-
-it('writes the exported columns only, never internal ids or secrets', function (): void {
-    ['export' => $export, 'agent' => $agent] = bdeBuildBigWorkspace();
-
-    $conversations = bdeJson($export, 'conversations.json');
+    $exportedConversations = bdeJson($export, 'conversations.json');
     $messages = bdeJson($export, 'messages.json');
     $agents = bdeJson($export, 'agents.json');
     $knowledge = bdeJson($export, 'knowledge-sources.json');
-
-    expect($conversations[0]['title'])->toBe('Hello')
-        ->and($conversations[0])->not->toHaveKeys(['workspace_id', 'analysis_attempts'])
+    $attachments = Attachment::query()->whereIn('chat_conversation_id', $conversations->modelKeys())->get();
+    $generated = GeneratedMedia::query()->whereIn('chat_conversation_id', $conversations->modelKeys())->get();
+    expect($export->status)->toBe(DataExportStatus::Ready)
+        ->and($export->file_path)->toStartWith('workspaces/'.$agent->workspaceExternalId().'/members/'.$agent->workspace->owner->external_id.'/data-exports/')
+        ->toEndWith('.zip')
+        ->and($export->file_size)->toBeGreaterThan(0)
+        ->and($export->expires_at)->not->toBeNull()
+        ->and(bdeEntries($export))->toContain('README.txt', 'profile.json', 'message-limit.json')
+        ->and(collect($exportedConversations)->pluck('id')->sort()->values()->all())->toBe($conversations->modelKeys())
+        ->and($messages)->toHaveCount(10)
+        ->and($maxBindings)->toBeLessThanOrEqual(6)
+        ->and($exportedConversations[0]['title'])->toBe('Hello')
+        ->and($exportedConversations[0])->not->toHaveKeys(['workspace_id', 'analysis_attempts'])
         ->and($messages[0])->toHaveKey('content')
         ->and($messages[0])->not->toHaveKeys(['workspace_id', 'generation_id'])
         ->and($agents)->toHaveCount(1)
@@ -174,33 +144,21 @@ it('writes the exported columns only, never internal ids or secrets', function (
         ->and($knowledge['files'])->toHaveCount(1)
         ->and($knowledge['files'][0])->not->toHaveKeys(['filepath', 'checksum'])
         ->and($knowledge['texts'])->toBe([])
-        ->and($knowledge['websites'])->toBe([]);
-});
-
-it('copies every stored file in under a name without folders', function (): void {
-    ['export' => $export, 'conversations' => $conversations, 'file' => $file] = bdeBuildBigWorkspace();
-
-    // Moving a conversation to the trash already removed its attachment.
-    $attachments = Attachment::query()->whereIn('chat_conversation_id', $conversations->modelKeys())->get();
-
-    expect($attachments)->toHaveCount(4)
-        ->and(bdeEntry($export, "attachments/knowledge/{$file->id}-manual.txt"))->toBe('knowledge-bytes');
-
+        ->and($knowledge['websites'])->toBe([])
+        ->and(bdeEntry($export, "attachments/knowledge/{$file->id}-manual.txt"))->toBe('knowledge-bytes')
+        ->and($attachments)->toHaveCount(4)
+        ->and($generated)->toHaveCount(4);
     foreach ($attachments as $attachment) {
         $conversationId = $attachment->chat_conversation_id;
 
         expect(bdeEntry($export, "attachments/conversations/{$conversationId}/{$attachment->id}-{$conversationId}.txt"))
             ->toBe('attachment-'.$conversationId);
     }
-
-    $generated = GeneratedMedia::query()->whereIn('chat_conversation_id', $conversations->modelKeys())->get();
-
-    expect($generated)->toHaveCount(4);
-
     foreach ($generated as $media) {
         expect(bdeEntry($export, "generated/conversations/{$media->chat_conversation_id}/{$media->id}.png"))
             ->toBe('image-'.$media->chat_conversation_id);
     }
+    Event::assertDispatched(DataExportReady::class);
 });
 
 it('gives a teammate their personal data only, never the workspace data', function (): void {
@@ -212,6 +170,7 @@ it('gives a teammate their personal data only, never the workspace data', functi
     $teammate = User::factory()->employee($agent->workspace->owner)->create();
 
     $export = bdeExport($teammate);
+
     app(BuildDataExportArchiveAction::class)->execute($export);
 
     $entries = bdeEntries($export->refresh());
@@ -231,7 +190,6 @@ it('marks the export failed, leaves no archive or temp files, and rethrows when 
     Storage::fake('local');
 
     $owner = Agent::factory()->create()->workspace->owner;
-    // The last step fails, after the archive was written to disk.
     DataExport::updating(static function (DataExport $export): void {
         if ($export->status === DataExportStatus::Ready) {
             throw new RuntimeException('Database went away');
@@ -244,7 +202,6 @@ it('marks the export failed, leaves no archive or temp files, and rethrows when 
         ->toThrow(RuntimeException::class, 'Database went away');
 
     $export->refresh();
-
     expect($export->status)->toBe(DataExportStatus::Failed)
         ->and($export->error_message)->toBe('Database went away')
         ->and($export->file_path)->toBeNull()

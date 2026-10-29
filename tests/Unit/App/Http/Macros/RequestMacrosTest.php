@@ -9,79 +9,37 @@ use Illuminate\Http\Request;
  * geolocated IP of the real visitor (CF-Connecting-IP), never of the edge.
  * Cloudflare's "no country" values fall back to the geolocation.
  */
-function rmRequest(?string $cfCountry, string $remoteAddr = '172.70.1.1'): Request
-{
-    // The default REMOTE_ADDR is a Cloudflare edge IP (172.64.0.0/13), so the
-    // CF-* headers count as genuine.
-    $server = ['REMOTE_ADDR' => $remoteAddr];
+it('believes the country header from a Cloudflare edge or a trusted proxy', function (): void {
+    [$proxies, $headers] = [Request::getTrustedProxies(), Request::getTrustedHeaderSet()];
+    Request::setTrustedProxies(['10.0.0.5'], Request::HEADER_X_FORWARDED_FOR);
 
-    if ($cfCountry !== null) {
-        $server['HTTP_CF_IPCOUNTRY'] = $cfCountry;
+    try {
+        $fromEdge = Request::create('https://chatvia.test/', 'GET', server: ['HTTP_CF_IPCOUNTRY' => 'IQ', 'REMOTE_ADDR' => '172.70.1.1']);
+        $fromProxy = Request::create('https://chatvia.test/', 'GET', server: ['HTTP_CF_IPCOUNTRY' => 'NL', 'REMOTE_ADDR' => '10.0.0.5']);
+
+        expect($fromEdge->country())->toBe('iq')
+            ->and($fromProxy->country())->toBe('nl');
+    } finally {
+        Request::setTrustedProxies($proxies, $headers);
     }
-
-    return Request::create('https://chatvia.test/', 'GET', server: $server);
-}
-
-it('returns the lowercased Cloudflare visitor country', function (): void {
-    expect(rmRequest('IQ')->country())->toBe('iq');
 });
 
-it('ignores Cloudflare non-country sentinels and falls back to geolocation', function (string $sentinel): void {
-    $guard = Mockery::mock(NetworkAccessGuard::class);
-    $guard->shouldReceive('countryFor')->once()->with('172.70.1.1')->andReturnNull();
-    app()->instance(NetworkAccessGuard::class, $guard);
-
-    expect(rmRequest($sentinel)->country())->toBeNull();
-})->with(['XX', 'T1']);
-
-it('returns null when there is no country header and the IP is unresolvable', function (): void {
-    // A direct connection from a private IP: no CF headers to trust, and the
-    // geo-IP fallback resolves a private IP to null without any lookup.
-    expect(rmRequest(null, '127.0.0.1')->country())->toBeNull();
-});
-
-it('geolocates the real visitor from CF-Connecting-IP, never the Cloudflare edge', function (): void {
+it('geolocates the real visitor, never the edge, when the header says nothing or is spoofed', function (): void {
     $guard = Mockery::mock(NetworkAccessGuard::class);
     $guard->shouldReceive('countryFor')->once()->with('198.51.100.7')->andReturn('DE');
+    $guard->shouldReceive('countryFor')->once()->with('203.0.113.9')->andReturn('FR');
     app()->instance(NetworkAccessGuard::class, $guard);
-
-    $request = Request::create('https://chatvia.test/', 'GET', server: [
+    $sentinel = Request::create('https://chatvia.test/', 'GET', server: [
         'HTTP_CF_IPCOUNTRY' => 'XX',
         'HTTP_CF_CONNECTING_IP' => '198.51.100.7',
         'REMOTE_ADDR' => '172.70.1.1',
     ]);
-
-    expect($request->country())->toBe('de');
-});
-
-it('ignores CF headers from a peer that is neither Cloudflare nor a trusted proxy', function (): void {
-    // A spoofer connecting straight to the origin: both CF headers are lies.
-    // The peer's own IP is geolocated instead.
-    $guard = Mockery::mock(NetworkAccessGuard::class);
-    $guard->shouldReceive('countryFor')->once()->with('203.0.113.9')->andReturn('FR');
-    app()->instance(NetworkAccessGuard::class, $guard);
-
-    $request = Request::create('https://chatvia.test/', 'GET', server: [
+    $spoofed = Request::create('https://chatvia.test/', 'GET', server: [
         'HTTP_CF_IPCOUNTRY' => 'US',
         'HTTP_CF_CONNECTING_IP' => '198.51.100.7',
         'REMOTE_ADDR' => '203.0.113.9',
     ]);
 
-    expect($request->country())->toBe('fr');
-});
-
-it('believes CF headers forwarded through a trusted proxy', function (): void {
-    [$proxies, $headers] = [Request::getTrustedProxies(), Request::getTrustedHeaderSet()];
-    Request::setTrustedProxies(['10.0.0.5'], Request::HEADER_X_FORWARDED_FOR);
-
-    try {
-        $request = Request::create('https://chatvia.test/', 'GET', server: [
-            'HTTP_CF_IPCOUNTRY' => 'NL',
-            'REMOTE_ADDR' => '10.0.0.5',
-        ]);
-
-        expect($request->country())->toBe('nl');
-    } finally {
-        Request::setTrustedProxies($proxies, $headers);
-    }
+    expect($sentinel->country())->toBe('de')
+        ->and($spoofed->country())->toBe('fr');
 });

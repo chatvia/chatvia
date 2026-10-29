@@ -1,9 +1,0 @@
-{
-    "content": [
-        {
-            "type": "text",
-            "text": "The visitor has already submitted the \"Book a demo\" form. Do not show it again — let them know their submission was already received and continue helping."
-        }
-    ],
-    "isError": false
-}

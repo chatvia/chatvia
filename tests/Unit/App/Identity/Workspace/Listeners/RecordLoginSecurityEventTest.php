@@ -19,11 +19,14 @@ beforeEach(function (): void {
     $this->request = Request::create('/login', 'POST', server: ['REMOTE_ADDR' => '203.0.113.5', 'HTTP_USER_AGENT' => 'Firefox/130']);
 });
 
-it('records a staff sign-in for the user workspace', function (): void {
+it('records a staff sign-in for the user workspace, and nothing for a chatter', function (): void {
     $teammate = User::factory()->employee()->create();
+    $listener = new RecordLoginSecurityEvent($this->request);
 
-    new RecordLoginSecurityEvent($this->request)->handle(new Login('web', $teammate, false));
+    $listener->handle(new Login('chat', Chatter::factory()->create(), false));
+    $listener->handle(new Login('web', $teammate, false));
 
+    Event::assertDispatchedTimes(SecurityEventOccurred::class, 1);
     Event::assertDispatched(SecurityEventOccurred::class, fn (SecurityEventOccurred $event): bool => $event->action === 'auth.login'
         && $event->workspaceId === $teammate->workspace()->id
         && $event->userId === $teammate->id
@@ -31,12 +34,6 @@ it('records a staff sign-in for the user workspace', function (): void {
         && $event->ip === '203.0.113.5'
         && $event->userAgent === 'Firefox/130'
         && $event->outcome === 'success');
-});
-
-it('records nothing for a chatter', function (): void {
-    new RecordLoginSecurityEvent($this->request)->handle(new Login('chat', Chatter::factory()->create(), false));
-
-    Event::assertNotDispatched(SecurityEventOccurred::class);
 });
 
 it('records a staff sign-out for the user workspace, and nothing for a chatter', function (): void {

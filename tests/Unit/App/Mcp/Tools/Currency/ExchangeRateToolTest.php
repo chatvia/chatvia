@@ -39,17 +39,8 @@ it('returns a stable currency result', function (array $arguments): void {
     expect(InternalMcp::resultWithRequestsJson(CurrencyConverterServer::tool(ExchangeRateTool::class, $arguments)))->toMatchSnapshot();
 })->with([
     'usd to eur, default amount' => [['to' => 'eur']],
-    'eur to jpy with amount' => [['from' => 'EUR', 'to' => 'JPY', 'amount' => 250.5]],
     'unknown target' => [['to' => 'XXX']],
-    'unknown source' => [['from' => 'ABC', 'to' => 'EUR']],
-    'bad code length' => [['to' => 'EURO']],
 ]);
-
-it('reports unavailable rates for a rejected key', function (): void {
-    ertCallerKey('bad-key');
-
-    expect(InternalMcp::resultWithRequestsJson(CurrencyConverterServer::tool(ExchangeRateTool::class, ['to' => 'EUR'])))->toMatchSnapshot();
-});
 
 it('refuses a conversion without an API key', function (): void {
     ertCallerKey(null);

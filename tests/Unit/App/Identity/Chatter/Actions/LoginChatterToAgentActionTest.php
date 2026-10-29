@@ -33,66 +33,44 @@ function lctaLogin(string $email, string $password): ?Chatter
     );
 }
 
-it('returns the chatter who has a grant for the agent', function (): void {
-    expect(lctaLogin('chatter@example.test', 'chatter-pass')?->id)->toBe($this->chatter->id);
-});
-
-it('matches the email without case', function (): void {
-    expect(lctaLogin('Chatter@Example.TEST', 'chatter-pass')?->id)->toBe($this->chatter->id);
-});
-
-it('returns null when the password is wrong', function (): void {
-    expect(lctaLogin('chatter@example.test', 'wrong-password'))->toBeNull();
-});
-
-it('returns null when the chatter is deactivated, even with valid credentials', function (): void {
-    app(DeactivateAccountAction::class)->execute($this->chatter, 'blocked by admin');
-
-    expect(lctaLogin('chatter@example.test', 'chatter-pass'))->toBeNull();
-});
-
-it('returns null when no chatter matches the email', function (): void {
-    expect(lctaLogin('no-such-user@example.test', 'chatter-pass'))->toBeNull();
-});
-
-it('still computes a password hash when no chatter matches the email', function (): void {
-    // Same work as a wrong password for a real chatter, so response timing
-    // can't reveal which emails are registered.
-    Hash::shouldReceive('make')->once()->andReturn('hashed');
-
-    expect(lctaLogin('no-such-user@example.test', 'chatter-pass'))->toBeNull();
-});
-
-it('returns null for a chatter of this workspace without a grant for the agent', function (): void {
-    Chatter::factory()->ofWorkspace($this->owner)->create([
-        'email' => 'ungranted@example.test',
-        'password' => Hash::make('pass'),
-    ]);
-
-    expect(lctaLogin('ungranted@example.test', 'pass'))->toBeNull();
-});
-
-it('lets the same email be a chatter of two workspaces, each with its own password', function (): void {
+it('signs in a granted chatter by email without case, only with this workspace\'s password', function (): void {
     $here = Chatter::factory()->grantedTo($this->agent)->create([
         'email' => 'twice@example.test',
         'password' => Hash::make('here-pass'),
     ]);
-    $otherAgent = createAgent(User::factory()->create());
-    Chatter::factory()->grantedTo($otherAgent)->create([
+    Chatter::factory()->grantedTo(createAgent(User::factory()->create()))->create([
         'email' => 'twice@example.test',
         'password' => Hash::make('there-pass'),
     ]);
 
-    expect(lctaLogin('twice@example.test', 'here-pass')?->id)->toBe($here->id)
+    expect(lctaLogin('Chatter@Example.TEST', 'chatter-pass')?->id)->toBe($this->chatter->id)
+        ->and(lctaLogin('twice@example.test', 'here-pass')?->id)->toBe($here->id)
         ->and(lctaLogin('twice@example.test', 'there-pass'))->toBeNull();
 });
 
-it('never signs in a staff account, even with its right password', function (): void {
-    expect(lctaLogin('owner@example.test', 'correct-password'))->toBeNull();
+it('refuses a wrong password, a staff account, and an ungranted, passwordless or deactivated chatter', function (): void {
+    Chatter::factory()->ofWorkspace($this->owner)->create([
+        'email' => 'ungranted@example.test',
+        'password' => Hash::make('pass'),
+    ]);
+    Chatter::factory()->grantedTo($this->agent)->create(['email' => 'nopass@example.test', 'password' => null]);
+    $wrongPassword = lctaLogin('chatter@example.test', 'wrong-password');
+    $staff = lctaLogin('owner@example.test', 'correct-password');
+    $ungranted = lctaLogin('ungranted@example.test', 'pass');
+    $passwordless = lctaLogin('nopass@example.test', '');
+    app(DeactivateAccountAction::class)->execute($this->chatter, 'blocked by admin');
+
+    $deactivated = lctaLogin('chatter@example.test', 'chatter-pass');
+
+    expect($wrongPassword)->toBeNull()
+        ->and($staff)->toBeNull()
+        ->and($ungranted)->toBeNull()
+        ->and($passwordless)->toBeNull()
+        ->and($deactivated)->toBeNull();
 });
 
-it('returns null for a chatter without a password', function (): void {
-    $this->chatter->forceFill(['password' => null])->save();
+it('still computes a password hash when no chatter matches the email', function (): void {
+    Hash::shouldReceive('make')->once()->andReturn('hashed');
 
-    expect(lctaLogin('chatter@example.test', ''))->toBeNull();
+    expect(lctaLogin('no-such-user@example.test', 'chatter-pass'))->toBeNull();
 });

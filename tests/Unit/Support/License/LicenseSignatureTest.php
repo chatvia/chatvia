@@ -11,21 +11,17 @@ use Tests\Support\License\LicenseKeys;
  * key the app ships with. Anything else, or a key with a changed part, reads
  * as no key at all.
  */
-it('reads the key the chatvia.ai site signs', function (): void {
+it('reads the key the chatvia.ai site signs, also when it wrapped as it was pasted', function (): void {
     $license = LicenseSignature::verify(LicenseKeys::BOUGHT_KEY, LicenseKeys::PUBLIC_KEY);
+    $wrapped = chunk_split(LicenseKeys::activatedFor('chat.acme.com'), 40, "\n  ");
 
     expect($license)->toBeInstanceOf(LicenseKey::class)
         ->and($license->id)->toBe(LicenseKeys::ID)
         ->and($license->licensee)->toBe('Acme Ltd')
         ->and($license->domains)->toBe([])
         ->and($license->allows(LicenseFeature::HideCredit))->toBeTrue()
-        ->and($license->issued)->toBe('2026-10-15');
-});
-
-it('reads a key that wrapped when it was pasted', function (): void {
-    $wrapped = chunk_split(LicenseKeys::activatedFor('chat.acme.com'), 40, "\n  ");
-
-    expect(LicenseSignature::verify($wrapped, LicenseKeys::PUBLIC_KEY)?->domains)->toBe(['chat.acme.com']);
+        ->and($license->issued)->toBe('2026-10-15')
+        ->and(LicenseSignature::verify($wrapped, LicenseKeys::PUBLIC_KEY)?->domains)->toBe(['chat.acme.com']);
 });
 
 it('reads nothing from a changed or foreign key', function (string $key, ?string $publicKey): void {

@@ -33,14 +33,18 @@ function bcaBlock(ChatterBlockNotice $notice): void
     ));
 }
 
-it('switches the account off and emails the chatter', function (): void {
+it('switches the account off, emails the chatter without the reason and audits the block', function (): void {
     bcaBlock(ChatterBlockNotice::Email);
 
     $chatter = $this->chatter->fresh();
 
     expect($chatter->isDeactivated())->toBeTrue()
-        ->and($chatter->deactivation_reason)->toBe('Prompt injection, 12 times');
-
+        ->and($chatter->deactivation_reason)->toBe('Prompt injection, 12 times')
+        ->and(SecurityAuditLog::query()
+            ->where('workspace_id', $this->agent->workspace_id)
+            ->where('action', 'chatter.blocked')
+            ->where('target_id', $this->chatter->external_id)
+            ->exists())->toBeTrue();
     Notification::assertSentTo($chatter, ChatterBlockedNotification::class, function (ChatterBlockedNotification $notification) use ($chatter): bool {
         $mail = $notification->toMail($chatter);
 
@@ -54,14 +58,4 @@ it('sends no email when the admin chose not to', function (): void {
 
     expect($this->chatter->fresh()->isDeactivated())->toBeTrue();
     Notification::assertNothingSent();
-});
-
-it('writes the block to the security audit log', function (): void {
-    bcaBlock(ChatterBlockNotice::Email);
-
-    expect(SecurityAuditLog::query()
-        ->where('workspace_id', $this->agent->workspace_id)
-        ->where('action', 'chatter.blocked')
-        ->where('target_id', $this->chatter->external_id)
-        ->exists())->toBeTrue();
 });

@@ -19,21 +19,21 @@ beforeEach(function (): void {
     $this->activation = app(WorkspaceActivation::class);
 });
 
-it('keeps a workspace on by default', function (): void {
-    expect($this->activation->isActive($this->agent->workspace_id))->toBeTrue();
-});
-
-it('switches the workspace off when its owner is deactivated, and on again when reactivated', function (): void {
-    // Warm the cache first, so the actions must drop it.
-    expect($this->activation->isActive($this->agent->workspace_id))->toBeTrue();
+it('keeps a workspace on by default, from the cache once warmed, and off while its owner is deactivated', function (): void {
+    $this->activation->isActive($this->agent->workspace_id);
+    DB::enableQueryLog();
+    $warm = $this->activation->isActive($this->agent->workspace_id);
+    $queries = DB::getQueryLog();
+    DB::disableQueryLog();
 
     deactivateWorkspaceOf($this->agent);
-
-    expect($this->activation->isActive($this->agent->workspace_id))->toBeFalse();
-
+    $whileOff = $this->activation->isActive($this->agent->workspace_id);
     reactivateWorkspaceOf($this->agent);
 
-    expect($this->activation->isActive($this->agent->workspace_id))->toBeTrue();
+    expect($warm)->toBeTrue()
+        ->and($queries)->toBeEmpty()
+        ->and($whileOff)->toBeFalse()
+        ->and($this->activation->isActive($this->agent->workspace_id))->toBeTrue();
 });
 
 it('switches the workspace off while its deletion runs', function (): void {
@@ -44,29 +44,16 @@ it('switches the workspace off while its deletion runs', function (): void {
     expect($this->activation->isActive($this->agent->workspace_id))->toBeFalse();
 });
 
-it('keeps the workspace on when only a teammate or a chatter is deactivated', function (): void {
+it('keeps the workspace on when only a teammate or chatter is switched off, and other workspaces on', function (): void {
     $owner = $this->agent->workspace->owner;
+    $other = Agent::factory()->create();
     $deactivate = app(DeactivateAccountAction::class);
 
     $deactivate->execute(User::factory()->employee($owner)->create(), 'left the company');
     $deactivate->execute(Chatter::factory()->ofWorkspace($owner->workspace())->create(), 'spam');
-
-    expect($this->activation->isActive($this->agent->workspace_id))->toBeTrue();
-});
-
-it('does not switch off other workspaces', function (): void {
-    $other = Agent::factory()->create();
-
+    $teammatesOnly = $this->activation->isActive($this->agent->workspace_id);
     deactivateWorkspaceOf($this->agent);
 
-    expect($this->activation->isActive($other->workspace_id))->toBeTrue();
-});
-
-it('answers from the cache without a query once warmed', function (): void {
-    $this->activation->isActive($this->agent->workspace_id);
-
-    DB::enableQueryLog();
-    $this->activation->isActive($this->agent->workspace_id);
-
-    expect(DB::getQueryLog())->toBeEmpty();
+    expect($teammatesOnly)->toBeTrue()
+        ->and($this->activation->isActive($other->workspace_id))->toBeTrue();
 });

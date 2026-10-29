@@ -20,27 +20,15 @@ it('unlocks Enterprise only when the flag is true', function (mixed $flag, bool 
     'a truthy string' => ['1', false],
 ]);
 
-it('applies the free-use limits without a key', function (): void {
+it('applies the free-use limits without a key and lifts every one with a key', function (): void {
     config(['chatvia.license.licensed' => false]);
-
     $entitlements = app(Entitlements::class);
+    $free = [$entitlements->licensed(), $entitlements->workspaceLimit(), $entitlements->api(), $entitlements->voice(), $entitlements->handoff(), $entitlements->capabilities(), $entitlements->advancedAnalytics(), $entitlements->customSplitting()];
 
-    expect($entitlements->licensed())->toBeFalse()
-        ->and($entitlements->workspaceLimit())->toBe(FreeTier::WORKSPACES)
-        ->and($entitlements->api())->toBeFalse()
-        ->and($entitlements->voice())->toBeFalse()
-        ->and($entitlements->handoff())->toBeFalse()
-        ->and($entitlements->capabilities())->toBeFalse()
-        ->and($entitlements->advancedAnalytics())->toBeFalse()
-        ->and($entitlements->customSplitting())->toBeFalse();
-});
-
-it('lifts every free-use limit with a key', function (): void {
     config(['chatvia.license.licensed' => true]);
 
-    $entitlements = app(Entitlements::class);
-
-    expect($entitlements->workspaceLimit())->toBeNull()
+    expect($free)->toBe([false, FreeTier::WORKSPACES, false, false, false, false, false, false])
+        ->and($entitlements->workspaceLimit())->toBeNull()
         ->and($entitlements->api())->toBeTrue()
         ->and($entitlements->voice())->toBeTrue()
         ->and($entitlements->handoff())->toBeTrue()

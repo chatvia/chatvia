@@ -1,9 +1,0 @@
-{
-    "content": [
-        {
-            "type": "text",
-            "text": "Missing X-Chatvia-Conversation-Id header — a form can only be rendered inside an active chat conversation."
-        }
-    ],
-    "isError": true
-}

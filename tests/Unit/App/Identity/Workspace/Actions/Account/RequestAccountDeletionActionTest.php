@@ -6,7 +6,6 @@ use App\Identity\Workspace\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Str;
 use Illuminate\Support\Uri;
 
 /**
@@ -14,37 +13,22 @@ use Illuminate\Support\Uri;
  * account, valid for 30 minutes, handed to the email listener through
  * AccountDeletionRequested.
  */
-it('dispatches AccountDeletionRequested with a signed confirmation link for the user', function (): void {
-    Event::fake([AccountDeletionRequested::class]);
-
-    $user = User::factory()->create();
-
-    app(RequestAccountDeletionAction::class)->execute($user);
-
-    Event::assertDispatched(
-        AccountDeletionRequested::class,
-        fn (AccountDeletionRequested $event): bool => $event->email === $user->email
-            && $event->name === $user->name
-            && Str::contains($event->url, '/my/account/delete-account/confirm/'.$user->id)
-            && Str::contains($event->url, 'signature=')
-            && Str::contains($event->url, 'expires='),
-    );
-});
-
-it('mints a confirmation link that is valid for 30 minutes', function (): void {
+it('hands the email listener a signed confirmation link for the user, valid for 30 minutes', function (): void {
     Event::fake([AccountDeletionRequested::class]);
     $this->freezeTime();
     $user = User::factory()->create();
 
     app(RequestAccountDeletionAction::class)->execute($user);
 
-    $url = Event::dispatched(AccountDeletionRequested::class)->sole()[0]->url;
-    $query = Uri::of($url)->query()->all();
-
-    expect((int) $query['expires'])->toBe(now()->addMinutes(30)->getTimestamp())
-        ->and(URL::hasValidSignature(Request::create($url)))->toBeTrue();
-
+    $event = Event::dispatched(AccountDeletionRequested::class)->sole()[0];
+    $expectedExpiry = now()->addMinutes(30)->getTimestamp();
+    $validNow = URL::hasValidSignature(Request::create($event->url));
     $this->travel(31)->minutes();
+    $validLater = URL::hasValidSignature(Request::create($event->url));
 
-    expect(URL::hasValidSignature(Request::create($url)))->toBeFalse();
+    expect($event->email)->toBe($user->email)
+        ->and($event->url)->toContain('/my/account/delete-account/confirm/'.$user->id)
+        ->and((int) Uri::of($event->url)->query()->all()['expires'])->toBe($expectedExpiry)
+        ->and($validNow)->toBeTrue()
+        ->and($validLater)->toBeFalse();
 });

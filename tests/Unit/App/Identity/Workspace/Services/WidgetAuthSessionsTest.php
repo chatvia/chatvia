@@ -19,102 +19,47 @@ beforeEach(function (): void {
     app(CreateDefaultTeamAction::class)->execute($this->owner);
     $this->agent = createAgent($this->owner);
     $this->service = app(WidgetAuthSessions::class);
-
-    // A stable fingerprint baseline — issue and resolve from the same
-    // (ip, ua) tuple so the IP/UA pinning check never trips inside the
-    // round-trip tests.
     $this->origin = new ClientOriginData('203.0.113.10', 'Mozilla/5.0 (Test) Chrome/123 Safari/537');
 });
 
-it('round-trips the agent owner (not just chatters)', function (): void {
-    // The exchange mints sessions via AgentSignInTokens::verify, whose
-    // valid subject includes the owner, so resolve() must not filter by user
-    // type, or the owner's own session never resolves.
-    $session = $this->service->issue($this->owner, $this->agent, $this->origin);
-
-    $resolved = $this->service->resolve($session['token'], $this->agent, $this->origin);
-
-    expect($resolved)->not->toBeNull()
-        ->and($resolved->id)->toBe($this->owner->id);
-});
-
-it('round-trips a chatter', function (): void {
+it('resolves a session to the owner or chatter it was issued for, with its meta, keeping same-id accounts apart', function (): void {
     $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner->workspace(), $this->agent, 'Jane'));
-
-    $session = $this->service->issue($chatter, $this->agent, $this->origin);
-
-    expect($this->service->resolve($session['token'], $this->agent, $this->origin)?->id)
-        ->toBe($chatter->id);
-});
-
-it('keeps a chatter and a staff account with the same id apart', function (): void {
-    // Chatter and staff ids come from different tables and can be equal.
     $id = sharedStaffAndChatterId();
-    $staff = User::factory()->employee($this->owner)->create(['id' => $id]);
-    $chatter = Chatter::factory()->ofWorkspace($this->owner)->create(['id' => $id]);
+    $twinStaff = User::factory()->employee($this->owner)->create(['id' => $id]);
+    $twinChatter = Chatter::factory()->ofWorkspace($this->owner)->create(['id' => $id]);
+    $resolve = fn (Chatter|User $account): Chatter|User|null => $this->service->resolve($this->service->issue($account, $this->agent, $this->origin)['token'], $this->agent, $this->origin);
 
-    $asChatter = $this->service->resolve($this->service->issue($chatter, $this->agent, $this->origin)['token'], $this->agent, $this->origin);
-    $asStaff = $this->service->resolve($this->service->issue($staff, $this->agent, $this->origin)['token'], $this->agent, $this->origin);
+    $payload = $this->service->resolveWithMeta(
+        $this->service->issue($this->owner, $this->agent, $this->origin, ['is_playground' => true])['token'],
+        $this->agent,
+        $this->origin,
+    );
 
-    expect($asChatter)->toBeInstanceOf(Chatter::class)
-        ->and($asChatter->id)->toBe($id)
-        ->and($asStaff)->toBeInstanceOf(User::class)
-        ->and($asStaff->id)->toBe($id);
+    expect($payload['user']->id)->toBe($this->owner->id)
+        ->and($payload['meta']['is_playground'])->toBeTrue()
+        ->and($resolve($chatter)?->id)->toBe($chatter->id)
+        ->and($resolve($twinChatter))->toBeInstanceOf(Chatter::class)->id->toBe($id)
+        ->and($resolve($twinStaff))->toBeInstanceOf(User::class)->id->toBe($id);
 });
 
-it('never resolves a chatter of another workspace', function (): void {
+it('refuses a token of another workspace\'s chatter, another agent or another browser, and an unknown one', function (): void {
     $foreign = Chatter::factory()->ofWorkspace(User::factory()->create())->create();
+    $other = createAgent($this->owner);
+    $foreignSession = $this->service->issue($foreign, $this->agent, $this->origin);
+    $ownerSession = $this->service->issue($this->owner, $this->agent, $this->origin);
 
-    $session = $this->service->issue($foreign, $this->agent, $this->origin);
-
-    expect($this->service->resolve($session['token'], $this->agent, $this->origin))->toBeNull();
+    expect($this->service->resolve($foreignSession['token'], $this->agent, $this->origin))->toBeNull()
+        ->and($this->service->resolve($ownerSession['token'], $other, $this->origin))->toBeNull()
+        ->and($this->service->resolve($ownerSession['token'], $this->agent, new ClientOriginData('198.51.100.250', 'curl/8.0')))->toBeNull()
+        ->and($this->service->resolve('nope', $this->agent, $this->origin))->toBeNull();
 });
 
-it('rejects a still-cached token the moment the user is deactivated', function (): void {
+it('rejects a still-cached token the moment the account is deactivated', function (): void {
     $session = $this->service->issue($this->owner, $this->agent, $this->origin);
-
-    // Resolves fine while active.
-    expect($this->service->resolve($session['token'], $this->agent, $this->origin)?->id)->toBe($this->owner->id);
+    $whileActive = $this->service->resolve($session['token'], $this->agent, $this->origin)?->id;
 
     app(DeactivateAccountAction::class)->execute($this->owner, 'blocked by admin');
 
-    // Same token, now rejected per-request (no need to wait for the TTL).
-    expect($this->service->resolve($session['token'], $this->agent, $this->origin))->toBeNull();
-});
-
-it('rejects a token minted for a different agent', function (): void {
-    $other = createAgent($this->owner);
-    $session = $this->service->issue($this->owner, $this->agent, $this->origin);
-
-    expect($this->service->resolve($session['token'], $other, $this->origin))->toBeNull();
-});
-
-it('returns null for an unknown token', function (): void {
-    expect($this->service->resolve('nope', $this->agent, $this->origin))->toBeNull();
-});
-
-it('rejects a token replayed from a different ip / user-agent', function (): void {
-    // Defence in depth: the cached payload pins the token to the (ip, ua) it
-    // was issued under. A different machine reusing the token
-    // (XSS exfiltration scenario) must NOT resolve.
-    $session = $this->service->issue($this->owner, $this->agent, $this->origin);
-
-    $stranger = new ClientOriginData('198.51.100.250', 'curl/8.0');
-
-    expect($this->service->resolve($session['token'], $this->agent, $stranger))->toBeNull();
-});
-
-it('carries session meta through resolveWithMeta', function (): void {
-    $session = $this->service->issue(
-        $this->owner,
-        $this->agent,
-        $this->origin,
-        ['is_playground' => true],
-    );
-
-    $payload = $this->service->resolveWithMeta($session['token'], $this->agent, $this->origin);
-
-    expect($payload)->not->toBeNull()
-        ->and($payload['user']->id)->toBe($this->owner->id)
-        ->and($payload['meta']['is_playground'])->toBeTrue();
+    expect($whileActive)->toBe($this->owner->id)
+        ->and($this->service->resolve($session['token'], $this->agent, $this->origin))->toBeNull();
 });

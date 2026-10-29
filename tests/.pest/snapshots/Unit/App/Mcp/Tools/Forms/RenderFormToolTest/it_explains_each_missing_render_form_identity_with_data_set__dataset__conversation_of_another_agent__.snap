@@ -1,9 +1,0 @@
-{
-    "content": [
-        {
-            "type": "text",
-            "text": "Conversation not found or does not belong to this agent."
-        }
-    ],
-    "isError": true
-}

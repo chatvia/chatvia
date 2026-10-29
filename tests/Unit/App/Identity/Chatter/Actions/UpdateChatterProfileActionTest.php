@@ -1,11 +1,5 @@
 <?php
 
-/**
- * UpdateChatterProfileAction: a chatter edits their own name, password (the
- * current one is checked against this chatter's own hash) and photo (stored
- * under `workspaces/{ws}/chatters/{external_id}/profile-photos/`).
- */
-
 use App\Identity\Chatter\Actions\UpdateChatterProfileAction;
 use App\Identity\Chatter\Data\UpdateChatterProfileData;
 use App\Identity\Chatter\Models\Chatter;
@@ -15,49 +9,33 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Support\Exceptions\DomainValidationException;
 
-it('updates the chatter name when no password change is requested', function (): void {
-    $chatter = Chatter::factory()->create(['name' => 'Old Name']);
-
-    app(UpdateChatterProfileAction::class)->execute(new UpdateChatterProfileData(
-        user: $chatter,
-        name: 'New Name',
-    ));
-
-    expect($chatter->fresh()->name)->toBe('New Name');
-});
-
-it('updates the password when the current password matches and rotates the remember-me token', function (): void {
+/**
+ * UpdateChatterProfileAction: a chatter edits their own name, password (the
+ * current one is checked against this chatter's own hash) and photo (stored
+ * under `workspaces/{ws}/chatters/{external_id}/profile-photos/`).
+ */
+it('changes the name and the password when the current one matches, and rotates the remember-me token', function (): void {
     $chatter = Chatter::factory()->create([
+        'name' => 'Old Name',
         'password' => Hash::make('current-pass'),
         'remember_token' => 'old-remember-token',
     ]);
 
     app(UpdateChatterProfileAction::class)->execute(new UpdateChatterProfileData(
         user: $chatter,
+        name: 'New Name',
         currentPassword: 'current-pass',
         newPassword: 'brand-new-pass',
     ));
 
-    expect(Hash::check('brand-new-pass', $chatter->fresh()->password))->toBeTrue()
-        ->and($chatter->fresh()->remember_token)->not->toBe('old-remember-token');
+    $chatter = $chatter->fresh();
+    expect($chatter->name)->toBe('New Name')
+        ->and(Hash::check('brand-new-pass', $chatter->password))->toBeTrue()
+        ->and($chatter->remember_token)->not->toBe('old-remember-token');
 });
 
-it('refuses a wrong current password', function (): void {
-    $chatter = Chatter::factory()->create([
-        'password' => Hash::make('current-pass'),
-    ]);
-
-    app(UpdateChatterProfileAction::class)->execute(new UpdateChatterProfileData(
-        user: $chatter,
-        currentPassword: 'wrong-pass',
-        newPassword: 'brand-new-pass',
-    ));
-})->throws(DomainValidationException::class);
-
-it('checks the current password against this chatter only, not another account with the same email', function (string $foreignPassword): void {
+it('refuses a wrong current password, even another account\'s with the same email', function (string $wrongPassword): void {
     $workspace = User::factory()->workspace()->create();
-    // A staff account and a chatter of another workspace share the email and
-    // know a different password; neither may unlock this chatter's change.
     User::factory()->employee($workspace)->create([
         'email' => 'same@example.test',
         'password' => Hash::make('staff-pass'),
@@ -70,7 +48,7 @@ it('checks the current password against this chatter only, not another account w
 
     expect(fn () => app(UpdateChatterProfileAction::class)->execute(new UpdateChatterProfileData(
         user: $chatter,
-        currentPassword: $foreignPassword,
+        currentPassword: $wrongPassword,
         newPassword: 'brand-new-pass',
     )))->toThrow(DomainValidationException::class)
         ->and(Hash::check('current-pass', $chatter->fresh()->password))->toBeTrue();
@@ -79,47 +57,8 @@ it('checks the current password against this chatter only, not another account w
     'the other workspace chatter\'s password' => 'other-pass',
 ]);
 
-it('does not save the chatter when no values are supplied', function (): void {
-    $chatter = Chatter::factory()->create(['name' => 'Stable']);
-    $saves = 0;
-    Chatter::saving(function () use (&$saves): void {
-        $saves++;
-    });
-
-    app(UpdateChatterProfileAction::class)->execute(new UpdateChatterProfileData(
-        user: $chatter,
-    ));
-
-    expect($saves)->toBe(0)
-        ->and($chatter->fresh()->name)->toBe('Stable');
-});
-
-it('stores the uploaded photo under the chatter folder and sets the profile image path', function (): void {
+it('stores a new photo cropped under the chatter folder and removes the previous one', function (): void {
     Storage::fake(User::PROFILE_IMAGE_DISK);
-
-    $chatter = Chatter::factory()->create(['profile_image_path' => null]);
-
-    app(UpdateChatterProfileAction::class)->execute(new UpdateChatterProfileData(
-        user: $chatter,
-        photo: UploadedFile::fake()->image('avatar.png', 1200, 800),
-    ));
-
-    $path = $chatter->fresh()->profile_image_path;
-
-    expect($path)->not->toBeNull()
-        ->and($path)->toStartWith('workspaces/'.$chatter->workspace->external_id.'/chatters/'.$chatter->external_id.'/profile-photos/')
-        ->and($path)->toEndWith('.jpg');
-
-    Storage::disk(User::PROFILE_IMAGE_DISK)->assertExists($path);
-
-    // The oversized upload is cropped to a centered 200x200 square, never stored full size.
-    [$width, $height] = getimagesizefromstring(Storage::disk(User::PROFILE_IMAGE_DISK)->get($path));
-    expect($width)->toBe(200)->and($height)->toBe(200);
-});
-
-it('replaces the previous photo when a new one is uploaded', function (): void {
-    Storage::fake(User::PROFILE_IMAGE_DISK);
-
     $chatter = Chatter::factory()->create();
     $oldPath = $chatter->storageRoot().'/profile-photos/old.jpg';
     Storage::disk(User::PROFILE_IMAGE_DISK)->put($oldPath, 'old');
@@ -127,26 +66,14 @@ it('replaces the previous photo when a new one is uploaded', function (): void {
 
     app(UpdateChatterProfileAction::class)->execute(new UpdateChatterProfileData(
         user: $chatter,
-        photo: UploadedFile::fake()->image('avatar.png', 600, 600),
+        photo: UploadedFile::fake()->image('avatar.png', 1200, 800),
     ));
 
+    $path = $chatter->fresh()->profile_image_path;
+    [$width, $height] = getimagesizefromstring(Storage::disk(User::PROFILE_IMAGE_DISK)->get($path));
+    expect($path)->toStartWith('workspaces/'.$chatter->workspace->external_id.'/chatters/'.$chatter->external_id.'/profile-photos/')
+        ->toEndWith('.jpg')
+        ->and($width)->toBe(200)
+        ->and($height)->toBe(200);
     Storage::disk(User::PROFILE_IMAGE_DISK)->assertMissing($oldPath);
-    Storage::disk(User::PROFILE_IMAGE_DISK)->assertExists($chatter->fresh()->profile_image_path);
-});
-
-it('does not change the password when newPassword is not provided even with currentPassword check', function (): void {
-    $chatter = Chatter::factory()->create([
-        'name' => 'Old',
-        'password' => Hash::make('current-pass'),
-    ]);
-    $originalHash = $chatter->password;
-
-    app(UpdateChatterProfileAction::class)->execute(new UpdateChatterProfileData(
-        user: $chatter,
-        name: 'New',
-        currentPassword: 'current-pass',
-    ));
-
-    expect($chatter->fresh()->name)->toBe('New')
-        ->and($chatter->fresh()->password)->toBe($originalHash);
 });

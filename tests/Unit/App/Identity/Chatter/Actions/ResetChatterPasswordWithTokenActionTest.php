@@ -25,44 +25,33 @@ function rcpwtReset(Chatter $chatter, string $token, string $password = 'new-pas
     );
 }
 
-it('sets the new password and uses up the token', function (): void {
+it('sets the new password, uses up the token and forgets remembered browsers', function (): void {
+    $this->chatter->forceFill(['remember_token' => 'remembered-browser-token'])->save();
     $token = $this->tokens->create($this->chatter);
 
     rcpwtReset($this->chatter, $token);
 
     expect(Hash::check('new-password-123', $this->chatter->fresh()->password))->toBeTrue()
+        ->and($this->chatter->fresh()->remember_token)->toBeString()->not->toBe('remembered-browser-token')->toHaveLength(60)
         ->and(DB::table('chatter_password_reset_tokens')->where('chatter_id', $this->chatter->id)->exists())->toBeFalse()
         ->and(fn () => rcpwtReset($this->chatter, $token, 'again-123456'))->toThrow(DomainValidationException::class);
 });
 
-it('rotates the remember-me token, so other browsers are no longer remembered', function (): void {
-    $this->chatter->forceFill(['remember_token' => 'remembered-browser-token'])->save();
+it('refuses a wrong or an expired token and changes nothing', function (): void {
     $token = $this->tokens->create($this->chatter);
-
-    rcpwtReset($this->chatter, $token);
-
-    expect($this->chatter->fresh()->remember_token)->toBeString()
-        ->not->toBe('remembered-browser-token')
-        ->toHaveLength(60);
-});
-
-it('refuses a wrong token', function (): void {
-    $this->tokens->create($this->chatter);
-
     $this->chatter->forceFill(['remember_token' => 'remembered-browser-token'])->save();
+    $wrong = fn () => rcpwtReset($this->chatter, 'not-the-token');
+    $expired = function () use ($token): void {
+        DB::table('chatter_password_reset_tokens')
+            ->where('chatter_id', $this->chatter->id)
+            ->update(['created_at' => now()->subMinutes(ChatterPasswordResetTokens::EXPIRE_MINUTES + 1)]);
+        rcpwtReset($this->chatter, $token);
+    };
 
-    expect(fn () => rcpwtReset($this->chatter, 'not-the-token'))->toThrow(DomainValidationException::class)
+    expect($wrong)->toThrow(DomainValidationException::class)
+        ->and($expired)->toThrow(DomainValidationException::class)
         ->and(Hash::check('old-password', $this->chatter->fresh()->password))->toBeTrue()
         ->and($this->chatter->fresh()->remember_token)->toBe('remembered-browser-token');
-});
-
-it('refuses an expired token', function (): void {
-    $token = $this->tokens->create($this->chatter);
-    DB::table('chatter_password_reset_tokens')
-        ->where('chatter_id', $this->chatter->id)
-        ->update(['created_at' => now()->subMinutes(ChatterPasswordResetTokens::EXPIRE_MINUTES + 1)]);
-
-    expect(fn () => rcpwtReset($this->chatter, $token))->toThrow(DomainValidationException::class);
 });
 
 it('never accepts one chatter token for another chatter with the same email', function (): void {

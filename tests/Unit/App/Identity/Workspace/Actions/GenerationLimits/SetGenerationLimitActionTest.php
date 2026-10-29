@@ -17,57 +17,38 @@ beforeEach(function (): void {
     $this->action = app(SetGenerationLimitAction::class);
 });
 
-it('creates a limit that starts this month at zero', function (): void {
+it('starts a new or earlier-month row this month at zero, and keeps this month\'s count on a change', function (): void {
+    $earlier = User::factory()->create()->workspace();
+    $current = User::factory()->create()->workspace();
+    GenerationLimit::factory()->forWorkspace($earlier)->lastMonth()->create(['generations_used' => 30]);
+    GenerationLimit::factory()->forWorkspace($current)->create(['monthly_limit' => 40, 'generations_used' => 25]);
+
     $this->action->execute($this->workspace, new GenerationLimitData(monthlyLimit: 40));
+    $this->action->execute($earlier, new GenerationLimitData(monthlyLimit: 60));
+    $this->action->execute($current, new GenerationLimitData(monthlyLimit: 20));
 
-    $limit = GenerationLimit::query()->where('workspace_id', $this->workspace->id)->sole();
-
-    expect($limit->monthly_limit)->toBe(40)
-        ->and($limit->generations_used)->toBe(0)
-        ->and($limit->period_starts_at->toDateTimeString())->toBe('2026-06-01 00:00:00');
+    $created = GenerationLimit::query()->where('workspace_id', $this->workspace->id)->sole();
+    $restarted = GenerationLimit::query()->where('workspace_id', $earlier->id)->sole();
+    $changed = GenerationLimit::query()->where('workspace_id', $current->id)->sole();
+    expect($created)->monthly_limit->toBe(40)->generations_used->toBe(0)
+        ->and($created->period_starts_at->toDateTimeString())->toBe('2026-06-01 00:00:00')
+        ->and($restarted->generations_used)->toBe(0)
+        ->and($restarted->period_starts_at->toDateTimeString())->toBe('2026-06-01 00:00:00')
+        ->and($changed)->monthly_limit->toBe(20)->generations_used->toBe(25)
+        ->and($changed->reached())->toBeTrue();
 });
 
-it('keeps what was made this month when the limit changes', function (): void {
-    GenerationLimit::factory()->forWorkspace($this->workspace)->create(['monthly_limit' => 40, 'generations_used' => 25]);
-
-    $this->action->execute($this->workspace, new GenerationLimitData(monthlyLimit: 20));
-
-    $limit = GenerationLimit::query()->where('workspace_id', $this->workspace->id)->sole();
-
-    expect($limit->monthly_limit)->toBe(20)
-        ->and($limit->generations_used)->toBe(25)
-        ->and($limit->reached())->toBeTrue();
-});
-
-it('starts a row of an earlier month again at zero', function (): void {
-    GenerationLimit::factory()->forWorkspace($this->workspace)->lastMonth()->create(['generations_used' => 30]);
-
-    $this->action->execute($this->workspace, new GenerationLimitData(monthlyLimit: 60));
-
-    $limit = GenerationLimit::query()->where('workspace_id', $this->workspace->id)->sole();
-
-    expect($limit->generations_used)->toBe(0)
-        ->and($limit->period_starts_at->toDateTimeString())->toBe('2026-06-01 00:00:00');
-});
-
-it('removes the limits when neither kind has a cap', function (): void {
-    GenerationLimit::factory()->forWorkspace($this->workspace)->create();
-
-    $this->action->execute($this->workspace, new GenerationLimitData);
-
-    expect(GenerationLimit::query()->where('workspace_id', $this->workspace->id)->exists())->toBeFalse();
-});
-
-it('sets a video cap on its own, with pictures and audio left free', function (): void {
+it('sets a video cap on its own with pictures left free, and removes the row once neither kind has a cap', function (): void {
     GenerationLimit::factory()->forWorkspace($this->workspace)->create(['monthly_limit' => 40, 'generations_used' => 5, 'videos_used' => 2]);
 
     $this->action->execute($this->workspace, new GenerationLimitData(monthlyVideoLimit: 10));
-
     $limit = GenerationLimit::query()->where('workspace_id', $this->workspace->id)->sole();
+    $this->action->execute($this->workspace, new GenerationLimitData);
 
     expect($limit->monthly_limit)->toBeNull()
         ->and($limit->monthly_video_limit)->toBe(10)
         ->and($limit->generations_used)->toBe(5)
         ->and($limit->videosThisMonth())->toBe(2)
-        ->and($limit->reached())->toBeFalse();
+        ->and($limit->reached())->toBeFalse()
+        ->and(GenerationLimit::query()->where('workspace_id', $this->workspace->id)->exists())->toBeFalse();
 });

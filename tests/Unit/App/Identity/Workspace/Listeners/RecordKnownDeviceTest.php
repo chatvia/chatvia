@@ -29,32 +29,17 @@ function rkdSignIn(User|Chatter $user, string $ip, string $userAgent): void
     new RecordKnownDevice($request, app(RecordKnownDeviceAction::class))->handle(new Login('web', $user, false));
 }
 
-it('stores the first device without sending an email', function (): void {
-    rkdSignIn($this->user, '203.0.113.5', 'Firefox/130');
-
-    $device = UserKnownDevice::query()->where('user_id', $this->user->id)->sole();
-
-    expect($device->ip)->toBe('203.0.113.5')
-        ->and($device->user_agent)->toBe('Firefox/130')
-        ->and($device->fingerprint_hash)->toBe(hash('sha256', '203.0.113.5|Firefox/130'));
-
-    Notification::assertNothingSent();
-});
-
-it('sends no email when a known device signs in again', function (): void {
+it('emails the user about a further new device, but not about the first or a known one', function (): void {
     rkdSignIn($this->user, '203.0.113.5', 'Firefox/130');
     rkdSignIn($this->user, '203.0.113.5', 'Firefox/130');
+    $silentSoFar = Notification::sentNotifications() === [];
 
-    expect(UserKnownDevice::query()->where('user_id', $this->user->id)->count())->toBe(1);
-    Notification::assertNothingSent();
-});
-
-it('stores a new device and emails the user about it', function (): void {
-    rkdSignIn($this->user, '203.0.113.5', 'Firefox/130');
     rkdSignIn($this->user, '198.51.100.9', 'Safari/18');
 
-    expect(UserKnownDevice::query()->where('user_id', $this->user->id)->count())->toBe(2);
-
+    expect($silentSoFar)->toBeTrue()
+        ->and(UserKnownDevice::query()->where('user_id', $this->user->id)->count())->toBe(2)
+        ->and(UserKnownDevice::query()->where('user_id', $this->user->id)->where('ip', '203.0.113.5')->sole()->fingerprint_hash)
+        ->toBe(hash('sha256', '203.0.113.5|Firefox/130'));
     Notification::assertSentTo(
         $this->user,
         NewDeviceSignInNotification::class,
@@ -64,7 +49,6 @@ it('stores a new device and emails the user about it', function (): void {
 });
 
 it('ignores a chatter sign-in, even one sharing a staff account id', function (): void {
-    // Chatter and staff ids come from different tables and can be equal.
     $id = sharedStaffAndChatterId();
     User::factory()->create(['id' => $id]);
     $chatter = Chatter::factory()->create(['id' => $id]);

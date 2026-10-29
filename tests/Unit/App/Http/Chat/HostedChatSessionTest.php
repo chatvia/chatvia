@@ -7,8 +7,6 @@ use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Models\Session as ChatSession;
-use Domain\Conversation\Services\Memory\ChatCache;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
 
 /**
@@ -17,123 +15,56 @@ use Illuminate\Support\Facades\Session;
  * A chatter's session is linked by `chatter_id`, a staff member's by
  * `user_id`, so equal ids from the two tables never share a session.
  */
-it('reattaches an authenticated chatter to their existing session for the agent', function (): void {
-    // ChatLogoutController invalidates the chat session, so cs:session:* is
-    // gone on the next login. Without this lookup the chatter
-    // gets a fresh chat_sessions row every time and their prior
-    // conversations stay orphaned under the old session id.
+it('reattaches a signed-in chatter to their session and stamps chatter_id on a new one', function (): void {
     $agent = Agent::factory()->create();
-    $chatter = Chatter::factory()->grantedTo($agent)->create();
-
+    $otherAgent = createAgent($agent->workspace->owner);
+    $chatter = Chatter::factory()->grantedTo($agent)->grantedTo($otherAgent)->create();
     $existing = ChatSession::factory()->forChatter($chatter)->create(['agent_id' => $agent->id]);
-
     HostedChatViewer::signIn($chatter);
-    Session::flush(); // post-logout Laravel session state
+    Session::flush();
 
-    $resolved = app(HostedChatSession::class)->findOrStart($agent);
+    $chat = app(HostedChatSession::class);
+    $resolved = $chat->findOrStart($agent);
+    $fresh = ChatSession::query()->where('external_id', $chat->findOrStart($otherAgent))->firstOrFail();
+    $scope = $chat->scope($agent, 'conversation-1');
 
     expect($resolved)->toBe($existing->external_id)
-        ->and(ChatSession::where('chatter_id', $chatter->id)->where('agent_id', $agent->id)->count())
-        ->toBe(1);
+        ->and(ChatSession::query()->where('chatter_id', $chatter->id)->where('agent_id', $agent->id)->count())->toBe(1)
+        ->and($fresh)->chatter_id->toBe($chatter->id)->user_id->toBeNull()->agent_id->toBe($otherAgent->id)
+        ->and($scope->viewer)->toEqual(ChatViewerData::chatter($chatter->id))
+        ->and($scope->sessionId)->toBe($resolved);
 });
 
 it('reattaches signed-in staff to their own session, never a chatter\'s with the same id', function (): void {
     $agent = Agent::factory()->create();
-
-    // One id taken from both id sequences, so neither table already holds it.
     $id = sharedStaffAndChatterId();
     $staff = User::factory()->create(['id' => $id]);
     $chatter = Chatter::factory()->grantedTo($agent)->create(['id' => $id]);
-
     $chatterSession = ChatSession::factory()->forChatter($chatter)->create(['agent_id' => $agent->id]);
-
     HostedChatViewer::signIn($staff);
     Session::flush();
 
     $resolved = app(HostedChatSession::class)->findOrStart($agent);
 
     expect($resolved)->not->toBe($chatterSession->external_id)
-        ->and(ChatSession::where('external_id', $resolved)->first())
+        ->and(ChatSession::query()->where('external_id', $resolved)->first())
         ->user_id->toBe($staff->id)
         ->chatter_id->toBeNull();
 });
 
-it('honours an in-memory cs:session marker for the agent on the same request', function (): void {
-    $agent = Agent::factory()->create();
-    $session = ChatSession::factory()->create(['agent_id' => $agent->id]);
-    Session::put('cs:session:'.$agent->id, $session->external_id);
-
-    // Plant under the same [workspace, agent, session] tag set the reader uses
-    // (see ChatCache::sessionTags).
-    Cache::driver('chat')->tags(ChatCache::sessionTags($agent->workspaceExternalId(), $agent->external_id, $session->external_id))
-        ->forever($session->external_id, ['conversations' => []]);
-
-    expect(app(HostedChatSession::class)->findOrStart($agent))->toBe($session->external_id);
-});
-
-it('stamps chatter_id on a freshly minted session for an authenticated chatter', function (): void {
-    $agent = Agent::factory()->create();
-    $chatter = Chatter::factory()->grantedTo($agent)->create();
-
-    HostedChatViewer::signIn($chatter);
-
-    $resolved = app(HostedChatSession::class)->findOrStart($agent);
-
-    $row = ChatSession::where('external_id', $resolved)->firstOrFail();
-    expect($row->chatter_id)->toBe($chatter->id)
-        ->and($row->user_id)->toBeNull()
-        ->and($row->agent_id)->toBe($agent->id);
-});
-
-it('stamps user_id on a freshly minted session for signed-in staff', function (): void {
-    $agent = Agent::factory()->create();
-
-    HostedChatViewer::signIn($agent->workspace->owner);
-
-    $resolved = app(HostedChatSession::class)->findOrStart($agent);
-
-    $row = ChatSession::where('external_id', $resolved)->firstOrFail();
-    expect($row->user_id)->toBe($agent->workspace->owner->id)
-        ->and($row->chatter_id)->toBeNull();
-});
-
-it('creates an anonymous session with no viewer when nobody is signed in', function (): void {
-    $agent = Agent::factory()->create();
-
-    $resolved = app(HostedChatSession::class)->findOrStart($agent);
-
-    $row = ChatSession::where('external_id', $resolved)->firstOrFail();
-    expect($row->user_id)->toBeNull()
-        ->and($row->chatter_id)->toBeNull();
-});
-
-it('finds no session for a guest without starting one', function (): void {
-    $agent = Agent::factory()->create();
-
-    expect(app(HostedChatSession::class)->find($agent))->toBeNull()
-        ->and(ChatSession::query()->where('agent_id', $agent->id)->exists())->toBeFalse();
-});
-
-it('builds the memory scope with the signed-in viewer', function (): void {
-    $agent = Agent::factory()->create();
-    $chatter = Chatter::factory()->grantedTo($agent)->create();
-    HostedChatViewer::signIn($chatter);
-
-    $scope = app(HostedChatSession::class)->scope($agent, 'conversation-1');
-
-    expect($scope->viewer)->toEqual(ChatViewerData::chatter($chatter->id))
-        ->and($scope->conversationId)->toBe('conversation-1')
-        ->and(Session::get('cs:session:'.$agent->id))->toBe($scope->sessionId);
-});
-
-it('keeps a separate chat session per agent in one browser session', function (): void {
+it('gives a guest no session until asked, then a separate anonymous one per agent', function (): void {
     [$first, $second] = Agent::factory()->count(2)->create();
-
     $chat = app(HostedChatSession::class);
+
+    $found = $chat->find($first);
     $firstSession = $chat->findOrStart($first);
     $secondSession = $chat->findOrStart($second);
 
-    expect($firstSession)->not->toBe($secondSession)
+    expect($found)->toBeNull()
+        ->and($firstSession)->not->toBe($secondSession)
         ->and(Session::get('cs:session:'.$first->id))->toBe($firstSession)
-        ->and(Session::get('cs:session:'.$second->id))->toBe($secondSession);
+        ->and(Session::get('cs:session:'.$second->id))->toBe($secondSession)
+        ->and(ChatSession::query()->where('external_id', $firstSession)->first())
+        ->user_id->toBeNull()
+        ->chatter_id->toBeNull();
 });

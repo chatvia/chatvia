@@ -31,18 +31,15 @@ function euaHandle(Request $request): Response
     return app(EnsureUserCanAccessAgent::class)->handle($request, fn (): Response => new Response('ok'));
 }
 
-it('lets the workspace owner reach their own agent', function (): void {
+it('lets the agent\'s own workspace through and answers 404 to another workspace', function (): void {
     $agent = Agent::factory()->create();
     $owner = $agent->workspace->owner;
-    auth()->login($owner);
-
-    expect(euaHandle(euaRequest($owner, $agent))->getContent())->toBe('ok');
-});
-
-it('answers 404 to a user of another workspace', function (): void {
-    $agent = Agent::factory()->create();
     $intruder = Agent::factory()->create()->workspace->owner;
+
+    auth()->login($owner);
+    $ownResponse = euaHandle(euaRequest($owner, $agent));
     auth()->login($intruder);
 
-    expect(fn (): Response => euaHandle(euaRequest($intruder, $agent)))->toThrow(NotFoundHttpException::class);
+    expect($ownResponse->getContent())->toBe('ok')
+        ->and(fn (): Response => euaHandle(euaRequest($intruder, $agent)))->toThrow(NotFoundHttpException::class);
 });

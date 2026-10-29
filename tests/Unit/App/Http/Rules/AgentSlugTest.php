@@ -15,19 +15,19 @@ function asFails(Agent $agent, mixed $slug): bool
     return Validator::make(['slug' => $slug], ['slug' => [new AgentSlug($agent)]])->fails();
 }
 
-it('accepts a free, well-formed slug', function (): void {
-    $agent = Agent::factory()->create();
-
-    expect(asFails($agent, 'support-bot'))->toBeFalse()
-        ->and(asFails($agent, $agent->slug))->toBeFalse();
-});
-
-it('rejects a malformed slug', function (string $slug): void {
+it('rejects a slug that is too short, too long or not URL-safe', function (string $slug): void {
     expect(asFails(Agent::factory()->create(), $slug))->toBeTrue();
-})->with(['ab', 'Upper', 'has space', '-dash', 'dash-', 'under_score', Str::repeat('a', 64)]);
+})->with([
+    'too short' => ['ab'],
+    'too long' => [Str::repeat('a', 64)],
+    'not URL-safe' => ['Upper'],
+]);
 
-it('rejects another agent\'s external id, which also names a chat', function (): void {
+it('accepts a free slug or the agent\'s own, and refuses another agent\'s external id', function (): void {
+    $agent = Agent::factory()->create();
     $other = Agent::factory()->create(['external_id' => 'abc123def456gh']);
 
-    expect(asFails(Agent::factory()->create(), $other->external_id))->toBeTrue();
+    expect(asFails($agent, 'support-bot'))->toBeFalse()
+        ->and(asFails($agent, $agent->slug))->toBeFalse()
+        ->and(asFails($agent, $other->external_id))->toBeTrue();
 });

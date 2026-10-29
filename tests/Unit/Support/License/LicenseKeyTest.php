@@ -24,25 +24,20 @@ it('matches a host whatever its case, port or trailing dot', function (string $h
     ['', false],
 ]);
 
-it('works through the last day of a yearly key and not after', function (): void {
+it('works through the last day of a yearly key and not after, and never ends without one', function (): void {
     $this->travelTo('2027-11-15 23:59:00');
-
-    $license = LicenseSignature::verify(LicenseKeys::enterpriseUntil('2027-11-15', 'chat.acme.com'), LicenseKeys::PUBLIC_KEY);
-
-    expect($license?->expires)->toBe('2027-11-15')
-        ->and($license?->isExpired())->toBeFalse();
+    $yearly = LicenseSignature::verify(LicenseKeys::enterpriseUntil('2027-11-15', 'chat.acme.com'), LicenseKeys::PUBLIC_KEY);
+    $endless = LicenseSignature::verify(LicenseKeys::activatedFor('chat.acme.com'), LicenseKeys::PUBLIC_KEY);
+    $onLastDay = $yearly?->isExpired();
 
     $this->travelTo('2027-11-16 00:00:01');
 
-    expect($license?->isExpired())->toBeTrue();
-});
-
-it('never ends without a last day, and leaves it out of the terms', function (): void {
-    $license = LicenseSignature::verify(LicenseKeys::activatedFor('chat.acme.com'), LicenseKeys::PUBLIC_KEY);
-
-    expect($license?->expires)->toBeNull()
-        ->and($license?->isExpired())->toBeFalse()
-        ->and($license?->toPayload())->not->toHaveKey('expires');
+    expect($yearly?->expires)->toBe('2027-11-15')
+        ->and($onLastDay)->toBeFalse()
+        ->and($yearly?->isExpired())->toBeTrue()
+        ->and($endless?->expires)->toBeNull()
+        ->and($endless?->isExpired())->toBeFalse()
+        ->and($endless?->toPayload())->not->toHaveKey('expires');
 });
 
 it('reads no terms with a last day that is not a date', function (): void {

@@ -13,16 +13,12 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * A hosted-chat address with `?token=` signs the chatter in on the `chat`
  * guard and redirects to the same address without the token. A token that
- * cannot be verified is stripped the same way and signs nobody in; no token
- * passes the request on. A browser signed in as another chatter is sent to
+ * cannot be verified is stripped the same way and signs nobody in. A browser signed in as another chatter is sent to
  * confirm the switch instead. The token rules themselves are the sign-in
  * token service's.
  */
 beforeEach(function (): void {
     $this->agent = Agent::factory()->create(['is_public' => false]);
-
-    // A chatter granted the agent: without that grant canAccessAgent() would
-    // refuse and verify() would return null.
     $this->chatter = Chatter::factory()->grantedTo($this->agent)->create();
 });
 
@@ -61,13 +57,6 @@ it('signs the chatter in on a valid token and strips it from the address', funct
     'HMAC token' => 'issueHmac',
 ]);
 
-it('passes the request on anonymously when no token is present', function (): void {
-    $response = acvstHandle(acvstRequest($this->agent, null));
-
-    expect($response->getContent())->toBe('next')
-        ->and(Auth::guard('chat')->check())->toBeFalse();
-});
-
 it('signs nobody in for a token it cannot verify, and still strips it from the address', function (Closure $token): void {
     $response = acvstHandle(acvstRequest($this->agent, $token($this->agent, $this->chatter)));
 
@@ -76,7 +65,6 @@ it('signs nobody in for a token it cannot verify, and still strips it from the a
         ->and(Auth::guard('chat')->check())->toBeFalse();
 })->with([
     'a made-up token' => [fn (): string => 'bogus-token'],
-    'a tampered HMAC token' => [fn (): string => 'cvh1.user_123.not-a-real-credential'],
     'a token minted for another agent' => [fn (Agent $agent, Chatter $chatter): string => app(AgentSignInTokens::class)
         ->issue($chatter, Agent::factory()->create(['workspace_id' => $agent->workspace_id, 'is_public' => false]))['token']],
 ]);

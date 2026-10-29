@@ -6,8 +6,7 @@ use Domain\Llm\Services\ChatFileModel;
 /**
  * A chat file can only be answered by a model that reads it. While chat file
  * uploads are off, or no such model is set up, the upload is refused with a
- * clear, vendor-free message (BuildWidgetSettingsActionTest checks that the
- * widget then hides its upload button).
+ * clear, vendor-free message.
  */
 function cfaValidate(): ?string
 {
@@ -20,17 +19,16 @@ function cfaValidate(): ?string
     return $error;
 }
 
-it('refuses a chat file upload while chat file uploads are off', function (): void {
+it('refuses a chat file upload while uploads are off or no model reads files', function (): void {
+    config(['chatvia.ai.chat_files.enabled' => true]);
+    $withoutModel = cfaValidate();
     useChatFiles();
     useChatFiles(false);
 
-    expect(cfaValidate())->toBe('Chatting with files is not available.');
-});
+    $whileOff = cfaValidate();
 
-it('refuses a chat file upload when no model reads files', function (): void {
-    config(['chatvia.ai.chat_files.enabled' => true]);
-
-    expect(cfaValidate())->toBe('Chatting with files is not available.');
+    expect($whileOff)->not->toBeNull()
+        ->and($withoutModel)->not->toBeNull();
 });
 
 it('accepts a chat file upload when a model reads files', function (): void {

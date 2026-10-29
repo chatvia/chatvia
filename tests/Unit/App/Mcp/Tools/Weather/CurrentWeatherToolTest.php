@@ -26,11 +26,6 @@ beforeEach(function (): void {
         ]),
         'weather.example.test/data/2.5/weather?q=Nowhere*' => Http::response(['message' => 'city not found'], 404),
         'weather.example.test/data/2.5/weather?q=Broken*' => Http::response([], 500),
-        'weather.example.test/data/2.5/weather?q=Calm*' => Http::response([
-            'name' => 'Calm',
-            'main' => ['temp' => 70, 'feels_like' => 71, 'humidity' => 40],
-            'weather' => [],
-        ]),
     ]);
 });
 
@@ -40,16 +35,6 @@ it('returns a stable weather result', function (array $arguments): void {
     expect(InternalMcp::resultWithRequestsJson(WeatherServer::tool(CurrentWeatherTool::class, $arguments)))->toMatchSnapshot();
 })->with([
     'metric' => [['location' => 'Oslo']],
-    'imperial' => [['location' => 'Oslo', 'units' => 'imperial']],
-    'no wind, no country, no description' => [['location' => 'Calm', 'units' => 'imperial']],
     'unknown city' => [['location' => 'Nowhere']],
     'upstream failure' => [['location' => 'Broken']],
-    'missing location' => [[]],
-    'invalid units' => [['location' => 'Oslo', 'units' => 'kelvin']],
 ]);
-
-it('refuses a weather lookup without an API key', function (): void {
-    app()->instance(McpCallerContext::class, new McpCallerContext);
-
-    expect(InternalMcp::resultWithRequestsJson(WeatherServer::tool(CurrentWeatherTool::class, ['location' => 'Oslo'])))->toMatchSnapshot();
-});

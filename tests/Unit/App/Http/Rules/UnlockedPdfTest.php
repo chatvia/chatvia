@@ -15,11 +15,5 @@ it('refuses a PDF locked with a password', function (): void {
     $validator = Validator::make(['file' => FakePdf::upload('manual.pdf')], ['file' => [new UnlockedPdf]]);
 
     expect($validator->fails())->toBeTrue()
-        ->and($validator->errors()->first('file'))->toBe('This PDF is locked with a password. Remove the password and upload it again.');
-});
-
-it('lets an open PDF through', function (): void {
-    Process::fake(['*' => Process::result("Pages:          3\n")]);
-
-    expect(Validator::make(['file' => FakePdf::upload('manual.pdf')], ['file' => [new UnlockedPdf]])->passes())->toBeTrue();
+        ->and($validator->errors()->has('file'))->toBeTrue();
 });

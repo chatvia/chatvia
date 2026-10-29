@@ -1,9 +1,0 @@
-{
-    "content": [
-        {
-            "type": "text",
-            "text": "No active form matches \"book-a-demo\". This agent has no active form — keep helping the visitor conversationally and do not render a form."
-        }
-    ],
-    "isError": true
-}

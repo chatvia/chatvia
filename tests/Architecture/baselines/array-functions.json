@@ -315,7 +315,7 @@
     "tests/Support/Mcp/InternalMcp.php": 1,
     "tests/Unit/App/Admin/Backup/Actions/RunBackupActionTest.php": 1,
     "tests/Unit/App/Admin/Clusters/Settings/SettingsSearchTest.php": 1,
-    "tests/Unit/App/Http/Responses/SseResponderTest.php": 7,
+    "tests/Unit/App/Http/Responses/SseResponderTest.php": 3,
     "tests/Unit/App/Mcp/Tools/Charts/ChartToolOutputTest.php": 1,
     "tests/Unit/Config/ReverbConfigTest.php": 1,
     "tests/Unit/Domain/Agent/Actions/Analytics/BuildAgentStatsActionTest.php": 5,

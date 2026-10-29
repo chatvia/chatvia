@@ -9,38 +9,23 @@ use App\Identity\Workspace\Models\User;
  * Reactivating a workspace switches its members back on, except a member who
  * was switched off on their own before the workspace was.
  */
-it('restores members when the workspace is reactivated', function (): void {
+it('switches the members back on, except one switched off on their own before the workspace was', function (): void {
     $workspace = User::factory()->create();
     $member = User::factory()->employee($workspace)->create();
     $chatter = Chatter::factory()->ofWorkspace($workspace)->create();
-
-    app(DeactivateAccountAction::class)->execute($workspace, 'temporary');
-    app(ReactivateAccountAction::class)->execute($workspace);
-
-    expect($workspace->fresh()->isDeactivated())->toBeFalse()
-        ->and($member->fresh()->isDeactivated())->toBeFalse()
-        ->and($member->fresh()->deactivation_reason)->toBeNull()
-        ->and($chatter->fresh()->isDeactivated())->toBeFalse()
-        ->and($chatter->fresh()->deactivation_reason)->toBeNull();
-});
-
-it('keeps a member banned on their own before the workspace was switched off banned after reactivation', function (): void {
-    $workspace = User::factory()->create();
     $bannedChatter = Chatter::factory()->ofWorkspace($workspace)->create();
     $bannedTeammate = User::factory()->employee($workspace)->create();
-    $chatter = Chatter::factory()->ofWorkspace($workspace)->create();
-
     $this->travelTo(now()->subWeek());
     app(DeactivateAccountAction::class)->execute($bannedChatter, 'individual ban');
     app(DeactivateAccountAction::class)->execute($bannedTeammate, 'left the company');
     $this->travelBack();
-
     app(DeactivateAccountAction::class)->execute($workspace, 'temporary');
+
     app(ReactivateAccountAction::class)->execute($workspace->fresh());
 
-    expect($chatter->fresh()->isDeactivated())->toBeFalse()
-        ->and($bannedChatter->fresh()->isDeactivated())->toBeTrue()
-        ->and($bannedChatter->fresh()->deactivation_reason)->toBe('individual ban')
-        ->and($bannedTeammate->fresh()->isDeactivated())->toBeTrue()
-        ->and($bannedTeammate->fresh()->deactivation_reason)->toBe('left the company');
+    expect($workspace->fresh()->isDeactivated())->toBeFalse()
+        ->and($member->fresh())->isDeactivated()->toBeFalse()->deactivation_reason->toBeNull()
+        ->and($chatter->fresh())->isDeactivated()->toBeFalse()->deactivation_reason->toBeNull()
+        ->and($bannedChatter->fresh())->isDeactivated()->toBeTrue()->deactivation_reason->toBe('individual ban')
+        ->and($bannedTeammate->fresh())->isDeactivated()->toBeTrue()->deactivation_reason->toBe('left the company');
 });

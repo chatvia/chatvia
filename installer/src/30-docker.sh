@@ -896,8 +896,8 @@ install_os() {
 # One anonymous count for chatvia.ai, so the project knows how many people
 # install it: the install type and the operating system, nothing else (no
 # ID, no address, no version). Only after a first install finishes, never on
-# an upgrade, and only with a yes: --yes alone never sends it. A failed send
-# is ignored.
+# an upgrade, and only with a yes. The question starts on Yes; --yes alone
+# never sends it. A failed send is ignored.
 count_install() {
     [ "$DRY_RUN" = 0 ] || return 0
     case ${CHATVIA_COUNT_INSTALL:-} in
@@ -908,7 +908,7 @@ count_install() {
             block text
             info "$(dim 'Help us count installs: this sends only how you installed (Docker or')"
             info "$(dim "complete) and the operating system ($(install_os)). No address or ID.")"
-            confirm 'Send an anonymous install count to chatvia.ai?' n || return 0
+            confirm 'Send an anonymous install count to chatvia.ai?' || return 0
             ;;
     esac
     curl -fsS -o /dev/null --max-time 5 -X POST \

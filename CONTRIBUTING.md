@@ -531,7 +531,8 @@ then tag the widget release: every build takes the newest release.
   process gets its own database (`testing_test_1`, `testing_test_2`, …), a
   copy of `testing` made one at a time, so the migrations run once. A copy
   is made again when the migration files change. `--recreate-databases`
-  makes every copy again.
+  makes every copy again. CI runs the suite in one process instead: a
+  runner has too few cores for parallel to save time.
 - Run one file or folder while you work:
 
   ```bash

@@ -107,9 +107,11 @@ jobs:
 
       # The test run installs the Postgres extensions, migrates and seeds the
       # `testing` database by itself, so there is no separate migrate step.
-      # The suite runs in parallel, one process per core; each process tests
-      # against its own copy of `testing` (testing_test_1, …). Pint, Rector,
-      # PHPStan, the audits and the frontend checks are jobs of their own in
-      # the other workflows, side by side with this one.
+      # One process, on `testing` itself. A runner's few cores, shared with
+      # Postgres and Redis, gain next to nothing from a parallel run, which
+      # would first build a database per process. Locally, `composer test`
+      # still runs in parallel. Pint, Rector, PHPStan, the audits and the
+      # frontend checks are jobs of their own in the other workflows, side
+      # by side with this one.
       - name: Pest
-        run: composer test
+        run: php -d memory_limit=2G artisan test --compact

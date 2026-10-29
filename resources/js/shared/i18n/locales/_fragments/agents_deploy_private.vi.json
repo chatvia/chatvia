@@ -1,0 +1,9 @@
+{
+    "agents": {
+        "deploy": {
+            "private_title": "Tác nhân này là riêng tư",
+            "private_description": "Chỉ người dùng đã đăng nhập mới dùng được. Chat Widget và Command Bar cần một mã xác thực cho người dùng, do máy chủ của bạn tạo và thêm vào mã nhúng dưới dạng data-auth. Nếu thiếu mã này, mọi người sẽ thấy màn hình bị khóa. Hosted Chat sẽ yêu cầu đăng nhập.",
+            "open_access_settings": "Thay đổi ai được dùng trong Cài đặt bảo mật"
+        }
+    }
+}

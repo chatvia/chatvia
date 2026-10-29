@@ -9,9 +9,7 @@
             "copy_failed": "Copy failed",
             "customize": "Customize appearance",
             "install_label": "Add this to your site",
-            "protected_title": "This agent is protected",
-            "protected_description": "Embeds need a signed token, otherwise anyone with the snippet sees a locked screen. Make it public or wire up auth in",
-            "open_security": "Security settings",
+            "install_hint": "Paste it just before the closing {body} tag on every page where it should appear. Inside {head} works too.",
             "widget": {
                 "title": "Chat Widget",
                 "description": "A floating chat bubble in the corner of any page — the classic assistant."

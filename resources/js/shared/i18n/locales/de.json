@@ -2263,9 +2263,7 @@
             "copy_failed": "Kopieren fehlgeschlagen",
             "customize": "Erscheinungsbild anpassen",
             "install_label": "Fügen Sie dies Ihrer Website hinzu",
-            "protected_title": "Dieser Agent ist geschützt",
-            "protected_description": "Einbettungen benötigen ein signiertes Token, sonst sehen alle mit dem Code-Snippet einen gesperrten Bildschirm. Machen Sie ihn öffentlich oder konfigurieren Sie die Authentifizierung in",
-            "open_security": "Sicherheitseinstellungen",
+            "install_hint": "Füge ihn direkt vor dem schließenden {body}-Tag auf jeder Seite ein, auf der er erscheinen soll. In {head} funktioniert es auch.",
             "widget": {
                 "title": "Chat-Widget",
                 "description": "Eine schwebende Chat-Blase in der Ecke jeder Seite – der klassische Assistent."
@@ -2325,7 +2323,10 @@
                     "not_reached": "Wir erreichen Ihre Domain noch nicht. Prüfen Sie, ob der Eintrag auf {target} zeigt, und warten Sie ein paar Minuten.",
                     "private_address": "Ihre Domain zeigt auf eine private Netzwerkadresse. Lassen Sie sie auf {target} zeigen."
                 }
-            }
+            },
+            "private_title": "Dieser Agent ist privat",
+            "private_description": "Nur angemeldete Nutzer können ihn verwenden. Chat-Widget und Befehlsleiste brauchen ein Auth-Token für den Nutzer. Dein Server erstellt es, und es kommt als data-auth in den Code. Ohne Token sehen Besucher einen gesperrten Bildschirm. Der gehostete Chat bittet um Anmeldung.",
+            "open_access_settings": "Wer ihn nutzen darf, änderst du in den Sicherheitseinstellungen"
         },
         "chatters": {
             "title": "Chatter",

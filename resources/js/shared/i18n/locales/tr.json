@@ -2263,9 +2263,7 @@
             "copy_failed": "Kopyalama başarısız",
             "customize": "Görünümü özelleştir",
             "install_label": "Bunu sitenize ekleyin",
-            "protected_title": "Bu asistan korumalı",
-            "protected_description": "Yerleştirmeler imzalı bir token gerektirir, aksi takdirde kod parçacığına sahip olan herkes kilitli bir ekran görür. Asistanı herkese açık yapın veya kimlik doğrulamayı şuraya bağlayın:",
-            "open_security": "Güvenlik ayarları",
+            "install_hint": "Görünmesi gereken her sayfada kapanış {body} etiketinin hemen önüne yapıştırın. {head} içinde de çalışır.",
             "widget": {
                 "title": "Sohbet Bileşeni",
                 "description": "Herhangi bir sayfanın köşesinde yüzen bir sohbet balonu — klasik asistan."
@@ -2325,7 +2323,10 @@
                     "not_reached": "Alan adınıza henüz ulaşamıyoruz. Kaydın {target} adresini gösterdiğini kontrol edin ve birkaç dakika bekleyin.",
                     "private_address": "Alan adınız özel bir ağ adresini gösteriyor. {target} adresini göstermesini sağlayın."
                 }
-            }
+            },
+            "private_title": "Bu ajan özel",
+            "private_description": "Yalnızca oturum açmış kullanıcılar kullanabilir. Sohbet Bileşeni ve Komut Çubuğu, kullanıcı için bir kimlik doğrulama belirteci ister. Bunu sunucunuz oluşturur ve koda data-auth olarak eklenir. Belirteç yoksa kişiler kilitli bir ekran görür. Barındırılan Sohbet oturum açmayı ister.",
+            "open_access_settings": "Kimlerin kullanabileceğini Güvenlik ayarlarından değiştirin"
         },
         "chatters": {
             "title": "Kullanıcılar",

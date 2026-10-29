@@ -2263,9 +2263,7 @@
             "copy_failed": "Falha ao copiar",
             "customize": "Personalizar aparência",
             "install_label": "Adicione isto ao seu site",
-            "protected_title": "Este agente está protegido",
-            "protected_description": "As incorporações precisam de um token assinado; caso contrário, qualquer pessoa com o fragmento verá um ecrã bloqueado. Torne-o público ou configure a autenticação em",
-            "open_security": "Definições de segurança",
+            "install_hint": "Cole-o logo antes da tag de fecho {body} em cada página onde deve aparecer. Também funciona dentro de {head}.",
             "widget": {
                 "title": "Widget de chat",
                 "description": "Uma bolha de chat flutuante no canto de qualquer página — o assistente clássico."
@@ -2325,7 +2323,10 @@
                     "not_reached": "Ainda não conseguimos chegar ao seu domínio. Verifique se o registo aponta para {target} e aguarde alguns minutos.",
                     "private_address": "O seu domínio aponta para um endereço de rede privada. Faça-o apontar para {target}."
                 }
-            }
+            },
+            "private_title": "Este agente é privado",
+            "private_description": "Só utilizadores com sessão iniciada o podem usar. O widget de chat e a barra de comandos precisam de um token de autenticação para o utilizador, criado pelo seu servidor e adicionado ao código como data-auth. Sem ele, as pessoas veem um ecrã bloqueado. O chat alojado pede para iniciar sessão.",
+            "open_access_settings": "Altere quem o pode usar em Definições de segurança"
         },
         "chatters": {
             "title": "Chatters",

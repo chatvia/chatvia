@@ -1,0 +1,9 @@
+{
+    "agents": {
+        "deploy": {
+            "private_title": "Tämä agentti on yksityinen",
+            "private_description": "Vain kirjautuneet käyttäjät voivat käyttää sitä. Chat-widget ja Komentopalkki tarvitsevat käyttäjälle tunnistetunnuksen, jonka palvelimesi luo ja joka lisätään koodiin data-auth-arvona. Ilman sitä näkyy lukittu näkymä. Isännöity chat pyytää kirjautumaan.",
+            "open_access_settings": "Muuta käyttöoikeuksia Suojausasetuksissa"
+        }
+    }
+}

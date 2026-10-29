@@ -14,7 +14,7 @@ import { useSurfaceToggles } from '@/dashboard/agents/composables/deploy/useSurf
 import AgentLayout from '@/dashboard/agents/layouts/AgentLayout.vue';
 import { identity as agentIdentity, setup as agentSetup } from '@/routes/agents';
 import { Head, Link } from '@inertiajs/vue3';
-import { Command, Globe, MessageCircle, Shield } from 'lucide-vue-next';
+import { Command, Globe, Lock, MessageCircle } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -51,6 +51,8 @@ const widgetCode = computed(() =>
     }),
 );
 const barCode = computed(() => barSnippet({ scriptUrl: props.embedScriptUrl, agentId: props.agent.external_id, isProtected: isProtected.value }));
+// The tags are values, not message text: vue-i18n warns about HTML in messages.
+const installHint = computed(() => t('agents.deploy.install_hint', { body: '</body>', head: '<head>' }));
 
 const setupUrl = computed(() => agentSetup.url(props.agent.external_id));
 const securityUrl = computed(() => agentIdentity.url(props.agent.external_id));
@@ -89,13 +91,15 @@ window.chatvia.off('open'); // Remove all callbacks for this event`;
 
         <div class="flex justify-center">
             <div class="w-full max-w-3xl space-y-6">
-                <!-- Protected-agent nudge -->
+                <!-- Private agent: once for the page, since it affects every surface below -->
                 <Alert v-if="isProtected">
-                    <Shield class="h-4 w-4" />
-                    <AlertTitle>{{ t('agents.deploy.protected_title') }}</AlertTitle>
+                    <Lock class="h-4 w-4" />
+                    <AlertTitle>{{ t('agents.deploy.private_title') }}</AlertTitle>
                     <AlertDescription>
-                        {{ t('agents.deploy.protected_description') }}
-                        <Link :href="securityUrl" class="text-primary font-medium hover:underline">{{ t('agents.deploy.open_security') }}</Link>
+                        <p>{{ t('agents.deploy.private_description') }}</p>
+                        <Link :href="securityUrl" class="text-primary font-medium hover:underline">{{
+                            t('agents.deploy.open_access_settings')
+                        }}</Link>
                     </AlertDescription>
                 </Alert>
 
@@ -110,6 +114,7 @@ window.chatvia.off('open'); // Remove all callbacks for this event`;
                     <DeploySnippet
                         :code="widgetCode"
                         :label="t('agents.deploy.install_label')"
+                        :hint="installHint"
                         :copied="copiedKey === 'widget'"
                         @copy="copySnippet(widgetCode, 'widget')"
                     />
@@ -147,6 +152,7 @@ window.chatvia.off('open'); // Remove all callbacks for this event`;
                     <DeploySnippet
                         :code="barCode"
                         :label="t('agents.deploy.install_label')"
+                        :hint="installHint"
                         :copied="copiedKey === 'bar'"
                         @copy="copySnippet(barCode, 'bar')"
                     />

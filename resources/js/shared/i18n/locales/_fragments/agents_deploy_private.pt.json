@@ -1,0 +1,9 @@
+{
+    "agents": {
+        "deploy": {
+            "private_title": "Este agente é privado",
+            "private_description": "Só utilizadores com sessão iniciada o podem usar. O widget de chat e a barra de comandos precisam de um token de autenticação para o utilizador, criado pelo seu servidor e adicionado ao código como data-auth. Sem ele, as pessoas veem um ecrã bloqueado. O chat alojado pede para iniciar sessão.",
+            "open_access_settings": "Altere quem o pode usar em Definições de segurança"
+        }
+    }
+}

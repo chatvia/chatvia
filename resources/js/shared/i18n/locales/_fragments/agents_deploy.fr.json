@@ -9,9 +9,7 @@
             "copy_failed": "Échec de la copie",
             "customize": "Personnaliser l'apparence",
             "install_label": "Ajoutez ceci à votre site",
-            "protected_title": "Cet agent est protégé",
-            "protected_description": "Les intégrations nécessitent un token signé, sinon toute personne ayant le snippet verra un écran verrouillé. Rendez-le public ou configurez l'authentification dans",
-            "open_security": "Paramètres de sécurité",
+            "install_hint": "Collez-le juste avant la balise fermante {body} sur chaque page où il doit apparaître. Il fonctionne aussi dans {head}.",
             "widget": {
                 "title": "Widget de chat",
                 "description": "Une bulle de chat flottante dans le coin de n'importe quelle page — l'assistant classique."

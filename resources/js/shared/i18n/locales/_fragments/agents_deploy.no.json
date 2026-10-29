@@ -9,9 +9,7 @@
             "copy_failed": "Kopiering mislyktes",
             "customize": "Tilpass utseende",
             "install_label": "Legg dette til på nettstedet ditt",
-            "protected_title": "Denne agenten er beskyttet",
-            "protected_description": "Innbygging krever et signert token, ellers ser alle med kodesnutten en låst skjerm. Gjør den offentlig eller konfigurer autentisering i",
-            "open_security": "Sikkerhetsinnstillinger",
+            "install_hint": "Lim den inn rett før den avsluttende {body}-taggen på hver side der den skal vises. Den fungerer også i {head}.",
             "widget": {
                 "title": "Chat-widget",
                 "description": "En flytende chat-boble i hjørnet av enhver side – den klassiske assistenten."

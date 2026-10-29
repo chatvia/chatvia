@@ -2,7 +2,8 @@
 /**
  * A highlighted HTML install snippet with its copy button, as shown on the
  * Deploy page. With a `label` the button sits next to it; without one it sits
- * alone on the right. `wrap` lets long single-line code (the iframe) wrap.
+ * alone on the right. `hint` says where on the page the code goes. `wrap`
+ * lets long single-line code (the iframe) wrap.
  */
 import DeployCopyButton from '@/dashboard/agents/components/deploy/DeployCopyButton.vue';
 import { highlightCode } from '@/dashboard/agents/components/deploy/highlightCode';
@@ -12,6 +13,7 @@ const props = defineProps<{
     code: string;
     copied: boolean;
     label?: string;
+    hint?: string;
     wrap?: boolean;
 }>();
 
@@ -31,6 +33,7 @@ const highlighted = computed(() => highlightCode(props.code, 'xml'));
         <div v-else class="flex items-center justify-end">
             <DeployCopyButton :copied="copied" @click="emit('copy')" />
         </div>
+        <p v-if="hint" class="text-muted-foreground text-xs">{{ hint }}</p>
         <div class="bg-background rounded border p-3" dir="ltr">
             <pre
                 class="hljs overflow-x-auto bg-transparent p-0 text-xs"

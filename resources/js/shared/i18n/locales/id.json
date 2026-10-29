@@ -2263,9 +2263,7 @@
             "copy_failed": "Penyalinan gagal",
             "customize": "Sesuaikan tampilan",
             "install_label": "Tambahkan ini ke situs Anda",
-            "protected_title": "Agen ini terlindungi",
-            "protected_description": "Penyematan memerlukan token yang ditandatangani, jika tidak, siapa pun yang memiliki cuplikan akan melihat layar terkunci. Jadikan publik atau atur autentikasi di",
-            "open_security": "Pengaturan keamanan",
+            "install_hint": "Tempel tepat sebelum tag penutup {body} di setiap halaman tempat ia harus muncul. Di dalam {head} juga berfungsi.",
             "widget": {
                 "title": "Chat Widget",
                 "description": "Gelembung chat mengambang di sudut halaman mana pun — asisten klasik."
@@ -2325,7 +2323,10 @@
                     "not_reached": "Kami belum bisa menjangkau domain Anda. Pastikan record mengarah ke {target}, lalu tunggu beberapa menit.",
                     "private_address": "Domain Anda mengarah ke alamat jaringan pribadi. Arahkan ke {target}."
                 }
-            }
+            },
+            "private_title": "Agen ini privat",
+            "private_description": "Hanya pengguna yang sudah masuk yang bisa memakainya. Chat Widget dan Command Bar membutuhkan token autentikasi untuk pengguna, dibuat oleh server Anda dan ditambahkan ke kode sebagai data-auth. Tanpa token, orang melihat layar terkunci. Hosted Chat meminta orang untuk masuk.",
+            "open_access_settings": "Ubah siapa yang bisa memakainya di Pengaturan keamanan"
         },
         "chatters": {
             "title": "Chatter",

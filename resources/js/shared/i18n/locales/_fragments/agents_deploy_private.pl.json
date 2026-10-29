@@ -1,0 +1,9 @@
+{
+    "agents": {
+        "deploy": {
+            "private_title": "Ten agent jest prywatny",
+            "private_description": "Mogą z niego korzystać tylko zalogowani użytkownicy. Widget czatu i Pasek poleceń potrzebują tokenu uwierzytelniania dla użytkownika, tworzonego przez Twój serwer i dodawanego do kodu jako data-auth. Bez niego widać zablokowany ekran. Hosted Chat prosi o zalogowanie.",
+            "open_access_settings": "Zmień, kto może z niego korzystać, w Ustawieniach zabezpieczeń"
+        }
+    }
+}

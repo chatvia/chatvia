@@ -1,0 +1,9 @@
+{
+    "agents": {
+        "deploy": {
+            "private_title": "Dieser Agent ist privat",
+            "private_description": "Nur angemeldete Nutzer können ihn verwenden. Chat-Widget und Befehlsleiste brauchen ein Auth-Token für den Nutzer. Dein Server erstellt es, und es kommt als data-auth in den Code. Ohne Token sehen Besucher einen gesperrten Bildschirm. Der gehostete Chat bittet um Anmeldung.",
+            "open_access_settings": "Wer ihn nutzen darf, änderst du in den Sicherheitseinstellungen"
+        }
+    }
+}

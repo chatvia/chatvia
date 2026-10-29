@@ -9,9 +9,7 @@
             "copy_failed": "Error al copiar",
             "customize": "Personalizar apariencia",
             "install_label": "Añade esto a tu sitio",
-            "protected_title": "Este agente está protegido",
-            "protected_description": "Las inserciones necesitan un token firmado; de lo contrario, cualquiera con el fragmento verá una pantalla bloqueada. Hazlo público o configura la autenticación en",
-            "open_security": "Configuración de seguridad",
+            "install_hint": "Pégalo justo antes de la etiqueta de cierre {body} en cada página donde deba aparecer. También funciona dentro de {head}.",
             "widget": {
                 "title": "Widget de chat",
                 "description": "Una burbuja de chat flotante en la esquina de cualquier página — el asistente clásico."

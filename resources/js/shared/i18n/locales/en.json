@@ -2263,9 +2263,7 @@
             "copy_failed": "Copy failed",
             "customize": "Customize appearance",
             "install_label": "Add this to your site",
-            "protected_title": "This agent is protected",
-            "protected_description": "Embeds need a signed token, otherwise anyone with the snippet sees a locked screen. Make it public or wire up auth in",
-            "open_security": "Security settings",
+            "install_hint": "Paste it just before the closing {body} tag on every page where it should appear. Inside {head} works too.",
             "widget": {
                 "title": "Chat Widget",
                 "description": "A floating chat bubble in the corner of any page — the classic assistant."
@@ -2325,7 +2323,10 @@
                     "not_reached": "We cannot reach your domain yet. Check that the record points to {target}, then wait a few minutes.",
                     "private_address": "Your domain points to a private network address. Point it to {target}."
                 }
-            }
+            },
+            "private_title": "This agent is private",
+            "private_description": "Only signed-in chatters can use it. The Chat Widget and Command Bar need an auth token for the chatter, made by your server and added to the snippet as data-auth. Without it, people see a locked screen. Hosted Chat asks people to sign in.",
+            "open_access_settings": "Change who can use it in Security settings"
         },
         "chatters": {
             "title": "Chatters",

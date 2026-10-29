@@ -2263,9 +2263,7 @@
             "copy_failed": "Kopiointi epäonnistui",
             "customize": "Mukauta ulkoasua",
             "install_label": "Lisää tämä sivustollesi",
-            "protected_title": "Tämä agentti on suojattu",
-            "protected_description": "Upotukset edellyttävät allekirjoitettua tunnusta, muuten kaikki, joilla on koodinpätkä, näkevät lukitun näytön. Tee se julkiseksi tai määritä todennus",
-            "open_security": "Suojausasetukset",
+            "install_hint": "Liitä se juuri ennen sulkevaa {body}-tagia jokaiselle sivulle, jolla sen pitää näkyä. Se toimii myös {head}-osiossa.",
             "widget": {
                 "title": "Chat-widget",
                 "description": "Kelluva chat-painike sivun kulmassa — klassinen assistentti."
@@ -2325,7 +2323,10 @@
                     "not_reached": "Emme vielä tavoita verkkotunnustasi. Tarkista, että tietue osoittaa kohteeseen {target}, ja odota muutama minuutti.",
                     "private_address": "Verkkotunnuksesi osoittaa yksityiseen verkko-osoitteeseen. Ohjaa se kohteeseen {target}."
                 }
-            }
+            },
+            "private_title": "Tämä agentti on yksityinen",
+            "private_description": "Vain kirjautuneet käyttäjät voivat käyttää sitä. Chat-widget ja Komentopalkki tarvitsevat käyttäjälle tunnistetunnuksen, jonka palvelimesi luo ja joka lisätään koodiin data-auth-arvona. Ilman sitä näkyy lukittu näkymä. Isännöity chat pyytää kirjautumaan.",
+            "open_access_settings": "Muuta käyttöoikeuksia Suojausasetuksissa"
         },
         "chatters": {
             "title": "Chatterit",

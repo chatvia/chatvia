@@ -9,9 +9,7 @@
             "copy_failed": "Kopiointi epäonnistui",
             "customize": "Mukauta ulkoasua",
             "install_label": "Lisää tämä sivustollesi",
-            "protected_title": "Tämä agentti on suojattu",
-            "protected_description": "Upotukset edellyttävät allekirjoitettua tunnusta, muuten kaikki, joilla on koodinpätkä, näkevät lukitun näytön. Tee se julkiseksi tai määritä todennus",
-            "open_security": "Suojausasetukset",
+            "install_hint": "Liitä se juuri ennen sulkevaa {body}-tagia jokaiselle sivulle, jolla sen pitää näkyä. Se toimii myös {head}-osiossa.",
             "widget": {
                 "title": "Chat-widget",
                 "description": "Kelluva chat-painike sivun kulmassa — klassinen assistentti."

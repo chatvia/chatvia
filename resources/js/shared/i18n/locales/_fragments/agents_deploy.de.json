@@ -9,9 +9,7 @@
             "copy_failed": "Kopieren fehlgeschlagen",
             "customize": "Erscheinungsbild anpassen",
             "install_label": "Fügen Sie dies Ihrer Website hinzu",
-            "protected_title": "Dieser Agent ist geschützt",
-            "protected_description": "Einbettungen benötigen ein signiertes Token, sonst sehen alle mit dem Code-Snippet einen gesperrten Bildschirm. Machen Sie ihn öffentlich oder konfigurieren Sie die Authentifizierung in",
-            "open_security": "Sicherheitseinstellungen",
+            "install_hint": "Füge ihn direkt vor dem schließenden {body}-Tag auf jeder Seite ein, auf der er erscheinen soll. In {head} funktioniert es auch.",
             "widget": {
                 "title": "Chat-Widget",
                 "description": "Eine schwebende Chat-Blase in der Ecke jeder Seite – der klassische Assistent."

@@ -2263,9 +2263,7 @@
             "copy_failed": "Échec de la copie",
             "customize": "Personnaliser l'apparence",
             "install_label": "Ajoutez ceci à votre site",
-            "protected_title": "Cet agent est protégé",
-            "protected_description": "Les intégrations nécessitent un token signé, sinon toute personne ayant le snippet verra un écran verrouillé. Rendez-le public ou configurez l'authentification dans",
-            "open_security": "Paramètres de sécurité",
+            "install_hint": "Collez-le juste avant la balise fermante {body} sur chaque page où il doit apparaître. Il fonctionne aussi dans {head}.",
             "widget": {
                 "title": "Widget de chat",
                 "description": "Une bulle de chat flottante dans le coin de n'importe quelle page — l'assistant classique."
@@ -2325,7 +2323,10 @@
                     "not_reached": "Nous ne pouvons pas encore joindre votre domaine. Vérifiez que l’enregistrement pointe vers {target}, puis patientez quelques minutes.",
                     "private_address": "Votre domaine pointe vers une adresse de réseau privé. Faites-le pointer vers {target}."
                 }
-            }
+            },
+            "private_title": "Cet agent est privé",
+            "private_description": "Seuls les utilisateurs connectés peuvent l’utiliser. Le widget de chat et la barre de commandes ont besoin d’un jeton d’authentification pour l’utilisateur, créé par votre serveur et ajouté au code en tant que data-auth. Sans lui, les visiteurs voient un écran verrouillé. Le chat hébergé demande de se connecter.",
+            "open_access_settings": "Changez qui peut l’utiliser dans Paramètres de sécurité"
         },
         "chatters": {
             "title": "Chatters",

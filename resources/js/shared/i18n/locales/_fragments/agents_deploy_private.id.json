@@ -1,0 +1,9 @@
+{
+    "agents": {
+        "deploy": {
+            "private_title": "Agen ini privat",
+            "private_description": "Hanya pengguna yang sudah masuk yang bisa memakainya. Chat Widget dan Command Bar membutuhkan token autentikasi untuk pengguna, dibuat oleh server Anda dan ditambahkan ke kode sebagai data-auth. Tanpa token, orang melihat layar terkunci. Hosted Chat meminta orang untuk masuk.",
+            "open_access_settings": "Ubah siapa yang bisa memakainya di Pengaturan keamanan"
+        }
+    }
+}

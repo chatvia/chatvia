@@ -1,0 +1,9 @@
+{
+    "agents": {
+        "deploy": {
+            "private_title": "Denne agenten er privat",
+            "private_description": "Bare innloggede brukere kan bruke den. Chat-widget og Kommandolinje trenger et autentiseringstoken for brukeren. Serveren din lager det, og det legges til i koden som data-auth. Uten det ser folk en låst skjerm. Hostet chat ber folk logge inn.",
+            "open_access_settings": "Endre hvem som kan bruke den i Sikkerhetsinnstillinger"
+        }
+    }
+}

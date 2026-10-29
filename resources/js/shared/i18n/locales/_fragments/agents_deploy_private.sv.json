@@ -1,0 +1,9 @@
+{
+    "agents": {
+        "deploy": {
+            "private_title": "Den här agenten är privat",
+            "private_description": "Bara inloggade användare kan använda den. Chatt-widget och Kommandorad behöver en autentiseringstoken för användaren. Din server skapar den och den läggs till i koden som data-auth. Utan den ser folk en låst skärm. Hostad chatt ber folk logga in.",
+            "open_access_settings": "Ändra vem som kan använda den i Säkerhetsinställningar"
+        }
+    }
+}

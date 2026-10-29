@@ -2263,9 +2263,7 @@
             "copy_failed": "Kopiering mislyktes",
             "customize": "Tilpass utseende",
             "install_label": "Legg dette til på nettstedet ditt",
-            "protected_title": "Denne agenten er beskyttet",
-            "protected_description": "Innbygging krever et signert token, ellers ser alle med kodesnutten en låst skjerm. Gjør den offentlig eller konfigurer autentisering i",
-            "open_security": "Sikkerhetsinnstillinger",
+            "install_hint": "Lim den inn rett før den avsluttende {body}-taggen på hver side der den skal vises. Den fungerer også i {head}.",
             "widget": {
                 "title": "Chat-widget",
                 "description": "En flytende chat-boble i hjørnet av enhver side – den klassiske assistenten."
@@ -2325,7 +2323,10 @@
                     "not_reached": "Vi når ikke domenet ditt ennå. Sjekk at oppføringen peker til {target}, og vent noen minutter.",
                     "private_address": "Domenet ditt peker til en privat nettverksadresse. La det peke til {target}."
                 }
-            }
+            },
+            "private_title": "Denne agenten er privat",
+            "private_description": "Bare innloggede brukere kan bruke den. Chat-widget og Kommandolinje trenger et autentiseringstoken for brukeren. Serveren din lager det, og det legges til i koden som data-auth. Uten det ser folk en låst skjerm. Hostet chat ber folk logge inn.",
+            "open_access_settings": "Endre hvem som kan bruke den i Sikkerhetsinnstillinger"
         },
         "chatters": {
             "title": "Chattere",

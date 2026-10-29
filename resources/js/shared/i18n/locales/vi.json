@@ -2263,9 +2263,7 @@
             "copy_failed": "Sao chép thất bại",
             "customize": "Tùy chỉnh giao diện",
             "install_label": "Thêm đoạn mã này vào trang của bạn",
-            "protected_title": "Trợ lý AI này được bảo vệ",
-            "protected_description": "Mã nhúng cần một token đã ký, nếu không bất kỳ ai có đoạn mã đều sẽ thấy màn hình bị khóa. Hãy đặt ở chế độ công khai hoặc thiết lập xác thực trong",
-            "open_security": "Cài đặt bảo mật",
+            "install_hint": "Dán ngay trước thẻ đóng {body} trên mỗi trang cần hiển thị. Đặt trong {head} cũng được.",
             "widget": {
                 "title": "Chat Widget",
                 "description": "Một bong bóng trò chuyện nổi ở góc bất kỳ trang nào — trợ lý cổ điển."
@@ -2325,7 +2323,10 @@
                     "not_reached": "Chúng tôi chưa thể kết nối tới tên miền của bạn. Hãy kiểm tra bản ghi trỏ tới {target}, rồi đợi vài phút.",
                     "private_address": "Tên miền của bạn trỏ tới một địa chỉ mạng riêng. Hãy trỏ nó tới {target}."
                 }
-            }
+            },
+            "private_title": "Tác nhân này là riêng tư",
+            "private_description": "Chỉ người dùng đã đăng nhập mới dùng được. Chat Widget và Command Bar cần một mã xác thực cho người dùng, do máy chủ của bạn tạo và thêm vào mã nhúng dưới dạng data-auth. Nếu thiếu mã này, mọi người sẽ thấy màn hình bị khóa. Hosted Chat sẽ yêu cầu đăng nhập.",
+            "open_access_settings": "Thay đổi ai được dùng trong Cài đặt bảo mật"
         },
         "chatters": {
             "title": "Người dùng",

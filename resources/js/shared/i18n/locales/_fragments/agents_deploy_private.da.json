@@ -1,0 +1,9 @@
+{
+    "agents": {
+        "deploy": {
+            "private_title": "Denne agent er privat",
+            "private_description": "Kun loggede ind brugere kan bruge den. Chat-widget og Kommandolinje skal have et godkendelsestoken for brugeren. Din server laver det, og det tilføjes til koden som data-auth. Uden det ser folk en låst skærm. Hostet chat beder folk om at logge ind.",
+            "open_access_settings": "Skift hvem der kan bruge den i Sikkerhedsindstillinger"
+        }
+    }
+}

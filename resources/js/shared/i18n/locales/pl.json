@@ -2263,9 +2263,7 @@
             "copy_failed": "Kopiowanie nie powiodło się",
             "customize": "Dostosuj wygląd",
             "install_label": "Dodaj to do swojej strony",
-            "protected_title": "Ten agent jest chroniony",
-            "protected_description": "Osadzenia wymagają podpisanego tokenu, w przeciwnym razie każdy, kto posiada fragment kodu, zobaczy zablokowany ekran. Ustaw agenta jako publicznego lub skonfiguruj uwierzytelnianie w",
-            "open_security": "Ustawienia zabezpieczeń",
+            "install_hint": "Wklej go tuż przed zamykającym znacznikiem {body} na każdej stronie, na której ma się pojawić. Działa też w {head}.",
             "widget": {
                 "title": "Widget czatu",
                 "description": "Pływający dymek czatu w rogu dowolnej strony — klasyczny asystent."
@@ -2325,7 +2323,10 @@
                     "not_reached": "Nie możemy jeszcze połączyć się z Twoją domeną. Sprawdź, czy rekord wskazuje na {target}, i poczekaj kilka minut.",
                     "private_address": "Twoja domena wskazuje na adres sieci prywatnej. Skieruj ją na {target}."
                 }
-            }
+            },
+            "private_title": "Ten agent jest prywatny",
+            "private_description": "Mogą z niego korzystać tylko zalogowani użytkownicy. Widget czatu i Pasek poleceń potrzebują tokenu uwierzytelniania dla użytkownika, tworzonego przez Twój serwer i dodawanego do kodu jako data-auth. Bez niego widać zablokowany ekran. Hosted Chat prosi o zalogowanie.",
+            "open_access_settings": "Zmień, kto może z niego korzystać, w Ustawieniach zabezpieczeń"
         },
         "chatters": {
             "title": "Czatowicze",

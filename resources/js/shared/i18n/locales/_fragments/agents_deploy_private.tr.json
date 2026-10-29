@@ -1,0 +1,9 @@
+{
+    "agents": {
+        "deploy": {
+            "private_title": "Bu ajan özel",
+            "private_description": "Yalnızca oturum açmış kullanıcılar kullanabilir. Sohbet Bileşeni ve Komut Çubuğu, kullanıcı için bir kimlik doğrulama belirteci ister. Bunu sunucunuz oluşturur ve koda data-auth olarak eklenir. Belirteç yoksa kişiler kilitli bir ekran görür. Barındırılan Sohbet oturum açmayı ister.",
+            "open_access_settings": "Kimlerin kullanabileceğini Güvenlik ayarlarından değiştirin"
+        }
+    }
+}

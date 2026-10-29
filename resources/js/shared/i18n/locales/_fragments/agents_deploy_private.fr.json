@@ -1,0 +1,9 @@
+{
+    "agents": {
+        "deploy": {
+            "private_title": "Cet agent est privé",
+            "private_description": "Seuls les utilisateurs connectés peuvent l’utiliser. Le widget de chat et la barre de commandes ont besoin d’un jeton d’authentification pour l’utilisateur, créé par votre serveur et ajouté au code en tant que data-auth. Sans lui, les visiteurs voient un écran verrouillé. Le chat hébergé demande de se connecter.",
+            "open_access_settings": "Changez qui peut l’utiliser dans Paramètres de sécurité"
+        }
+    }
+}

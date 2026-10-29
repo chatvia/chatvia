@@ -1,0 +1,9 @@
+{
+    "agents": {
+        "deploy": {
+            "private_title": "This agent is private",
+            "private_description": "Only signed-in chatters can use it. The Chat Widget and Command Bar need an auth token for the chatter, made by your server and added to the snippet as data-auth. Without it, people see a locked screen. Hosted Chat asks people to sign in.",
+            "open_access_settings": "Change who can use it in Security settings"
+        }
+    }
+}

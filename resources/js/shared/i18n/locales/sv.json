@@ -2263,9 +2263,7 @@
             "copy_failed": "Kopiering misslyckades",
             "customize": "Anpassa utseende",
             "install_label": "Lägg till detta på din webbplats",
-            "protected_title": "Den här agenten är skyddad",
-            "protected_description": "Inbäddningar kräver en signerad token, annars ser alla med kodavsnittet en låst skärm. Gör den offentlig eller konfigurera autentisering i",
-            "open_security": "Säkerhetsinställningar",
+            "install_hint": "Klistra in den precis före den avslutande {body}-taggen på varje sida där den ska visas. Den fungerar också i {head}.",
             "widget": {
                 "title": "Chatt-widget",
                 "description": "En flytande chattbubbla i hörnet av valfri sida – den klassiska assistenten."
@@ -2325,7 +2323,10 @@
                     "not_reached": "Vi når inte din domän än. Kontrollera att posten pekar på {target} och vänta några minuter.",
                     "private_address": "Din domän pekar på en privat nätverksadress. Låt den peka på {target}."
                 }
-            }
+            },
+            "private_title": "Den här agenten är privat",
+            "private_description": "Bara inloggade användare kan använda den. Chatt-widget och Kommandorad behöver en autentiseringstoken för användaren. Din server skapar den och den läggs till i koden som data-auth. Utan den ser folk en låst skärm. Hostad chatt ber folk logga in.",
+            "open_access_settings": "Ändra vem som kan använda den i Säkerhetsinställningar"
         },
         "chatters": {
             "title": "Chattare",

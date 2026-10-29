@@ -2263,9 +2263,7 @@
             "copy_failed": "复制失败",
             "customize": "自定义外观",
             "install_label": "将此代码添加到你的网站",
-            "protected_title": "此智能体受保护",
-            "protected_description": "嵌入需要签名令牌，否则任何拿到代码片段的人都只能看到锁定页面。请将其设为公开，或在以下位置配置身份验证：",
-            "open_security": "安全设置",
+            "install_hint": "将其粘贴到每个需要显示的页面中结束标签 {body} 之前。放在 {head} 内也可以。",
             "widget": {
                 "title": "聊天挂件",
                 "description": "悬浮在任意页面角落的聊天气泡——经典的助手形态。"
@@ -2325,7 +2323,10 @@
                     "not_reached": "我们还无法访问你的域名。请检查记录是否指向 {target}，然后等几分钟。",
                     "private_address": "你的域名指向一个私有网络地址。请将它指向 {target}。"
                 }
-            }
+            },
+            "private_title": "此智能体为私有",
+            "private_description": "只有已登录的用户才能使用。聊天挂件和命令栏需要为用户提供认证令牌，由你的服务器生成，并以 data-auth 的形式添加到代码中。没有令牌时，访客会看到锁定的界面。托管聊天页会要求用户登录。",
+            "open_access_settings": "在安全设置中更改谁可以使用"
         },
         "chatters": {
             "title": "访客",

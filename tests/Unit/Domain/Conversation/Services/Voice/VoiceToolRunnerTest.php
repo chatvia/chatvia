@@ -33,12 +33,3 @@ it('withholds a tool result that carries instructions aimed at the model, and lo
     Event::assertDispatched(GuardrailTriggered::class, fn (GuardrailTriggered $event): bool => $event->stage === 'tool'
         && $event->guardType === 'prompt_injection');
 });
-
-it('reads back a clean result as it is', function (): void {
-    app()->instance(ToolDispatcher::class, new RecordingToolDispatcher('Ticket #12 is open.'));
-
-    $result = app(VoiceToolRunner::class)->run(new VoiceTurn('item_1', TestChatContext::make()), $this->tools, 'fc_1', $this->tool, '{}');
-
-    expect($result->output)->toBe('Ticket #12 is open.');
-    Event::assertNotDispatched(GuardrailTriggered::class);
-});

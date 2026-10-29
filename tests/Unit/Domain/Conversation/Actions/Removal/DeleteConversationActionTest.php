@@ -34,50 +34,40 @@ function dcaStoredText(Message $message): ?string
     return DB::table('chat_messages')->where('id', $message->id)->value('content');
 }
 
-it('erases the text of the conversation and records who deleted it', function (): void {
+it('erases the text and live memory of the conversation and records who deleted it', function (): void {
+    $memory = new ChatCache($this->conversation->session->external_id, $this->conversation->agent);
+    $memory->put('context', ['kept'], $this->conversation->external_id);
+
     app(DeleteConversationAction::class)->execute(dcaScope($this->conversation), 'admin');
 
     $trashed = Conversation::withTrashed()->findOrFail($this->conversation->id);
     expect(dcaStoredText($this->message))->toBeNull()
         ->and($trashed->trashed())->toBeTrue()
-        ->and($trashed->deleted_by)->toBe('admin');
+        ->and($trashed->deleted_by)->toBe('admin')
+        ->and($memory->get('context', null, $this->conversation->external_id))->toBeNull();
 });
 
-it('treats erasing an already-deleted conversation as a no-op', function (): void {
+it('treats erasing an already-deleted or unknown conversation as a no-op', function (): void {
     $delete = app(DeleteConversationAction::class);
-
     $delete->execute(dcaScope($this->conversation));
 
-    // A repeated request must not crash on the missing (soft-deleted) row.
     $delete->execute(dcaScope($this->conversation));
     $delete->execute(new ChatScopeData($this->conversation->agent, $this->conversation->session->external_id, (string) Str::uuid7()));
 
     expect(Conversation::withTrashed()->find($this->conversation->id)->trashed())->toBeTrue();
 });
 
-it('leaves a conversation of another session or agent alone', function (): void {
+it('leaves the text and live memory of a conversation of another session or agent alone', function (): void {
+    $memory = new ChatCache($this->conversation->session->external_id, $this->conversation->agent);
+    $memory->put('context', ['kept'], $this->conversation->external_id);
     $delete = app(DeleteConversationAction::class);
 
-    // The conversation id replayed from another visitor's session, and under another agent.
     $delete->execute(dcaScope($this->conversation, session: Session::factory()->create(['agent_id' => $this->conversation->agent_id])), 'user');
     $delete->execute(dcaScope($this->conversation, agent: Agent::factory()->create()), 'user');
 
     $row = Conversation::withTrashed()->find($this->conversation->id);
-
     expect(dcaStoredText($this->message))->toBe('My card number is 4242 4242 4242 4242')
         ->and($row->trashed())->toBeFalse()
-        ->and($row->deleted_by)->toBeNull();
-});
-
-it('keeps the live memory of a conversation it did not erase', function (): void {
-    $memory = new ChatCache($this->conversation->session->external_id, $this->conversation->agent);
-    $memory->put('context', ['kept'], $this->conversation->external_id);
-
-    app(DeleteConversationAction::class)->execute(dcaScope($this->conversation, session: Session::factory()->create(['agent_id' => $this->conversation->agent_id])), 'user');
-
-    expect($memory->get('context', null, $this->conversation->external_id))->toBe(['kept']);
-
-    app(DeleteConversationAction::class)->execute(dcaScope($this->conversation), 'user');
-
-    expect($memory->get('context', null, $this->conversation->external_id))->toBeNull();
+        ->and($row->deleted_by)->toBeNull()
+        ->and($memory->get('context', null, $this->conversation->external_id))->toBe(['kept']);
 });

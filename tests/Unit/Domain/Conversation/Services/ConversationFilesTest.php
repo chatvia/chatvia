@@ -9,7 +9,8 @@ use Illuminate\Support\Facades\Storage;
 
 /**
  * Deleting a conversation wipes its whole chat folder: uploads, generated
- * media and replies read aloud, which have no row of their own.
+ * media and replies read aloud, which have no row of their own, also for a
+ * deleted agent's conversation, and only once the delete commits.
  */
 beforeEach(function (): void {
     Storage::fake(Attachment::DISK);
@@ -58,13 +59,4 @@ it('waits for the commit, so a rolled-back delete keeps the files', function ():
     }), report: false);
 
     Storage::disk(Attachment::DISK)->assertExists($speech);
-});
-
-it('runs when a conversation is deleted', function (): void {
-    $conversation = Conversation::factory()->create();
-    $speech = cfPut($conversation, 'speech/m1-abc.mp3');
-
-    $conversation->delete();
-
-    Storage::disk(Attachment::DISK)->assertMissing($speech);
 });

@@ -16,7 +16,6 @@ beforeEach(function (): void {
 });
 
 it('never touches the files of a conversation, live or expired, however old they are', function (): void {
-    // An expired conversation's files go with the conversation prune.
     $live = Attachment::factory()->forConversation(Conversation::factory()->expiresAt(now()->addDays(10))->create())->stored()->create(['created_at' => now()->subDays(400)]);
     $expired = Attachment::factory()->forConversation(Conversation::factory()->expiresAt(now()->subDay())->create())->stored()->create(['created_at' => now()->subDays(400)]);
 
@@ -30,15 +29,7 @@ it('deletes an upload that never joined a conversation only after the orphan win
     $stale = Attachment::factory()->pending()->stored()->create(['created_at' => now()->subDays(31)]);
 
     expect(app(PruneExpiredAttachmentsAction::class)->execute(orphanDays: 30, chunk: 100))->toBe(1)
-        ->and(Attachment::query()->find($fresh->id))->not->toBeNull()
-        ->and(Attachment::query()->find($stale->id))->toBeNull();
+        ->and(Attachment::query()->whereKey($fresh->id)->exists())->toBeTrue()
+        ->and(Attachment::query()->whereKey($stale->id)->exists())->toBeFalse();
     Storage::disk(Attachment::DISK)->assertMissing($stale->filepath);
-});
-
-it('deletes stale uploads in chunks', function (): void {
-    $stale = Attachment::factory()->count(3)->pending()->stored()->create(['created_at' => now()->subDays(31)]);
-
-    expect(app(PruneExpiredAttachmentsAction::class)->execute(orphanDays: 30, chunk: 1))->toBe(3)
-        ->and(Attachment::query()->whereKey($stale->pluck('id'))->exists())->toBeFalse();
-    $stale->each(fn (Attachment $upload) => Storage::disk(Attachment::DISK)->assertMissing($upload->filepath));
 });

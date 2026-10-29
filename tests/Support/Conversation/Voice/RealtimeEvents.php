@@ -30,12 +30,6 @@ final class RealtimeEvents
         return ['type' => 'response.created', 'response' => ['id' => $responseId, 'metadata' => ['turn' => $turn]]];
     }
 
-    /** "Let me check" started. */
-    public static function fillerCreated(): array
-    {
-        return ['type' => 'response.created', 'response' => ['id' => 'resp_filler', 'metadata' => ['notice' => '1', 'filler' => '1']]];
-    }
-
     /**
      * A finished spoken reply.
      *
@@ -65,12 +59,6 @@ final class RealtimeEvents
             'metadata' => ['turn' => $turn],
             'output' => [['type' => 'function_call', 'call_id' => $callId, 'name' => $name, 'arguments' => $arguments]],
         ]];
-    }
-
-    /** The finished "let me check" (cancelled when the visitor talked over it). */
-    public static function fillerDone(string $status = 'completed'): array
-    {
-        return ['type' => 'response.done', 'response' => ['id' => 'resp_filler', 'status' => $status, 'metadata' => ['notice' => '1', 'filler' => '1'], 'output' => []]];
     }
 
     /** The visitor stops talking, and what they said is written down. */

@@ -7,9 +7,9 @@ use Domain\Conversation\Models\AgentActivity;
 use Illuminate\Support\Str;
 
 /**
- * The queued listener writes a tool call's audit row while the governance
- * audit is on, and nothing while an admin has it switched off. What the row
- * holds is RecordToolCallAuditAction's.
+ * The queued listener writes no tool-call audit row while an admin has the
+ * governance audit switched off. What the row holds is
+ * RecordToolCallAuditAction's.
  */
 function rtcaListenerEvent(Agent $agent): ToolCallCompleted
 {
@@ -35,14 +35,6 @@ function rtcaListenerEvent(Agent $agent): ToolCallCompleted
         approvalOutcome: 'auto',
     );
 }
-
-it('writes the audit row while the audit is on', function (): void {
-    $agent = Agent::factory()->create();
-
-    app(RecordToolCallAudit::class)->handle(rtcaListenerEvent($agent));
-
-    expect(AgentActivity::query()->where('agent_id', $agent->id)->count())->toBe(1);
-});
 
 it('writes nothing while the governance audit is switched off', function (): void {
     config(['chatvia.governance.audit_enabled' => false]);

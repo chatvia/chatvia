@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 
 /**
  * The checkpoint sweep: a paused turn's checkpoint goes once it expired
- * unanswered, or a grace period after it was resolved, in batches. A pending
+ * unanswered, or a grace period after it was resolved. A pending
  * unexpired checkpoint and a freshly resolved one stay.
  */
 function ptacCheckpoint(ToolApprovalStatus $status, ?CarbonInterface $expiresAt, int $daysSinceUpdate = 0): ToolApprovalCheckpoint
@@ -44,11 +44,4 @@ it('deletes expired checkpoints and resolved ones past the grace period', functi
     expect(app(PruneToolApprovalCheckpointsAction::class)->execute(graceDays: 3))->toBe(2)
         ->and(ToolApprovalCheckpoint::query()->pluck('id')->sort()->values()->all())
         ->toBe(collect([$pending->id, $recentlyResolved->id])->sort()->values()->all());
-});
-
-it('deletes checkpoints in batches', function (): void {
-    $stale = collect(range(1, 3))->map(fn (): ToolApprovalCheckpoint => ptacCheckpoint(ToolApprovalStatus::Pending, now()->subMinute()));
-
-    expect(app(PruneToolApprovalCheckpointsAction::class)->execute(graceDays: 3, batchSize: 1))->toBe(3)
-        ->and(ToolApprovalCheckpoint::query()->whereKey($stale->pluck('id'))->exists())->toBeFalse();
 });

@@ -5,15 +5,14 @@ use Domain\Conversation\Actions\Voice\EndVoiceCallAction;
 use Domain\Conversation\Services\Voice\VoiceCallStore;
 use Domain\Llm\Enums\AiProvider;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Tests\Support\Conversation\Voice\VoiceCalls;
 
 /**
- * Pressing End hangs the call up with OpenAI at once and flags it ended for
- * the worker on it; only the visitor's own call can be ended. OpenAI's
- * realtime endpoint is faked.
+ * Only the visitor's own call can be ended: a call of another session or
+ * agent, or an unknown one, is refused without telling OpenAI. The plain
+ * hang-up is covered by the EndVoiceCall controller tests.
  */
 beforeEach(function (): void {
     connectAiProviders(AiProvider::OpenAi);
@@ -23,13 +22,6 @@ beforeEach(function (): void {
     $this->agent = Agent::factory()->create();
     $this->call = VoiceCalls::data($this->agent, (string) Str::uuid7(), (string) Str::uuid7(), providerCallId: 'rtc_abc123');
     app(VoiceCallStore::class)->put($this->call);
-});
-
-it('hangs up the visitor\'s own call and flags it ended', function (): void {
-    app(EndVoiceCallAction::class)->execute($this->agent, $this->call->session_id, $this->call->call_id);
-
-    expect(app(VoiceCallStore::class)->isEnded($this->call->call_id))->toBeTrue();
-    Http::assertSent(fn (Request $request): bool => Str::endsWith($request->url(), '/realtime/calls/rtc_abc123/hangup'));
 });
 
 it('does not end a call of another session, another agent or no call at all', function (string $who): void {

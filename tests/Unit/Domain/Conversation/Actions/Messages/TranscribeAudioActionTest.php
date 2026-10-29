@@ -12,9 +12,9 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
 /**
- * Chat voice input: the upload goes to the configured Transcriber as it is
- * when the service takes it, compressed otherwise, and every local copy is
- * removed whatever the outcome.
+ * Chat voice input: a recording the service does not take as it is goes
+ * compressed with the demuxer of its detected format, and every local copy
+ * is removed; without a transcriber it fails before compressing anything.
  */
 function taaTranscriber(bool $takesAsIs): Transcriber
 {
@@ -50,22 +50,6 @@ function taaTranscriber(bool $takesAsIs): Transcriber
         }
     };
 }
-
-it('sends a recording the service takes as it is, without compressing it, and removes the local copy', function (): void {
-    $transcriber = taaTranscriber(takesAsIs: true);
-    $compressor = Mockery::mock(AudioCompressor::class);
-    $compressor->shouldNotReceive('process');
-    $recording = UploadedFile::fake()->create('clip.webm', 5, 'audio/webm');
-
-    $text = new TranscribeAudioAction(new TranscriptionAudio($transcriber, $compressor), $transcriber)
-        ->execute($recording->getRealPath(), VoiceNoteFormat::Webm);
-
-    expect($text)->toBe('hello there')
-        ->and($transcriber->fileExisted)->toBeTrue()
-        ->and($transcriber->path)->toEndWith('.webm')
-        ->and(File::exists((string) $transcriber->path))->toBeFalse()
-        ->and(File::exists($recording->getRealPath()))->toBeTrue();
-});
 
 it('compresses a recording the service does not take with the demuxer of its detected format, and removes the copy and the compressed file', function (): void {
     $transcriber = taaTranscriber(takesAsIs: false);

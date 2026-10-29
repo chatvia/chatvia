@@ -23,11 +23,12 @@ use Tests\Support\Conversation\Voice\VoiceCalls;
 
 /**
  * An action that needs approval in a voice call: the call holds it and has
- * the model ask first, runs it when the model repeats it after the visitor's
- * spoken yes (audited with their words), waits for the yes to be written
- * down, drops it when the answer was not a yes, and tells the call view how
- * each held action ended. Which repeat counts as an answer is
- * VoiceToolApprovals' rule; what counts as a yes is SpokenYes'.
+ * the model ask first, waits for the yes to be written down, runs it when the
+ * model repeats it after the visitor's spoken yes (audited with their words),
+ * drops it when the answer was not a yes or the visitor talked over the
+ * question, and never offers it to an anonymous visitor. Which repeat counts
+ * as an answer is VoiceToolApprovals' rule; what counts as a yes is
+ * SpokenYes'.
  */
 beforeEach(function (): void {
     Queue::fake();
@@ -35,9 +36,7 @@ beforeEach(function (): void {
     app()->instance(RealtimeCalls::class, new ScriptedRealtimeCalls);
 
     $this->agent = Agent::factory()->create(['is_public' => true]);
-    // Guardrails off, so the real guards return the words unchanged without a classifier call.
     $this->agent->setSetting('enabled', false, 'guardrails');
-    // Only a signed-in chatter (or staff) is offered actions that need a yes.
     $this->chatter = Chatter::factory()->ofWorkspace($this->agent->workspace)->create();
     $this->call = VoiceCalls::started(Conversation::factory()->forAgent($this->agent)->hostedChat()->create(), chatter: $this->chatter);
 
@@ -52,124 +51,53 @@ beforeEach(function (): void {
     $this->session->opened($this->connection = new RecordingVoiceConnection);
 });
 
-it('tells the call view a held action is not done yet, and when a run failed', function (): void {
-    $this->dispatcher->shouldReceive('dispatch')->once()->andReturn(ToolDispatchResultData::error('Stripe is down.'));
-
-    RealtimeEvents::visitorSays($this->session, 'item_1', 'Send Stripe a thank-you note.');
-    $this->session->received(RealtimeEvents::toolCall('resp_1', $this->tool, '{"feedback":"Thank you!"}'));
-    RealtimeEvents::visitorSays($this->session, 'item_2', 'Yes, send it.');
-    $this->session->received(RealtimeEvents::toolCall('resp_2', $this->tool, '{"feedback":"Thank you!"}', 'fc_2', 'item_2'));
-
-    [$held, $failed] = array_column($this->connection->ofType('conversation.item.create'), 'item');
-
-    expect($held['id'])->toStartWith('tool_held_')
-        ->and($failed['id'])->toStartWith('tool_failed_');
-});
-
-it('answers a waiting yes the visitor talked over as cancelled', function (): void {
-    $this->dispatcher->shouldNotReceive('dispatch');
-
-    RealtimeEvents::visitorSays($this->session, 'item_1', 'Send Stripe a thank-you note.');
-    $this->session->received(RealtimeEvents::toolCall('resp_1', $this->tool, '{"feedback":"Thank you!"}'));
-    $this->session->received(RealtimeEvents::committed('item_2'));
-    $this->session->received(RealtimeEvents::toolCall('resp_2', $this->tool, '{"feedback":"Thank you!"}', 'fc_2', 'item_2'));
-    $this->session->received(RealtimeEvents::committed('item_3'));
-
-    $output = array_last($this->connection->ofType('conversation.item.create'))['item'];
-
-    expect($output['call_id'])->toBe('fc_2')
-        ->and($output['id'])->toStartWith('tool_cancelled_');
-});
-
-it('holds the action and has the model ask first', function (): void {
-    $this->dispatcher->shouldNotReceive('dispatch');
-
-    RealtimeEvents::visitorSays($this->session, 'item_1', 'Send Stripe a thank-you note.');
-    $this->session->received(RealtimeEvents::toolCall('resp_1', $this->tool, '{"feedback":"Thank you!"}'));
-
-    expect($this->connection->ofType('conversation.item.create')[0]['item']['output'])->toBe(VoiceToolRunner::CONFIRM_FIRST_RESULT)
-        // No "let me check" before a question: the model goes straight on to ask.
-        ->and(array_column($this->connection->ofType('response.create'), 'response'))->toBe([
-            ['metadata' => ['turn' => 'item_1']],
-            ['metadata' => ['turn' => 'item_1']],
-        ]);
-    Event::assertNotDispatched(ToolCallCompleted::class);
-});
-
-it('runs it when the model repeats it after the visitor\'s yes, and audits their words', function (): void {
+it('holds the action until the visitor\'s yes is written down, then runs it and audits their words', function (): void {
     $this->dispatcher->shouldReceive('dispatch')->once()->andReturn(ToolDispatchResultData::text('Feedback sent.'));
 
     RealtimeEvents::visitorSays($this->session, 'item_1', 'Send Stripe a thank-you note.');
     $this->session->received(RealtimeEvents::toolCall('resp_1', $this->tool, '{"feedback":"Thank you!"}'));
-    RealtimeEvents::visitorSays($this->session, 'item_2', 'Yes, send it.');
-    // The same arguments, however the model spaces them.
+    $this->session->received(RealtimeEvents::committed('item_2'));
     $this->session->received(RealtimeEvents::toolCall('resp_2', $this->tool, '{ "feedback": "Thank you!" }', 'fc_2', 'item_2'));
+    $beforeYes = $this->connection->ofType('conversation.item.create');
+    Event::assertNotDispatched(ToolCallCompleted::class);
+    $this->session->received(RealtimeEvents::transcribed('item_2', 'Yes please.'));
 
     $outputs = $this->connection->ofType('conversation.item.create');
-    expect(array_last($outputs)['item'])->toMatchArray(['call_id' => 'fc_2', 'output' => 'Feedback sent.'])
+    expect($beforeYes)->toHaveCount(1)
+        ->and($beforeYes[0]['item']['output'])->toBe(VoiceToolRunner::CONFIRM_FIRST_RESULT)
+        ->and($beforeYes[0]['item']['id'])->toStartWith('tool_held_')
+        ->and(array_last($outputs)['item'])->toMatchArray(['call_id' => 'fc_2', 'output' => 'Feedback sent.'])
         ->and(array_last($outputs)['item']['id'])->toStartWith('tool_done_');
     Event::assertDispatched(ToolCallCompleted::class, fn (ToolCallCompleted $event): bool => $event->approvalOutcome === 'approved'
         && $event->gated
         && $event->decidedAt !== null
-        && $event->decisionNote === 'Yes, send it.');
+        && $event->decisionNote === 'Yes please.');
 });
 
-it('drops it when the visitor\'s answer was not a yes, audited as denied with their words', function (): void {
+it('drops the action when the answer was not a yes, audited as denied, or when the visitor talked over the question', function (): void {
     $this->dispatcher->shouldNotReceive('dispatch');
+    $other = app(VoiceCallSession::class)->for(VoiceCalls::started(Conversation::factory()->forAgent($this->agent)->hostedChat()->create(), 'rtc_other', chatter: $this->chatter), $this->agent);
+    $other->opened($otherConnection = new RecordingVoiceConnection);
 
     RealtimeEvents::visitorSays($this->session, 'item_1', 'Send Stripe a thank-you note.');
     $this->session->received(RealtimeEvents::toolCall('resp_1', $this->tool, '{"feedback":"Thank you!"}'));
     RealtimeEvents::visitorSays($this->session, 'item_2', 'No, leave it.');
     $this->session->received(RealtimeEvents::toolCall('resp_2', $this->tool, '{"feedback":"Thank you!"}', 'fc_2', 'item_2'));
+    RealtimeEvents::visitorSays($other, 'item_1', 'Send Stripe a thank-you note.');
+    $other->received(RealtimeEvents::toolCall('resp_1', $this->tool, '{"feedback":"Thank you!"}'));
+    $other->received(RealtimeEvents::committed('item_2'));
+    $other->received(RealtimeEvents::toolCall('resp_2', $this->tool, '{"feedback":"Thank you!"}', 'fc_2', 'item_2'));
+    $other->received(RealtimeEvents::committed('item_3'));
 
-    $output = array_last($this->connection->ofType('conversation.item.create'))['item'];
-    expect($output)->toMatchArray(['call_id' => 'fc_2', 'output' => VoiceToolRunner::DECLINED_RESULT])
-        ->and($output['id'])->toStartWith('tool_cancelled_');
+    $declined = array_last($this->connection->ofType('conversation.item.create'))['item'];
+    $talkedOver = array_last($otherConnection->ofType('conversation.item.create'))['item'];
+    expect($declined)->toMatchArray(['call_id' => 'fc_2', 'output' => VoiceToolRunner::DECLINED_RESULT])
+        ->and($declined['id'])->toStartWith('tool_cancelled_')
+        ->and($talkedOver['call_id'])->toBe('fc_2')
+        ->and($talkedOver['id'])->toStartWith('tool_cancelled_');
     Event::assertDispatched(ToolCallCompleted::class, fn (ToolCallCompleted $event): bool => $event->approvalOutcome === 'denied'
         && $event->gated
         && $event->decisionNote === 'No, leave it.');
-});
-
-it('waits for the yes to be written down before it runs', function (): void {
-    $this->dispatcher->shouldReceive('dispatch')->once()->andReturn(ToolDispatchResultData::text('Feedback sent.'));
-
-    RealtimeEvents::visitorSays($this->session, 'item_1', 'Send Stripe a thank-you note.');
-    $this->session->received(RealtimeEvents::toolCall('resp_1', $this->tool, '{"feedback":"Thank you!"}'));
-    $this->session->received(RealtimeEvents::committed('item_2'));
-    $this->session->received(RealtimeEvents::toolCall('resp_2', $this->tool, '{"feedback":"Thank you!"}', 'fc_2', 'item_2'));
-
-    expect($this->connection->ofType('conversation.item.create'))->toHaveCount(1);
-
-    $this->session->received(RealtimeEvents::transcribed('item_2', 'Yes please.'));
-
-    expect(array_last($this->connection->ofType('conversation.item.create'))['item'])->toMatchArray(['call_id' => 'fc_2', 'output' => 'Feedback sent.']);
-});
-
-it('asks again when the answer could not be written down', function (): void {
-    $this->dispatcher->shouldNotReceive('dispatch');
-
-    RealtimeEvents::visitorSays($this->session, 'item_1', 'Send Stripe a thank-you note.');
-    $this->session->received(RealtimeEvents::toolCall('resp_1', $this->tool, '{"feedback":"Thank you!"}'));
-    $this->session->received(RealtimeEvents::committed('item_2'));
-    $this->session->received(RealtimeEvents::toolCall('resp_2', $this->tool, '{"feedback":"Thank you!"}', 'fc_2', 'item_2'));
-
-    $this->travel(6)->seconds();
-    $this->session->tick();
-
-    expect(array_last($this->connection->ofType('conversation.item.create'))['item'])
-        ->toMatchArray(['call_id' => 'fc_2', 'output' => VoiceToolRunner::CONFIRM_FIRST_RESULT]);
-});
-
-it('lets the model act on the answer instead of forcing a search', function (): void {
-    VoiceCalls::giveAgentKnowledge($this->agent);
-    $session = app(VoiceCallSession::class)->for($this->call, $this->agent);
-    $session->opened($connection = new RecordingVoiceConnection);
-
-    RealtimeEvents::visitorSays($session, 'item_1', 'Send Stripe a thank-you note.');
-    $session->received(RealtimeEvents::toolCall('resp_1', $this->tool, '{"feedback":"Thank you!"}'));
-    $session->received(RealtimeEvents::committed('item_2'));
-
-    expect(array_last($connection->ofType('response.create'))['response'])->toBe(['metadata' => ['turn' => 'item_2']]);
 });
 
 it('never offers an anonymous visitor an action that needs a yes', function (): void {

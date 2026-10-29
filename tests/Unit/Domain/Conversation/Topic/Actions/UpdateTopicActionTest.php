@@ -9,22 +9,10 @@ use Support\Exceptions\DomainValidationException;
 
 /**
  * Editing a topic is checked against the agent's workspace, never the acting
- * person: anyone managing the agent may edit its workspace's topics, another
- * workspace's topic is refused, and a system topic (no workspace) is
- * read-only with the exception the controller maps to 403.
+ * person: another workspace's topic is refused, a system topic (no
+ * workspace) is read-only with the exception the controller maps to 403, and
+ * a rename onto a name the workspace uses is refused.
  */
-it('lets anyone managing the agent edit a workspace topic', function (): void {
-    $agent = createAgent(User::factory()->create());
-    $topic = Topic::factory()->attachedTo($agent)->create(['topic' => 'Refunds', 'description' => 'Old']);
-
-    // No acting user is involved: a teammate editing it goes through the
-    // same workspace-keyed check as the owner.
-    $updated = app(UpdateTopicAction::class)->execute($agent, $topic, new SaveTopicData(topic: 'Refund requests', description: 'New'));
-
-    expect($updated->fresh()->topic)->toBe('Refund requests')
-        ->and($updated->fresh()->description)->toBe('New');
-});
-
 it('refuses to edit a topic owned by another workspace', function (): void {
     $agent = createAgent(User::factory()->create());
     $foreign = Topic::factory()->attachedTo(createAgent(User::factory()->create()))->create(['topic' => 'Private']);

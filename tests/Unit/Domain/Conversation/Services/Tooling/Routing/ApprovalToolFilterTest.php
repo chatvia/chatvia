@@ -48,11 +48,13 @@ beforeEach(function (): void {
     $this->filter = approvalFilter('mcp__stripe__create_refund', 'cancel_order');
 });
 
-it('keeps tools that need approval in the hosted chat, which can ask for it', function (): void {
+it('keeps every tool in the hosted chat, which can ask for approval, and on a turn with no or an unknown conversation', function (): void {
     $conversation = Conversation::factory()->create(['source' => ConversationSource::HostedChat]);
 
     expect(approvalFilterNames($this->filter->apply(new Agent, $this->entries, $conversation->external_id)))
-        ->toBe(['mcp__stripe__create_refund', 'mcp__stripe__list_customers', 'cancel_order']);
+        ->toBe(['mcp__stripe__create_refund', 'mcp__stripe__list_customers', 'cancel_order'])
+        ->and(approvalFilterNames($this->filter->apply(new Agent, $this->entries, null)))->toHaveCount(3)
+        ->and(approvalFilterNames($this->filter->apply(new Agent, $this->entries, (string) Str::uuid7())))->toHaveCount(3);
 });
 
 it('drops tools that need approval where no one can approve them', function (ConversationSource $surface): void {
@@ -61,11 +63,6 @@ it('drops tools that need approval where no one can approve them', function (Con
     expect(approvalFilterNames($this->filter->apply(new Agent, $this->entries, $conversation->external_id)))
         ->toBe(['mcp__stripe__list_customers']);
 })->with([ConversationSource::Widget, ConversationSource::Bar, ConversationSource::Slack, ConversationSource::Whatsapp]);
-
-it('keeps every tool when the turn has no conversation, or an unknown one', function (): void {
-    expect(approvalFilterNames($this->filter->apply(new Agent, $this->entries, null)))->toHaveCount(3)
-        ->and(approvalFilterNames($this->filter->apply(new Agent, $this->entries, (string) Str::uuid7())))->toHaveCount(3);
-});
 
 it('drops tools that need approval for an anonymous visitor on any surface', function (): void {
     $definitions = array_map(static fn (ToolEntryData $entry): array => $entry->toOpenAiFormat(), $this->entries);

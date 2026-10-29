@@ -19,5 +19,5 @@ it('deletes audit rows older than the retention window, in batches', function ()
 
     expect(app(PruneAgentActivityAction::class)->execute(retentionDays: 90, batchSize: 1))->toBe(3)
         ->and(AgentActivity::query()->whereKey($old->pluck('id'))->exists())->toBeFalse()
-        ->and(AgentActivity::query()->find($recent->id))->not->toBeNull();
+        ->and(AgentActivity::query()->whereKey($recent->id)->exists())->toBeTrue();
 });

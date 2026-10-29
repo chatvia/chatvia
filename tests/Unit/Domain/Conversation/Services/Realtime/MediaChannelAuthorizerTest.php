@@ -28,18 +28,14 @@ it('signs the media channel of a conversation in the visitor session', function 
         ->and($result->auth)->toStartWith(config('broadcasting.connections.reverb.key').':');
 });
 
-it('refuses a conversation of another session', function (): void {
+it('refuses a conversation of another session, and the session through another agent', function (): void {
     $agent = Agent::factory()->create();
     $mine = mcaConversation($agent);
     $theirs = mcaConversation($agent);
+    $authorizer = app(MediaChannelAuthorizer::class);
 
-    expect(app(MediaChannelAuthorizer::class)->authorize($agent, $mine->session->external_id, 'private-chat-media.'.$theirs->external_id, '1234.5678'))->toBeNull();
-});
-
-it('refuses the session through another agent', function (): void {
-    $conversation = mcaConversation(Agent::factory()->create());
-
-    expect(app(MediaChannelAuthorizer::class)->authorize(Agent::factory()->create(), $conversation->session->external_id, 'private-chat-media.'.$conversation->external_id, '1234.5678'))->toBeNull();
+    expect($authorizer->authorize($agent, $mine->session->external_id, 'private-chat-media.'.$theirs->external_id, '1234.5678'))->toBeNull()
+        ->and($authorizer->authorize(Agent::factory()->create(), $mine->session->external_id, 'private-chat-media.'.$mine->external_id, '1234.5678'))->toBeNull();
 });
 
 it('refuses any other channel', function (string $channel): void {

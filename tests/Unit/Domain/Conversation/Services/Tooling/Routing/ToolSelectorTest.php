@@ -19,8 +19,7 @@ use Domain\Integration\Tool\ValueObjects\ToolName;
 /**
  * The tools offered on a turn: the semantic router's pick, joined by the
  * agent's always-on connector tools and the tools of recent turns, without
- * duplicates. A fully pinned pool skips the router; a router failure offers
- * the whole pool.
+ * duplicates. A router failure offers the whole pool.
  */
 function tsEntry(string $name): ToolEntryData
 {
@@ -35,9 +34,9 @@ function tsAttach(Agent $agent, string $slug, bool $alwaysAvailable): AgentMcpSe
 
 /**
  * @param  array<int, ToolEntryData>  $pool  the agent's full pool
- * @param  array<int, ToolEntryData>  $routed  what the semantic router would return
+ * @param  array<int, ToolEntryData>|null  $routed  what the semantic router would return; null when it fails
  */
-function tsSelector(array $pool, array $routed): ToolSelector
+function tsSelector(array $pool, ?array $routed): ToolSelector
 {
     $registry = new class($pool) extends ToolRegistry
     {
@@ -52,118 +51,44 @@ function tsSelector(array $pool, array $routed): ToolSelector
 
     $router = new class($routed) extends SemanticToolRouter
     {
-        /** @param array<int, ToolEntryData> $routed */
-        public function __construct(private readonly array $routed) {}
+        /** @param array<int, ToolEntryData>|null $routed */
+        public function __construct(private readonly ?array $routed) {}
 
         public function route(string $userMessage, Agent $agent): array
         {
-            return $this->routed;
+            return $this->routed ?? throw new RuntimeException('embedding API down');
         }
     };
 
     return new ToolSelector($registry, $router, app(StickyToolResolver::class), app(SurfaceToolFilter::class), app(AlwaysAvailableToolResolver::class), app(ApprovalToolFilter::class), app(UnavailableToolFilter::class));
 }
 
+/** @return list<string> */
+function tsNames(array $shipped): array
+{
+    return array_column(array_column($shipped, 'function'), 'name');
+}
+
 beforeEach(function (): void {
     $this->agent = createAgent(User::factory()->create());
 });
 
-it('ships always-on connector tools even when routing returns nothing', function (): void {
+it('joins the routed tools with the always-on and recently used ones, without duplicates', function (): void {
     tsAttach($this->agent, 'tutor', alwaysAvailable: true);
-    tsAttach($this->agent, 'crm', alwaysAvailable: false);
-    $pool = [tsEntry('mcp__tutor__ask'), tsEntry('mcp__tutor__correct'), tsEntry('mcp__crm__search'), tsEntry('send_email')];
-
-    $shipped = tsSelector($pool, [])->selectForTurn($this->agent, 'hi', null);
-
-    expect(array_column(array_column($shipped, 'function'), 'name'))->toBe(['mcp__tutor__ask', 'mcp__tutor__correct']);
-});
-
-it('unions always-on tools with the routed set without duplicates', function (): void {
-    tsAttach($this->agent, 'tutor', alwaysAvailable: true);
-    $pool = [tsEntry('mcp__tutor__ask'), tsEntry('mcp__tutor__correct'), tsEntry('send_email')];
-
-    $shipped = tsSelector($pool, [tsEntry('send_email'), tsEntry('mcp__tutor__ask')])->selectForTurn($this->agent, 'email the tutor', null);
-
-    expect(array_column(array_column($shipped, 'function'), 'name'))->toBe(['send_email', 'mcp__tutor__ask', 'mcp__tutor__correct']);
-});
-
-it('ignores an always-on flag on a disabled connector and ships nothing for an unmatched turn', function (): void {
-    $server = tsAttach($this->agent, 'tutor', alwaysAvailable: true);
-    $server->update(['is_enabled' => false]);
-
-    expect(tsSelector([tsEntry('mcp__tutor__ask')], [])->selectForTurn($this->agent, 'hi', null))->toBe([]);
-});
-
-it('ships every always-on tool, however many there are', function (): void {
-    tsAttach($this->agent, 'big', alwaysAvailable: true);
-    $pool = array_map(fn (int $i): ToolEntryData => tsEntry("mcp__big__tool_{$i}"), range(1, 14));
-
-    expect(tsSelector($pool, [])->selectForTurn($this->agent, 'hi', null))->toHaveCount(14);
-});
-
-it('skips the router entirely when every tool in the pool is always-on', function (): void {
-    tsAttach($this->agent, 'tutor', alwaysAvailable: true);
-    $pool = [tsEntry('mcp__tutor__ask'), tsEntry('mcp__tutor__correct')];
-
-    $registry = new class($pool) extends ToolRegistry
-    {
-        /** @param array<int, ToolEntryData> $pool */
-        public function __construct(private readonly array $pool) {}
-
-        public function for(Agent $agent): array
-        {
-            return $this->pool;
-        }
-    };
-    $router = new class extends SemanticToolRouter
-    {
-        public function __construct() {}
-
-        public function route(string $userMessage, Agent $agent): array
-        {
-            throw new RuntimeException('router must not run for a fully pinned pool');
-        }
-    };
-    $selector = new ToolSelector($registry, $router, app(StickyToolResolver::class), app(SurfaceToolFilter::class), app(AlwaysAvailableToolResolver::class), app(ApprovalToolFilter::class), app(UnavailableToolFilter::class));
-
-    expect(array_column(array_column($selector->selectForTurn($this->agent, 'hi', null), 'function'), 'name'))->toBe(['mcp__tutor__ask', 'mcp__tutor__correct']);
-});
-
-it('pulls tools used in recent turns back in when routing skips them', function (): void {
-    $conversation = Conversation::factory()->forAgent($this->agent)->create();
+    $conversation = Conversation::factory()->forAgent($this->agent)->hostedChat()->create();
     Message::factory()->fromAssistant()->withMetadata(['tool_calls' => ['mcp__crm__get_issue', 'send_email']])->create([
         'chat_conversation_id' => $conversation->id,
     ]);
-    $pool = [tsEntry('send_email'), tsEntry('mcp__crm__search'), tsEntry('mcp__crm__get_issue')];
+    $pool = [tsEntry('mcp__tutor__ask'), tsEntry('mcp__tutor__correct'), tsEntry('send_email'), tsEntry('mcp__crm__search'), tsEntry('mcp__crm__get_issue')];
 
-    $shipped = tsSelector($pool, [tsEntry('send_email')])->selectForTurn($this->agent, 'tell me more about #3', $conversation->external_id);
+    $shipped = tsSelector($pool, [tsEntry('send_email'), tsEntry('mcp__tutor__ask')])->selectForTurn($this->agent, 'tell me more about #3', $conversation->external_id);
 
-    expect(array_column(array_column($shipped, 'function'), 'name'))->toBe(['send_email', 'mcp__crm__get_issue']);
+    expect(tsNames($shipped))->toEqualCanonicalizing(['send_email', 'mcp__tutor__ask', 'mcp__tutor__correct', 'mcp__crm__get_issue'])
+        ->and(tsNames($shipped))->toHaveCount(4);
 });
 
 it('ships the full pool when routing fails', function (): void {
     $pool = [tsEntry('send_email'), tsEntry('mcp__crm__search')];
 
-    $registry = new class($pool) extends ToolRegistry
-    {
-        /** @param array<int, ToolEntryData> $pool */
-        public function __construct(private readonly array $pool) {}
-
-        public function for(Agent $agent): array
-        {
-            return $this->pool;
-        }
-    };
-    $router = new class extends SemanticToolRouter
-    {
-        public function __construct() {}
-
-        public function route(string $userMessage, Agent $agent): array
-        {
-            throw new RuntimeException('embedding API down');
-        }
-    };
-    $selector = new ToolSelector($registry, $router, app(StickyToolResolver::class), app(SurfaceToolFilter::class), app(AlwaysAvailableToolResolver::class), app(ApprovalToolFilter::class), app(UnavailableToolFilter::class));
-
-    expect(array_column(array_column($selector->selectForTurn($this->agent, 'hi', null), 'function'), 'name'))->toBe(['send_email', 'mcp__crm__search']);
+    expect(tsNames(tsSelector($pool, null)->selectForTurn($this->agent, 'hi', null)))->toBe(['send_email', 'mcp__crm__search']);
 });

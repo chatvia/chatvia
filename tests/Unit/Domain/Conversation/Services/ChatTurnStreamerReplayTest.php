@@ -46,7 +46,6 @@ function cssrStream(string $requestId): array
 it('replays the remembered answer of a retried request without asking the model', function (): void {
     $sources = [new SourceRefData(id: 'chunk-1', label: 'Opening hours', kind: 'text', url: null, page: null, passages: 1)];
     app(RequestDedupeStore::class)->remember('req-retry', 'msg-earlier', 'We open at nine.', 'en', $sources);
-    // Even a workspace at its limit gets the answer it was already given.
     MessageLimit::factory()->reached()->create(['workspace_id' => $this->agent->workspace_id]);
 
     $events = cssrStream('req-retry');
@@ -65,7 +64,6 @@ it('replays the remembered answer of a retried request without asking the model'
 
 it('answers afresh when the remembered answer is empty', function (): void {
     app(RequestDedupeStore::class)->remember('req-empty', 'msg-earlier', '', null);
-    // A gate after the replay refuses the turn, so a turn past the replay ends there.
     StreamTurn::stopAtTheRateLimit($this->agent);
 
     $events = cssrStream('req-empty');

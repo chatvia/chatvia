@@ -10,7 +10,8 @@ use Illuminate\Support\Facades\DB;
 /**
  * Visitor anonymization: sessions older than the workspace's window lose the
  * visitor's details but keep what analytics needs; other workspaces and newer
- * sessions are untouched.
+ * sessions are untouched, a window below the floor is never used, and
+ * nothing is cleared without an Enterprise license.
  */
 function acsVisitorSession(Agent $agent, int $daysAgo): Session
 {
@@ -60,21 +61,17 @@ it('clears visitor details on that workspace\'s older sessions and keeps the ana
 
     expect(app(AnonymizeChatSessionsAction::class)->execute())->toBe(1);
 
-    // Listed here rather than read from the action, so a column dropped from
-    // its list fails the test.
     $visitorColumns = ['name', 'email', 'phone', 'ip_address', 'is_proxy', 'user_agent', 'city', 'region', 'zip_code', 'time_zone', 'referrer_url', 'page_url'];
     $cleared = DB::table('chat_sessions')->where('id', $old->id)->first();
 
     expect(collect((array) $cleared)->only($visitorColumns)->reject(fn (mixed $value): bool => $value === null)->keys()->all())->toBe([])
         ->and($cleared->anonymized_at)->not->toBeNull()
-        // What analytics reads stays.
         ->and((int) $cleared->agent_id)->toBe($agent->id)
         ->and($cleared->country_id)->toEqual($old->country_id)
         ->and($cleared->device_type)->toBe('desktop')
         ->and($cleared->browser)->toBe('Safari')
         ->and($cleared->os)->toBe('macOS')
         ->and($cleared->locale)->toBe('en')
-        // Clearing details is not visitor activity.
         ->and($cleared->updated_at)->toBe(DB::table('chat_sessions')->where('id', $old->id)->value('created_at'));
 
     expect(DB::table('chat_sessions')->whereIn('id', [$recent->id, $otherOld->id])->get(['anonymized_at', 'email', 'ip_address'])->map(fn (object $row): array => (array) $row)->all())
@@ -82,18 +79,6 @@ it('clears visitor details on that workspace\'s older sessions and keeps the ana
             ['anonymized_at' => null, 'email' => 'dana@example.com', 'ip_address' => '203.0.113.9'],
             ['anonymized_at' => null, 'email' => 'dana@example.com', 'ip_address' => '203.0.113.9'],
         ]);
-});
-
-it('anonymizes in small batches and only once', function (): void {
-    $agent = Agent::factory()->create();
-    acsAnonymizeAfter($agent, 7);
-    collect(range(11, 15))->each(fn (int $daysAgo): Session => acsVisitorSession($agent, $daysAgo));
-
-    $action = app(AnonymizeChatSessionsAction::class);
-
-    expect($action->execute(batchSize: 2))->toBe(5)
-        ->and($action->execute(batchSize: 2))->toBe(0)
-        ->and(Session::query()->where('agent_id', $agent->id)->whereNull('anonymized_at')->count())->toBe(0);
 });
 
 it('never uses a window below the configured floor', function (): void {

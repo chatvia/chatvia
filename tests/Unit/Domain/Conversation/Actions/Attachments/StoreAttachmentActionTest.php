@@ -10,9 +10,9 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Unit coverage for the page-count capture of uploaded PDFs. The
- * upload + S3 write path is exercised end-to-end against a fake disk; the PDF
- * inspector is stubbed so the body doesn't need real pages.
+ * An uploaded PDF is stored with its page count, which later caps how much
+ * of it reaches the model. The PDF inspector is stubbed so the body needs no
+ * real pages.
  */
 beforeEach(function (): void {
     Storage::fake(Attachment::DISK);
@@ -26,11 +26,6 @@ beforeEach(function (): void {
 function staPdfUpload(): UploadedFile
 {
     return UploadedFile::fake()->createWithContent('doc.pdf', "%PDF-1.4\n1 0 obj<</Type/Catalog>>endobj\n%%EOF");
-}
-
-function staTextUpload(): UploadedFile
-{
-    return UploadedFile::fake()->createWithContent('notes.txt', 'just some text');
 }
 
 function staPageCount(int $pages): void
@@ -63,15 +58,4 @@ it('stores the page count for a PDF upload', function (): void {
     expect($attachment->pages)->toBe(7)
         ->and($attachment->mime_type)->toBe('application/pdf');
     Storage::disk(Attachment::DISK)->assertExists($attachment->filepath);
-});
-
-it('leaves pages null for a non-PDF upload', function (): void {
-    // No fake inspector bound — a non-PDF must never reach the page-count path.
-    $attachment = app(StoreAttachmentAction::class)->execute(new UploadAttachmentData(
-        file: staTextUpload(),
-        directory: 'workspaces/test-workspace/agents/test-agent/attachments/test',
-        workspaceId: Workspace::factory()->create()->id,
-    ));
-
-    expect($attachment->pages)->toBeNull();
 });

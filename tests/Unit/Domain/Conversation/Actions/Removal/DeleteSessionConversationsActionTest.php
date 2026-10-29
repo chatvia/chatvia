@@ -26,6 +26,6 @@ it('deletes the images and audio the agent made in them', function (): void {
 
     app(DeleteSessionConversationsAction::class)->execute(new ChatScopeData($conversation->agent, $conversation->session->external_id), 'user');
 
-    expect(GeneratedMedia::query()->find($media->id))->toBeNull();
+    expect(GeneratedMedia::query()->whereKey($media->id)->exists())->toBeFalse();
     Storage::disk(GeneratedMedia::DISK)->assertMissing($media->filepath);
 });

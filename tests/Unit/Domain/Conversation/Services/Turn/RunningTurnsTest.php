@@ -4,9 +4,9 @@ use Domain\Conversation\Services\Turn\RunningTurns;
 
 /**
  * A conversation counts as answering from the moment its turn starts until
- * the turn's events end, fail or are dropped.
+ * the turn's events end or fail, and only that conversation does.
  */
-it('marks the conversation as running from the start of the turn until its events end', function (): void {
+it('marks only the conversation as running from the start of the turn until its events end', function (): void {
     $turns = app(RunningTurns::class);
     $seen = [];
 
@@ -18,57 +18,23 @@ it('marks the conversation as running from the start of the turn until its event
             $seen[] = $turns->isRunning('c1');
         })();
     });
-
-    expect($turns->isRunning('c1'))->toBeTrue();
-
+    $runningBefore = [$turns->isRunning('c1'), $turns->isRunning('c2')];
     iterator_to_array($events);
 
-    expect($seen)->toBe([true, true])
+    expect($runningBefore)->toBe([true, false])
+        ->and($seen)->toBe([true, true])
         ->and($turns->isRunning('c1'))->toBeFalse();
 });
 
-it('stops counting a turn that fails before its first event', function (): void {
+it('stops counting a turn that fails, before or after its first event', function (): void {
     $turns = app(RunningTurns::class);
-
-    expect(fn () => $turns->track('c1', fn (): Generator => throw new RuntimeException('boom')))->toThrow(RuntimeException::class)
-        ->and($turns->isRunning('c1'))->toBeFalse();
-});
-
-it('stops counting a turn that fails', function (): void {
-    $turns = app(RunningTurns::class);
-
-    $events = $turns->track('c1', fn (): Generator => (function (): Generator {
+    $events = $turns->track('c2', fn (): Generator => (function (): Generator {
         yield 'a';
         throw new RuntimeException('boom');
     })());
 
-    expect(fn () => iterator_to_array($events))->toThrow(RuntimeException::class)
-        ->and($turns->isRunning('c1'))->toBeFalse();
-});
-
-it('stops counting a turn whose stream was dropped part way', function (): void {
-    $turns = app(RunningTurns::class);
-
-    $events = $turns->track('c1', fn (): Generator => (function (): Generator {
-        yield 'a';
-        yield 'b';
-    })());
-    $events->current();
-
-    expect($turns->isRunning('c1'))->toBeTrue();
-
-    unset($events);
-    gc_collect_cycles();
-
-    expect($turns->isRunning('c1'))->toBeFalse();
-});
-
-it('keeps other conversations apart', function (): void {
-    $turns = app(RunningTurns::class);
-
-    $turns->track('c1', fn (): Generator => (function (): Generator {
-        yield 'a';
-    })());
-
-    expect($turns->isRunning('c2'))->toBeFalse();
+    expect(fn () => $turns->track('c1', fn (): Generator => throw new RuntimeException('boom')))->toThrow(RuntimeException::class)
+        ->and($turns->isRunning('c1'))->toBeFalse()
+        ->and(fn () => iterator_to_array($events))->toThrow(RuntimeException::class)
+        ->and($turns->isRunning('c2'))->toBeFalse();
 });

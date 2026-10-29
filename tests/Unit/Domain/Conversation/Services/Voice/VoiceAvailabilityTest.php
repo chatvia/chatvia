@@ -24,15 +24,11 @@ it('keeps voice off without a license key, even when set up and switched on', fu
         ->and($voice->isOnFor($this->agent))->toBeFalse();
 });
 
-it('offers voice with a license key', function (): void {
+it('offers voice with a license key only while the agent has it on', function (): void {
     withLicense();
+    $off = Agent::factory()->create();
+    $off->setSetting('allow_voice_conversation', false, 'appearance');
 
-    expect(app(VoiceAvailability::class)->isOnFor($this->agent))->toBeTrue();
-});
-
-it('keeps voice off with a license key while the agent has it off', function (): void {
-    withLicense();
-    $this->agent->setSetting('allow_voice_conversation', false, 'appearance');
-
-    expect(app(VoiceAvailability::class)->isOnFor($this->agent))->toBeFalse();
+    expect(app(VoiceAvailability::class)->isOnFor($this->agent))->toBeTrue()
+        ->and(app(VoiceAvailability::class)->isOnFor($off))->toBeFalse();
 });

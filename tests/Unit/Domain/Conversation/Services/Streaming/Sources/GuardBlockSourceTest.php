@@ -28,20 +28,16 @@ function guardBlockSource(): GuardBlockSource
     return new GuardBlockSource(new RecordingReplyRecorder);
 }
 
-it('sends the refusal when the conversation was not handed off', function (): void {
-    $events = collect(iterator_to_array(guardBlockSource()->events(guardBlockContext()), preserve_keys: false));
-
-    expect($events->first(fn (StreamEvent $e): bool => $e->type === EventType::Delta)->data['text'])->toBe('Sorry, I can’t help with that request.')
-        ->and($events->contains(fn (StreamEvent $e): bool => $e->type === EventType::Meta))->toBeFalse();
-});
-
-it('sends the hand-off message and a pending handoff event when the team takes over', function (): void {
+it('sends the refusal, or the hand-off message with a pending handoff event when the team takes over', function (): void {
     $conversation = Conversation::factory()->create();
 
-    $events = collect(iterator_to_array(guardBlockSource()->events(guardBlockContext(), $conversation), preserve_keys: false));
-    $meta = $events->first(fn (StreamEvent $e): bool => $e->type === EventType::Meta);
+    $refused = collect(iterator_to_array(guardBlockSource()->events(guardBlockContext()), preserve_keys: false));
+    $handedOff = collect(iterator_to_array(guardBlockSource()->events(guardBlockContext(), $conversation), preserve_keys: false));
+    $meta = $handedOff->first(fn (StreamEvent $e): bool => $e->type === EventType::Meta);
 
-    expect($events->first(fn (StreamEvent $e): bool => $e->type === EventType::Delta)->data['text'])->toBe('Let me connect you with someone from our team.')
+    expect($refused->first(fn (StreamEvent $e): bool => $e->type === EventType::Delta)->data['text'])->toBe('Sorry, I can’t help with that request.')
+        ->and($refused->contains(fn (StreamEvent $e): bool => $e->type === EventType::Meta))->toBeFalse()
+        ->and($handedOff->first(fn (StreamEvent $e): bool => $e->type === EventType::Delta)->data['text'])->toBe('Let me connect you with someone from our team.')
         ->and($meta->data['key'])->toBe('handoff')
         ->and($meta->data['value'])->toMatchArray(['status' => 'pending', 'conversation_id' => $conversation->external_id]);
 });

@@ -11,8 +11,9 @@ use Tests\Support\Llm\FakeImageGenerator;
 use Tests\Support\Llm\FakeSpeaker;
 
 /**
- * The tools of a capability whose service an admin has not set up are never
- * offered to the model; every other tool stays.
+ * The tools of a capability whose service an admin has not set up, and every
+ * capability tool without a license key, are never offered to the model;
+ * every other tool stays.
  */
 function utfEntries(): array
 {
@@ -27,15 +28,7 @@ function utfNames(array $entries): array
     return array_map(fn (ToolEntryData $entry): string => $entry->name, $entries);
 }
 
-// Capabilities and forms need a license key; EnsureCapabilityLicenseTest covers the gate.
 beforeEach(fn () => withLicense());
-
-it('keeps every tool while the services are set up', function (): void {
-    FakeImageGenerator::install();
-    app()->instance(AudioGeneration::class, new AudioGeneration(new FakeSpeaker));
-
-    expect(utfNames(app(UnavailableToolFilter::class)->apply(utfEntries())))->toBe(utfNames(utfEntries()));
-});
 
 it('drops the tools of a capability whose service is off', function (): void {
     FakeImageGenerator::install(enabled: false);

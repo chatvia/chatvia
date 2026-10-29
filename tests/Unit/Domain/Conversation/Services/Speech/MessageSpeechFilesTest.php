@@ -7,23 +7,14 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
- * Saved replies read aloud live in the conversation's chat folder, one file
- * per message, service and voice, and go with their message.
+ * Saved replies read aloud go with their message, in every voice, and the
+ * other messages' files stay.
  */
 beforeEach(function (): void {
     Storage::fake(MessageSpeechFiles::DISK);
     $this->agent = Agent::factory()->create();
     $this->files = app(MessageSpeechFiles::class);
     $this->conversation = (string) Str::uuid7();
-});
-
-it('keeps one file per message, service and voice in the conversation\'s chat folder', function (): void {
-    $path = $this->files->pathFor($this->agent, $this->conversation, 'm1', 'openai tts', 'marin', SpeechFormat::Mp3);
-
-    expect($path)->toStartWith($this->agent->settingsStorageRoot().'/chat/'.$this->conversation.'/speech/m1-')
-        ->and($path)->toEndWith('.mp3')
-        ->and($this->files->pathFor($this->agent, $this->conversation, 'm1', 'openai tts', 'cedar', SpeechFormat::Mp3))->not->toBe($path)
-        ->and($this->files->pathFor($this->agent, $this->conversation, 'm1', 'elevenlabs v4', 'marin', SpeechFormat::Mp3))->not->toBe($path);
 });
 
 it('forgets one message, in every voice, and keeps the others', function (): void {

@@ -9,19 +9,7 @@ use Domain\Conversation\Topic\Models\Topic;
  * once no agent uses it; a system topic and a topic still used by another
  * agent are kept.
  */
-it('deletes a workspace topic once its last agent lets it go', function (): void {
-    $owner = User::factory()->create();
-    $agent = createAgent($owner);
-    $topic = Topic::factory()->create(['workspace_id' => $owner->workspace()->id, 'topic' => 'Refunds']);
-    $agent->topics()->attach($topic->id);
-
-    app(DetachTopicFromAgentAction::class)->execute($agent, $topic);
-
-    expect($agent->topics()->count())->toBe(0)
-        ->and(Topic::query()->whereKey($topic->id)->exists())->toBeFalse();
-});
-
-it('keeps a workspace topic that another agent still uses', function (): void {
+it('deletes a workspace topic once its last agent lets it go, and keeps it while another agent uses it', function (): void {
     $owner = User::factory()->create();
     $agent = createAgent($owner);
     $other = createAgent($owner);
@@ -30,10 +18,12 @@ it('keeps a workspace topic that another agent still uses', function (): void {
     $other->topics()->attach($topic->id);
 
     app(DetachTopicFromAgentAction::class)->execute($agent, $topic);
+    $keptWhileUsed = Topic::query()->whereKey($topic->id)->exists();
+    app(DetachTopicFromAgentAction::class)->execute($other, $topic);
 
     expect($agent->topics()->count())->toBe(0)
-        ->and($other->topics()->whereKey($topic->id)->exists())->toBeTrue()
-        ->and(Topic::query()->whereKey($topic->id)->exists())->toBeTrue();
+        ->and($keptWhileUsed)->toBeTrue()
+        ->and(Topic::query()->whereKey($topic->id)->exists())->toBeFalse();
 });
 
 it('never deletes a system topic', function (): void {

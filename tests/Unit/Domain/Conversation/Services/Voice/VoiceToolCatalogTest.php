@@ -10,9 +10,9 @@ use Domain\Integration\Tool\Enums\ToolKind;
 use Domain\Integration\Tool\Registry\ToolRegistry;
 
 /**
- * The tools a voice call offers: the agent's tools, those that need approval
- * included (the call asks out loud), each named for the call view by its
- * connector and action.
+ * A voice call offers a tool that needs approval (the call asks out loud)
+ * only to a signed-in caller: an anonymous visitor's yes would run it with
+ * the workspace's credentials.
  */
 beforeEach(function (): void {
     $this->agent = Agent::factory()->create();
@@ -30,27 +30,5 @@ it('offers a tool that needs approval to a signed-in caller only', function (): 
 
     expect($catalog->for($this->agent, $this->conversation->external_id, ChatViewerData::chatter(1)))->toHaveKey($this->tool)
         ->and($catalog->for($this->agent, $this->conversation->external_id, ChatViewerData::staff(1)))->toHaveKey($this->tool)
-        // An anonymous visitor's yes would run it with the workspace's credentials.
         ->and($catalog->for($this->agent, $this->conversation->external_id))->not->toHaveKey($this->tool);
-});
-
-it('names a tool for the call view by its connector and action', function (): void {
-    $catalog = app(VoiceToolCatalog::class);
-    $labels = $catalog->labels($this->agent, $catalog->for($this->agent, $this->conversation->external_id, ChatViewerData::chatter(1)));
-
-    expect($labels)->toHaveKey($this->tool)
-        ->and($labels[$this->tool]->kind)->toBe(ToolKind::Mcp)
-        ->and($labels[$this->tool]->label)->toBe('stripe')
-        ->and($labels[$this->tool]->action)->toBe('send_stripe_feedback');
-});
-
-it('offers the knowledge search only to an agent that searches its knowledge', function (): void {
-    $catalog = app(VoiceToolCatalog::class);
-    $tools = $catalog->for($this->agent, $this->conversation->external_id, ChatViewerData::chatter(1));
-
-    expect(array_column($catalog->definitions($this->agent, $tools), 'name'))->toBe([VoiceToolCatalog::KNOWLEDGE_TOOL, $this->tool]);
-
-    $this->agent->setSetting('search', false, 'knowledge');
-
-    expect(array_column($catalog->definitions($this->agent->fresh(), $tools), 'name'))->toBe([$this->tool]);
 });

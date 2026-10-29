@@ -53,13 +53,12 @@ function tlsStream(string $source, ChatContext $context, ToolLoopRunner $runner)
 beforeEach(function (): void {
     Cache::flush();
     Log::spy();
-    // The attachment source answers with the model for chat files.
     useChatFiles();
 });
 
 dataset('tool loop sources', ['llm', 'files']);
 
-it('redacts the answer with the output guardrails before saving and replaying it', function (string $source): void {
+it('redacts the answer before saving and replaying it, and the partial answer saved after a disconnect', function (string $source): void {
     $context = TestChatContext::make();
     $runner = new ScriptedToolLoopRunner(function (ChatContext $ctx): Generator {
         $ctx->appendStreamedMessage('Mail me at a@b.com');
@@ -67,39 +66,33 @@ it('redacts the answer with the output guardrails before saving and replaying it
 
         return false;
     });
-
-    [$stream, $replyRecorder, $recorder] = tlsStream($source, $context, $runner);
-    $events = iterator_to_array($stream, preserve_keys: false);
-
-    $replace = collect($events)->first(fn (StreamEvent $e): bool => $e->type === EventType::Replace);
-
-    expect($replace)->not->toBeNull()
-        ->and($replace->data['text'])->toBe('Mail me at [EMAIL]')
-        ->and($replyRecorder->saved)->toBe(['Mail me at [EMAIL]'])
-        ->and($recorder->samples)->toBe(['Mail me at [EMAIL]'])
-        ->and(app(RequestDedupeStore::class)->find($context->requestData->requestId)->content)->toBe('Mail me at [EMAIL]')
-        ->and(end($events)->data['reason'])->toBe('complete');
-})->with('tool loop sources');
-
-it('redacts the partial answer it saves after the client disconnects', function (string $source): void {
-    $context = TestChatContext::make();
-    $runner = new ScriptedToolLoopRunner(function (ChatContext $ctx): Generator {
+    $cutContext = TestChatContext::make();
+    $cut = new ScriptedToolLoopRunner(function (ChatContext $ctx): Generator {
         $ctx->appendStreamedMessage('Mail me at a@b.com');
         yield StreamEvent::delta($ctx->assistantMessageId, 'Mail me at');
         throw new ClientDisconnected;
     });
 
-    [$stream, $replyRecorder] = tlsStream($source, $context, $runner);
-    iterator_to_array($stream, preserve_keys: false);
+    [$stream, $replyRecorder, $recorder] = tlsStream($source, $context, $runner);
+    $events = iterator_to_array($stream, preserve_keys: false);
+    [$cutStream, $cutRecorder] = tlsStream($source, $cutContext, $cut);
+    iterator_to_array($cutStream, preserve_keys: false);
 
-    expect($replyRecorder->saved)->toBe(['Mail me at [EMAIL]'])
-        ->and(app(RequestDedupeStore::class)->find($context->requestData->requestId)->content)->toBe('Mail me at [EMAIL]');
+    $replace = collect($events)->first(fn (StreamEvent $e): bool => $e->type === EventType::Replace);
+    expect($replace->data['text'])->toBe('Mail me at [EMAIL]')
+        ->and($replyRecorder->saved)->toBe(['Mail me at [EMAIL]'])
+        ->and($recorder->samples)->toBe(['Mail me at [EMAIL]'])
+        ->and(app(RequestDedupeStore::class)->find($context->requestData->requestId)->content)->toBe('Mail me at [EMAIL]')
+        ->and(end($events)->data['reason'])->toBe('complete')
+        ->and($cutRecorder->saved)->toBe(['Mail me at [EMAIL]'])
+        ->and(app(RequestDedupeStore::class)->find($cutContext->requestData->requestId)->content)->toBe('Mail me at [EMAIL]');
 })->with('tool loop sources');
 
-it('holds the answer until the output guards checked it, then sends it in one piece', function (string $source): void {
+it('holds the answer until the output guards checked it, sends it in one piece and drops step text never shown', function (string $source): void {
     $context = TestChatContext::make();
     $context->requestData->agent->setSetting('check_before_showing', true, 'guardrails');
     $runner = new ScriptedToolLoopRunner(function (ChatContext $ctx): Generator {
+        $ctx->addTextStep('Let me look up your event types.');
         $ctx->appendStreamedMessage('Mail me at a@b.com');
         yield StreamEvent::delta($ctx->assistantMessageId, 'Mail me at a@b.com');
 
@@ -112,28 +105,21 @@ it('holds the answer until the output guards checked it, then sends it in one pi
 
     expect($deltas)->toHaveCount(1)
         ->and($deltas[0]->data['text'])->toBe('Mail me at [EMAIL]')
-        ->and($events->contains(fn (StreamEvent $e): bool => $e->type === EventType::Replace))->toBeFalse();
+        ->and($events->contains(fn (StreamEvent $e): bool => $e->type === EventType::Replace))->toBeFalse()
+        ->and($context->steps)->toBe([]);
 })->with('tool loop sources');
 
-it('keeps what the model wrote before its tool calls when the output guards leave it as it is', function (string $source): void {
-    $context = TestChatContext::make();
-    $runner = new ScriptedToolLoopRunner(function (ChatContext $ctx): Generator {
+it('keeps step text the output guards leave as it is, and drops step text they would change before it is saved', function (string $source): void {
+    $kept = TestChatContext::make();
+    $keptRunner = new ScriptedToolLoopRunner(function (ChatContext $ctx): Generator {
         $ctx->addTextStep('Let me look up your event types.');
         $ctx->appendStreamedMessage('Found it.');
         yield StreamEvent::delta($ctx->assistantMessageId, 'Found it.');
 
         return false;
     });
-
-    [$stream] = tlsStream($source, $context, $runner);
-    iterator_to_array($stream, preserve_keys: false);
-
-    expect($context->stepText())->toBe('Let me look up your event types.');
-})->with('tool loop sources');
-
-it('drops step text the output guards would change, before the steps are saved', function (string $source): void {
-    $context = TestChatContext::make();
-    $runner = new ScriptedToolLoopRunner(function (ChatContext $ctx): Generator {
+    $changed = TestChatContext::make();
+    $changedRunner = new ScriptedToolLoopRunner(function (ChatContext $ctx): Generator {
         $ctx->addTextStep('Let me mail a@b.com.');
         $ctx->addToolStep(tlsToolCall());
         $ctx->appendStreamedMessage('Sent.');
@@ -142,30 +128,13 @@ it('drops step text the output guards would change, before the steps are saved',
         return false;
     });
 
-    [$stream] = tlsStream($source, $context, $runner);
-    iterator_to_array($stream, preserve_keys: false);
+    iterator_to_array(tlsStream($source, $kept, $keptRunner)[0], preserve_keys: false);
+    iterator_to_array(tlsStream($source, $changed, $changedRunner)[0], preserve_keys: false);
 
-    // The tool step stays: it never carries model text.
-    expect($context->stepText())->toBe('')
-        ->and($context->steps)->toHaveCount(1)
-        ->and($context->steps[0]->label)->toBe('Cal.com');
-})->with('tool loop sources');
-
-it('drops step text that was held for the output guards and never shown', function (string $source): void {
-    $context = TestChatContext::make();
-    $context->requestData->agent->setSetting('check_before_showing', true, 'guardrails');
-    $runner = new ScriptedToolLoopRunner(function (ChatContext $ctx): Generator {
-        $ctx->addTextStep('Let me look up your event types.');
-        $ctx->appendStreamedMessage('Found it.');
-        yield StreamEvent::delta($ctx->assistantMessageId, 'Found it.');
-
-        return false;
-    });
-
-    [$stream] = tlsStream($source, $context, $runner);
-    iterator_to_array($stream, preserve_keys: false);
-
-    expect($context->steps)->toBe([]);
+    expect($kept->stepText())->toBe('Let me look up your event types.')
+        ->and($changed->stepText())->toBe('')
+        ->and($changed->steps)->toHaveCount(1)
+        ->and($changed->steps[0]->label)->toBe('Cal.com');
 })->with('tool loop sources');
 
 function tlsToolCall(): PendingToolCallData

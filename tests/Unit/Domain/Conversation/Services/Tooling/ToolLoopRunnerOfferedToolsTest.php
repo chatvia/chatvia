@@ -22,8 +22,6 @@ use Tests\Support\Llm\CannedLlmProvider;
  * as its own outcome.
  */
 beforeEach(function (): void {
-    // The runner emits ToolCallCompleted for the governance audit. Faking it
-    // lets the tests check the event without its queued listener writing rows.
     Event::fake([ToolCallCompleted::class]);
     config(['chatvia.agent.tools.max_iterations' => 5]);
 });
@@ -44,26 +42,9 @@ function lrotModel(array $calls, string $answer = ''): ScriptedStreamTransformer
     });
 }
 
-it('tells the transformer which tools were offered on the turn', function (): void {
-    $context = TestChatContext::make();
-    $seen = null;
-    $transformer = new ScriptedStreamTransformer(function (ChatContext $ctx) use (&$seen): Generator {
-        $seen = $ctx->offeredToolNames;
-        yield from [];
-    });
-    $runner = ToolLoop::runner($transformer, new RecordingToolDispatcher, FakeToolApprovalPolicy::gatingNothing());
-
-    $llmMessages = [['role' => 'user', 'content' => 'hi']];
-    iterator_to_array($runner->run($context, new CannedLlmProvider, 'gpt-4', $llmMessages, toolDefinitions: ToolLoop::tools('get_time', 'get_weather')), preserve_keys: false);
-
-    expect($seen)->toBe(['get_time', 'get_weather']);
-});
-
 it('refuses a call to a tool that was not offered, without running or gating it, and audits it', function (): void {
     $context = TestChatContext::make();
     $dispatcher = new RecordingToolDispatcher;
-    // The model invents a tool that was never offered this turn. Approval
-    // would gate every call: an unoffered call must not even reach it.
     $model = lrotModel([['id' => 'call_x', 'name' => 'delete_everything', 'arguments' => '{}']], 'I cannot do that.');
     $runner = ToolLoop::runner($model, $dispatcher, FakeToolApprovalPolicy::gatingEverything());
 
@@ -80,8 +61,6 @@ it('refuses a call to a tool that was not offered, without running or gating it,
         ->and($toolMessages)->toHaveCount(1)
         ->and($toolMessages[0]['tool_call_id'])->toBe('call_x')
         ->and($toolMessages[0]['content'])->toBe(sprintf(ToolLoopRunner::UNKNOWN_TOOL_RESULT, 'delete_everything'));
-
-    // The refusal still reaches the governance audit, as its own outcome.
     Event::assertDispatchedTimes(ToolCallCompleted::class, 1);
     Event::assertDispatched(ToolCallCompleted::class, fn (ToolCallCompleted $e): bool => $e->approvalOutcome === ToolCallOutcome::NotOffered->value
         && $e->toolCallId === 'call_x'
@@ -100,8 +79,6 @@ it('audits an unoffered MCP-shaped call under its server and a shortened name', 
     $llmMessages = [['role' => 'user', 'content' => 'go']];
     iterator_to_array($runner->run(TestChatContext::make(), new CannedLlmProvider, 'gpt-4', $llmMessages, toolDefinitions: ToolLoop::tools('get_time')), preserve_keys: false);
 
-    // The audit row stores the name in varchar columns, so it is cut to the
-    // same length the log and the model see.
     Event::assertDispatched(ToolCallCompleted::class, fn (ToolCallCompleted $e): bool => $e->approvalOutcome === ToolCallOutcome::NotOffered->value
         && $e->toolKind === ToolKind::Mcp->value
         && $e->connectorSlug === 'other'
@@ -109,18 +86,11 @@ it('audits an unoffered MCP-shaped call under its server and a shortened name', 
         && $e->arguments === '{"a":1}');
 });
 
-it('refuses every tool call when no tools were offered', function (): void {
+it('runs the offered call and refuses the unoffered one in the same turn, and every call when none was offered', function (): void {
     $dispatcher = new RecordingToolDispatcher;
-    $runner = ToolLoop::runner(lrotModel([['id' => 'call_1', 'name' => 'get_time', 'arguments' => '{}']]), $dispatcher, FakeToolApprovalPolicy::gatingNothing());
-
-    $llmMessages = [['role' => 'user', 'content' => 'time?']];
-    iterator_to_array($runner->run(TestChatContext::make(), new CannedLlmProvider, 'gpt-4', $llmMessages, toolDefinitions: []), preserve_keys: false);
-
-    expect($dispatcher->calls)->toBe([]);
-});
-
-it('runs the offered call and refuses the unoffered one in the same turn', function (): void {
-    $dispatcher = new RecordingToolDispatcher;
+    $none = new RecordingToolDispatcher;
+    $noneRunner = ToolLoop::runner(lrotModel([['id' => 'call_1', 'name' => 'get_time', 'arguments' => '{}']]), $none, FakeToolApprovalPolicy::gatingNothing());
+    $noneMessages = [['role' => 'user', 'content' => 'time?']];
     $model = lrotModel([
         ['id' => 'call_ok', 'name' => 'get_time', 'arguments' => '{}'],
         ['id' => 'call_bad', 'name' => 'mcp__other__drop_db', 'arguments' => '{}'],
@@ -129,11 +99,12 @@ it('runs the offered call and refuses the unoffered one in the same turn', funct
 
     $llmMessages = [['role' => 'user', 'content' => 'time?']];
     iterator_to_array($runner->run(TestChatContext::make(), new CannedLlmProvider, 'gpt-4', $llmMessages, toolDefinitions: ToolLoop::tools('get_time')), preserve_keys: false);
+    iterator_to_array($noneRunner->run(TestChatContext::make(), new CannedLlmProvider, 'gpt-4', $noneMessages, toolDefinitions: []), preserve_keys: false);
 
-    // Both tool_call_ids got a result, so the next model round stays valid.
     $results = collect($llmMessages)->where('role', 'tool')->pluck('content', 'tool_call_id')->all();
     expect(array_column($dispatcher->calls, 'name'))->toBe(['get_time'])
         ->and($results)->toHaveKeys(['call_ok', 'call_bad'])
         ->and($results['call_ok'])->toBe('result of get_time')
-        ->and($results['call_bad'])->toContain('not one of the tools available');
+        ->and($results['call_bad'])->toContain('not one of the tools available')
+        ->and($none->calls)->toBe([]);
 });

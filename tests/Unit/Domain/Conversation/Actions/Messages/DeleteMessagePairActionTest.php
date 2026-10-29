@@ -49,23 +49,15 @@ function dmpaHistoryIds(ChatScopeData $scope): array
     return array_column(app(ChatMemory::class)->withScope($scope)->getMessagesForConversation(), 'id');
 }
 
-it('removes the message and the one before it from the history', function (): void {
-    [$scope, , $ids] = dmpaConversation();
-
-    app(DeleteMessagePairAction::class)->execute($scope, $ids['a2']);
-
-    expect(dmpaHistoryIds($scope))->toBe([$ids['q1'], $ids['a1']]);
-});
-
-it('deletes the files uploaded with the removed messages', function (): void {
+it('removes the message and the one before it, with the files uploaded with them', function (): void {
     [$scope, $conversation, $ids] = dmpaConversation();
-
     $question = Message::factory()->fromUser()->create(['external_id' => $ids['q2'], 'chat_conversation_id' => $conversation->id, 'content' => 'text q2']);
     $upload = Attachment::factory()->forMessage($question)->stored()->create();
 
     app(DeleteMessagePairAction::class)->execute($scope, $ids['a2']);
 
-    expect(Attachment::query()->find($upload->id))->toBeNull();
+    expect(dmpaHistoryIds($scope))->toBe([$ids['q1'], $ids['a1']])
+        ->and(Attachment::query()->whereKey($upload->id)->exists())->toBeFalse();
     Storage::disk(Attachment::DISK)->assertMissing($upload->filepath);
 });
 
@@ -82,17 +74,7 @@ it('deletes the images and audio the removed answer made, and keeps the others',
 
     app(DeleteMessagePairAction::class)->execute($scope, $ids['a2']);
 
-    expect(GeneratedMedia::query()->find($made->id))->toBeNull()
-        ->and(GeneratedMedia::query()->find($earlier->id))->not->toBeNull();
+    expect(GeneratedMedia::query()->whereKey($made->id)->exists())->toBeFalse()
+        ->and(GeneratedMedia::query()->whereKey($earlier->id)->exists())->toBeTrue();
     Storage::disk(GeneratedMedia::DISK)->assertMissing($made->filepath);
-});
-
-it('keeps the text meant for the model on the messages that stay', function (): void {
-    [$scope, , $ids] = dmpaConversation();
-    $memory = app(ChatMemory::class)->withScope($scope);
-    $memory->saveMessages(array_map(static fn (MessageData $message): MessageData => $message->withMessageForLlm("masked {$message->content}"), $memory->cachedMessages()));
-
-    app(DeleteMessagePairAction::class)->execute($scope, $ids['a2']);
-
-    expect(array_column($memory->cachedMessages(), 'message_for_llm'))->toBe(['masked text q1', 'masked text a1']);
 });

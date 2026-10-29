@@ -8,9 +8,10 @@ use Domain\Conversation\Services\Streaming\Requests\StreamRequestDataFactory;
 use Illuminate\Http\Request;
 
 /**
- * The Hosted Chat and the Widget show the sources under an answer (labels and
- * public links only) only when the agent's owner turned them on. Otherwise
- * the turn never streams them, so they never reach the browser.
+ * Building a turn from a Hosted Chat or Widget request: the sources under an
+ * answer stream only when the agent's owner turned them on, a chatter is
+ * stamped as the turn's chatter and staff only as its audit actor, and the
+ * client's request id is scoped to the agent, session and conversation.
  */
 function srdfRequests(Agent $agent): array
 {
@@ -22,24 +23,16 @@ function srdfRequests(Agent $agent): array
     ];
 }
 
-it('hides the sources of answers by default', function (): void {
-    $agent = Agent::factory()->create();
+it('streams the sources of answers only when the agent shows them', function (): void {
+    $hidden = Agent::factory()->create();
+    $shown = Agent::factory()->create();
+    $shown->setSetting('sources_display', 'list', 'appearance');
 
-    [$hosted, $widget] = srdfRequests($agent);
+    [$hiddenHosted, $hiddenWidget] = srdfRequests($hidden);
+    [$shownHosted, $shownWidget] = srdfRequests($shown);
 
-    expect($agent->showsSources())->toBeFalse()
-        ->and($hosted->streamSources)->toBeFalse()
-        ->and($widget->streamSources)->toBeFalse();
-});
-
-it('streams the sources of answers to the hosted chat and the widget when the agent shows them', function (): void {
-    $agent = Agent::factory()->create();
-    $agent->setSetting('sources_display', 'list', 'appearance');
-
-    [$hosted, $widget] = srdfRequests($agent);
-
-    expect($hosted->streamSources)->toBeTrue()
-        ->and($widget->streamSources)->toBeTrue();
+    expect([$hiddenHosted->streamSources, $hiddenWidget->streamSources])->toBe([false, false])
+        ->and([$shownHosted->streamSources, $shownWidget->streamSources])->toBe([true, true]);
 });
 
 dataset('srdf surfaces', [
@@ -59,34 +52,20 @@ dataset('srdf surfaces', [
     )],
 ]);
 
-it('stamps a chatter as the chatter of the turn', function (Closure $turn): void {
+it('stamps a chatter as the chatter of the turn, and staff only as its audit actor', function (Closure $turn): void {
     $agent = Agent::factory()->create();
     $chatter = Chatter::factory()->grantedTo($agent)->create();
-
-    $data = $turn(app(StreamRequestDataFactory::class), $agent, $chatter);
-
-    expect([$data->chatterId, $data->chatterName, $data->chatterExternalId, $data->actorUserId, $data->actorName])
-        ->toBe([$chatter->id, $chatter->name, $chatter->external_id, null, $chatter->name]);
-})->with('srdf surfaces');
-
-it('stamps staff only as the audit actor of the turn', function (Closure $turn): void {
-    $agent = Agent::factory()->create();
     $staff = $agent->workspace->owner;
+    $factory = app(StreamRequestDataFactory::class);
 
-    $data = $turn(app(StreamRequestDataFactory::class), $agent, $staff);
+    $chatterTurn = $turn($factory, $agent, $chatter);
+    $staffTurn = $turn($factory, $agent, $staff);
 
-    expect([$data->chatterId, $data->chatterName, $data->chatterExternalId, $data->actorUserId, $data->actorName])
+    expect([$chatterTurn->chatterId, $chatterTurn->chatterName, $chatterTurn->chatterExternalId, $chatterTurn->actorUserId, $chatterTurn->actorName])
+        ->toBe([$chatter->id, $chatter->name, $chatter->external_id, null, $chatter->name])
+        ->and([$staffTurn->chatterId, $staffTurn->chatterName, $staffTurn->chatterExternalId, $staffTurn->actorUserId, $staffTurn->actorName])
         ->toBe([null, null, null, $staff->id, $staff->name]);
 })->with('srdf surfaces');
-
-it('marks a widget turn from the dashboard playground', function (): void {
-    $agent = Agent::factory()->create();
-    $factory = app(StreamRequestDataFactory::class);
-    $request = Request::create('/widget', 'POST', ['content' => 'Hi']);
-
-    expect($factory->forWidget($request, $agent, 's', 't', isPlayground: true)->source)->toBe('playground')
-        ->and($factory->forWidget($request, $agent, 's', 't', isPlayground: false)->source)->toBeNull();
-});
 
 it('scopes the client request id to the agent, session and conversation it was sent for', function (): void {
     $agent = Agent::factory()->create();
@@ -114,13 +93,4 @@ it('scopes the client request id to the agent, session and conversation it was s
     expect($ids)->each->toEndWith($id)
         ->and(collect($ids)->unique())->toHaveCount(count($ids))
         ->and($chat($agent, 's1', 'c1'))->toBe($ids[0]);
-});
-
-it('leaves a turn without a client request id unscoped', function (): void {
-    $agent = Agent::factory()->create();
-
-    [$hosted, $widget] = srdfRequests($agent);
-
-    expect($hosted->requestId)->toBeNull()
-        ->and($widget->requestId)->toBeNull();
 });

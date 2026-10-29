@@ -33,22 +33,21 @@ function ccfvSetup(): array
     return [$conversation->agent, $conversation->session, $conversation, $message];
 }
 
-it('hides a cleared conversation from the visitor but keeps the customer record intact', function (): void {
+it('hides a cleared conversation from the visitor and the widget but keeps the customer record intact', function (): void {
     [$agent, $session, $conversation, $message] = ccfvSetup();
 
     app(ClearConversationForVisitorAction::class)->execute(
         new ChatScopeData($agent, $session->external_id, $conversation->external_id),
     );
 
-    // Customer side: the row is NOT soft-deleted, content is preserved, and it
-    // is stamped as cleared by the visitor.
     $fresh = Conversation::query()->find($conversation->id);
-
-    expect($fresh)->not->toBeNull()
-        ->and($fresh->trashed())->toBeFalse()
+    $listed = collect(app(ChatMemory::class)->withContext($agent, $session->external_id)->getConversationsForCurrentSession())->pluck('id');
+    expect($fresh->trashed())->toBeFalse()
         ->and($fresh->cleared_at)->not->toBeNull()
         ->and($fresh->deleted_by)->toBe('user')
-        ->and($message->fresh()->content)->toBe('What are your opening hours?');
+        ->and($message->fresh()->content)->toBe('What are your opening hours?')
+        ->and($listed)->not->toContain($conversation->external_id)
+        ->and(app(WidgetVerification::class)->verifyConversationId($conversation->external_id, $agent))->toBeNull();
 });
 
 it('does not clear a conversation of another session or agent', function (): void {
@@ -56,7 +55,6 @@ it('does not clear a conversation of another session or agent', function (): voi
     $otherSession = Session::factory()->create(['agent_id' => $agent->id]);
     $clear = app(ClearConversationForVisitorAction::class);
 
-    // The conversation id replayed from another visitor's session, and under another agent.
     $clear->execute(new ChatScopeData($agent, $otherSession->external_id, $conversation->external_id));
     $clear->execute(new ChatScopeData(Agent::factory()->create(), $conversation->session->external_id, $conversation->external_id));
 
@@ -64,41 +62,6 @@ it('does not clear a conversation of another session or agent', function (): voi
 
     expect($fresh->cleared_at)->toBeNull()
         ->and($fresh->deleted_by)->toBeNull();
-});
-
-it('drops a cleared conversation from the visitor session rebuild', function (): void {
-    [$agent, $session, $conversation] = ccfvSetup();
-
-    // The clear drops the conversation's cache, so the next read rebuilds
-    // the list from the database and exercises the cleared_at filter.
-    app(ClearConversationForVisitorAction::class)->execute(
-        new ChatScopeData($agent, $session->external_id, $conversation->external_id),
-    );
-
-    $ids = collect(
-        app(ChatMemory::class)
-            ->withContext($agent, $session->external_id)
-            ->getConversationsForCurrentSession()
-    )->pluck('id');
-
-    expect($ids)->not->toContain($conversation->external_id);
-});
-
-it('stops the widget read side from resurfacing a cleared conversation', function (): void {
-    [$agent, $session, $conversation] = ccfvSetup();
-
-    // Resolvable before the clear...
-    expect(app(WidgetVerification::class)->verifyConversationId($conversation->external_id, $agent))
-        ->not->toBeNull();
-
-    app(ClearConversationForVisitorAction::class)->execute(
-        new ChatScopeData($agent, $session->external_id, $conversation->external_id),
-    );
-
-    // ...and gone from the widget's read path afterwards (message fetch,
-    // bootstrap restore, form submit all funnel through verifyConversationId).
-    expect(app(WidgetVerification::class)->verifyConversationId($conversation->external_id, $agent))
-        ->toBeNull();
 });
 
 it('clears every conversation in the session without erasing any of them', function (): void {

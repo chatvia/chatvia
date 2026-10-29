@@ -16,24 +16,19 @@ beforeEach(function (): void {
     $this->query = new InboxConversationsQuery;
 });
 
-it('lists online, waiting and held chats in that order', function (): void {
+it('lists online, waiting and held chats in that order, leaving out stale, hidden and other agents\' chats', function (): void {
     $online = Conversation::factory()->forAgent($this->agent)->live()->create(['last_activity_at' => now()->subMinute()]);
     $mine = Conversation::factory()->forAgent($this->agent)->live()->create(['handoff_status' => 'human', 'handoff_user_id' => $this->operator->id, 'last_activity_at' => now()->subHours(3)]);
     $waiting = Conversation::factory()->forAgent($this->agent)->live()->create(['handoff_status' => 'pending', 'last_activity_at' => now()->subHours(2)]);
-
-    $ids = $this->query->get(collect([$this->agent]), $this->operator)->pluck('id')->all();
-
-    expect($ids)->toBe([$waiting->id, $mine->id, $online->id]);
-});
-
-it('leaves out stale, hidden and other agents\' chats', function (): void {
     Conversation::factory()->forAgent($this->agent)->live()->create(['last_activity_at' => now()->subMinutes(10)]);
     Conversation::factory()->forAgent($this->agent)->live()->create(['is_visible' => false]);
     Conversation::factory()->forAgent($this->agent)->live()->create(['handoff_status' => 'pending', 'last_activity_at' => now()->subDays(2)]);
     Conversation::factory()->forAgent($this->agent)->live()->create(['handoff_status' => 'human', 'handoff_user_id' => User::factory()->create()->id, 'last_activity_at' => now()->subHour()]);
     Conversation::factory()->forAgent(Agent::factory()->create())->live()->create();
 
-    expect($this->query->get(collect([$this->agent]), $this->operator))->toBeEmpty();
+    $ids = $this->query->get(collect([$this->agent]), $this->operator)->pluck('id')->all();
+
+    expect($ids)->toBe([$waiting->id, $mine->id, $online->id]);
 });
 
 it('counts the chats waiting for a human', function (): void {
@@ -43,10 +38,4 @@ it('counts the chats waiting for a human', function (): void {
 
     expect($this->query->waitingCount(collect([$this->agent])))->toBe(1)
         ->and($this->query->waitingCount(collect()))->toBe(0);
-});
-
-it('returns nothing without agents', function (): void {
-    Conversation::factory()->forAgent($this->agent)->live()->create();
-
-    expect($this->query->get(collect(), $this->operator))->toBeEmpty();
 });

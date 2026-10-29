@@ -32,6 +32,6 @@ it('keeps the stored file when the surrounding delete rolls back', function (): 
     } catch (RuntimeException) {
     }
 
-    expect(Attachment::find($attachment->id))->not->toBeNull();
+    expect(Attachment::query()->whereKey($attachment->id)->exists())->toBeTrue();
     Storage::disk(Attachment::DISK)->assertExists($attachment->filepath);
 });

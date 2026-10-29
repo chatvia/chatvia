@@ -39,13 +39,15 @@ it('lists the chunks of one source once, with how many passages were used and wh
     ]);
 });
 
-it('keeps each PDF page and each website page apart', function (): void {
+it('keeps each PDF page, each website page and two sources with the same name apart', function (): void {
     $sources = collect([
         rsdSource(1, 'source_file', 9, 'manual.pdf', SourceKind::File, page: 3),
         rsdSource(2, 'source_file', 9, 'manual.pdf', SourceKind::File, page: 5),
         rsdSource(3, 'source_file', 9, 'manual.pdf', SourceKind::File, page: 3),
         rsdSource(4, 'source_website', 2, 'Returns', SourceKind::Website, 'https://shop.test/returns'),
         rsdSource(5, 'source_website', 2, 'Shipping', SourceKind::Website, 'https://shop.test/shipping'),
+        rsdSource(6, 'source_text', 4, 'Opening hours', SourceKind::Text),
+        rsdSource(7, 'source_text', 5, 'Opening hours', SourceKind::Text),
     ]);
 
     expect(array_map(static fn (SourceRefData $entry): array => [$entry->id, $entry->passages], RetrievedSourceData::forClients($sources)))->toBe([
@@ -53,18 +55,7 @@ it('keeps each PDF page and each website page apart', function (): void {
         ['chunk-2', 1],
         ['chunk-4', 1],
         ['chunk-5', 1],
+        ['chunk-6', 1],
+        ['chunk-7', 1],
     ]);
-});
-
-it('tells two sources with the same name apart', function (): void {
-    $sources = [
-        rsdSource(1, 'source_text', 4, 'Opening hours', SourceKind::Text),
-        rsdSource(2, 'source_text', 5, 'Opening hours', SourceKind::Text),
-    ];
-
-    expect(RetrievedSourceData::forClients($sources))->toHaveCount(2);
-});
-
-it('has nothing to list without sources', function (): void {
-    expect(RetrievedSourceData::forClients([]))->toBe([]);
 });

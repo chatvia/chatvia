@@ -16,34 +16,22 @@ beforeEach(function (): void {
     $this->inboxAgents = app(InboxAgents::class);
 });
 
-it('gives the owner every agent and lets them reply', function (): void {
-    expect($this->inboxAgents->viewableBy($this->owner)->pluck('id')->all())
-        ->toEqualCanonicalizing([$this->support->id, $this->sales->id])
-        ->and($this->inboxAgents->canReplyOn($this->owner, $this->support))->toBeTrue();
+it('gives a teammate only the agents their role may view, and none without the view permission', function (): void {
+    $viewer = teammateWithPermissions($this->owner, ['agent.chat.view'], allAgents: false, agentExternalIds: [$this->sales->external_id]);
+    $setupOnly = teammateWithPermissions($this->owner, ['agent.setup']);
+
+    expect($this->inboxAgents->viewableBy($viewer)->pluck('id')->all())->toBe([$this->sales->id])
+        ->and($this->inboxAgents->canReplyOn($viewer, $this->sales))->toBeFalse()
+        ->and($this->inboxAgents->viewableBy($setupOnly))->toBeEmpty();
 });
 
-it('gives a teammate only the agents their role may view', function (): void {
-    $teammate = teammateWithPermissions($this->owner, ['agent.chat.view'], allAgents: false, agentExternalIds: [$this->sales->external_id]);
-
-    expect($this->inboxAgents->viewableBy($teammate)->pluck('id')->all())->toBe([$this->sales->id])
-        ->and($this->inboxAgents->canReplyOn($teammate, $this->sales))->toBeFalse();
-});
-
-it('gives a teammate without the view permission no agents', function (): void {
-    $teammate = teammateWithPermissions($this->owner, ['agent.setup']);
-
-    expect($this->inboxAgents->viewableBy($teammate))->toBeEmpty();
-});
-
-it('does not let anyone reply when the agent has handoff off', function (): void {
+it('lets the owner reply only while the agent has handoff on and the install has a license key', function (): void {
     $this->support->setSetting('handoff_enabled', false, 'widget');
 
-    expect($this->inboxAgents->canReplyOn($this->owner, $this->support->fresh()))->toBeFalse();
-});
-
-it('does not let anyone reply without a license key, but still shows the agents', function (): void {
+    $withKey = [$this->inboxAgents->canReplyOn($this->owner, $this->sales), $this->inboxAgents->canReplyOn($this->owner, $this->support->fresh())];
     withoutLicense();
 
-    expect($this->inboxAgents->viewableBy($this->owner))->toHaveCount(2)
-        ->and($this->inboxAgents->canReplyOn($this->owner, $this->support))->toBeFalse();
+    expect($withKey)->toBe([true, false])
+        ->and($this->inboxAgents->viewableBy($this->owner))->toHaveCount(2)
+        ->and($this->inboxAgents->canReplyOn($this->owner, $this->sales))->toBeFalse();
 });

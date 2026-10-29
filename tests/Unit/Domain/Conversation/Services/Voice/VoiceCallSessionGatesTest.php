@@ -27,7 +27,6 @@ beforeEach(function (): void {
     app()->instance(RealtimeCalls::class, new ScriptedRealtimeCalls);
 
     $this->agent = Agent::factory()->create(['is_public' => true]);
-    // Guardrails off, so the real guards return the words unchanged without a classifier call.
     $this->agent->setSetting('enabled', false, 'guardrails');
     $this->call = VoiceCalls::started(Conversation::factory()->forAgent($this->agent)->hostedChat()->create());
 });
@@ -41,36 +40,26 @@ function vcsgJoin(): RecordingVoiceConnection
     return $connection;
 }
 
-it('says goodbye instead of answering once the message limit is reached', function (): void {
-    MessageLimit::factory()->forWorkspace($this->agent->workspace)->reached()->create();
+it('ends the call with a notice instead of answering once a gate refuses mid-call', function (string $gate, string $notice): void {
+    if ($gate === 'message limit') {
+        MessageLimit::factory()->forWorkspace($this->agent->workspace)->reached()->create();
+    }
     $connection = vcsgJoin();
+    if ($gate === 'deactivated') {
+        deactivateWorkspaceOf($this->agent);
+    }
 
     $this->session->received(RealtimeEvents::committed('item_1'));
+    $this->session->received(RealtimeEvents::committed('item_2'));
 
     expect($connection->ofType('conversation.item.delete')[0]['item_id'])->toBe('item_1')
         ->and($connection->ofType('response.create'))->toHaveCount(1)
         ->and($connection->ofType('response.create')[0]['response']['metadata'])->toBe(['notice' => '1'])
-        ->and($connection->ofType('response.create')[0]['response']['instructions'])->toContain('monthly message limit');
-
-    // Hanging up: nothing more is answered.
-    $this->session->received(RealtimeEvents::committed('item_2'));
-    expect($connection->ofType('response.create'))->toHaveCount(1);
-});
-
-it('hangs up instead of answering once the workspace is deactivated mid-call', function (): void {
-    $connection = vcsgJoin();
-    deactivateWorkspaceOf($this->agent);
-
-    $this->session->received(RealtimeEvents::committed('item_1'));
-
-    expect($connection->ofType('conversation.item.delete')[0]['item_id'])->toBe('item_1')
-        ->and($connection->ofType('response.create'))->toHaveCount(1)
-        ->and($connection->ofType('response.create')[0]['response']['metadata'])->toBe(['notice' => '1'])
-        ->and($connection->ofType('response.create')[0]['response']['instructions'])->toContain('not available');
-
-    $this->session->received(RealtimeEvents::committed('item_2'));
-    expect($connection->ofType('response.create'))->toHaveCount(1);
-});
+        ->and($connection->ofType('response.create')[0]['response']['instructions'])->toContain($notice);
+})->with([
+    'the message limit is reached' => ['message limit', 'monthly message limit'],
+    'the workspace is deactivated' => ['deactivated', 'not available'],
+]);
 
 it('refuses a turn a guardrail blocks, and keeps the refusal out of the count', function (): void {
     $this->mock(GuardrailInspector::class, function ($mock): void {

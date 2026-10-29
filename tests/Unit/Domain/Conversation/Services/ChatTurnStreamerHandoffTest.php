@@ -44,97 +44,63 @@ function csshBlockAsHandoffTopic(): void
     app()->instance(GuardrailInspector::class, $guardrails);
 }
 
-describe('a conversation a teammate holds', function (): void {
-    beforeEach(function (): void {
-        Event::fake([MessagePosted::class]);
-        $this->conversation = Conversation::factory()->forAgent($this->agent)->handedOff(HandoffStatus::Human, $this->agent->workspace->owner)->create();
-    });
+it('relays the visitor message to the teammate who holds the conversation, with or without a license key', function (bool $licensed): void {
+    Event::fake([MessagePosted::class]);
+    $conversation = Conversation::factory()->forAgent($this->agent)->handedOff(HandoffStatus::Human, $this->agent->workspace->owner)->create();
+    $licensed ? withLicense() : withoutLicense();
 
-    it('relays the visitor message to the teammate', function (bool $licensed): void {
-        $licensed ? withLicense() : withoutLicense();
-
-        $events = StreamTurn::run($this->agent, 'Are you there?', [
-            'externalSessionId' => $this->conversation->session->external_id,
-            'conversationId' => $this->conversation->external_id,
-        ]);
-
-        expect(StreamTurn::ofType($events, EventType::Meta)[0]->data['value']['status'])->toBe('human');
-
-        Event::assertDispatched(MessagePosted::class, fn (MessagePosted $event): bool => $event->conversationId === $this->conversation->external_id
-            && $event->content === 'Are you there?');
-    })->with([
-        'with a license key' => true,
-        'without one' => false,
+    $events = StreamTurn::run($this->agent, 'Are you there?', [
+        'externalSessionId' => $conversation->session->external_id,
+        'conversationId' => $conversation->external_id,
     ]);
 
-    it('does not relay into a conversation of another visitor session', function (): void {
-        // The conversation is looked up inside the visitor's own session, so a
-        // visitor who knows another conversation's id cannot post into it.
-        // The relay check runs before the per-turn gates, so stopping there
-        // keeps the unrelayed turn from calling the model.
-        StreamTurn::stopAtTheRateLimit($this->agent);
+    expect(StreamTurn::ofType($events, EventType::Meta)[0]->data['value']['status'])->toBe('human');
+    Event::assertDispatched(MessagePosted::class, fn (MessagePosted $event): bool => $event->conversationId === $conversation->external_id
+        && $event->content === 'Are you there?');
+})->with([
+    'with a license key' => true,
+    'without one' => false,
+]);
 
-        StreamTurn::run($this->agent, 'Are you there?', [
-            'externalSessionId' => Session::factory()->create(['agent_id' => $this->agent->id])->external_id,
-            'conversationId' => $this->conversation->external_id,
-        ]);
+it('does not relay into a held conversation of another visitor session', function (): void {
+    Event::fake([MessagePosted::class]);
+    $conversation = Conversation::factory()->forAgent($this->agent)->handedOff(HandoffStatus::Human, $this->agent->workspace->owner)->create();
+    StreamTurn::stopAtTheRateLimit($this->agent);
 
-        Event::assertNotDispatched(MessagePosted::class);
-    });
+    StreamTurn::run($this->agent, 'Are you there?', [
+        'externalSessionId' => Session::factory()->create(['agent_id' => $this->agent->id])->external_id,
+        'conversationId' => $conversation->external_id,
+    ]);
+
+    Event::assertNotDispatched(MessagePosted::class);
 });
 
-describe('a blocked topic that hands off', function (): void {
-    beforeEach(function (): void {
-        Event::fake([HandedOff::class, HandoffRequested::class]);
-        csshBlockAsHandoffTopic();
-        withLicense();
-    });
+it('hands a widget conversation off on a blocked handoff topic only with a license key, never a hosted-chat one', function (): void {
+    Event::fake([HandedOff::class, HandoffRequested::class]);
+    csshBlockAsHandoffTopic();
+    withLicense();
+    $run = fn (Conversation $conversation): array => StreamTurn::run($this->agent, 'I want to cancel my contract', [
+        'externalSessionId' => $conversation->session->external_id,
+        'conversationId' => $conversation->external_id,
+        'saveUserMessageImmediately' => true,
+    ]);
+    $widget = Conversation::factory()->forAgent($this->agent)->widget()->create();
+    $hosted = Conversation::factory()->forAgent($this->agent)->hostedChat()->create();
+    $unlicensed = Conversation::factory()->forAgent($this->agent)->widget()->create();
 
-    it('hands a widget conversation off', function (): void {
-        $conversation = Conversation::factory()->forAgent($this->agent)->widget()->create();
+    $handedOff = $run($widget);
+    $hostedEvents = $run($hosted);
+    withoutLicense();
+    $unlicensedEvents = $run($unlicensed);
 
-        // As the widget endpoint builds the turn: the per-message request
-        // names no source; only the conversation row knows its surface.
-        $events = StreamTurn::run($this->agent, 'I want to cancel my contract', [
-            'externalSessionId' => $conversation->session->external_id,
-            'conversationId' => $conversation->external_id,
-            'saveUserMessageImmediately' => true,
-        ]);
-        $meta = StreamTurn::ofType($events, EventType::Meta)[0];
-
-        expect($meta->data['key'])->toBe('handoff')
-            ->and($meta->data['value']['status'])->toBe(HandoffStatus::Pending->value)
-            ->and($conversation->fresh()->handoff_status)->toBe(HandoffStatus::Pending)
-            ->and(StreamTurn::ofType($events, EventType::Delta)[0]->data['text'])->toBe('Let me connect you with someone from our team.');
-    });
-
-    it('keeps the refusal on the widget without a license key', function (): void {
-        withoutLicense();
-        $conversation = Conversation::factory()->forAgent($this->agent)->widget()->create();
-
-        $events = StreamTurn::run($this->agent, 'I want to cancel my contract', [
-            'externalSessionId' => $conversation->session->external_id,
-            'conversationId' => $conversation->external_id,
-            'saveUserMessageImmediately' => true,
-        ]);
-
-        expect(StreamTurn::ofType($events, EventType::Meta))->toBe([])
-            ->and($conversation->fresh()->handoff_status)->toBe(HandoffStatus::Ai)
-            ->and(StreamTurn::ofType($events, EventType::Delta)[0]->data['text'])->toBe('Sorry, I can’t help with that request.');
-        Event::assertNotDispatched(HandoffRequested::class);
-    });
-
-    it('keeps the refusal on the hosted chat, which has no live chat', function (): void {
-        $conversation = Conversation::factory()->forAgent($this->agent)->hostedChat()->create();
-
-        $events = StreamTurn::run($this->agent, 'I want to cancel my contract', [
-            'externalSessionId' => $conversation->session->external_id,
-            'conversationId' => $conversation->external_id,
-            'saveUserMessageImmediately' => true,
-        ]);
-
-        expect(StreamTurn::ofType($events, EventType::Meta))->toBe([])
-            ->and($conversation->fresh()->handoff_status)->toBe(HandoffStatus::Ai)
-            ->and(StreamTurn::ofType($events, EventType::Delta)[0]->data['text'])->toBe('Sorry, I can’t help with that request.');
-    });
+    expect(StreamTurn::ofType($handedOff, EventType::Meta)[0]->data['key'])->toBe('handoff')
+        ->and($widget->fresh()->handoff_status)->toBe(HandoffStatus::Pending)
+        ->and(StreamTurn::ofType($handedOff, EventType::Delta)[0]->data['text'])->toBe('Let me connect you with someone from our team.')
+        ->and(StreamTurn::ofType($hostedEvents, EventType::Meta))->toBe([])
+        ->and($hosted->fresh()->handoff_status)->toBe(HandoffStatus::Ai)
+        ->and(StreamTurn::ofType($hostedEvents, EventType::Delta)[0]->data['text'])->toBe('Sorry, I can’t help with that request.')
+        ->and(StreamTurn::ofType($unlicensedEvents, EventType::Meta))->toBe([])
+        ->and($unlicensed->fresh()->handoff_status)->toBe(HandoffStatus::Ai)
+        ->and(StreamTurn::ofType($unlicensedEvents, EventType::Delta)[0]->data['text'])->toBe('Sorry, I can’t help with that request.');
+    Event::assertDispatchedTimes(HandoffRequested::class, 1);
 });

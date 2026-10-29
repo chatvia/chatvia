@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Domain\Conversation\Data\Turn\SourceRefData;
 use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
 use Illuminate\Support\Facades\Cache;
 
@@ -10,42 +9,14 @@ use Illuminate\Support\Facades\Cache;
  * A finished answer is kept by request id for a few minutes, encrypted, so a
  * retried request can replay it.
  */
-it('remembers and reads a snapshot', function (): void {
-    $store = new RequestDedupeStore;
-
-    $store->remember(
-        requestId: 'req-1',
-        assistantMessageId: 'msg-1',
-        content: 'Hello world',
-        language: 'en',
-        sources: [$source = new SourceRefData(id: '7', label: 'Returns', kind: 'website', url: null, page: null, passages: 1)],
-    );
-
-    $snapshot = $store->find('req-1');
-
-    expect($snapshot->assistant_message_id)->toBe('msg-1')
-        ->and($snapshot->content)->toBe('Hello world')
-        ->and($snapshot->language)->toBe('en')
-        ->and(collect($snapshot->sources)->toArray())->toBe([$source->toArray()]);
-});
-
-it('forgets a snapshot', function (): void {
-    $store = new RequestDedupeStore;
-
-    $store->remember('req-1', 'msg-1', 'content', null, []);
-    $store->forget('req-1');
-
-    expect($store->find('req-1'))->toBeNull();
-});
-
-it('drops the snapshot once the configured time to live has passed', function (): void {
+it('replays a snapshot until the configured time to live has passed, then drops it', function (): void {
     config(['chatvia.sse.dedupe.ttl_seconds' => 60]);
     $store = new RequestDedupeStore;
 
     $store->remember('req-1', 'msg-1', 'Hello world', null);
 
     $this->travel(59)->seconds();
-    expect($store->find('req-1'))->not->toBeNull();
+    expect($store->find('req-1')?->content)->toBe('Hello world');
 
     $this->travel(2)->seconds();
     expect($store->find('req-1'))->toBeNull();

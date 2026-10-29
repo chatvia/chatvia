@@ -17,7 +17,6 @@ it('starts a guest session that lapses after a few days', function (): void {
     $agent = Agent::factory()->create();
 
     $sessionId = app(StartChatSessionAction::class)->execute($agent, null);
-
     $row = ChatSession::query()->where('external_id', $sessionId)->firstOrFail();
 
     expect($row->user_id)->toBeNull()
@@ -29,45 +28,18 @@ it('starts a guest session that lapses after a few days', function (): void {
     expect(app(ChatSessions::class)->isLive($agent, $sessionId))->toBeFalse();
 });
 
-it('keeps a signed-in chatter session live', function (): void {
+it('keeps the long-lived sessions of a chatter and a staff account with the same id apart', function (): void {
     $agent = Agent::factory()->create();
-    $chatter = Chatter::factory()->grantedTo($agent)->create();
-    $viewer = ChatViewerData::chatter($chatter->id);
-
-    $sessionId = app(StartChatSessionAction::class)->execute($agent, $viewer);
-
-    $this->travelTo(now()->addYear());
-
-    expect(ChatSession::query()->where('external_id', $sessionId)->value('chatter_id'))->toBe($chatter->id)
-        ->and(app(ChatSessions::class)->isLive($agent, $sessionId))->toBeTrue()
-        ->and(app(ChatSessions::class)->latestFor($agent, $viewer))->toBe($sessionId);
-});
-
-it('keeps a signed-in staff session live', function (): void {
-    $agent = Agent::factory()->create();
-    $staffId = $agent->workspace->owner->id;
-    $viewer = ChatViewerData::staff($staffId);
-
-    $sessionId = app(StartChatSessionAction::class)->execute($agent, $viewer);
-
-    $this->travelTo(now()->addYear());
-
-    expect(ChatSession::query()->where('external_id', $sessionId)->value('user_id'))->toBe($staffId)
-        ->and(app(ChatSessions::class)->isLive($agent, $sessionId))->toBeTrue()
-        ->and(app(ChatSessions::class)->latestFor($agent, $viewer))->toBe($sessionId);
-});
-
-it('keeps the sessions of a chatter and a staff account with the same id apart', function (): void {
-    $agent = Agent::factory()->create();
-
-    // One id taken from both id sequences, so neither table already holds it.
     $id = sharedStaffAndChatterId();
     User::factory()->create(['id' => $id]);
     Chatter::factory()->grantedTo($agent)->create(['id' => $id]);
 
     $chatterSession = app(StartChatSessionAction::class)->execute($agent, ChatViewerData::chatter($id));
     $staffSession = app(StartChatSessionAction::class)->execute($agent, ChatViewerData::staff($id));
+    $this->travelTo(now()->addYear());
 
-    expect(app(ChatSessions::class)->latestFor($agent, ChatViewerData::chatter($id)))->toBe($chatterSession)
+    expect(app(ChatSessions::class)->isLive($agent, $chatterSession))->toBeTrue()
+        ->and(app(ChatSessions::class)->isLive($agent, $staffSession))->toBeTrue()
+        ->and(app(ChatSessions::class)->latestFor($agent, ChatViewerData::chatter($id)))->toBe($chatterSession)
         ->and(app(ChatSessions::class)->latestFor($agent, ChatViewerData::staff($id)))->toBe($staffSession);
 });

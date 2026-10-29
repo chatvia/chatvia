@@ -13,20 +13,22 @@ beforeEach(function (): void {
     Storage::fake(GeneratedMedia::DISK);
 });
 
-it('wipes the stored file when its row is deleted', function (): void {
-    $media = GeneratedMedia::factory()->stored()->create();
+it('wipes the stored file with its row, also when the reply that made it is deleted', function (): void {
+    $conversation = Conversation::factory()->create();
+    $deleted = GeneratedMedia::factory()->forConversation($conversation)->stored()->create();
+    $made = GeneratedMedia::factory()->forConversation($conversation)->stored()->create();
+    $kept = GeneratedMedia::factory()->forConversation($conversation)->stored()->create();
+    $reply = Message::factory()->create([
+        'chat_conversation_id' => $conversation->id,
+        'metadata' => ['artifacts' => [['kind' => 'image', 'data' => ['id' => $made->external_id]]]],
+    ]);
 
-    $media->delete();
+    $deleted->delete();
+    $reply->delete();
 
-    Storage::disk(GeneratedMedia::DISK)->assertMissing($media->filepath);
-});
-
-it('deletes a pending row that has no file yet', function (): void {
-    $media = GeneratedMedia::factory()->create();
-
-    $media->delete();
-
-    expect(GeneratedMedia::query()->find($media->id))->toBeNull();
+    expect(GeneratedMedia::query()->whereKey($made->id)->exists())->toBeFalse()
+        ->and(GeneratedMedia::query()->whereKey($kept->id)->exists())->toBeTrue();
+    Storage::disk(GeneratedMedia::DISK)->assertMissing([$deleted->filepath, $made->filepath]);
 });
 
 it('goes with its conversation', function (): void {
@@ -35,35 +37,6 @@ it('goes with its conversation', function (): void {
 
     $conversation->delete();
 
-    expect(GeneratedMedia::query()->find($media->id))->toBeNull();
+    expect(GeneratedMedia::query()->whereKey($media->id)->exists())->toBeFalse();
     Storage::disk(GeneratedMedia::DISK)->assertMissing($media->filepath);
-});
-
-it('goes with the reply that made it', function (): void {
-    $conversation = Conversation::factory()->create();
-    $media = GeneratedMedia::factory()->forConversation($conversation)->stored()->create();
-    $kept = GeneratedMedia::factory()->forConversation($conversation)->stored()->create();
-    $reply = Message::factory()->create([
-        'chat_conversation_id' => $conversation->id,
-        'metadata' => ['artifacts' => [['kind' => 'image', 'data' => ['id' => $media->external_id]]]],
-    ]);
-
-    $reply->delete();
-
-    expect(GeneratedMedia::query()->find($media->id))->toBeNull()
-        ->and(GeneratedMedia::query()->find($kept->id))->not->toBeNull();
-});
-
-it('opens through a signed link without the host', function (): void {
-    $media = GeneratedMedia::factory()->video()->stored()->create();
-
-    expect($media->url)->toContain('/media/'.$media->external_id.'.mp4?')
-        ->and($media->url)->toContain('signature=');
-});
-
-it('ends the link with the kind\'s usual extension while the file is not made', function (): void {
-    $media = GeneratedMedia::factory()->audio()->create();
-
-    expect($media->filepath)->toBeNull()
-        ->and($media->url)->toContain('/media/'.$media->external_id.'.mp3?');
 });

@@ -12,98 +12,43 @@ use Illuminate\Support\Str;
 /**
  * The widget looks a conversation up by ids the browser sends. It must only
  * match when the conversation belongs to that session, the session to that
- * agent and, on a protected agent, to the signed-in chatter — and never once
- * the visitor cleared the thread. Anything else is null, never another
- * visitor's or another tenant's conversation.
+ * agent and, on a protected agent, to the signed-in chatter or staff member,
+ * and never once the visitor cleared the thread. Anything else is null,
+ * never another visitor's or another tenant's conversation.
  */
-it('finds the conversation of the given session and agent', function (): void {
+it('finds only a conversation of the given session and agent that the visitor has not cleared', function (): void {
     $conversation = Conversation::factory()->create();
     $session = $conversation->session;
+    $otherSession = Session::factory()->create(['agent_id' => $session->agent_id]);
+    $cleared = Conversation::factory()->inSession($session)->create(['cleared_at' => now()]);
+    $find = fn (string $conversationId, string $sessionId, Agent $agent): ?Conversation => app(FindWidgetConversationAction::class)
+        ->execute($conversationId, $sessionId, $agent);
 
-    $found = app(FindWidgetConversationAction::class)->execute(
-        $conversation->external_id,
-        $session->external_id,
-        $session->agent,
-    );
-
-    expect($found?->id)->toBe($conversation->id);
+    expect($find($conversation->external_id, $session->external_id, $session->agent)?->id)->toBe($conversation->id)
+        ->and($find($conversation->external_id, $session->external_id, Agent::factory()->create()))->toBeNull()
+        ->and($find($conversation->external_id, $otherSession->external_id, $session->agent))->toBeNull()
+        ->and($find($cleared->external_id, $session->external_id, $session->agent))->toBeNull();
 });
 
-it('returns null when the session belongs to another agent', function (): void {
-    $conversation = Conversation::factory()->create();
-    $otherAgent = Agent::factory()->create();
-
-    $found = app(FindWidgetConversationAction::class)->execute(
-        $conversation->external_id,
-        $conversation->session->external_id,
-        $otherAgent,
-    );
-
-    expect($found)->toBeNull();
-});
-
-it('returns null when the conversation belongs to another session', function (): void {
-    $conversation = Conversation::factory()->create();
-    $otherSession = Session::factory()->create(['agent_id' => $conversation->session->agent_id]);
-
-    $found = app(FindWidgetConversationAction::class)->execute(
-        $conversation->external_id,
-        $otherSession->external_id,
-        $conversation->session->agent,
-    );
-
-    expect($found)->toBeNull();
-});
-
-it('returns null for a thread the visitor cleared, like the widget\'s other lookups', function (): void {
-    $conversation = Conversation::factory()->create();
-    $conversation->update(['cleared_at' => now()]);
-    $agent = $conversation->session->agent;
-
-    $found = app(FindWidgetConversationAction::class)->execute(
-        $conversation->external_id,
-        $conversation->session->external_id,
-        $agent,
-    );
-
-    expect($found)->toBeNull();
-});
-
-it('on a protected agent, only finds the signed-in chatter\'s own conversation', function (): void {
+it('on a protected agent, finds a conversation only for the chatter or staff member who owns it', function (): void {
     $agent = Agent::factory()->create();
     $owner = Chatter::factory()->ofWorkspace($agent->workspace)->create();
     $other = Chatter::factory()->ofWorkspace($agent->workspace)->create();
-    $conversation = Conversation::factory()->forAgent($agent)->ofChatter($owner)->create();
-    $session = $conversation->session;
-
-    $find = fn (ChatViewerData $viewer): ?Conversation => app(FindWidgetConversationAction::class)->execute(
-        $conversation->external_id,
-        $session->external_id,
-        $session->agent,
-        $viewer,
-    );
-
-    // Another chatter replaying the owner's session and conversation ids, and
-    // a staff account whose id happens to equal the owner's.
-    expect($find(ChatViewerData::chatter($other->id)))->toBeNull()
-        ->and($find(ChatViewerData::staff($owner->id)))->toBeNull()
-        ->and($find(ChatViewerData::chatter($owner->id))?->id)->toBe($conversation->id);
-});
-
-it('on a protected agent, finds a staff member\'s conversation for that staff member only', function (): void {
+    $chatterConversation = Conversation::factory()->forAgent($agent)->ofChatter($owner)->create();
     $staff = User::factory()->create();
-    $conversation = Conversation::factory()->inSession(Session::factory()->forUser($staff)->create())->create();
-    $session = $conversation->session;
-
-    $find = fn (ChatViewerData $viewer): ?Conversation => app(FindWidgetConversationAction::class)->execute(
+    $staffConversation = Conversation::factory()->inSession(Session::factory()->forUser($staff)->create())->create();
+    $find = fn (Conversation $conversation, ChatViewerData $viewer): ?Conversation => app(FindWidgetConversationAction::class)->execute(
         $conversation->external_id,
-        $session->external_id,
-        $session->agent,
+        $conversation->session->external_id,
+        $conversation->session->agent,
         $viewer,
     );
 
-    expect($find(ChatViewerData::staff($staff->id))?->id)->toBe($conversation->id)
-        ->and($find(ChatViewerData::chatter($staff->id)))->toBeNull();
+    expect($find($chatterConversation, ChatViewerData::chatter($other->id)))->toBeNull()
+        ->and($find($chatterConversation, ChatViewerData::staff($owner->id)))->toBeNull()
+        ->and($find($chatterConversation, ChatViewerData::chatter($owner->id))?->id)->toBe($chatterConversation->id)
+        ->and($find($staffConversation, ChatViewerData::staff($staff->id))?->id)->toBe($staffConversation->id)
+        ->and($find($staffConversation, ChatViewerData::chatter($staff->id)))->toBeNull();
 });
 
 it('returns null for ids that are not UUIDs instead of querying', function (string $conversationId, string $sessionId): void {

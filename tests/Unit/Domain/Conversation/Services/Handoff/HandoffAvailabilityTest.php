@@ -19,15 +19,11 @@ it('keeps live chat off without a license key, even when the agent has it on', f
         ->and($handoff->isOnFor($this->agent))->toBeFalse();
 });
 
-it('offers live chat with a license key', function (): void {
+it('offers live chat with a license key only while the agent has it on', function (): void {
     withLicense();
+    $off = Agent::factory()->create();
+    $off->setSetting('handoff_enabled', false, 'widget');
 
-    expect(app(HandoffAvailability::class)->isOnFor($this->agent))->toBeTrue();
-});
-
-it('keeps live chat off with a license key while the agent has it off', function (): void {
-    withLicense();
-    $this->agent->setSetting('handoff_enabled', false, 'widget');
-
-    expect(app(HandoffAvailability::class)->isOnFor($this->agent))->toBeFalse();
+    expect(app(HandoffAvailability::class)->isOnFor($this->agent))->toBeTrue()
+        ->and(app(HandoffAvailability::class)->isOnFor($off))->toBeFalse();
 });

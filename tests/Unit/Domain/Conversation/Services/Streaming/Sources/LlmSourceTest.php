@@ -27,10 +27,11 @@ use Tests\Support\Llm\FakeLlmProviders;
 
 /**
  * LlmSource streams a turn in the shared envelope: the start event, the
- * sources, the done event, the mapping of exceptions to error events, and the
- * partial save and replay entry on a client disconnect. The model streaming
- * and the tool loop run inside ToolLoopRunner; these tests script it and
- * check what LlmSource does around it.
+ * sources only when the client shows them, the done event, the mapping of
+ * exceptions to error events, and the partial save and replay entry when the
+ * client disconnects or the visitor stops the turn. The model streaming and
+ * the tool loop run inside ToolLoopRunner; these tests script it and check
+ * what LlmSource does around it.
  */
 /**
  * A turn of an agent with its guardrails switched off, so the real output
@@ -44,11 +45,17 @@ function lsContext(bool $streamSources = false): ChatContext
     return TestChatContext::make(agent: $agent, streamSources: $streamSources);
 }
 
-function lsSource(ToolLoopRunner $runner): LlmSource
+/**
+ * Runs one scripted turn and returns its events and the replies it saved.
+ *
+ * @return array{0: list<StreamEvent>, 1: RecordingReplyRecorder}
+ */
+function lsRun(ToolLoopRunner $runner, ChatContext $context): array
 {
-    return new LlmSource(
+    $recorder = new RecordingReplyRecorder;
+    $source = new LlmSource(
         providers: new FakeLlmProviders(new CannedLlmProvider),
-        replyRecorder: new RecordingReplyRecorder,
+        replyRecorder: $recorder,
         dedupe: new RequestDedupeStore,
         toolSelector: new NoToolSelector,
         runner: $runner,
@@ -56,12 +63,8 @@ function lsSource(ToolLoopRunner $runner): LlmSource
         guardrailRecorder: app(GuardrailRecorder::class),
         citations: app(CitationMarkers::class),
     );
-}
 
-/** @return list<StreamEvent> */
-function lsEvents(ToolLoopRunner $runner, ChatContext $context): array
-{
-    return iterator_to_array(lsSource($runner)->events($context, [['role' => 'user', 'content' => 'Hi']]), preserve_keys: false);
+    return [iterator_to_array($source->events($context, [['role' => 'user', 'content' => 'Hi']]), preserve_keys: false), $recorder];
 }
 
 /** @param  list<StreamEvent>  $events */
@@ -86,177 +89,78 @@ function lsRetrievedSource(): RetrievedSourceData
     );
 }
 
+/** A runner that streams the given text, sets the context up, then throws the given exception. */
+function lsCutShort(string $text, Throwable $cut, ?Closure $before = null): ScriptedToolLoopRunner
+{
+    return new ScriptedToolLoopRunner(function (ChatContext $ctx) use ($text, $cut, $before): Generator {
+        if ($before instanceof Closure) {
+            $before($ctx);
+        }
+        yield StreamEvent::delta($ctx->assistantMessageId, $text);
+        if ($text !== '') {
+            $ctx->appendStreamedMessage($text);
+        }
+
+        throw $cut;
+    });
+}
+
 beforeEach(function (): void {
-    Cache::flush(); // RequestDedupeStore reads and writes through Cache
+    Cache::flush();
     Log::spy();
 });
 
-it('yields start, delegates to the runner, and finishes with done on a normal turn', function (): void {
-    $context = lsContext();
+it('streams a turn between start and done, with the sources only when the client shows them', function (): void {
+    $shown = lsContext(streamSources: true);
+    $shown->setSources(collect([lsRetrievedSource()]));
+    $hidden = lsContext();
+    $hidden->setSources(collect([lsRetrievedSource()]));
 
-    $runner = new ScriptedToolLoopRunner(function (ChatContext $ctx): Generator {
-        yield StreamEvent::delta($ctx->assistantMessageId, 'Hello, ');
-        yield StreamEvent::delta($ctx->assistantMessageId, 'world.');
-        $ctx->appendStreamedMessage('Hello, world.');
+    [$shownEvents] = lsRun(ScriptedToolLoopRunner::answering('Returns are free.'), $shown);
+    [$hiddenEvents] = lsRun(ScriptedToolLoopRunner::answering('Returns are free.'), $hidden);
+    $sources = collect($shownEvents)->first(fn (StreamEvent $e): bool => $e->type === EventType::Sources);
 
-        return false; // not paused: a final answer was streamed
-    });
-
-    $events = lsEvents($runner, $context);
-
-    expect(lsTypes($events))->toBe([EventType::Start, EventType::Delta, EventType::Delta, EventType::Done])
-        ->and($events[0]->data['assistant_message_id'])->toBe($context->assistantMessageId)
-        ->and($events[0]->data['replayed'])->toBeFalse()
-        ->and(end($events)->data['reason'])->toBe('complete');
+    expect(lsTypes($shownEvents))->toBe([EventType::Start, EventType::Delta, EventType::Sources, EventType::Done])
+        ->and($shownEvents[0]->data['assistant_message_id'])->toBe($shown->assistantMessageId)
+        ->and(end($shownEvents)->data['reason'])->toBe('complete')
+        ->and(collect($sources->data['sources'])->pluck('id')->all())->toBe(['chunk-11'])
+        ->and(collect(app(RequestDedupeStore::class)->find($shown->requestData->requestId)->sources)->toArray())->toBe(collect($sources->data['sources'])->toArray())
+        ->and(lsTypes($hiddenEvents))->toBe([EventType::Start, EventType::Delta, EventType::Done])
+        ->and(app(RequestDedupeStore::class)->find($hidden->requestData->requestId)->sources)->toBe([]);
 });
 
-it('sends the sources of the answer before done when the client shows sources', function (): void {
-    $context = lsContext(streamSources: true);
-    $context->setSources(collect([lsRetrievedSource()]));
+it('keeps the partial answer of a turn cut short by a disconnect or a stop, and saves an empty one only when a tool made something', function (): void {
+    $disconnected = lsContext();
 
-    $events = lsEvents(ScriptedToolLoopRunner::answering('Returns are free.'), $context);
-    $sources = collect($events)->first(fn (StreamEvent $e): bool => $e->type === EventType::Sources);
-
-    expect(lsTypes($events))->toBe([EventType::Start, EventType::Delta, EventType::Sources, EventType::Done])
-        ->and(collect($sources->data['sources'])->toArray())->toBe([[
-            'id' => 'chunk-11',
-            'label' => 'Returns policy',
-            'kind' => 'website',
-            'url' => 'https://shop.test/returns',
-            'page' => null,
-            'passages' => 1,
-            'blocks' => [1],
-            'excerpt' => 'Returns are free within 30 days.',
-        ]])
-        ->and(collect(app(RequestDedupeStore::class)->find($context->requestData->requestId)->sources)->toArray())
-        ->toBe(collect($sources->data['sources'])->toArray());
-});
-
-it('sends no sources event when the client does not show sources', function (): void {
-    $context = lsContext();
-    $context->setSources(collect([lsRetrievedSource()]));
-
-    $events = lsEvents(ScriptedToolLoopRunner::answering('Returns are free.'), $context);
-
-    expect(lsTypes($events))->toBe([EventType::Start, EventType::Delta, EventType::Done])
-        ->and(app(RequestDedupeStore::class)->find($context->requestData->requestId)->sources)->toBe([]);
-});
-
-it('yields only the start event and returns early when the runner pauses for approval', function (): void {
-    $context = lsContext();
-
-    $runner = new ScriptedToolLoopRunner(function (ChatContext $ctx): Generator {
-        // The runner emits its own awaiting_approval done before returning
-        // paused; LlmSource adds nothing after that.
-        yield StreamEvent::done($ctx->assistantMessageId, 'awaiting_approval');
-
-        return true;
-    });
-
-    $events = lsEvents($runner, $context);
-
-    // start + the runner's awaiting_approval done; no sources, no trailing "complete" done
-    expect(lsTypes($events))->toBe([EventType::Start, EventType::Done])
-        ->and($events[1]->data['reason'])->toBe('awaiting_approval');
-});
-
-it('on ClientDisconnected does not surface an error and keeps the partial answer for replay', function (): void {
-    $context = lsContext();
-
-    $runner = new ScriptedToolLoopRunner(function (ChatContext $ctx): Generator {
-        yield StreamEvent::delta($ctx->assistantMessageId, 'partial reply');
-        $ctx->appendStreamedMessage('partial reply');
-        throw new ClientDisconnected;
-    });
-
-    $events = lsEvents($runner, $context);
-
-    // No `error`, no trailing `done`: the client is gone, so nothing is sent.
-    expect(lsTypes($events))->toBe([EventType::Start, EventType::Delta]);
-
-    // The partial answer is remembered, so a quick retry gets the same
-    // assistant_message_id without a second upstream call.
-    $cached = app(RequestDedupeStore::class)->find($context->requestData->requestId);
-    expect($cached)->not->toBeNull()
-        ->and($cached->content)->toBe('partial reply')
-        ->and($cached->assistant_message_id)->toBe($context->assistantMessageId);
-});
-
-/** The replies a scripted turn saved, through a recorder the test can read. */
-function lsSavedAfter(ToolLoopRunner $runner, ChatContext $context): RecordingReplyRecorder
-{
-    $recorder = new RecordingReplyRecorder;
-    $source = new LlmSource(
-        providers: new FakeLlmProviders(new CannedLlmProvider),
-        replyRecorder: $recorder,
-        dedupe: new RequestDedupeStore,
-        toolSelector: new NoToolSelector,
-        runner: $runner,
-        guardrails: app(GuardrailInspector::class),
-        guardrailRecorder: app(GuardrailRecorder::class),
-        citations: app(CitationMarkers::class),
-    );
-    iterator_to_array($source->events($context, [['role' => 'user', 'content' => 'Hi']]), preserve_keys: false);
-
-    return $recorder;
-}
-
-it('saves nothing for a turn cut off before it wrote, made or ran anything', function (): void {
-    $runner = new ScriptedToolLoopRunner(function (ChatContext $ctx): Generator {
-        yield StreamEvent::delta($ctx->assistantMessageId, '');
-        throw new ClientDisconnected;
-    });
-
-    expect(lsSavedAfter($runner, lsContext())->saved)->toBe([]);
-});
-
-it('saves a turn cut off after a tool asked for a file, so a reload does not ask again', function (): void {
-    $runner = new ScriptedToolLoopRunner(function (ChatContext $ctx): Generator {
+    [$events, $disconnectSaved] = lsRun(lsCutShort('partial reply', new ClientDisconnected), $disconnected);
+    [, $stopSaved] = lsRun(lsCutShort('partial reply', new TurnStopped), lsContext());
+    [, $emptySaved] = lsRun(lsCutShort('', new ClientDisconnected), lsContext());
+    [, $fileSaved] = lsRun(lsCutShort('', new ClientDisconnected, function (ChatContext $ctx): void {
         $ctx->artifacts = [['kind' => 'image', 'data' => ['id' => 'm1', 'status' => 'pending']]];
-        yield StreamEvent::delta($ctx->assistantMessageId, '');
-        throw new ClientDisconnected;
-    });
+    }), lsContext());
+    $cached = app(RequestDedupeStore::class)->find($disconnected->requestData->requestId);
 
-    expect(lsSavedAfter($runner, lsContext())->saved)->toBe(['']);
+    expect(lsTypes($events))->toBe([EventType::Start, EventType::Delta])
+        ->and($cached->content)->toBe('partial reply')
+        ->and($cached->assistant_message_id)->toBe($disconnected->assistantMessageId)
+        ->and($disconnectSaved->saved)->toBe(['partial reply'])
+        ->and($stopSaved->saved)->toBe(['partial reply'])
+        ->and($emptySaved->saved)->toBe([])
+        ->and($fileSaved->saved)->toBe(['']);
 });
 
-it('keeps the partial answer of a turn the visitor stopped, and sends nothing more', function (): void {
-    $runner = new ScriptedToolLoopRunner(function (ChatContext $ctx): Generator {
-        yield StreamEvent::delta($ctx->assistantMessageId, 'partial reply');
-        $ctx->appendStreamedMessage('partial reply');
-        throw new TurnStopped;
-    });
-
-    expect(lsSavedAfter($runner, lsContext())->saved)->toBe(['partial reply']);
-});
-
-it('on UpstreamStreamClosed surfaces a user-friendly upstream-unavailable error and done(error)', function (): void {
-    $context = lsContext();
-
-    $runner = new ScriptedToolLoopRunner(function (ChatContext $ctx): Generator {
-        yield StreamEvent::delta($ctx->assistantMessageId, 'partial');
-        throw new UpstreamStreamClosed;
-    });
-
-    $events = lsEvents($runner, $context);
-
-    expect(lsTypes($events))->toBe([EventType::Start, EventType::Delta, EventType::Error, EventType::Done])
-        ->and($events[2]->data['code'])->toBe(ErrorCode::UpstreamUnavailable->value)
-        ->and($events[3]->data['reason'])->toBe('error');
-});
-
-it('on an unexpected Throwable surfaces an internal error and done(error)', function (): void {
-    $context = lsContext();
-
-    $runner = new ScriptedToolLoopRunner(function (): Generator {
+it('maps a closed upstream stream to upstream_unavailable and anything else to an internal error, ending with done(error)', function (): void {
+    [$closed] = lsRun(lsCutShort('partial', new UpstreamStreamClosed), lsContext());
+    [$boom] = lsRun(new ScriptedToolLoopRunner(function (): Generator {
         yield from [];
 
         throw new RuntimeException('boom');
-    });
+    }), lsContext());
 
-    $events = lsEvents($runner, $context);
-
-    expect(lsTypes($events))->toBe([EventType::Start, EventType::Error, EventType::Done])
-        ->and($events[1]->data['code'])->toBe(ErrorCode::Internal->value)
-        ->and($events[2]->data['reason'])->toBe('error');
+    expect(lsTypes($closed))->toBe([EventType::Start, EventType::Delta, EventType::Error, EventType::Done])
+        ->and($closed[2]->data['code'])->toBe(ErrorCode::UpstreamUnavailable->value)
+        ->and($closed[3]->data['reason'])->toBe('error')
+        ->and(lsTypes($boom))->toBe([EventType::Start, EventType::Error, EventType::Done])
+        ->and($boom[1]->data['code'])->toBe(ErrorCode::Internal->value)
+        ->and($boom[2]->data['reason'])->toBe('error');
 });

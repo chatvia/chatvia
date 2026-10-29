@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use Domain\Conversation\Enums\MessageFeedback;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Llm\Models\Llm;
@@ -72,26 +71,6 @@ class MessageFactory extends Factory
             'llm_id' => $this->firstLlmId(),
             'confidence_score' => 0.9,
             'response_time_ms' => 1200,
-        ]);
-    }
-
-    /**
-     * Indicate that the message has positive feedback.
-     */
-    public function withPositiveFeedback(): static
-    {
-        return $this->state(fn (array $attributes): array => [
-            'feedback' => MessageFeedback::Positive,
-        ]);
-    }
-
-    /**
-     * Indicate that the message has negative feedback.
-     */
-    public function withNegativeFeedback(): static
-    {
-        return $this->state(fn (array $attributes): array => [
-            'feedback' => MessageFeedback::Negative,
         ]);
     }
 

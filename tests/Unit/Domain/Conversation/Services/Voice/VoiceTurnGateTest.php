@@ -23,21 +23,17 @@ it('refuses a deactivated workspace as not available', function (): void {
     expect($gate->refusal($agent, null))->toBe(VoiceCallRefusal::NotAvailable);
 });
 
-it('refuses once the workspace has used its monthly messages', function (): void {
-    $agent = Agent::factory()->create();
-    MessageLimit::factory()->forWorkspace($agent->workspace)->reached()->create();
-
-    expect(app(VoiceTurnGate::class)->refusal($agent, null))->toBe(VoiceCallRefusal::MessageLimitReached);
-});
-
-it('refuses a chatter who has used their own monthly messages, and only them', function (): void {
+it('refuses once the workspace or the chatter used their monthly messages, the chatter limit only for that chatter', function (): void {
     $agent = Agent::factory()->create();
     $chatter = Chatter::factory()->grantedTo($agent)->create();
     $other = Chatter::factory()->grantedTo($agent)->create();
     MessageLimit::factory()->forChatter($chatter)->reached()->create();
+    $limited = Agent::factory()->create();
+    MessageLimit::factory()->forWorkspace($limited->workspace)->reached()->create();
     $gate = app(VoiceTurnGate::class);
 
-    expect($gate->refusal($agent, $chatter->id))->toBe(VoiceCallRefusal::ChatterMessageLimitReached)
+    expect($gate->refusal($limited, null))->toBe(VoiceCallRefusal::MessageLimitReached)
+        ->and($gate->refusal($agent, $chatter->id))->toBe(VoiceCallRefusal::ChatterMessageLimitReached)
         ->and($gate->refusal($agent, $other->id))->toBeNull()
         ->and($gate->refusal($agent, null))->toBeNull();
 });

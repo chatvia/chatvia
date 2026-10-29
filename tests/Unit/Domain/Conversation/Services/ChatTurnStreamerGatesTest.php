@@ -55,95 +55,57 @@ function cssgOwnerOfWorkspaceWithChatterFreeId(): User
     return $owner->fresh();
 }
 
-describe('a deactivated workspace', function (): void {
-    it('refuses the turn with one non-retryable error and stores nothing', function (): void {
-        deactivateWorkspaceOf($this->agent);
-        $scope = new ChatScopeData($this->agent, (string) Str::uuid7(), (string) Str::uuid7());
+it('refuses a turn of a deactivated workspace with one non-retryable error and stores nothing', function (): void {
+    deactivateWorkspaceOf($this->agent);
+    $scope = new ChatScopeData($this->agent, (string) Str::uuid7(), (string) Str::uuid7());
 
-        $errors = StreamTurn::ofType(StreamTurn::run($this->agent, request: [
-            'externalSessionId' => $scope->sessionId,
-            'conversationId' => $scope->conversationId,
-            'saveUserMessageImmediately' => true,
-        ]), EventType::Error);
+    $errors = StreamTurn::ofType(StreamTurn::run($this->agent, request: [
+        'externalSessionId' => $scope->sessionId,
+        'conversationId' => $scope->conversationId,
+        'saveUserMessageImmediately' => true,
+    ]), EventType::Error);
 
-        expect(array_column($errors, 'data'))->toBe([[
-            'code' => ErrorCode::Internal->value,
-            'message' => 'Sorry — this assistant is unavailable right now. Please try again later.',
-            'retryable' => false,
-        ]])->and(app(ChatMemory::class)->withScope($scope)->getMessagesForConversation())->toBe([]);
-
-        Bus::assertNotDispatched(StoreMessageJob::class);
-    });
-
-    it('lets the turn through again once the workspace is reactivated', function (): void {
-        deactivateWorkspaceOf($this->agent);
-        reactivateWorkspaceOf($this->agent);
-        StreamTurn::stopAtTheRateLimit($this->agent);
-
-        expect(StreamTurn::errorCodes(StreamTurn::run($this->agent)))->toBe([ErrorCode::RateLimited->value]);
-    });
+    expect(array_column($errors, 'data'))->toBe([[
+        'code' => ErrorCode::Internal->value,
+        'message' => 'Sorry — this assistant is unavailable right now. Please try again later.',
+        'retryable' => false,
+    ]])->and(app(ChatMemory::class)->withScope($scope)->getMessagesForConversation())->toBe([]);
+    Bus::assertNotDispatched(StoreMessageJob::class);
 });
 
-describe('a blocked visitor', function (): void {
-    beforeEach(function (): void {
-        BlockedVisitor::factory()->create([
-            'workspace_id' => $this->agent->workspace_id,
-            'visitor_key' => app(VisitorFingerprint::class)->for($this->agent->workspace_id, '203.0.113.50', 'Firefox/130'),
-        ]);
-        StreamTurn::stopAtTheRateLimit($this->agent);
-    });
+it('refuses only the blocked visitor, storing nothing, never another visitor, a chatter or a staff preview', function (): void {
+    BlockedVisitor::factory()->create([
+        'workspace_id' => $this->agent->workspace_id,
+        'visitor_key' => app(VisitorFingerprint::class)->for($this->agent->workspace_id, '203.0.113.50', 'Firefox/130'),
+    ]);
+    StreamTurn::stopAtTheRateLimit($this->agent);
+    $chatter = Chatter::factory()->grantedTo($this->agent)->create();
+    $before = Message::query()->count();
 
-    it('refuses the visitor with access_blocked and stores nothing', function (): void {
-        $before = Message::query()->count();
-
-        expect(cssgVisitorTurn($this->agent, '203.0.113.50'))->toBe(['access_blocked'])
-            ->and(Message::query()->count())->toBe($before);
-    });
-
-    it('lets other visitors through', function (): void {
-        expect(cssgVisitorTurn($this->agent, '203.0.113.51'))->toBe(['rate_limited']);
-    });
-
-    it('does not apply a visitor block to a chatter or a staff preview', function (): void {
-        $chatter = Chatter::factory()->grantedTo($this->agent)->create();
-
-        expect(cssgVisitorTurn($this->agent, '203.0.113.50', ['chatterId' => $chatter->id]))->toBe(['rate_limited'])
-            ->and(cssgVisitorTurn($this->agent, '203.0.113.50', ['actorUserId' => $this->agent->workspace->owner->id]))->toBe(['rate_limited']);
-    });
+    expect(cssgVisitorTurn($this->agent, '203.0.113.50'))->toBe(['access_blocked'])
+        ->and(Message::query()->count())->toBe($before)
+        ->and(cssgVisitorTurn($this->agent, '203.0.113.51'))->toBe(['rate_limited'])
+        ->and(cssgVisitorTurn($this->agent, '203.0.113.50', ['chatterId' => $chatter->id]))->toBe(['rate_limited'])
+        ->and(cssgVisitorTurn($this->agent, '203.0.113.50', ['actorUserId' => $this->agent->workspace->owner->id]))->toBe(['rate_limited']);
 });
 
-describe('the monthly message limits', function (): void {
-    it('refuses the turn when the workspace reached its monthly limit', function (): void {
-        MessageLimit::factory()->forWorkspace($this->agent->workspace)->reached()->create();
+it('refuses a turn over the workspace\'s or the chatter\'s monthly limit, never over the limit of the other with the same id', function (): void {
+    $limitedChatter = Chatter::factory()->grantedTo($this->agent)->create();
+    MessageLimit::factory()->forChatter($limitedChatter)->reached()->create();
+    $limitedWorkspace = Agent::factory()->create(['llm_id' => Llm::factory()->create()->id]);
+    MessageLimit::factory()->forWorkspace($limitedWorkspace->workspace)->reached()->create();
+    $owner = cssgOwnerOfWorkspaceWithChatterFreeId();
+    $sharedAgent = Agent::factory()->create(['workspace_id' => $owner->workspace()->id, 'llm_id' => Llm::factory()->create()->id]);
+    $sameIdChatter = Chatter::factory()->grantedTo($sharedAgent)->create(['id' => $sharedAgent->workspace_id]);
+    MessageLimit::factory()->forChatter($sameIdChatter)->reached()->create();
+    $otherWorkspace = cssgOwnerOfWorkspaceWithChatterFreeId()->workspace();
+    $chatterOfSameId = Chatter::factory()->grantedTo($this->agent)->create(['id' => $otherWorkspace->id]);
+    MessageLimit::factory()->forWorkspace($otherWorkspace)->reached()->create();
+    StreamTurn::stopAtTheRateLimit($this->agent);
+    StreamTurn::stopAtTheRateLimit($sharedAgent);
 
-        expect(StreamTurn::errorCodes(StreamTurn::run($this->agent)))->toBe([ErrorCode::MessageLimitReached->value]);
-    });
-
-    it('refuses the turn when the signed-in chatter reached their monthly limit', function (): void {
-        $chatter = Chatter::factory()->grantedTo($this->agent)->create();
-        MessageLimit::factory()->forChatter($chatter)->reached()->create();
-
-        expect(StreamTurn::errorCodes(StreamTurn::run($this->agent, request: ['chatterId' => $chatter->id])))
-            ->toBe([ErrorCode::ChatterMessageLimitReached->value]);
-    });
-
-    it('does not refuse the workspace over a chatter limit with the same id', function (): void {
-        $owner = cssgOwnerOfWorkspaceWithChatterFreeId();
-        $agent = Agent::factory()->create(['workspace_id' => $owner->workspace()->id, 'llm_id' => Llm::factory()->create()->id]);
-        $chatter = Chatter::factory()->grantedTo($agent)->create(['id' => $agent->workspace_id]);
-        MessageLimit::factory()->forChatter($chatter)->reached()->create();
-        StreamTurn::stopAtTheRateLimit($agent);
-
-        // An anonymous visitor's turn only checks the workspace's limit.
-        expect(StreamTurn::errorCodes(StreamTurn::run($agent)))->toBe([ErrorCode::RateLimited->value]);
-    });
-
-    it('does not refuse a chatter over the limit of a workspace with the same id', function (): void {
-        $otherWorkspace = cssgOwnerOfWorkspaceWithChatterFreeId()->workspace();
-        $chatter = Chatter::factory()->grantedTo($this->agent)->create(['id' => $otherWorkspace->id]);
-        MessageLimit::factory()->forWorkspace($otherWorkspace)->reached()->create();
-        StreamTurn::stopAtTheRateLimit($this->agent);
-
-        expect(StreamTurn::errorCodes(StreamTurn::run($this->agent, request: ['chatterId' => $chatter->id])))->toBe([ErrorCode::RateLimited->value]);
-    });
+    expect(StreamTurn::errorCodes(StreamTurn::run($limitedWorkspace)))->toBe([ErrorCode::MessageLimitReached->value])
+        ->and(StreamTurn::errorCodes(StreamTurn::run($this->agent, request: ['chatterId' => $limitedChatter->id])))->toBe([ErrorCode::ChatterMessageLimitReached->value])
+        ->and(StreamTurn::errorCodes(StreamTurn::run($sharedAgent)))->toBe([ErrorCode::RateLimited->value])
+        ->and(StreamTurn::errorCodes(StreamTurn::run($this->agent, request: ['chatterId' => $chatterOfSameId->id])))->toBe([ErrorCode::RateLimited->value]);
 });

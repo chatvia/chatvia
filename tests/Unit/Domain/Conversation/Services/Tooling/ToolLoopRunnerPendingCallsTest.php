@@ -19,30 +19,32 @@ use Tests\Support\Conversation\Tooling\ToolLoop;
  * model is withheld.
  */
 beforeEach(function (): void {
-    // The runner emits ToolCallCompleted for the governance audit. Faking it
-    // lets the tests check the event without its queued listener writing rows.
     Event::fake([ToolCallCompleted::class]);
 });
 
-it('runs a stored call only when it is approved or ungated, and gives the model its result', function (bool $gated, array $decisions, array $ran, string $result): void {
-    // A signed-in chatter: only they (or staff) may approve.
+it('runs a stored call only when it is approved or ungated, gives the model its result and audits the decision', function (bool $gated, array $decisions, array $ran, string $result, string $outcome): void {
     $context = TestChatContext::make(chatterId: 1);
     $dispatcher = new RecordingToolDispatcher;
     $runner = ToolLoop::runner(ScriptedStreamTransformer::silent(), $dispatcher, $gated ? FakeToolApprovalPolicy::gatingEverything() : FakeToolApprovalPolicy::gatingNothing());
 
     $llmMessages = [];
-    iterator_to_array($runner->applyPendingCalls($context, $llmMessages, [ToolLoop::pendingCall('get_weather', $gated, '{"city":"Dubai"}')], $decisions), preserve_keys: false);
+    $events = iterator_to_array($runner->applyPendingCalls($context, $llmMessages, [ToolLoop::pendingCall('get_weather', $gated, '{"city":"Dubai"}')], $decisions), preserve_keys: false);
 
     expect(array_column($dispatcher->calls, 'name'))->toBe($ran)
         ->and($context->toolCallNames)->toBe($ran)
         ->and($llmMessages)->toHaveCount(1)
         ->and($llmMessages[0]['role'])->toBe('tool')
         ->and($llmMessages[0]['tool_call_id'])->toBe('call_1')
-        ->and($llmMessages[0]['content'])->toBe($result);
+        ->and($llmMessages[0]['content'])->toBe($result)
+        ->and($ran === [] ? $events : [])->toBe([]);
+    Event::assertDispatched(ToolCallCompleted::class, fn (ToolCallCompleted $e): bool => $e->toolName === 'get_weather'
+        && $e->approvalOutcome === $outcome
+        && $e->gated === $gated
+        && $e->isError === false);
 })->with([
-    'gated and denied' => [true, ['call_1' => ToolApprovalDecision::Deny], [], ToolLoopRunner::DENIED_RESULT],
-    'gated and approved' => [true, ['call_1' => ToolApprovalDecision::Approve], ['get_weather'], 'result of get_weather'],
-    'ungated, without a decision' => [false, [], ['get_weather'], 'result of get_weather'],
+    'gated and denied' => [true, ['call_1' => ToolApprovalDecision::Deny], [], ToolLoopRunner::DENIED_RESULT, 'denied'],
+    'gated and approved' => [true, ['call_1' => ToolApprovalDecision::Approve], ['get_weather'], 'result of get_weather', 'approved'],
+    'ungated, without a decision' => [false, [], ['get_weather'], 'result of get_weather', 'auto'],
 ]);
 
 it('runs no gated call an anonymous visitor approved', function (): void {
@@ -55,33 +57,6 @@ it('runs no gated call an anonymous visitor approved', function (): void {
     expect($dispatcher->calls)->toBe([])
         ->and($llmMessages[0]['content'])->toBe(ToolLoopRunner::DENIED_RESULT);
 });
-
-it('streams no tool events for a denied call', function (): void {
-    $runner = ToolLoop::runner(ScriptedStreamTransformer::silent(), new RecordingToolDispatcher, FakeToolApprovalPolicy::gatingEverything());
-
-    $llmMessages = [];
-    $events = iterator_to_array(
-        $runner->applyPendingCalls(TestChatContext::make(), $llmMessages, [ToolLoop::pendingCall('delete_everything', gated: true)], ['call_1' => ToolApprovalDecision::Deny]),
-        preserve_keys: false,
-    );
-
-    expect($events)->toBe([]);
-});
-
-it('tells the governance audit how each stored call was decided', function (bool $gated, array $decisions, string $outcome): void {
-    $runner = ToolLoop::runner(ScriptedStreamTransformer::silent(), new RecordingToolDispatcher, $gated ? FakeToolApprovalPolicy::gatingEverything() : FakeToolApprovalPolicy::gatingNothing());
-
-    $llmMessages = [];
-    iterator_to_array($runner->applyPendingCalls(TestChatContext::make(), $llmMessages, [ToolLoop::pendingCall('get_weather', $gated)], $decisions), preserve_keys: false);
-
-    Event::assertDispatched(ToolCallCompleted::class, fn (ToolCallCompleted $e): bool => $e->toolName === 'get_weather'
-        && $e->approvalOutcome === $outcome
-        && $e->gated === $gated
-        && $e->isError === false);
-})->with([
-    'ungated, run on its own' => [false, [], 'auto'],
-    'gated and denied' => [true, ['call_1' => ToolApprovalDecision::Deny], 'denied'],
-]);
 
 it('withholds a tool result that carries instructions aimed at the model, and logs it', function (): void {
     Event::fake([GuardrailTriggered::class]);

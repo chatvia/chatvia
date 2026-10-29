@@ -22,7 +22,9 @@ use Spatie\LaravelData\Data;
  * key when that is another account), the reranker, the document reader,
  * the Firecrawl key for the web scraper, speech to text, voice
  * conversations, where files are kept, how email is sent, whether
- * Spectra records AI calls, and the app's name.
+ * Spectra records AI calls, whether AI enhances what agents learn (the
+ * parts of files, web pages and texts, and the summary of each source),
+ * and the app's name.
  *
  * A null key (or endpoint, for Azure OpenAI) keeps the saved one. A null
  * embedding provider keeps the one in use (sources are trained with it
@@ -62,5 +64,6 @@ final class SetupData extends Data
         public ?MailSetupData $mail = null,
         public bool $recordAiCalls = true,
         public ?string $appName = null,
+        public bool $enhanceKnowledge = true,
     ) {}
 }

@@ -142,6 +142,12 @@ final readonly class CompleteSetupAction
                 $this->knowledge->firecrawl_api_key = $data->firecrawlApiKey;
             }
 
+            // One choice for the three switches: a source summary is only
+            // made when its parts are enhanced.
+            $this->set($this->knowledge, 'enhance_chunks', $data->enhanceKnowledge);
+            $this->set($this->knowledge, 'enhance_text_chunks', $data->enhanceKnowledge);
+            $this->set($this->ai, 'source_summaries_enabled', $data->enhanceKnowledge);
+
             if ($data->storage instanceof StorageSetupData) {
                 $this->saveStorage($data->storage);
             }

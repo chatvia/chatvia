@@ -1524,6 +1524,42 @@ it('starts on "Not now" for Spectra once an admin turned it off in Settings', fu
     setupPage($this->admin)->assertFormSet(['observability' => 'none']);
 });
 
+it('enhances what agents learn by default', function (): void {
+    setupFakeScaleway($this->dimensions);
+
+    setupPage($this->admin)
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
+        ->assertFormSet(['enhancement' => 'enhance'])
+        ->goToWizardStep(3)
+        ->call('complete')
+        ->assertHasNoFormErrors();
+
+    // On is the default: it stays unsaved, so the default keeps applying.
+    expect(savedSetting(KnowledgeSettings::class, 'enhance_chunks'))->toBeNull()
+        ->and(savedSetting(KnowledgeSettings::class, 'enhance_text_chunks'))->toBeNull()
+        ->and(savedSetting(AiSettings::class, 'source_summaries_enabled'))->toBeNull();
+});
+
+it('turns AI enhancement of files, texts and source summaries off when the admin chooses "Not now"', function (): void {
+    setupFakeScaleway($this->dimensions);
+
+    setupPage($this->admin)
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test', 'enhancement' => 'none'])
+        ->goToWizardStep(3)
+        ->call('complete')
+        ->assertHasNoFormErrors();
+
+    expect(savedSetting(KnowledgeSettings::class, 'enhance_chunks'))->toBeFalse()
+        ->and(savedSetting(KnowledgeSettings::class, 'enhance_text_chunks'))->toBeFalse()
+        ->and(savedSetting(AiSettings::class, 'source_summaries_enabled'))->toBeFalse();
+});
+
+it('starts on "Not now" for AI enhancement once an admin turned it off in Settings', function (): void {
+    saveSettings(KnowledgeSettings::class, ['enhance_chunks' => false]);
+
+    setupPage($this->admin)->assertFormSet(['enhancement' => 'none']);
+});
+
 it('keeps the storage and the mailer an admin saved in Settings', function (): void {
     saveSettings(StorageSettings::class, ['driver' => 's3']);
     saveSettings(MailSettings::class, ['mailer' => 'smtp']);

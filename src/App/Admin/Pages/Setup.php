@@ -133,11 +133,13 @@ use Support\License\LicenseFeature;
  *    checked with a test embedding, and the
  *    reranker: OpenRouter (its live list of rerankers), Cohere, a server
  *    of your own or none, checked with a test question.
- * 4. Ingestion, in two sections. Document reader: Mistral OCR, Azure
+ * 4. Ingestion, in three sections. Document reader: Mistral OCR, Azure
  *    Document Intelligence or none (the default); without a reader, PDF,
  *    Word, slides and images cannot be uploaded. Web scraper: Firecrawl
  *    or none (the default); without it, websites cannot be added as
- *    knowledge.
+ *    knowledge. AI enhancement: on (the default) or off, for files, web
+ *    pages, texts and the summary of each source together; Settings →
+ *    Knowledge and AI models turn them on one by one.
  * 5. Voice, in two sections. Speech to text: Scaleway AI, OpenAI or none
  *    (the default); without it, audio and video files cannot be uploaded
  *    and voice messages stay audio. Voice conversations: OpenAI's Realtime
@@ -225,6 +227,9 @@ class Setup extends SimplePage
 
     /** The label of the ingestion step, which Next leaves once "Not now" for a document reader is confirmed. */
     private const string INGESTION_STEP = 'Ingestion';
+
+    /** The option of AI enhancement of what agents learn. */
+    private const string ENHANCE = 'enhance';
 
     /** The option of the web scraper with Firecrawl. */
     private const string FIRECRAWL = 'firecrawl';
@@ -317,6 +322,7 @@ class Setup extends SimplePage
             'rerank_custom_model' => config('chatvia.ai.rerank.custom.model'),
             'document_reader' => $this->suggestedReader($provider),
             'website_import' => filled(config('services.firecrawl.key')) ? self::FIRECRAWL : self::NOT_NOW,
+            'enhancement' => filter_var(config('chatvia.ai.chunker.enhance'), FILTER_VALIDATE_BOOL) ? self::ENHANCE : self::NOT_NOW,
             'transcriber' => collect($this->speechOptions())->containsStrict(app(AiSettings::class)->transcriber) ? app(AiSettings::class)->transcriber : self::NOT_NOW,
             'voice' => collect($this->voiceOptions())->containsStrict(app(AiSettings::class)->voice) ? app(AiSettings::class)->voice : self::NOT_NOW,
             'storage_driver' => app(StorageSettings::class)->driver === 's3' ? 's3' : 'local',
@@ -433,6 +439,7 @@ class Setup extends SimplePage
             documentApiKey: $reader instanceof AiProvider && ! $this->reusesEarlierKey('document_reader', $state) ? $this->filled($state, 'document_api_key') : null,
             documentEndpoint: $reader === AiProvider::Azure ? $this->filled($state, 'document_endpoint') : null,
             firecrawlApiKey: ($state['website_import'] ?? null) === self::FIRECRAWL ? $this->filled($state, 'firecrawl_api_key') : null,
+            enhanceKnowledge: ($state['enhancement'] ?? null) !== self::NOT_NOW,
             transcriber: $transcriber,
             transcriptionApiKey: $transcriber instanceof AiProvider && ! $this->reusesEarlierKey('transcriber', $state) ? $this->filled($state, 'transcription_api_key') : null,
             voice: $voice,
@@ -620,6 +627,23 @@ class Setup extends SimplePage
                                 ->iconPosition('after')
                                 ->url('https://www.firecrawl.dev/app/api-keys', shouldOpenInNewTab: true))
                             ->visible(fn (Get $get): bool => $get('website_import') === self::FIRECRAWL),
+                    ]),
+                Section::make('AI enhancement')
+                    ->description('While agents learn a file, a web page or a text, AI can write a short summary and the likely questions for each part of it, and a summary of each whole file. Agents then find the right part more often.')
+                    ->icon(Heroicon::OutlinedSparkles)
+                    ->schema([
+                        CardRadio::make('enhancement')
+                            ->hiddenLabel()
+                            ->options([self::ENHANCE => 'Enhance with AI', self::NOT_NOW => 'Not now'])
+                            ->descriptions([
+                                self::ENHANCE => 'Recommended. Learning is slower and makes more AI calls: one for each part, so a 100-page PDF file makes about 100. It uses the model for quick tasks from the Models step.',
+                                self::NOT_NOW => 'Files and websites are ready sooner, with no extra AI calls, and search uses their text as it is. You can turn it on later in Settings → Knowledge, for what is added after that.',
+                            ])
+                            ->icons([
+                                self::ENHANCE => Heroicon::OutlinedSparkles,
+                                self::NOT_NOW => Heroicon::OutlinedNoSymbol,
+                            ])
+                            ->required(),
                     ]),
             ])
             ->afterValidation(fn () => $this->showingErrors(function (): void {

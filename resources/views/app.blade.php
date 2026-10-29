@@ -55,7 +55,7 @@
 
         @include('partials.meta')
 
-        @vite(['resources/js/app.ts', "resources/js/pages/{$page['component']}.vue"])
+        @vite(['resources/js/app.ts', "resources/js/{$page['component']}.vue"])
         @inertiaHead
     </head>
     <body class="font-sans antialiased h-full">

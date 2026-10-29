@@ -102,6 +102,7 @@ The full guide is at **[chatvia.ai/docs](https://chatvia.ai/docs/)**.
 | Topic | Start here |
 | --- | --- |
 | Getting started | [Introduction](https://chatvia.ai/docs/guide/introduction) · [Quick start](https://chatvia.ai/docs/guide/quick-start) · [Core concepts](https://chatvia.ai/docs/guide/core-concepts) · [How it works](https://chatvia.ai/docs/guide/how-it-works) |
+| Installation | [Install](https://chatvia.ai/docs/guide/installation/docker) · [Manage](https://chatvia.ai/docs/guide/installation/manage) · [What the install sends out](https://chatvia.ai/docs/guide/installation/outside-calls) |
 | Agents | [Create an agent](https://chatvia.ai/docs/guide/agents/create) · [Persona](https://chatvia.ai/docs/guide/agents/persona) · [Models](https://chatvia.ai/docs/guide/agents/models) · [Playground](https://chatvia.ai/docs/guide/agents/playground) |
 | Knowledge | [Sources](https://chatvia.ai/docs/guide/sources/overview) · [Search](https://chatvia.ai/docs/guide/how-it-works/search) |
 | Tools | [MCP connectors](https://chatvia.ai/docs/guide/tools/connectors) · [Functions](https://chatvia.ai/docs/guide/tools/functions) |
@@ -127,24 +128,6 @@ Changes are listed in [CHANGELOG.md](CHANGELOG.md).
 
 Found a security problem? Please report it privately. [SECURITY.md](SECURITY.md)
 explains how.
-
-## What the install sends out
-
-ChatVia.ai runs on your server and keeps your data there. It talks to the
-outside only for what you set up (AI providers, e-mail, social sign-in,
-messaging channels, web crawling) and for these:
-
-- **Update check.** Once a day the admin panel reads the list of releases
-  from the repository on GitHub, to tell you when a newer version is out.
-  Nothing about your install is sent. Switch it off in Settings → Platform.
-- **License check.** With a license key, once a day the install sends the
-  key's id and its own domain to chatvia.ai, to see whether the key is
-  still valid. An install without a key sends nothing.
-- **Installer and `./manage`.** When they check whether your domain points
-  at this server, they ask api.ipify.org for the server's public address.
-  The installer also offers to count your install (the install kind and
-  the operating system) and to add your e-mail to the newsletter; both are
-  off unless you say yes.
 
 ## License
 

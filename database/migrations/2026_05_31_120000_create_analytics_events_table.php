@@ -33,8 +33,6 @@ return new class extends Migration
             ) PARTITION BY RANGE (occurred_at)
         SQL);
 
-        // The largest table: every index costs a write per event, so only
-        // the ones the readers use (by agent or workspace).
         $db->statement('CREATE INDEX analytics_events_agent_id_occurred_at_index ON analytics_events (agent_id, occurred_at)');
         $db->statement('CREATE INDEX analytics_events_workspace_id_occurred_at_index ON analytics_events (workspace_id, occurred_at) INCLUDE (agent_id, role, chatter_id, response_time_ms, session_external_id)');
         $db->statement('CREATE UNIQUE INDEX analytics_events_message_unique ON analytics_events (message_external_id, occurred_at)');

@@ -11,8 +11,6 @@ return new class extends Migration
     {
         Schema::create('message_limits', function (Blueprint $table): void {
             $table->id();
-            // A workspace's limit (its agents' replies) or a chatter's limit
-            // (their own messages): exactly one of the two is set.
             $table->foreignId('workspace_id')->nullable()->unique()->constrained()->cascadeOnDelete();
             $table->foreignId('chatter_id')->nullable()->unique()->constrained()->cascadeOnDelete();
             $table->unsignedInteger('monthly_limit')->nullable();
@@ -22,8 +20,6 @@ return new class extends Migration
         });
 
         DB::statement('ALTER TABLE message_limits ADD CONSTRAINT message_limits_one_owner CHECK (num_nonnulls(workspace_id, chatter_id) = 1)');
-        // The counter is bumped on every counted message: room on each page
-        // keeps those updates in place.
         DB::statement('ALTER TABLE message_limits SET (fillfactor = 80)');
     }
 

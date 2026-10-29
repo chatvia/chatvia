@@ -16,19 +16,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // The chat tables carry their workspace on every row, and each key to a
-        // parent pairs it with the workspace: (workspace_id, agent_id) →
-        // agents, (workspace_id, chat_session_id) → chat_sessions and so on. A
-        // row that points at another workspace's agent, chatter, session or
-        // conversation is refused by the database, whatever the code does.
         Schema::create('chat_sessions', function (Blueprint $table): void {
             $table->id();
             $table->uuid('external_id')->unique();
 
             $table->foreignId('workspace_id')->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Agent::class);
-            // Who is chatting: a staff account (user_id) or a chatter
-            // (chatter_id), never both; neither for an anonymous visitor.
             $table->foreignIdFor(User::class)->nullable()->constrained()->cascadeOnDelete();
             $table->foreignId('chatter_id')->nullable();
             $table->foreignIdFor(Country::class)->nullable()->constrained()->nullOnDelete();
@@ -56,8 +49,6 @@ return new class extends Migration
             $table->string('locale', 10)->nullable();
 
             $table->timestamp('last_activity_at')->nullable();
-            // When the visitor's details above were cleared under the
-            // workspace's "anonymize after" setting; null until then.
             $table->timestamp('anonymized_at')->nullable();
             $table->timestamps();
 
@@ -89,8 +80,6 @@ return new class extends Migration
             $table->enum('tone', Tone::values())->nullable();
 
             $table->timestamp('analyzed_at')->nullable();
-            // Model calls spent analysing this conversation; the hourly pass stops
-            // retrying at chatvia.analytics.analysis.max_attempts.
             $table->unsignedSmallInteger('analysis_attempts')->default(0);
 
             $table->foreignIdFor(User::class, 'handoff_user_id')->nullable()->constrained('users')->nullOnDelete();
@@ -126,8 +115,6 @@ return new class extends Migration
             $table->foreignIdFor(AgentQuestionAnswer::class)->nullable()->constrained()->nullOnDelete();
 
             $table->string('generation_id')->nullable();
-            // The Spectra trace of the turn that produced an assistant reply
-            // (W3C-compatible; display-only, so no index).
             $table->uuid('trace_id')->nullable();
 
             $table->enum('source', ['hosted_chat', 'widget', 'bar', 'telegram', 'slack', 'messenger', 'whatsapp', 'msteams', 'instagram', 'api', 'playground', 'handoff'])->nullable();
@@ -166,10 +153,6 @@ return new class extends Migration
             $table->id();
             $table->uuid('external_id')->unique();
 
-            // The conversation and message keys pair with the workspace: an
-            // attachment can never point at another workspace's chat. Rows are
-            // created at upload, before the conversation exists, so both chat
-            // links are nullable while the workspace is known from the start.
             $table->foreignId('workspace_id')->constrained()->cascadeOnDelete();
             $table->foreignId('chat_conversation_id')->nullable();
 
@@ -225,46 +208,30 @@ return new class extends Migration
         $this->createPartialIndexes();
     }
 
-    /**
-     * Partial and special indexes. Columns that are mostly NULL get a partial
-     * index (`WHERE … IS NOT NULL`): the foreign-key checks and lookups by
-     * value still use it, and rows without a value cost no index write.
-     */
     private function createPartialIndexes(): void
     {
         DB::statement('CREATE INDEX chat_sessions_user_idx ON chat_sessions (user_id, created_at) WHERE user_id IS NOT NULL');
         DB::statement('CREATE INDEX chat_sessions_chatter_idx ON chat_sessions (chatter_id, created_at) WHERE chatter_id IS NOT NULL');
-        // The daily anonymize pass: a workspace's sessions not yet cleared.
         DB::statement('CREATE INDEX chat_sessions_to_anonymize_idx ON chat_sessions (workspace_id, created_at) WHERE anonymized_at IS NULL');
         DB::statement('CREATE INDEX chat_sessions_created_brin ON chat_sessions USING brin (created_at)');
 
         DB::statement('CREATE INDEX messages_qa_idx ON chat_messages (agent_question_answer_id) WHERE agent_question_answer_id IS NOT NULL');
-        // The chat log's feedback filter: does a conversation have a rated message.
         DB::statement('CREATE INDEX messages_feedback_idx ON chat_messages (chat_conversation_id, feedback) WHERE feedback IS NOT NULL');
         DB::statement("CREATE INDEX messages_confidence_idx ON chat_messages (chat_conversation_id, confidence_score) WHERE role = 'assistant' AND confidence_score IS NOT NULL");
 
         DB::statement('CREATE INDEX conversations_handoff_user_idx ON chat_conversations (handoff_user_id) WHERE handoff_user_id IS NOT NULL');
-        // An agent's waiting handoffs, newest activity first.
         DB::statement("CREATE INDEX conversations_handoff_pending_idx ON chat_conversations (agent_id, updated_at) WHERE handoff_status = 'pending' AND deleted_at IS NULL");
 
-        // The chat log: an agent's visible conversations, keyset-paged by
-        // (updated_at, id).
         DB::statement('CREATE INDEX conversations_agent_visible_idx ON chat_conversations (agent_id, updated_at, id) WHERE is_visible = true AND deleted_at IS NULL');
-        // The Inbox: an agent's visible conversations by the visitor's latest
-        // activity (who is online now, who waited for a human today).
         DB::statement('CREATE INDEX conversations_agent_live_idx ON chat_conversations (agent_id, last_activity_at) WHERE is_visible = true AND deleted_at IS NULL');
 
         DB::statement('CREATE INDEX conversations_expires_cleanup_idx ON chat_conversations (expires_at) WHERE expires_at IS NOT NULL AND deleted_at IS NULL');
-        // The trash purge, which finally removes soft-deleted conversations.
         DB::statement('CREATE INDEX conversations_trashed_idx ON chat_conversations (deleted_at) WHERE deleted_at IS NOT NULL');
 
-        // Hidden (never-used) conversations are not analysed.
         DB::statement('CREATE INDEX conversations_pending_analysis_idx ON chat_conversations (created_at) WHERE analyzed_at IS NULL AND deleted_at IS NULL AND is_visible = true');
 
-        // Install-wide time ranges (the admin panel's platform analytics).
         DB::statement('CREATE INDEX chat_conversations_created_brin ON chat_conversations USING brin (created_at)');
 
-        // The orphan-attachment prune: uploads never tied to a conversation.
         DB::statement('CREATE INDEX chat_attachments_orphan_idx ON chat_attachments (created_at) WHERE chat_conversation_id IS NULL');
     }
 

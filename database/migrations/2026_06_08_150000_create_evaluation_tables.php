@@ -9,13 +9,9 @@ return new class extends Migration
 {
     public function up(): void
     {
-
         Schema::create('eval_cases', function (Blueprint $table): void {
             $table->id();
             $table->uuid('external_id')->unique();
-            // Paired with workspace_id below: a case can never point at another
-            // workspace's agent. Deleting the agent keeps the case (the name
-            // column remembers whose it was).
             $table->foreignId('agent_id')->nullable();
             $table->string('agent_name');
             $table->foreignId('workspace_id')->constrained()->cascadeOnDelete();
@@ -29,17 +25,13 @@ return new class extends Migration
 
             $table->index('agent_id');
             $table->index('workspace_id');
-
         });
 
-        // Deleting the agent keeps the cases and clears only the agent link
-        // (Postgres can null one column of a composite key).
         DB::statement('ALTER TABLE eval_cases ADD CONSTRAINT eval_cases_workspace_agent_foreign FOREIGN KEY (workspace_id, agent_id) REFERENCES agents (workspace_id, id) ON DELETE SET NULL (agent_id)');
 
         Schema::create('eval_runs', function (Blueprint $table): void {
             $table->id();
             $table->uuid('external_id')->unique();
-            // Paired with workspace_id below, like eval_cases.
             $table->foreignId('agent_id')->nullable();
             $table->string('agent_name');
             $table->foreignId('workspace_id')->constrained()->cascadeOnDelete();
@@ -62,7 +54,6 @@ return new class extends Migration
         });
 
         DB::statement('ALTER TABLE eval_runs ADD CONSTRAINT eval_runs_workspace_agent_foreign FOREIGN KEY (workspace_id, agent_id) REFERENCES agents (workspace_id, id) ON DELETE SET NULL (agent_id)');
-        // Scheduled runs have no triggering person, so most rows are NULL here.
         DB::statement('CREATE INDEX eval_runs_triggered_by_user_idx ON eval_runs (triggered_by_user_id) WHERE triggered_by_user_id IS NOT NULL');
 
         Schema::create('eval_results', function (Blueprint $table): void {

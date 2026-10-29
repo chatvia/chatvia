@@ -28,7 +28,6 @@ return new class extends Migration
             $table->index(['workspace_id', 'first_seen_at']);
         });
 
-        // Install-wide time ranges (the admin panel's platform analytics).
         DB::connection($this->getConnection())->statement('CREATE INDEX analytics_session_firsts_seen_brin ON analytics_session_firsts USING brin (first_seen_at)');
     }
 

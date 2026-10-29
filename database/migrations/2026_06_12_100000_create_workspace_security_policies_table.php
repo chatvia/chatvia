@@ -10,8 +10,6 @@ return new class extends Migration
     {
         Schema::create('workspace_security_policies', function (Blueprint $table): void {
             $table->id();
-            // unique() must come before constrained(): after it, Laravel applies it
-            // to the foreign key definition and silently drops it.
             $table->foreignId('workspace_id')->unique()->constrained()->cascadeOnDelete();
 
             $table->unsignedInteger('retention_conversations_days')->nullable();
@@ -20,7 +18,6 @@ return new class extends Migration
             $table->unsignedInteger('retention_analytics_days')->nullable();
             $table->unsignedInteger('anonymize_after_days')->nullable();
 
-            // IpAllowlistMode and GeoMode; the values are stored, so the lists only grow.
             $table->enum('ip_allowlist_mode', ['off', 'dashboard', 'dashboard_api'])->default('off');
             $table->jsonb('ip_allowlist')->nullable();
             $table->enum('geo_mode', ['off', 'allow', 'deny'])->default('off');

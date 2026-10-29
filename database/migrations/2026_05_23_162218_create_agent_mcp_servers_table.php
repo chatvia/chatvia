@@ -10,13 +10,10 @@ return new class extends Migration
 {
     public function up(): void
     {
-
         Schema::create('mcp_servers', function (Blueprint $table): void {
             $table->id();
             $table->uuid('external_id')->unique();
 
-            // Null for a global built-in server. A workspace's own servers go
-            // with the workspace.
             $table->foreignId('workspace_id')->nullable()->constrained()->cascadeOnDelete();
 
             $table->enum('category', ['custom', 'integration', 'builtin', 'analytics']);
@@ -69,8 +66,6 @@ return new class extends Migration
 
             $table->unsignedBigInteger('invocation_count')->default(0);
             $table->timestamp('last_invoked_at')->nullable();
-            // Per-agent "always on": the connector's tools ship on every turn
-            // instead of only when the relevance router picks them.
             $table->boolean('always_available')->default(true);
 
             $table->primary(['agent_id', 'mcp_server_id']);

@@ -14,8 +14,6 @@ return new class extends Migration
             $table->id();
             $table->uuid('external_id')->unique();
 
-            // The key to the agent pairs it with the workspace: a checkpoint
-            // can never point at another workspace's agent.
             $table->foreignId('workspace_id');
             $table->foreignIdFor(Agent::class);
 
@@ -42,8 +40,6 @@ return new class extends Migration
             $table->index('expires_at');
         });
 
-        // The daily prune also drops settled checkpoints after a grace period;
-        // with the expiry index above Postgres combines the two (bitmap OR).
         DB::statement("CREATE INDEX tool_approval_checkpoints_settled_idx ON tool_approval_checkpoints (updated_at) WHERE status <> 'pending'");
     }
 

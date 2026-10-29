@@ -12,15 +12,10 @@ return new class extends Migration
         Schema::create('agent_activities', function (Blueprint $table): void {
             $table->id();
 
-            // Paired with workspace_id below: a row can never point at another
-            // workspace's agent. Deleting the agent keeps the audit row (the
-            // name column remembers whose it was).
             $table->foreignId('agent_id')->nullable();
             $table->string('agent_name');
             $table->foreignId('workspace_id')->constrained()->cascadeOnDelete();
 
-            // Who ran the turn: a staff account or a chatter (at most one).
-            // The name stays after either is deleted.
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('chatter_id')->nullable()->constrained()->nullOnDelete();
             $table->string('user_name')->nullable();
@@ -48,8 +43,6 @@ return new class extends Migration
             $table->boolean('result_truncated')->default(false);
 
             $table->timestamp('decided_at')->nullable();
-            // What the person said when they decided out loud (a voice
-            // call's yes), as stored after the guardrails.
             $table->text('decision_note')->nullable();
 
             $table->timestamp('created_at')->useCurrent();
@@ -58,11 +51,8 @@ return new class extends Migration
             $table->index(['workspace_id', 'id']);
             $table->index('user_id');
             $table->index('chatter_id');
-
         });
 
-        // Deleting the agent keeps the audit rows and clears only the agent
-        // link (Postgres can null one column of a composite key).
         DB::statement('ALTER TABLE agent_activities ADD CONSTRAINT agent_activities_workspace_agent_foreign FOREIGN KEY (workspace_id, agent_id) REFERENCES agents (workspace_id, id) ON DELETE SET NULL (agent_id)');
 
         DB::statement('CREATE INDEX agent_activities_created_at_brin ON agent_activities USING brin (created_at)');

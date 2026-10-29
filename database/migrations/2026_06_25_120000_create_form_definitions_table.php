@@ -11,8 +11,6 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Embedding columns use the install's vector type and size (EmbeddingStorage).
-
         Schema::create('form_definitions', function (Blueprint $table): void {
             $table->id();
             $table->uuid('external_id')->unique();
@@ -20,7 +18,6 @@ return new class extends Migration
             $table->foreignIdFor(Agent::class)->constrained()->cascadeOnDelete();
 
             $table->string('name');
-            // Visitor-facing blurb shown under the form title in the chat.
             $table->string('subtitle', 500)->nullable();
             $table->string('slug', 64);
             $table->enum('form_type', ['lead', 'booking', 'qualification', 'generic'])->default('lead');
@@ -31,14 +28,11 @@ return new class extends Migration
 
             $table->string('success_message')->nullable();
 
-            // The agent's "when to show this form" trigger instruction — embedded
-            // for intent retrieval, never shown to the visitor.
             $table->text('agent_instructions')->nullable();
             $table->boolean('is_active')->default(true);
             $table->string('managed_by', 64)->nullable();
 
             $table->embedding('embedding')->nullable();
-            // What the embedding was computed from; the lexical channels search it.
             $table->text('search_text')->nullable();
 
             $table->timestamps();
@@ -47,9 +41,6 @@ return new class extends Migration
         });
 
         app(ConfigureLexicalIndexesAction::class)->execute('form_definitions');
-        // No vector index: an agent reaches a few dozen forms at most, so its
-        // search ranks them by exact distance (an approximate index over every
-        // workspace's rows would only add work and miss some).
 
         Schema::create('form_submissions', function (Blueprint $table): void {
             $table->id();
@@ -57,16 +48,12 @@ return new class extends Migration
             $table->uuid('external_id')->unique();
 
             $table->foreignId('form_definition_id')->constrained('form_definitions')->cascadeOnDelete();
-            // The workspace rides on the agent, conversation and message keys,
-            // so a lead can never point at another workspace's agent,
-            // conversation or message.
             $table->foreignId('workspace_id');
             $table->foreignIdFor(Agent::class);
             $table->foreignId('chat_conversation_id')->nullable()->index();
 
             $table->foreignId('chat_message_id')->nullable()->index();
 
-            // FormSubmissionStatus; the values are stored, so the list only grows.
             $table->enum('status', ['pending', 'submitted', 'expired'])->default('pending');
 
             $table->jsonb('values')->nullable();
@@ -89,16 +76,11 @@ return new class extends Migration
             $table->index(['form_definition_id', 'values_checksum']);
         });
 
-        // Deleting the conversation keeps the lead and clears only its
-        // conversation link (Postgres can null one column of a composite key).
         DB::statement('ALTER TABLE form_submissions ADD CONSTRAINT form_submissions_workspace_conversation_foreign FOREIGN KEY (workspace_id, chat_conversation_id) REFERENCES chat_conversations (workspace_id, id) ON DELETE SET NULL (chat_conversation_id)');
         DB::statement('ALTER TABLE form_submissions ADD CONSTRAINT form_submissions_workspace_message_foreign FOREIGN KEY (workspace_id, chat_message_id) REFERENCES chat_messages (workspace_id, id) ON DELETE SET NULL (chat_message_id)');
 
-        // The abandoned-form prune (every few minutes): pending rows past expiry.
         DB::statement("CREATE INDEX form_submissions_pending_expiry_idx ON form_submissions (expires_at) WHERE status = 'pending'");
-        // A form's leads list and export, newest first.
         DB::statement("CREATE INDEX form_submissions_submitted_idx ON form_submissions (form_definition_id, id) WHERE status = 'submitted'");
-        // The workspace lead-retention prune.
         DB::statement("CREATE INDEX form_submissions_workspace_submitted_idx ON form_submissions (workspace_id, submitted_at) WHERE status = 'submitted'");
     }
 

@@ -27,7 +27,6 @@ return new class extends Migration
                 'updated_at' => now(),
             ]);
         }
-
     }
 
     public function down(): void

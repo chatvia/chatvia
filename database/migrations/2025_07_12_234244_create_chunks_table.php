@@ -28,8 +28,6 @@ return new class extends Migration
             $table->unsignedInteger('tokens');
 
             $table->embedding('embedding');
-            // What the embedding was computed from (summary + content + visual
-            // descriptions); the lexical channels search it.
             $table->text('search_text');
 
             $table->text('questions')->nullable();
@@ -45,7 +43,6 @@ return new class extends Migration
             $table->index(['chunkable_type', 'chunkable_id', 'chunk_index', 'id'], 'chunks_page_idx');
         });
 
-        // The lexical (keyword) indexes, in the shape of the install's driver.
         app(ConfigureLexicalIndexesAction::class)->execute('chunks');
 
         app(ConfigureVectorIndexesAction::class)->execute();

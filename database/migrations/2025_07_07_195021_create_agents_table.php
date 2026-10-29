@@ -27,13 +27,8 @@ return new class extends Migration
             $table->text('auth_secret')->nullable();
 
             $table->timestamps();
-            // Set the moment an agent is deleted: it disappears at once while a
-            // queued job removes its chats and sources in small batches.
             $table->softDeletes();
 
-            // Lets chat rows point at (workspace_id, agent_id) together, so the
-            // database refuses a row whose agent is in another workspace. Also
-            // serves lookups by workspace.
             $table->unique(['workspace_id', 'id']);
         });
     }

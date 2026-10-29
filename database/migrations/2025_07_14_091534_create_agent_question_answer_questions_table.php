@@ -7,11 +7,6 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * One row per question of a curated Q&A entry: the question as written, its
- * normalized form (for the whole-question match) and its embedding (for the
- * match by meaning). Rebuilt from the entry's `questions` whenever they change.
- */
 return new class extends Migration
 {
     public function up(): void

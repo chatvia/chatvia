@@ -15,8 +15,6 @@ return new class extends Migration
             $table->text('service_url');
             $table->string('conversation_type')->nullable();
 
-            // The session and conversation keys pair with the workspace: a
-            // mapping can never point at another workspace's chat.
             $table->foreignId('workspace_id');
             $table->foreignId('chat_session_id')->index();
             $table->foreignId('chat_conversation_id')->index();

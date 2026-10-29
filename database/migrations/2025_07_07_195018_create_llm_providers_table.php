@@ -16,11 +16,8 @@ return new class extends Migration
             $table->enum('kind', array_column(LlmProviderKind::cases(), 'value'));
             $table->string('name');
 
-            // A server of your own only: every other kind calls with the
-            // address and key of its account (Settings → AI providers).
             $table->string('base_url')->nullable();
 
-            // Encrypted by the model.
             $table->text('api_key')->nullable();
             $table->text('headers')->nullable();
 

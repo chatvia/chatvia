@@ -31,8 +31,6 @@ return new class extends Migration
             $table->index(['workspace_id', 'started_at']);
         });
 
-        // Updated on every message of the conversation: leave room on each
-        // page so the update stays in place.
         DB::connection($this->getConnection())->statement('ALTER TABLE analytics_conversation_metrics SET (fillfactor = 80)');
         DB::connection($this->getConnection())->statement('CREATE INDEX analytics_conversation_metrics_started_brin ON analytics_conversation_metrics USING brin (started_at)');
     }

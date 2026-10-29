@@ -41,8 +41,6 @@ return new class extends Migration
 
         DB::connection($this->getConnection())->statement('ALTER TABLE analytics_agent_hourly_rollups ADD COLUMN response_ms_hist integer[] NOT NULL DEFAULT array_fill(0, ARRAY[24])');
 
-        // Every reply updates its hour's row: free space on each page lets
-        // Postgres rewrite it in place. BRIN serves install-wide time ranges.
         DB::connection($this->getConnection())->statement('ALTER TABLE analytics_agent_hourly_rollups SET (fillfactor = 80)');
         DB::connection($this->getConnection())->statement('CREATE INDEX analytics_hourly_bucket_brin ON analytics_agent_hourly_rollups USING brin (bucket_hour)');
     }

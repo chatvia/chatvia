@@ -5,13 +5,6 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * The knowledge an assistant answer was given, best first: which chunk of
- * which source, how relevant the search found it (the reranker's score, or
- * the similarity check's), and how the source is shown (label, page link,
- * page number). Kept with the answer so a bad answer can be traced to the
- * chunks behind it.
- */
 return new class extends Migration
 {
     public function up(): void

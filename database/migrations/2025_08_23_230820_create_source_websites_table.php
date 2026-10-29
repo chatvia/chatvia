@@ -27,8 +27,6 @@ return new class extends Migration
             $table->text('failure_reason')->nullable();
             $table->unsignedBigInteger('retrieval_count')->default(0);
             $table->timestamp('last_retrieved_at')->nullable();
-            // How often the site is crawled and trained again on its own
-            // (RefreshInterval), and when that last happened.
             $table->enum('refresh_interval', ['off', 'daily', 'weekly', 'monthly'])->default('off');
             $table->timestamp('refreshed_at')->nullable();
             $table->timestamps();

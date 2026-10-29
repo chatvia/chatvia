@@ -13,7 +13,6 @@ return new class extends Migration
         Schema::create('topics', function (Blueprint $table): void {
             $table->id();
             $table->uuid('external_id')->unique();
-            // Null for a system topic every workspace can use.
             $table->foreignId('workspace_id')->nullable()->constrained()->cascadeOnDelete();
             $table->string('topic');
             $table->string('description');

@@ -13,8 +13,6 @@ return new class extends Migration
             $table->foreignId('agent_whatsapp_number_id')->constrained()->cascadeOnDelete();
             $table->string('wa_id');
 
-            // The session and conversation keys pair with the workspace: a
-            // mapping can never point at another workspace's chat.
             $table->foreignId('workspace_id');
             $table->foreignId('chat_session_id')->index();
             $table->foreignId('chat_conversation_id')->index();

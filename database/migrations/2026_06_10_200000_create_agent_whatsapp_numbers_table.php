@@ -24,8 +24,6 @@ return new class extends Migration
             $table->index('phone_number_id');
         });
 
-        // One enabled connection per WhatsApp number, so an incoming message
-        // reaches exactly one agent.
         DB::statement('CREATE UNIQUE INDEX agent_whatsapp_numbers_phone_number_id_enabled_unique ON agent_whatsapp_numbers (phone_number_id) WHERE is_enabled');
     }
 

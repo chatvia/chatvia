@@ -13,7 +13,6 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(SourceWebsite::class)->constrained()->cascadeOnDelete();
             $table->text('url');
-            // The page's title as the site gives it, shown as the source of an answer.
             $table->string('title', 500)->nullable();
             $table->string('checksum')->nullable();
             $table->enum('status', ['pending', 'ingesting', 'ingested', 'failed'])->default('pending');

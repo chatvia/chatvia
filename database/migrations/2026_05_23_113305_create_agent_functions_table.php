@@ -10,8 +10,6 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Embedding columns use the install's vector type and size (EmbeddingStorage).
-
         Schema::create('functions', function (Blueprint $table): void {
             $table->id();
             $table->uuid('external_id')->unique();
@@ -39,7 +37,6 @@ return new class extends Migration
             $table->boolean('is_enabled')->default(true);
 
             $table->embedding('embedding')->nullable();
-            // What the embedding was computed from; the lexical channels search it.
             $table->text('search_text')->nullable();
 
             $table->timestamp('last_invoked_at')->nullable();
@@ -52,10 +49,6 @@ return new class extends Migration
         });
 
         app(ConfigureLexicalIndexesAction::class)->execute('functions');
-
-        // No vector index: an agent reaches a few dozen functions at most, so its
-        // search ranks them by exact distance (an approximate index over every
-        // workspace's rows would only add work and miss some).
 
         Schema::create('agent_function', function (Blueprint $table): void {
             $table->foreignIdFor(Agent::class)->constrained()->cascadeOnDelete();

@@ -67,22 +67,17 @@ return new class extends Migration
             $table->string('ip_address', 45)->nullable();
             $table->text('user_agent')->nullable();
             $table->longText('payload');
-            // A Unix time: 64-bit, so it does not overflow in 2038.
             $table->bigInteger('last_activity')->index();
 
             $table->index(['user_id', 'last_activity']);
         });
 
-        // The hosted chat's own sessions (/chat runs on its own cookie). Kept
-        // apart from `sessions` because `user_id` here may hold a chatter id or
-        // a staff id, so it has no foreign key.
         Schema::create('chat_web_sessions', function (Blueprint $table): void {
             $table->string('id')->primary();
             $table->unsignedBigInteger('user_id')->nullable();
             $table->string('ip_address', 45)->nullable();
             $table->text('user_agent')->nullable();
             $table->longText('payload');
-            // A Unix time: 64-bit, so it does not overflow in 2038.
             $table->bigInteger('last_activity')->index();
         });
     }

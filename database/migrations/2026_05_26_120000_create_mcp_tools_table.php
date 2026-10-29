@@ -9,8 +9,6 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Embedding columns use the install's vector type and size (EmbeddingStorage).
-
         Schema::create('connector_tools', function (Blueprint $table) {
             $table->id();
 
@@ -28,7 +26,6 @@ return new class extends Migration
                 ->default('approval');
 
             $table->embedding('embedding')->nullable();
-            // What the embedding was computed from; the lexical channels search it.
             $table->text('search_text')->nullable();
 
             $table->timestamp('fetched_at');
@@ -38,9 +35,6 @@ return new class extends Migration
         });
 
         app(ConfigureLexicalIndexesAction::class)->execute('connector_tools');
-
-        // No vector index: the shared catalog holds a few thousand rows at
-        // most, so the preset channels rank them by exact distance.
 
         Schema::create('mcp_tools', function (Blueprint $table) {
             $table->id();
@@ -60,7 +54,6 @@ return new class extends Migration
                 ->default('approval');
 
             $table->embedding('embedding')->nullable();
-            // What the embedding was computed from; the lexical channels search it.
             $table->text('search_text')->nullable();
 
             $table->timestamp('fetched_at');
@@ -71,10 +64,6 @@ return new class extends Migration
         });
 
         app(ConfigureLexicalIndexesAction::class)->execute('mcp_tools');
-
-        // No vector index: an agent reaches a few dozen MCP tools at most, so its
-        // search ranks them by exact distance (an approximate index over every
-        // workspace's rows would only add work and miss some).
 
         Schema::create('connector_tool_mcp_server', function (Blueprint $table) {
             $table->foreignId('mcp_server_id')

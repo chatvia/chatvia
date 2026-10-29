@@ -18,7 +18,6 @@ return new class extends Migration
         throw_if($teams && empty($columnNames['team_foreign_key'] ?? null), Exception::class, 'Error: team_foreign_key on config/permission.php not loaded. Run [php artisan config:clear] and try again.');
 
         Schema::create($tableNames['permissions'], static function (Blueprint $table) {
-
             $table->bigIncrements('id');
             $table->string('name');
             $table->string('guard_name');
@@ -28,7 +27,6 @@ return new class extends Migration
         });
 
         Schema::create($tableNames['roles'], static function (Blueprint $table) use ($teams, $columnNames) {
-
             $table->bigIncrements('id');
             $table->uuid('external_id')->unique();
             if ($teams || config('permission.testing')) {
@@ -71,7 +69,6 @@ return new class extends Migration
                 $table->primary([$pivotPermission, $columnNames['model_morph_key'], 'model_type'],
                     'model_has_permissions_permission_model_type_primary');
             }
-
         });
 
         Schema::create($tableNames['model_has_roles'], static function (Blueprint $table) use ($tableNames, $columnNames, $pivotRole, $teams) {
@@ -111,8 +108,6 @@ return new class extends Migration
                 ->onDelete('cascade');
 
             $table->primary([$pivotPermission, $pivotRole], 'role_has_permissions_permission_id_role_id_primary');
-            // A role's permissions are read by role; the key above leads with
-            // the permission.
             $table->index($pivotRole);
         });
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Identity\Workspace\Models\GenerationLimit;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\OfferedMediaModels;
+use Domain\Conversation\Actions\Media\FailGeneratedMediaAction;
 use Domain\Conversation\Actions\Media\RequestMediaGenerationAction;
 use Domain\Conversation\Data\Media\MediaRequestData;
 use Domain\Conversation\Enums\ConversationSource;
@@ -183,6 +184,17 @@ it('turns down a video past its own hourly limit', function (): void {
     expect(rmgRequest(MediaRequestData::video('One'))->isAccepted())->toBeTrue()
         ->and(rmgRequest(MediaRequestData::video('Two'))->refusal)->toBe(MediaRequestRefusal::HourlyLimit)
         ->and(rmgRequest(MediaRequestData::image('Pictures have their own limit.'))->isAccepted())->toBeTrue();
+});
+
+it('gives back the hourly slot of a video that failed, so the chatter can try again', function (): void {
+    config(['chatvia.ai.videos_per_chat_per_hour' => 1]);
+    Event::fake([GeneratedMediaUpdated::class]);
+
+    $failed = GeneratedMedia::query()->where('external_id', rmgRequest(MediaRequestData::video('One'))->mediaId)->sole();
+    app(FailGeneratedMediaAction::class)->execute($failed, GeneratedMediaFailure::Refused);
+
+    expect(rmgRequest(MediaRequestData::video('One again'))->isAccepted())->toBeTrue()
+        ->and(rmgRequest(MediaRequestData::video('Two'))->refusal)->toBe(MediaRequestRefusal::HourlyLimit);
 });
 
 it('counts videos against the workspace\'s video limit, apart from pictures', function (): void {

@@ -88,16 +88,6 @@ class KlingVideoGenerator implements VideoGenerator
 
     public function forget(string $taskId): void {}
 
-    public function isEnabled(): bool
-    {
-        return true;
-    }
-
-    public function name(?string $model = null): string
-    {
-        return "kling {$this->model($model)}";
-    }
-
     /**
      * One call to Kling. Its answers carry a `code` (0 is success) besides
      * the HTTP status.

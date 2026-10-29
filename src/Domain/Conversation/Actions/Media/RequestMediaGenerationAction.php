@@ -20,24 +20,25 @@ use Domain\Conversation\Models\GeneratedMedia;
 use Domain\Conversation\Services\Media\AttachedFileText;
 use Domain\Conversation\Services\Media\HourlyMediaLimit;
 use Domain\Conversation\Services\Speech\ReadAloudAvailability;
-use Domain\Llm\Contracts\ImageGenerator;
-use Domain\Llm\Contracts\VideoGenerator;
+use Domain\Llm\Data\Media\MediaModelData;
 use Domain\Llm\Enums\ImageShape;
 use Domain\Llm\Enums\VideoResolution;
 use Domain\Llm\Enums\VideoShape;
 use Domain\Llm\Services\AudioGeneration;
+use Domain\Llm\Services\MediaModelCatalog;
 use Illuminate\Support\Str;
 
 /**
  * Takes an agent's request for a picture, an audio file or a video in a chat. It is
  * turned down, with a reason the agent passes on, outside the hosted chat,
- * while the service is off (Settings → AI models), once the chat has had its
+ * while no model is listed (Settings → AI models), once the chat has had its
  * files for the hour ({@see HourlyMediaLimit}), or once the workspace has
  * used its monthly generation limit (videos have a limit of their own). An
  * audio file of the attached PDF reads the PDF's text here, and is turned
  * down when there is none, no text in it, or more than one file may read.
- * Otherwise the item is stored as pending, with the model the chatter
- * picked when the agent offers a choice ({@see OfferedMediaModels}), a slot
+ * Otherwise the item is stored as pending, with the service and model that
+ * make it: the one the chatter picked when the agent offers a choice
+ * ({@see OfferedMediaModels}), else the admin's default. A slot
  * of the hourly and the monthly limit is taken (both given back if making
  * it fails), and {@see GenerateMediaJob} makes the file in the background.
  *
@@ -50,9 +51,8 @@ class RequestMediaGenerationAction
     private const int CAPTION = 200;
 
     public function __construct(
-        private readonly ImageGenerator $images,
+        private readonly MediaModelCatalog $catalog,
         private readonly AudioGeneration $audio,
-        private readonly VideoGenerator $videos,
         private readonly ReadAloudAvailability $readAloud,
         private readonly AttachedFileText $attachedText,
         private readonly GenerationAllowance $allowance,
@@ -88,8 +88,12 @@ class RequestMediaGenerationAction
         $audio = $request->kind === GeneratedMediaKind::Audio;
         $prompt = $attached instanceof AttachedTextData ? $attached->text : $request->prompt;
         // The chatter's pick from the header, while the agent still offers it.
-        $model = $this->offeredModels->resolve($agent, $request->kind, $conversation->media_models[$request->kind->value] ?? null);
-        $picked = $model !== null ? ['model' => $model, 'model_name' => $this->offeredModels->name($request->kind, $model)] : [];
+        $picked = $this->offeredModels->resolve($agent, $request->kind, $conversation->media_models[$request->kind->value] ?? null);
+        $model = $picked ?? $this->defaultModel($request->kind);
+        $made = $model instanceof MediaModelData ? [
+            'model' => $model->model,
+            ...($picked instanceof MediaModelData ? ['model_name' => $picked->name] : []),
+        ] : [];
         $media = GeneratedMedia::query()->create([
             'workspace_id' => $agent->workspace_id,
             'agent_id' => $agent->id,
@@ -100,7 +104,7 @@ class RequestMediaGenerationAction
             'metadata' => match ($request->kind) {
                 GeneratedMediaKind::Image => [
                     'shape' => ($request->shape instanceof ImageShape ? $request->shape : ImageShape::Square)->value,
-                    ...$picked,
+                    ...$made,
                 ],
                 // The admin's length and resolution as they are now, so a
                 // change made while the job waits does not reach this video.
@@ -108,15 +112,13 @@ class RequestMediaGenerationAction
                     'shape' => ($request->shape instanceof VideoShape ? $request->shape : VideoShape::Landscape)->value,
                     'seconds' => (int) config('chatvia.ai.video_duration'),
                     'resolution' => (VideoResolution::tryFrom((string) config('chatvia.ai.video_resolution')) ?? VideoResolution::Hd720)->value,
-                    ...$picked,
+                    ...$made,
                 ],
                 GeneratedMediaKind::Audio => ['voice' => $this->readAloud->voiceFor($agent, $this->audio->speaker)],
             },
-            'service' => match ($request->kind) {
-                GeneratedMediaKind::Image => $this->images->name($model),
-                GeneratedMediaKind::Audio => $this->audio->name(),
-                GeneratedMediaKind::Video => $this->videos->name($model),
-            },
+            // The service the job and each video check go to, whatever the
+            // admin lists by then.
+            'service' => $model instanceof MediaModelData ? $model->service->value : $this->audio->name(),
         ]);
 
         GenerateMediaJob::dispatch($media);
@@ -125,7 +127,7 @@ class RequestMediaGenerationAction
             ! $audio => $prompt,
             $attached instanceof AttachedTextData => $attached->filename,
             default => Str::limit($prompt, self::CAPTION),
-        }, $picked['model_name'] ?? null);
+        }, $picked?->name);
     }
 
     private function refusal(Conversation $conversation, GeneratedMediaKind $kind): ?MediaRequestRefusal
@@ -151,9 +153,18 @@ class RequestMediaGenerationAction
     private function isEnabled(GeneratedMediaKind $kind): bool
     {
         return match ($kind) {
-            GeneratedMediaKind::Image => $this->images->isEnabled(),
+            GeneratedMediaKind::Image => $this->catalog->imageEnabled(),
             GeneratedMediaKind::Audio => $this->audio->isEnabled(),
-            GeneratedMediaKind::Video => $this->videos->isEnabled(),
+            GeneratedMediaKind::Video => $this->catalog->videoEnabled(),
+        };
+    }
+
+    private function defaultModel(GeneratedMediaKind $kind): ?MediaModelData
+    {
+        return match ($kind) {
+            GeneratedMediaKind::Image => $this->catalog->defaultImage(),
+            GeneratedMediaKind::Video => $this->catalog->defaultVideo(),
+            GeneratedMediaKind::Audio => null,
         };
     }
 }

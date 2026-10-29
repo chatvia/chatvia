@@ -34,8 +34,8 @@ use Tests\Support\Llm\FakeVideoGenerator;
 
 /**
  * An agent's request for a picture, an audio file or a video: stored as
- * pending with its job queued, or turned down outside the hosted chat, while
- * the service is off, past the chat's hourly limit, or past the workspace's
+ * pending with the service and model that make it and its job queued, or
+ * turned down outside the hosted chat, while no model is listed, past the chat's hourly limit, or past the workspace's
  * monthly one (videos have their own). An audio file of the attached PDF
  * reads the PDF's text on the server. A queued job that dies marks its item
  * timed out, so the chat never waits for good.
@@ -64,8 +64,8 @@ it('stores a pending picture under the workspace and queues its job', function (
         ->and($media->chat_conversation_id)->toBe($this->conversation->id)
         ->and($media->kind)->toBe(GeneratedMediaKind::Image)
         ->and($media->status)->toBe(GeneratedMediaStatus::Pending)
-        ->and($media->metadata)->toBe(['shape' => 'landscape'])
-        ->and($media->service)->toBe('fake image-model')
+        ->and($media->metadata)->toEqual(['shape' => 'landscape', 'model' => 'fal-ai/flux-2'])
+        ->and($media->service)->toBe('fal')
         ->and($result->artifact())->toBe(['id' => $media->external_id, 'status' => 'pending', 'prompt' => 'A red fox', 'model_name' => null]);
 
     Queue::assertPushedOn('generation', GenerateMediaJob::class, fn (GenerateMediaJob $job): bool => $job->media->is($media));
@@ -90,7 +90,7 @@ it('turns down a request outside the hosted chat', function (): void {
     Queue::assertNothingPushed();
 });
 
-it('turns down a request while the service is off', function (MediaRequestData $request): void {
+it('turns down a request while no model is listed', function (MediaRequestData $request): void {
     FakeImageGenerator::install(enabled: false);
     FakeVideoGenerator::install(enabled: false);
     app()->instance(AudioGeneration::class, new AudioGeneration(new NullSpeaker));
@@ -171,8 +171,8 @@ it('stores a pending video in the shape asked for, with the admin\'s length and 
 
     expect($result->isAccepted())->toBeTrue()
         ->and($media->kind)->toBe(GeneratedMediaKind::Video)
-        ->and($media->metadata)->toBe(['shape' => 'portrait', 'seconds' => 6, 'resolution' => '1080p'])
-        ->and($media->service)->toBe('fake video-model')
+        ->and($media->metadata)->toEqual(['shape' => 'portrait', 'seconds' => 6, 'resolution' => '1080p', 'model' => 'fal-ai/wan/v2.2-a14b/text-to-video'])
+        ->and($media->service)->toBe('fal')
         ->and($result->artifact())->toBe(['id' => $media->external_id, 'status' => 'pending', 'prompt' => 'A fox running', 'model_name' => null]);
 
     Queue::assertPushedOn('generation', GenerateMediaJob::class, fn (GenerateMediaJob $job): bool => $job->media->is($media));
@@ -222,10 +222,8 @@ it('marks the item timed out when its queued job dies', function (): void {
 function rmgOfferImageModels(): void
 {
     config([
-        'chatvia.ai.image_generator' => 'fal',
-        'services.fal.image_model' => 'fal-ai/flux-2',
-        'chatvia.ai.image_model_choice' => true,
-        'chatvia.ai.image_models' => ['fal-ai/qwen-image'],
+        'chatvia.ai.image_models' => ['fal:fal-ai/flux-2', 'openai:gpt-image-2'],
+        'chatvia.ai.default_image_model' => 'fal:fal-ai/flux-2',
     ]);
     test()->agent->setSetting('image', true, OfferedMediaModels::SETTINGS_GROUP);
     $server = AgentMcpServer::factory()->builtin('image-generation')->create(['workspace_id' => test()->agent->workspace_id]);
@@ -234,24 +232,24 @@ function rmgOfferImageModels(): void
 
 it('stores the model the chatter picked while the agent offers it', function (): void {
     rmgOfferImageModels();
-    $this->conversation->update(['media_models' => ['image' => 'fal-ai/qwen-image']]);
+    $this->conversation->update(['media_models' => ['image' => 'openai:gpt-image-2']]);
 
     $result = rmgRequest(MediaRequestData::image('A red fox'));
     $media = GeneratedMedia::query()->where('external_id', $result->mediaId)->sole();
 
-    expect($media->metadata)->toEqual(['shape' => 'square', 'model' => 'fal-ai/qwen-image', 'model_name' => 'Qwen-Image'])
-        ->and($media->service)->toBe('fake fal-ai/qwen-image')
-        ->and($result->artifact()['model_name'])->toBe('Qwen-Image');
+    expect($media->metadata)->toEqual(['shape' => 'square', 'model' => 'gpt-image-2', 'model_name' => 'GPT Image 2'])
+        ->and($media->service)->toBe('openai')
+        ->and($result->artifact()['model_name'])->toBe('GPT Image 2');
 });
 
 it('uses the admin\'s model for a pick the agent does not offer', function (): void {
     rmgOfferImageModels();
-    $this->conversation->update(['media_models' => ['image' => 'fal-ai/flux-2-pro']]);
+    $this->conversation->update(['media_models' => ['image' => 'fal:fal-ai/flux-2-pro']]);
 
     $result = rmgRequest(MediaRequestData::image('A red fox'));
     $media = GeneratedMedia::query()->where('external_id', $result->mediaId)->sole();
 
-    expect($media->metadata)->toBe(['shape' => 'square'])
-        ->and($media->service)->toBe('fake image-model')
+    expect($media->metadata)->toEqual(['shape' => 'square', 'model' => 'fal-ai/flux-2'])
+        ->and($media->service)->toBe('fal')
         ->and($result->artifact()['model_name'])->toBeNull();
 });

@@ -11,6 +11,7 @@ use Domain\Conversation\Events\GeneratedMediaUpdated;
 use Domain\Conversation\Jobs\CheckGeneratedVideoJob;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\GeneratedMedia;
+use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\ImageShape;
 use Domain\Llm\Enums\VideoResolution;
 use Domain\Llm\Enums\VideoShape;
@@ -26,9 +27,9 @@ use Tests\Support\Llm\FakeSpeaker;
 use Tests\Support\Llm\FakeVideoGenerator;
 
 /**
- * Making one pending file: saved under the agent's folder and ready, or
- * failed (refused, failed or timed out) with its monthly slot given back.
- * Either way the chat is told at once.
+ * Making one pending file, by the service kept on the item: saved under the
+ * agent's folder and ready, or failed (refused, failed or timed out) with
+ * its monthly slot given back. Either way the chat is told at once.
  */
 beforeEach(function (): void {
     Storage::fake(GeneratedMedia::DISK);
@@ -150,12 +151,34 @@ it('draws with the model the chatter picked, and tells the chat its name', funct
     Event::assertDispatched(GeneratedMediaUpdated::class, fn (GeneratedMediaUpdated $event): bool => $event->media->model_name === 'Qwen-Image');
 });
 
-it('starts a video with the model the chatter picked', function (): void {
+it('starts a video at the service and with the model kept on the item', function (): void {
     Queue::fake();
-    $videos = FakeVideoGenerator::install();
-    $media = GeneratedMedia::factory()->forConversation($this->conversation)->video()->create(['metadata' => ['shape' => 'landscape', 'seconds' => 8, 'resolution' => '720p', 'model' => 'kling-4.0'], 'task_id' => null]);
+    $kling = FakeVideoGenerator::install(service: AiProvider::Kling, model: 'kling-4.0');
+    $fal = FakeVideoGenerator::install();
+    $media = GeneratedMedia::factory()->forConversation($this->conversation)->video()->create(['service' => 'kling', 'metadata' => ['shape' => 'landscape', 'seconds' => 8, 'resolution' => '720p', 'model' => 'kling-4.0'], 'task_id' => null]);
 
     app(GenerateMediaAction::class)->execute($media);
 
-    expect($videos->started[0]->model)->toBe('kling-4.0');
+    expect($kling->started[0]->model)->toBe('kling-4.0')
+        ->and($fal->started)->toBe([]);
+});
+
+it('draws with the service kept on the item, though the admin has since removed its model', function (): void {
+    $openAi = FakeImageGenerator::install(service: AiProvider::OpenAi, model: 'gpt-image-2');
+    FakeImageGenerator::install();
+    $media = gmaMedia(['service' => 'openai', 'metadata' => ['shape' => 'square', 'model' => 'gpt-image-2']]);
+
+    app(GenerateMediaAction::class)->execute($media);
+
+    expect($openAi->drawn[0]->model)->toBe('gpt-image-2')
+        ->and($media->refresh()->status)->toBe(GeneratedMediaStatus::Ready);
+});
+
+it('fails an item whose service makes no pictures', function (): void {
+    FakeImageGenerator::install();
+    $media = gmaMedia(['service' => 'kling']);
+
+    app(GenerateMediaAction::class)->execute($media);
+
+    expect($media->refresh()->status)->toBe(GeneratedMediaStatus::Failed);
 });

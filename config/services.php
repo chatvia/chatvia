@@ -149,8 +149,10 @@ return [
 
     // Reads agent replies aloud (Settings → AI models → Read aloud). Voices
     // belong to the account, so an empty voice uses its first recommended
-    // one. The endpoint changes only for ElevenLabs' regional servers. The
-    // video model makes videos (Settings → AI models → Video generation).
+    // one. The endpoint changes only for ElevenLabs' regional servers. Each
+    // `image_model` / `video_model` here is only the one a generator uses
+    // when it is given none: the admin lists the models that make pictures
+    // and videos in Settings → AI models.
     'elevenlabs' => [
         'api_key' => null,
         'endpoint' => 'https://api.elevenlabs.io/v1',

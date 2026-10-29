@@ -7,6 +7,12 @@ namespace Tests\Support\Llm;
 use Domain\Llm\Contracts\ImageGenerator;
 use Domain\Llm\Data\Image\GeneratedImageData;
 use Domain\Llm\Data\Image\ImagePromptData;
+use Domain\Llm\Data\Media\MediaModelData;
+use Domain\Llm\Enums\AiProvider;
+use Domain\Llm\Operations\Media\FalImageGenerator;
+use Domain\Llm\Operations\Media\GoogleImageGenerator;
+use Domain\Llm\Operations\Media\OpenAiImageGenerator;
+use Domain\Llm\Operations\Media\OpenRouterImageGenerator;
 use Throwable;
 
 /**
@@ -21,7 +27,6 @@ final class FakeImageGenerator implements ImageGenerator
 
     public function __construct(
         private readonly ?Throwable $failure = null,
-        private readonly bool $enabled = true,
     ) {}
 
     public function generate(ImagePromptData $prompt): GeneratedImageData
@@ -35,21 +40,21 @@ final class FakeImageGenerator implements ImageGenerator
         return new GeneratedImageData("[{$prompt->shape->value}:{$prompt->prompt}]", 'image/png');
     }
 
-    public function isEnabled(): bool
+    /**
+     * Bind it as the generator of one image service, and list that
+     * service's model (none when $enabled is false), so agents can draw;
+     * return it to check what it drew.
+     */
+    public static function install(?Throwable $failure = null, bool $enabled = true, AiProvider $service = AiProvider::Fal, string $model = 'fal-ai/flux-2'): self
     {
-        return $this->enabled;
-    }
-
-    public function name(?string $model = null): string
-    {
-        return 'fake '.($model ?? 'image-model');
-    }
-
-    /** Bind it as the image service, and return it to check what it drew. */
-    public static function install(?Throwable $failure = null, bool $enabled = true): self
-    {
-        $fake = new self($failure, $enabled);
-        app()->instance(ImageGenerator::class, $fake);
+        $fake = new self($failure);
+        app()->instance(match ($service) {
+            AiProvider::OpenAi => OpenAiImageGenerator::class,
+            AiProvider::OpenRouter => OpenRouterImageGenerator::class,
+            AiProvider::Google => GoogleImageGenerator::class,
+            default => FalImageGenerator::class,
+        }, $fake);
+        config(['chatvia.ai.image_models' => $enabled ? [MediaModelData::keyOf($service, $model)] : []]);
 
         return $fake;
     }

@@ -14,17 +14,17 @@ use Domain\Conversation\Jobs\CheckGeneratedVideoJob;
 use Domain\Conversation\Models\GeneratedMedia;
 use Domain\Conversation\Services\Media\GeneratedMediaFiles;
 use Domain\Conversation\Services\Speech\ReadAloudAvailability;
-use Domain\Llm\Contracts\ImageGenerator;
-use Domain\Llm\Contracts\VideoGenerator;
 use Domain\Llm\Data\Image\ImagePromptData;
 use Domain\Llm\Data\Video\VideoPromptData;
 use Domain\Llm\Enums\AiCallTag;
+use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\ImageShape;
 use Domain\Llm\Enums\VideoResolution;
 use Domain\Llm\Enums\VideoShape;
 use Domain\Llm\Exceptions\ImageGenerationFailedException;
 use Domain\Llm\Exceptions\VideoGenerationFailedException;
 use Domain\Llm\Services\AudioGeneration;
+use Domain\Llm\Services\MediaGenerators;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -32,7 +32,8 @@ use Illuminate\Support\Str;
 use Throwable;
 
 /**
- * Makes the file of one pending item: a picture from the image service, or
+ * Makes the file of one pending item: a picture from the image service kept
+ * on the item ({@see MediaGenerators}), or
  * the text read aloud by the speech service of audio files ({@see AudioGeneration}). The file is saved under the
  * agent's folder ({@see GeneratedMediaFiles}) and the item turns ready; when
  * the service refuses, fails or times out the item turns failed
@@ -45,9 +46,8 @@ use Throwable;
 class GenerateMediaAction
 {
     public function __construct(
-        private readonly ImageGenerator $images,
+        private readonly MediaGenerators $generators,
         private readonly AudioGeneration $audio,
-        private readonly VideoGenerator $videos,
         private readonly ReadAloudAvailability $readAloud,
         private readonly GeneratedMediaFiles $files,
         private readonly FailGeneratedMediaAction $fail,
@@ -107,7 +107,7 @@ class GenerateMediaAction
      */
     private function image(GeneratedMedia $media): array
     {
-        $image = $this->images->generate(new ImagePromptData(
+        $image = $this->generators->image(AiProvider::tryFrom($media->service))->generate(new ImagePromptData(
             prompt: $media->prompt,
             shape: ImageShape::tryFrom((string) ($media->metadata['shape'] ?? '')) ?? ImageShape::Square,
             model: $media->metadata['model'] ?? null,
@@ -121,7 +121,7 @@ class GenerateMediaAction
     {
         $metadata = $media->metadata ?? [];
 
-        $taskId = $this->videos->start(new VideoPromptData(
+        $taskId = $this->generators->video(AiProvider::tryFrom($media->service))->start(new VideoPromptData(
             prompt: $media->prompt,
             shape: VideoShape::tryFrom((string) ($metadata['shape'] ?? '')) ?? VideoShape::Landscape,
             seconds: (int) ($metadata['seconds'] ?? config('chatvia.ai.video_duration')),

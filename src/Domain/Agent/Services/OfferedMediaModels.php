@@ -7,16 +7,17 @@ namespace Domain\Agent\Services;
 use Domain\Agent\Data\ModelChoice\OfferedMediaModelData;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\GeneratedMediaKind;
+use Domain\Llm\Data\Media\MediaModelData;
 use Domain\Llm\Services\MediaModelCatalog;
 use Illuminate\Support\Collection;
 
 /**
- * The image and video models a chatter may pick in the hosted chat. The
- * admin lets agents offer a choice and ticks the models (Settings → AI
- * models), of the one service in use; the agent turns it on under Setup →
- * Model, with the capability itself on. The admin's model is always
- * offered, first, as the default. One model is no choice, so fewer than two
- * offer none. Audio files have no choice.
+ * The image and video models a chatter may pick in the hosted chat: every
+ * model the admin listed (Settings → AI models), from one service or
+ * several, with the admin's default first. The agent turns the choice on
+ * under Setup → Model, with the capability itself on. One model is no
+ * choice, so fewer than two offer none. Audio files have no choice. A model
+ * is known by its `{service}:{model}` key ({@see MediaModelData}).
  */
 final readonly class OfferedMediaModels
 {
@@ -32,7 +33,7 @@ final readonly class OfferedMediaModels
      */
     public function for(Agent $agent, GeneratedMediaKind $kind): array
     {
-        return $this->models($kind, $this->offered($agent, $kind));
+        return $this->models($this->offered($agent, $kind));
     }
 
     /**
@@ -43,16 +44,16 @@ final readonly class OfferedMediaModels
      */
     public function choices(GeneratedMediaKind $kind): array
     {
-        return $this->models($kind, $this->allowed($kind));
+        return $this->models($this->allowed($kind));
     }
 
-    /** The picked model when the agent offers it; null otherwise (the admin's model is used). */
-    public function resolve(Agent $agent, GeneratedMediaKind $kind, ?string $picked): ?string
+    /** The picked model when the agent offers it; null otherwise (the admin's default is used). */
+    public function resolve(Agent $agent, GeneratedMediaKind $kind, ?string $picked): ?MediaModelData
     {
-        return filled($picked) && $this->offered($agent, $kind)->contains($picked) ? $picked : null;
+        return blank($picked) ? null : $this->offered($agent, $kind)->first(fn (MediaModelData $model): bool => $model->key() === $picked);
     }
 
-    /** Whether the admin lets agents offer a choice of this kind, with two or more models to pick from. */
+    /** Whether the admin listed two or more models of this kind, so agents may offer a choice. */
     public function isAllowed(GeneratedMediaKind $kind): bool
     {
         return $this->allowed($kind)->isNotEmpty();
@@ -70,14 +71,8 @@ final readonly class OfferedMediaModels
         return $kind->offersModelChoice() && (bool) $agent->settings(self::SETTINGS_GROUP)->get($kind->value);
     }
 
-    /** A model's name for chatters. */
-    public function name(GeneratedMediaKind $kind, string $model): string
-    {
-        return $kind === GeneratedMediaKind::Video ? $this->catalog->videoName($model) : $this->catalog->imageName($model);
-    }
-
     /**
-     * @return Collection<int, string>
+     * @return Collection<int, MediaModelData>
      */
     private function offered(Agent $agent, GeneratedMediaKind $kind): Collection
     {
@@ -95,43 +90,38 @@ final readonly class OfferedMediaModels
     }
 
     /**
-     * @param  Collection<int, string>  $ids
+     * @param  Collection<int, MediaModelData>  $models
      * @return list<OfferedMediaModelData>
      */
-    private function models(GeneratedMediaKind $kind, Collection $ids): array
+    private function models(Collection $models): array
     {
-        return $ids->map(fn (string $id): OfferedMediaModelData => new OfferedMediaModelData(
-            id: $id,
-            name: $this->name($kind, $id),
-            is_default: $id === $ids->first(),
-        ))->all();
+        return $models->map(fn (MediaModelData $model): OfferedMediaModelData => new OfferedMediaModelData(
+            id: $model->key(),
+            name: $model->name,
+            is_default: $model === $models->first(),
+        ))->values()->all();
     }
 
     /**
-     * The admin's model, then the ones ticked that the service in use still
-     * offers; empty while the admin has the choice off.
+     * The admin's default, then the other models listed; empty when fewer
+     * than two are.
      *
-     * @return Collection<int, string>
+     * @return Collection<int, MediaModelData>
      */
     private function allowed(GeneratedMediaKind $kind): Collection
     {
-        [$switchKey, $tickedKey, $listModels, $defaultModel] = match ($kind) {
-            GeneratedMediaKind::Image => ['image_model_choice', 'image_models', $this->catalog->imageModels(...), $this->catalog->defaultImageModel(...)],
-            GeneratedMediaKind::Video => ['video_model_choice', 'video_models', $this->catalog->videoModels(...), $this->catalog->defaultVideoModel(...)],
-            GeneratedMediaKind::Audio => [null, null, null, null],
+        [$models, $default] = match ($kind) {
+            GeneratedMediaKind::Image => [$this->catalog->imageModels(), $this->catalog->defaultImage()],
+            GeneratedMediaKind::Video => [$this->catalog->videoModels(), $this->catalog->defaultVideo()],
+            GeneratedMediaKind::Audio => [[], null],
         };
 
-        if ($switchKey === null || ! config("chatvia.ai.{$switchKey}")) {
+        if (count($models) < 2 || ! $default instanceof MediaModelData) {
             return collect();
         }
 
-        $listed = collect($listModels())->keys();
-        $ids = collect([$defaultModel(), ...(array) config("chatvia.ai.{$tickedKey}")])
-            ->map(fn (mixed $id): string => (string) $id)
-            ->filter(fn (string $id): bool => $listed->containsStrict($id))
-            ->unique()
+        return collect($models)
+            ->sortBy(fn (MediaModelData $model): int => $model->key() === $default->key() ? 0 : 1)
             ->values();
-
-        return $ids->count() > 1 ? $ids : collect();
     }
 }

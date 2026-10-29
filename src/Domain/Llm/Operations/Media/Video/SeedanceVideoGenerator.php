@@ -77,16 +77,6 @@ class SeedanceVideoGenerator implements VideoGenerator
         rescue(fn () => Http::withToken((string) config('services.byteplus.api_key'))->timeout(15)->delete("{$this->endpoint()}/contents/generations/tasks/".rawurlencode($taskId)), report: false);
     }
 
-    public function isEnabled(): bool
-    {
-        return true;
-    }
-
-    public function name(?string $model = null): string
-    {
-        return "byteplus {$this->model($model)}";
-    }
-
     /** @param callable(PendingRequest): Response $request */
     private function call(callable $request): Response
     {

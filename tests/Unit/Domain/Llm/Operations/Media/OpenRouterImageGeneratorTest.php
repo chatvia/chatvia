@@ -47,8 +47,7 @@ it('draws the prompt and reads the picture from the data URL', function (): void
 
     expect($image->bytes)->toBe('webp-bytes')
         ->and($image->mimeType)->toBe('image/webp')
-        ->and($image->extension())->toBe('webp')
-        ->and($generator->name())->toBe('openrouter google/gemini-nano-banana-2.1');
+        ->and($image->extension())->toBe('webp');
 
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://openrouter.ai/api/v1/chat/completions'
         && $request->hasHeader('Authorization', 'Bearer or-key')

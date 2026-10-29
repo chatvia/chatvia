@@ -30,8 +30,7 @@ it('draws the prompt and reads the inline picture', function (): void {
     $image = $generator->generate(new ImagePromptData('A cat on a roof', ImageShape::Square));
 
     expect($image->bytes)->toBe('png-bytes')
-        ->and($image->mimeType)->toBe('image/png')
-        ->and($generator->name())->toBe('google gemini-nano-banana-2.1');
+        ->and($image->mimeType)->toBe('image/png');
 
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://generativelanguage.test/v1beta/models/gemini-nano-banana-2.1:generateContent'
         && $request->hasHeader('x-goog-api-key', 'g-key')

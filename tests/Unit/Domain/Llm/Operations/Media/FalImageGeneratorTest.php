@@ -26,8 +26,7 @@ it('draws the prompt and fetches the picture', function (): void {
     $image = $generator->generate(new ImagePromptData('A cat on a roof', ImageShape::Landscape));
 
     expect($image->bytes)->toBe('jpg-bytes')
-        ->and($image->mimeType)->toBe('image/jpeg')
-        ->and($generator->name())->toBe('fal fal-ai/flux-2');
+        ->and($image->mimeType)->toBe('image/jpeg');
 
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://fal.run/fal-ai/flux-2'
         && $request->hasHeader('Authorization', 'Key fal-key')

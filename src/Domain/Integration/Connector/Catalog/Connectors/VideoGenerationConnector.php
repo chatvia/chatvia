@@ -6,21 +6,21 @@ namespace Domain\Integration\Connector\Catalog\Connectors;
 
 use Domain\Integration\Connector\Catalog\CapabilityConnector;
 use Domain\Integration\Connector\Enums\ConnectorCategory;
-use Domain\Llm\Contracts\VideoGenerator;
+use Domain\Llm\Services\MediaModelCatalog;
 use Support\License\Entitlements;
 
 /**
  * Short videos the agent makes for the visitor, shown under its reply once
  * made (a few minutes). Only the hosted chat can show and keep them, so the
  * router withholds the tool on every other surface, and a voice call never
- * offers it. It works only while an admin has picked a video service
+ * offers it. It works only while an admin has listed a video model
  * (Settings → AI models → Video generation).
  */
 final class VideoGenerationConnector extends CapabilityConnector
 {
     public function __construct(
         Entitlements $entitlements,
-        private readonly VideoGenerator $videos,
+        private readonly MediaModelCatalog $catalog,
     ) {
         parent::__construct($entitlements);
     }
@@ -56,6 +56,6 @@ final class VideoGenerationConnector extends CapabilityConnector
     #[\Override]
     public function isAvailable(): bool
     {
-        return parent::isAvailable() && $this->videos->isEnabled();
+        return parent::isAvailable() && $this->catalog->videoEnabled();
     }
 }

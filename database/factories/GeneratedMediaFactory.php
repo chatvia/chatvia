@@ -39,8 +39,8 @@ class GeneratedMediaFactory extends Factory
             'kind' => GeneratedMediaKind::Image,
             'status' => GeneratedMediaStatus::Pending,
             'prompt' => 'A red bicycle by the sea',
-            'metadata' => ['shape' => 'square'],
-            'service' => 'fake:image-model',
+            'metadata' => ['shape' => 'square', 'model' => 'fal-ai/flux-2'],
+            'service' => 'fal',
         ];
     }
 
@@ -69,8 +69,8 @@ class GeneratedMediaFactory extends Factory
         return $this->state([
             'kind' => GeneratedMediaKind::Video,
             'prompt' => 'Waves rolling onto a beach at sunset',
-            'metadata' => ['shape' => 'landscape', 'seconds' => 8, 'resolution' => '720p'],
-            'service' => 'fake:video-model',
+            'metadata' => ['shape' => 'landscape', 'seconds' => 8, 'resolution' => '720p', 'model' => 'fal-ai/wan/v2.2-a14b/text-to-video'],
+            'service' => 'fal',
             'task_id' => 'fake-task-1',
         ]);
     }

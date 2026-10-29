@@ -55,18 +55,15 @@ class AiSettings extends AdminSettings
     #[ConfigKey('chatvia.ai.speaker')]
     public ?string $speaker = null;
 
-    #[ConfigKey('chatvia.ai.image_generator')]
-    public ?string $image_generator = null;
-
     #[ConfigKey('chatvia.ai.images_per_chat_per_hour')]
     public ?int $images_per_chat_per_hour = null;
 
-    #[ConfigKey('chatvia.ai.image_model_choice')]
-    public ?bool $image_model_choice = null;
-
-    /** @var list<string>|null */
+    /** @var list<string>|null "{service}:{model}" keys, in table order */
     #[ConfigKey('chatvia.ai.image_models')]
     public ?array $image_models = null;
+
+    #[ConfigKey('chatvia.ai.default_image_model')]
+    public ?string $default_image_model = null;
 
     #[ConfigKey('chatvia.ai.audio_generator')]
     public ?string $audio_generator = null;
@@ -77,18 +74,15 @@ class AiSettings extends AdminSettings
     #[ConfigKey('chatvia.ai.audio_max_characters')]
     public ?int $audio_max_characters = null;
 
-    #[ConfigKey('chatvia.ai.video_generator')]
-    public ?string $video_generator = null;
-
     #[ConfigKey('chatvia.ai.videos_per_chat_per_hour')]
     public ?int $videos_per_chat_per_hour = null;
 
-    #[ConfigKey('chatvia.ai.video_model_choice')]
-    public ?bool $video_model_choice = null;
-
-    /** @var list<string>|null */
+    /** @var list<string>|null "{service}:{model}" keys, in table order */
     #[ConfigKey('chatvia.ai.video_models')]
     public ?array $video_models = null;
+
+    #[ConfigKey('chatvia.ai.default_video_model')]
+    public ?string $default_video_model = null;
 
     #[ConfigKey('chatvia.ai.video_duration')]
     public ?int $video_duration = null;
@@ -215,36 +209,6 @@ class AiSettings extends AdminSettings
 
     #[ConfigKey('services.elevenlabs.speech_voice')]
     public ?string $elevenlabs_speech_voice = null;
-
-    #[ConfigKey('services.openai.image_model')]
-    public ?string $openai_image_model = null;
-
-    #[ConfigKey('services.openrouter.image_model')]
-    public ?string $openrouter_image_model = null;
-
-    #[ConfigKey('services.gemini.image_model')]
-    public ?string $google_image_model = null;
-
-    #[ConfigKey('services.fal.image_model')]
-    public ?string $fal_image_model = null;
-
-    #[ConfigKey('services.gemini.video_model')]
-    public ?string $google_video_model = null;
-
-    #[ConfigKey('services.elevenlabs.video_model')]
-    public ?string $elevenlabs_video_model = null;
-
-    #[ConfigKey('services.kling.video_model')]
-    public ?string $kling_video_model = null;
-
-    #[ConfigKey('services.byteplus.video_model')]
-    public ?string $byteplus_video_model = null;
-
-    #[ConfigKey('services.runway.video_model')]
-    public ?string $runway_video_model = null;
-
-    #[ConfigKey('services.fal.video_model')]
-    public ?string $fal_video_model = null;
 
     #[ConfigKey('chatvia.voice.max_call_minutes')]
     public ?int $voice_max_call_minutes = null;

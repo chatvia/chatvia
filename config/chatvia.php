@@ -418,27 +418,28 @@ return [
     |   "scaleway", "openai" or "none".
     | - voice: live voice calls (the OpenAI Realtime API). "openai" or
     |   "none". Each agent still turns it on.
-    | - image_generator: pictures agents make in the hosted chat.
-    |   "openai", "openrouter", "google", "fal" or "none". Unlike the others
-    |   it starts at "none", and each agent still turns it on.
+    | - image_models: the models that make the pictures agents draw in the
+    |   hosted chat, as "{service}:{model}" keys ("fal:fal-ai/flux-2"), from
+    |   one service or several ("openai", "openrouter", "google", "fal").
+    |   `default_image_model` is the key used unless a chatter picks another
+    |   (null or unknown: the first). Empty: off, and each agent still turns
+    |   it on.
     | - audio_generator: the audio files agents make in the hosted chat, a
     |   speech service of its own apart from Read aloud (`speaker`).
     |   "elevenlabs", "openai" or "none"; it also starts at "none".
     |   `audio_max_characters` is the longest text one file reads (an
     |   attached PDF read aloud).
-    | - video_generator: the short videos agents make in the hosted chat.
-    |   "google", "elevenlabs", "kling", "byteplus", "runway", "fal" or
-    |   "none"; it also starts at "none". `video_duration` (seconds) and
+    | - video_models: the short videos agents make in the hosted chat, the
+    |   same way, from "google", "elevenlabs", "kling", "byteplus", "runway"
+    |   or "fal", with `default_video_model`. `video_duration` (seconds) and
     |   `video_resolution` ("720p" or "1080p") are asked of every video, and
     |   each service takes the nearest it makes. A video not made within
     |   `video_max_wait_minutes` turns failed.
     |   `images_per_chat_per_hour`, `audio_per_chat_per_hour` and
     |   `videos_per_chat_per_hour` cap what agents make in one chat; a
     |   workspace's monthly caps are a GenerationLimit row.
-    |   `image_model_choice` / `video_model_choice` let an agent offer
-    |   chatters a choice of model in the hosted chat, among the service's
-    |   models in `image_models` / `video_models` (the admin's model is
-    |   always offered, as the default).
+    |   With two or more models, an agent may offer chatters a choice of
+    |   them in the hosted chat (the default first).
     | - chat_files: whether chatters may attach a PDF file or an image in a
     |   chat (off: no agent can offer it), and the catalog model (its
     |   `llms.id`) that answers about it when the agent's own model cannot,
@@ -519,17 +520,15 @@ return [
         'transcriber' => 'auto',
         'voice' => 'auto',
         'speaker' => 'auto',
-        'image_generator' => 'none',
-        'images_per_chat_per_hour' => 10,
-        'image_model_choice' => false,
         'image_models' => [],
+        'default_image_model' => null,
+        'images_per_chat_per_hour' => 10,
         'audio_generator' => 'none',
         'audio_per_chat_per_hour' => 10,
         'audio_max_characters' => 20000,
-        'video_generator' => 'none',
-        'videos_per_chat_per_hour' => 2,
-        'video_model_choice' => false,
         'video_models' => [],
+        'default_video_model' => null,
+        'videos_per_chat_per_hour' => 2,
         'video_duration' => 8,
         'video_resolution' => '720p',
         'video_max_wait_minutes' => 15,

@@ -91,16 +91,6 @@ class RunwayVideoGenerator implements VideoGenerator
         rescue(fn () => $this->client()->timeout(15)->delete(self::ENDPOINT.'/tasks/'.rawurlencode($taskId)), report: false);
     }
 
-    public function isEnabled(): bool
-    {
-        return true;
-    }
-
-    public function name(?string $model = null): string
-    {
-        return "runway {$this->model($model)}";
-    }
-
     /**
      * The pixel size: the one at the resolution asked for when the model
      * makes it, else the one it makes; portrait swaps the sides.

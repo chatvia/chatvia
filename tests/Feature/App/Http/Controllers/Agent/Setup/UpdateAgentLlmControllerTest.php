@@ -103,21 +103,16 @@ it('refuses to turn Multi-model on while the admin does not allow it', function 
     expect($this->agent->fresh()->settings('model_choice')->get('enabled'))->toBeFalse();
 });
 
-it('saves whether chatters may pick the image model while the admin allows a choice', function (): void {
-    config([
-        'chatvia.ai.image_generator' => 'fal',
-        'services.fal.image_model' => 'fal-ai/flux-2',
-        'chatvia.ai.image_model_choice' => true,
-        'chatvia.ai.image_models' => ['fal-ai/qwen-image'],
-    ]);
+it('saves whether chatters may pick the image model while the admin lists two or more', function (): void {
+    config(['chatvia.ai.image_models' => ['fal:fal-ai/flux-2', 'openai:gpt-image-2']]);
 
     ualSave($this->owner, $this->agent, $this->model, ['image_model_choice_enabled' => true])->assertSessionHasNoErrors();
 
     expect($this->agent->fresh()->settings(OfferedMediaModels::SETTINGS_GROUP)->get('image'))->toBeTrue();
 });
 
-it('refuses to turn the video model choice on while the admin does not allow it', function (): void {
-    config(['chatvia.ai.video_model_choice' => false]);
+it('refuses to turn the video model choice on while the admin lists only one video model', function (): void {
+    config(['chatvia.ai.video_models' => ['kling:kling-4.0']]);
 
     ualSave($this->owner, $this->agent, $this->model, ['video_model_choice_enabled' => true])
         ->assertSessionHasErrors('video_model_choice_enabled');

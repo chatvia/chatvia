@@ -54,8 +54,8 @@ it('marks Calendar not ready until the workspace connects Calendly or Cal.com', 
             ->where('capabilities.2.providers.1.connected', true));
 });
 
-it('marks Image generation unavailable until the admin picks an image service', function (string $driver, bool $available): void {
-    config(['chatvia.ai.image_generator' => $driver]);
+it('marks Image generation unavailable until the admin lists an image model', function (array $models, bool $available): void {
+    config(['chatvia.ai.image_models' => $models]);
     $owner = User::factory()->create();
     $agent = makeTeamAgent($owner, 'Support Bot');
 
@@ -71,6 +71,6 @@ it('marks Image generation unavailable until the admin picks an image service', 
             return $page;
         });
 })->with([
-    'off' => ['none', false],
-    'picked' => ['openai', true],
+    'none listed' => [[], false],
+    'one listed' => [['openai:gpt-image-2'], true],
 ]);

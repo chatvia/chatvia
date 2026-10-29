@@ -33,36 +33,45 @@ it('lists the same fal.ai image models the generator knows', function (): void {
     expect(array_keys(MediaModelCatalog::IMAGE_MODELS['fal']))->toBe(array_keys(FalImageGenerator::MODELS));
 });
 
-it('reads the service in use and the admin\'s model', function (): void {
+it('reads the listed models of any service, dropping the ones no service offers', function (): void {
     config([
-        'chatvia.ai.image_generator' => 'google',
-        'services.gemini.image_model' => 'gemini-3-pro-image',
-        'chatvia.ai.video_generator' => 'auto',
+        'chatvia.ai.image_models' => ['google:gemini-3-pro-image', 'fal:fal-ai/unknown', 'kling:kling-4.0', 'gpt-image-2', 'openai:gpt-image-2', 'google:gemini-3-pro-image'],
+        'chatvia.ai.default_image_model' => 'openai:gpt-image-2',
+        'chatvia.ai.video_models' => [],
     ]);
     $catalog = app(MediaModelCatalog::class);
 
-    expect($catalog->imageService())->toBe('google')
-        ->and($catalog->defaultImageModel())->toBe('gemini-3-pro-image')
-        ->and($catalog->imageModels())->toBe(MediaModelCatalog::IMAGE_MODELS['google'])
-        ->and($catalog->videoService())->toBe('none')
-        ->and($catalog->defaultVideoModel())->toBe('')
-        ->and($catalog->videoModels())->toBe([]);
+    expect(collect($catalog->imageModels())->map->key()->all())->toBe(['google:gemini-3-pro-image', 'openai:gpt-image-2'])
+        ->and($catalog->defaultImage()?->key())->toBe('openai:gpt-image-2')
+        ->and($catalog->imageEnabled())->toBeTrue()
+        ->and($catalog->videoEnabled())->toBeFalse()
+        ->and($catalog->defaultVideo())->toBeNull();
 });
 
-it('names a model without the admin\'s notes', function (): void {
-    config(['chatvia.ai.image_generator' => 'fal', 'chatvia.ai.video_generator' => 'kling']);
-    $catalog = app(MediaModelCatalog::class);
+it('uses the first listed model when the default is not listed', function (): void {
+    config(['chatvia.ai.video_models' => ['kling:kling-4.0', 'fal:fal-ai/veo3.1'], 'chatvia.ai.default_video_model' => 'runway:gen4.5']);
 
-    expect($catalog->imageName('fal-ai/qwen-image'))->toBe('Qwen-Image')
-        ->and($catalog->imageName('fal-ai/unknown'))->toBe('fal-ai/unknown')
-        ->and($catalog->videoName('kling-4.0'))->toBe('Kling 4.0');
+    expect(app(MediaModelCatalog::class)->defaultVideo()?->key())->toBe('kling:kling-4.0');
 });
 
-it('names OpenRouter\'s own picks before their note, and its other models whole', function (): void {
+it('names a model without the admin\'s notes, adding the service when two share a name', function (): void {
+    config(['chatvia.ai.video_models' => ['kling:kling-4.0', 'runway:veo3.1', 'fal:fal-ai/veo3.1']]);
+
+    expect(collect(app(MediaModelCatalog::class)->videoModels())->map->name->all())->toBe([
+        'Kling 4.0',
+        'Google Veo 3.1 (Runway)',
+        'Google Veo 3.1 (fal.ai)',
+    ]);
+});
+
+it('keeps any OpenRouter model, naming its own picks before their note and its other models whole', function (): void {
     Http::fake(['openrouter.ai/*' => Http::response(['data' => [['id' => 'black-forest-labs/flux-2', 'name' => 'Black Forest Labs: FLUX.2', 'architecture' => ['output_modalities' => ['image']]]]])]);
-    config(['chatvia.ai.image_generator' => 'openrouter']);
-    $catalog = app(MediaModelCatalog::class);
+    $curated = array_key_first(OpenRouterImageModels::CURATED);
+    config(['chatvia.ai.image_models' => ["openrouter:{$curated}", 'openrouter:black-forest-labs/flux-2', 'openrouter:acme/gone:free']]);
 
-    expect($catalog->imageName(array_key_first(OpenRouterImageModels::CURATED)))->toBe('Gemini Nano Banana 2.1')
-        ->and($catalog->imageName('black-forest-labs/flux-2'))->toBe('Black Forest Labs: FLUX.2');
+    expect(collect(app(MediaModelCatalog::class)->imageModels())->map->name->all())->toBe([
+        'Gemini Nano Banana 2.1',
+        'Black Forest Labs: FLUX.2',
+        'acme/gone:free',
+    ]);
 });

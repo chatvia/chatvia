@@ -82,16 +82,6 @@ class OpenRouterImageGenerator implements ImageGenerator
         throw new ImageGenerationFailedException('OpenRouter sent no image.');
     }
 
-    public function isEnabled(): bool
-    {
-        return true;
-    }
-
-    public function name(?string $model = null): string
-    {
-        return "openrouter {$this->model($model)}";
-    }
-
     /** A picture from a `data:image/…;base64,…` URL; null for anything else. */
     private function fromDataUrl(string $url): ?GeneratedImageData
     {

@@ -8,17 +8,15 @@ use Domain\Conversation\Enums\GeneratedMediaKind;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 
 /**
- * The image and video models a chatter may pick: only while the admin lets
- * agents offer a choice, the agent turned it on and has the capability on;
- * the admin's model first; the ticked ones of the service in use; none when
- * fewer than two are left.
+ * The image and video models a chatter may pick: every model the admin
+ * listed, from any service, with the admin's default first; only while the
+ * agent turned the choice on and has the capability on; none when fewer than
+ * two models are listed.
  */
 beforeEach(function (): void {
     config([
-        'chatvia.ai.image_generator' => 'fal',
-        'services.fal.image_model' => 'fal-ai/flux-2',
-        'chatvia.ai.image_model_choice' => true,
-        'chatvia.ai.image_models' => ['fal-ai/qwen-image', 'gpt-image-2', 'fal-ai/flux-2'],
+        'chatvia.ai.image_models' => ['openai:gpt-image-2', 'fal:fal-ai/qwen-image', 'fal:fal-ai/flux-2'],
+        'chatvia.ai.default_image_model' => 'fal:fal-ai/flux-2',
     ]);
     $this->agent = Agent::factory()->create();
     $this->agent->setSetting('image', true, OfferedMediaModels::SETTINGS_GROUP);
@@ -36,12 +34,13 @@ function omm(): OfferedMediaModels
     return app(OfferedMediaModels::class);
 }
 
-it('offers the admin\'s model first, then the ticked ones of the service in use', function (): void {
+it('offers every listed model, of any service, with the admin\'s default first', function (): void {
     $offered = omm()->for($this->agent, GeneratedMediaKind::Image);
 
     expect(collect($offered)->map->toArray()->all())->toBe([
-        ['id' => 'fal-ai/flux-2', 'name' => 'FLUX.2 dev', 'is_default' => true],
-        ['id' => 'fal-ai/qwen-image', 'name' => 'Qwen-Image', 'is_default' => false],
+        ['id' => 'fal:fal-ai/flux-2', 'name' => 'FLUX.2 dev', 'is_default' => true],
+        ['id' => 'openai:gpt-image-2', 'name' => 'GPT Image 2', 'is_default' => false],
+        ['id' => 'fal:fal-ai/qwen-image', 'name' => 'Qwen-Image', 'is_default' => false],
     ]);
 });
 
@@ -50,16 +49,15 @@ it('offers nothing while a gate is shut', function (Closure $shut): void {
 
     expect(omm()->for($this->agent->fresh(), GeneratedMediaKind::Image))->toBe([]);
 })->with([
-    'admin off' => [fn () => config(['chatvia.ai.image_model_choice' => false])],
     'agent off' => [fn (Agent $agent) => $agent->setSetting('image', false, OfferedMediaModels::SETTINGS_GROUP)],
     'capability off' => [fn (Agent $agent) => $agent->mcpServers()->detach()],
-    'one model left' => [fn () => config(['chatvia.ai.image_models' => ['gpt-image-2']])],
-    'service off' => [fn () => config(['chatvia.ai.image_generator' => 'none'])],
+    'one model listed' => [fn () => config(['chatvia.ai.image_models' => ['openai:gpt-image-2']])],
 ]);
 
 it('keeps an offered pick and drops any other', function (): void {
-    expect(omm()->resolve($this->agent, GeneratedMediaKind::Image, 'fal-ai/qwen-image'))->toBe('fal-ai/qwen-image')
-        ->and(omm()->resolve($this->agent, GeneratedMediaKind::Image, 'fal-ai/flux-2-pro'))->toBeNull()
+    expect(omm()->resolve($this->agent, GeneratedMediaKind::Image, 'openai:gpt-image-2')?->service->value)->toBe('openai')
+        ->and(omm()->resolve($this->agent, GeneratedMediaKind::Image, 'fal:fal-ai/flux-2-pro'))->toBeNull()
+        ->and(omm()->resolve($this->agent, GeneratedMediaKind::Image, 'gpt-image-2'))->toBeNull()
         ->and(omm()->resolve($this->agent, GeneratedMediaKind::Image, null))->toBeNull();
 });
 
@@ -69,12 +67,7 @@ it('offers no choice for audio files', function (): void {
 });
 
 it('keeps videos apart from pictures', function (): void {
-    config([
-        'chatvia.ai.video_generator' => 'kling',
-        'services.kling.video_model' => 'kling-3.0-turbo',
-        'chatvia.ai.video_model_choice' => true,
-        'chatvia.ai.video_models' => ['kling-4.0'],
-    ]);
+    config(['chatvia.ai.video_models' => ['kling:kling-3.0-turbo', 'runway:veo3.1_fast', 'fal:fal-ai/veo3.1/fast']]);
 
     expect(omm()->for($this->agent, GeneratedMediaKind::Video))->toBe([])
         ->and(omm()->isAllowed(GeneratedMediaKind::Video))->toBeTrue();
@@ -82,5 +75,9 @@ it('keeps videos apart from pictures', function (): void {
     $this->agent->setSetting('video', true, OfferedMediaModels::SETTINGS_GROUP);
     ommCapability($this->agent, 'video-generation');
 
-    expect(collect(omm()->for($this->agent->fresh(), GeneratedMediaKind::Video))->pluck('id')->all())->toBe(['kling-3.0-turbo', 'kling-4.0']);
+    expect(collect(omm()->for($this->agent->fresh(), GeneratedMediaKind::Video))->pluck('name', 'id')->all())->toBe([
+        'kling:kling-3.0-turbo' => 'Kling 3.0 Turbo',
+        'runway:veo3.1_fast' => 'Google Veo 3.1 Fast (Runway)',
+        'fal:fal-ai/veo3.1/fast' => 'Google Veo 3.1 Fast (fal.ai)',
+    ]);
 });

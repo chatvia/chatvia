@@ -1,27 +1,22 @@
 <?php
 
+use App\Admin\Clusters\Settings\Components\MediaModelsTable;
 use App\Admin\Clusters\Settings\Pages\ManageAiModelSettings;
 use App\Admin\Settings\AiSettings;
-use Domain\Llm\Contracts\VideoGenerator;
 use Domain\Llm\Enums\AiProvider;
-use Domain\Llm\Operations\Media\Video\ElevenLabsVideoGenerator;
-use Domain\Llm\Operations\Media\Video\FalVideoGenerator;
-use Domain\Llm\Operations\Media\Video\GoogleVideoGenerator;
-use Domain\Llm\Operations\Media\Video\KlingVideoGenerator;
-use Domain\Llm\Operations\Media\Video\NullVideoGenerator;
 use Domain\Llm\Operations\Media\Video\RunwayVideoGenerator;
-use Domain\Llm\Operations\Media\Video\SeedanceVideoGenerator;
-use Filament\Forms\Components\Select;
+use Domain\Llm\Services\MediaModelCatalog;
+use Filament\Actions\Testing\TestAction;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
+use Livewire\Livewire;
 
 /**
- * The Video generation card of Settings → AI models: off until an admin
- * picks a service (a connected key alone does not turn it on), the most
- * videos one chat gets in an hour, the length and resolution asked of every
- * video, and each service's model. Turning a service on checks its key with
- * a real call.
+ * The Video generation card of Settings → AI models: a table of video
+ * models, from one service or several, off while it is empty; the default
+ * model; the most videos one chat gets in an hour; and the length and
+ * resolution asked of every video. A service new to the table is checked
+ * with a real call before its models are added.
  */
 beforeEach(function (): void {
     $this->admin = adminUser();
@@ -31,45 +26,22 @@ beforeEach(function (): void {
     }
 });
 
-it('stays off while a key is connected and nothing is picked', function (): void {
-    connectAiProviders(AiProvider::Google, AiProvider::Runway);
+function vgcTable(): mixed
+{
+    return Livewire::actingAs(test()->admin, 'admin')->test(MediaModelsTable::class, ['kind' => 'video']);
+}
 
-    $page = adminPage(ManageAiModelSettings::class, $this->admin)->assertFormSet(['video_generator' => 'none']);
-    /** @var Select $field */
-    $field = $page->instance()->form->getFlatFields(withHidden: true)['video_generator'];
-
-    expect(collect($field->getOptions())->map(fn (string $label): string => Str::of($label)->stripTags()->trim()->toString())->all())->toBe([
-        'google' => 'Google Gemini (connected)',
-        'elevenlabs' => 'ElevenLabs (not connected)',
-        'kling' => 'Kling (not connected)',
-        'byteplus' => 'BytePlus Seedance (not connected)',
-        'runway' => 'Runway (connected)',
-        'fal' => 'fal.ai (not connected)',
-        'none' => 'Off',
-    ])->and($field->isOptionDisabled('kling', 'Kling'))->toBeTrue()
-        ->and(app(VideoGenerator::class))->toBeInstanceOf(NullVideoGenerator::class);
-});
-
-it('saves the service, its model, the hourly limit, length and resolution', function (): void {
+it('adds a service\'s models once the service accepts the key', function (): void {
     connectAiProviders(AiProvider::Runway);
     Http::fake(['api.dev.runwayml.com/v1/organization' => Http::response(['creditBalance' => 100])]);
 
-    adminPage(ManageAiModelSettings::class, $this->admin)
-        ->fillForm([
-            'video_generator' => 'runway',
-            'runway_video_model' => 'veo3.1_fast',
-            'videos_per_chat_per_hour' => 3,
-            'video_duration' => 6,
-            'video_resolution' => '1080p',
-        ])
-        ->call('save')
-        ->assertHasNoFormErrors();
+    vgcTable()
+        ->callAction(TestAction::make('addMediaModel')->table(), data: ['service' => 'runway', 'models' => ['veo3.1_fast', 'gen4.5']])
+        ->assertHasNoActionErrors()
+        ->assertNotified('Models added');
 
-    expect(config('chatvia.ai.video_generator'))->toBe('runway')
-        ->and(config('chatvia.ai.videos_per_chat_per_hour'))->toBe(3)
-        ->and(config('chatvia.ai.video_duration'))->toBe(6)
-        ->and(config('chatvia.ai.video_resolution'))->toBe('1080p')
-        ->and(app(VideoGenerator::class)->name())->toBe('runway veo3.1_fast');
+    expect(collect(app(MediaModelCatalog::class)->videoModels())->map->key()->all())->toBe(['runway:veo3.1_fast', 'runway:gen4.5'])
+        ->and(app(MediaModelCatalog::class)->defaultVideo()?->key())->toBe('runway:veo3.1_fast');
 
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.dev.runwayml.com/v1/organization'
         && $request->hasHeader('Authorization', 'Bearer test-key')
@@ -80,52 +52,40 @@ it('refuses a service whose key the provider refuses', function (): void {
     connectAiProviders(AiProvider::Kling);
     Http::fake(['*/account/billing/balance' => Http::response(['code' => 1002, 'message' => 'Authorization is invalid'], 401)]);
 
+    vgcTable()
+        ->callAction(TestAction::make('addMediaModel')->table(), data: ['service' => 'kling', 'models' => ['kling-4.0']])
+        ->assertNotified('Kling did not answer');
+
+    expect(savedSetting(AiSettings::class, 'video_models'))->toBeNull();
+});
+
+it('saves the default, the hourly limit, length and resolution', function (): void {
+    saveSettings(AiSettings::class, ['video_models' => ['kling:kling-3.0-turbo', 'fal:fal-ai/veo3.1/fast']]);
+
     adminPage(ManageAiModelSettings::class, $this->admin)
-        ->fillForm(['video_generator' => 'kling'])
+        ->fillForm([
+            'default_video_model' => 'fal:fal-ai/veo3.1/fast',
+            'videos_per_chat_per_hour' => 3,
+            'video_duration' => 6,
+            'video_resolution' => '1080p',
+        ])
         ->call('save')
-        ->assertHasFormErrors(['video_generator' => 'Kling refused the key. Check that you copied all of it.']);
+        ->assertHasNoFormErrors();
 
-    expect(savedSetting(AiSettings::class, 'video_generator'))->toBeNull();
+    expect(app(MediaModelCatalog::class)->defaultVideo()?->key())->toBe('fal:fal-ai/veo3.1/fast')
+        ->and(config('chatvia.ai.videos_per_chat_per_hour'))->toBe(3)
+        ->and(config('chatvia.ai.video_duration'))->toBe(6)
+        ->and(config('chatvia.ai.video_resolution'))->toBe('1080p');
 });
 
-it('picks each service by its saved name', function (string $driver, string $class): void {
-    config(['chatvia.ai.video_generator' => $driver]);
+it('refuses a default that is not on the list', function (): void {
+    saveSettings(AiSettings::class, ['video_models' => ['kling:kling-3.0-turbo']]);
 
-    expect(app(VideoGenerator::class))->toBeInstanceOf($class);
-})->with([
-    'google' => ['google', GoogleVideoGenerator::class],
-    'elevenlabs' => ['elevenlabs', ElevenLabsVideoGenerator::class],
-    'kling' => ['kling', KlingVideoGenerator::class],
-    'byteplus' => ['byteplus', SeedanceVideoGenerator::class],
-    'runway' => ['runway', RunwayVideoGenerator::class],
-    'fal' => ['fal', FalVideoGenerator::class],
-    'off' => ['none', NullVideoGenerator::class],
-    'automatic stays off' => ['auto', NullVideoGenerator::class],
-]);
-
-it('shows the model of the picked service right under it', function (): void {
     adminPage(ManageAiModelSettings::class, $this->admin)
-        ->assertFormFieldHidden('google_video_model')
-        ->fillForm(['video_generator' => 'kling'])
-        ->assertFormFieldVisible('kling_video_model')
-        ->assertFormFieldHidden('google_video_model')
-        ->assertFormFieldHidden('runway_video_model');
+        ->fillForm(['default_video_model' => 'runway:gen4.5'])
+        ->call('save')
+        ->assertHasFormErrors(['default_video_model']);
 });
-
-it('offers every model its generator knows', function (string $property, array $models): void {
-    /** @var Select $field */
-    $field = adminPage(ManageAiModelSettings::class, $this->admin)->instance()->form->getFlatFields(withHidden: true)[$property];
-
-    expect(array_keys($field->getOptions()))->toEqualCanonicalizing(array_keys($models))
-        ->and(array_key_first($field->getOptions()))->toBe(config(AiSettings::configKeys()[$property][0]->key));
-})->with([
-    'google' => ['google_video_model', GoogleVideoGenerator::MODELS],
-    'elevenlabs' => ['elevenlabs_video_model', ElevenLabsVideoGenerator::MODELS],
-    'kling' => ['kling_video_model', KlingVideoGenerator::MODELS],
-    'byteplus' => ['byteplus_video_model', SeedanceVideoGenerator::MODELS],
-    'runway' => ['runway_video_model', RunwayVideoGenerator::MODELS],
-    'fal' => ['fal_video_model', FalVideoGenerator::MODELS],
-]);
 
 it('refuses an hourly limit or a length out of range', function (string $property, int $value): void {
     adminPage(ManageAiModelSettings::class, $this->admin)
@@ -137,20 +97,9 @@ it('refuses an hourly limit or a length out of range', function (string $propert
     'too long' => ['video_duration', 30],
 ]);
 
-it('sums up the service, model, length and resolution in use', function (): void {
-    saveSettings(AiSettings::class, ['video_generator' => 'fal', 'fal_video_model' => 'fal-ai/veo3.1/fast', 'video_duration' => 6]);
+it('sums up the models, the default, length and resolution', function (): void {
+    saveSettings(AiSettings::class, ['video_models' => ['fal:fal-ai/veo3.1/fast'], 'video_duration' => 6]);
 
     adminPage(ManageAiModelSettings::class, $this->admin)
-        ->assertSee('fal.ai · fal-ai/veo3.1/fast · 6 s, 720p');
-});
-
-it('lets workspaces offer a choice of the picked service\'s models', function (): void {
-    $page = adminPage(ManageAiModelSettings::class, $this->admin)
-        ->fillForm(['video_generator' => 'kling', 'video_model_choice' => true])
-        ->assertFormFieldVisible('video_models');
-
-    expect(array_keys($page->instance()->form->getFlatFields(withHidden: true)['video_models']->getOptions()))
-        ->toEqualCanonicalizing(array_keys(KlingVideoGenerator::MODELS));
-
-    $page->fillForm(['video_model_choice' => false])->assertFormFieldHidden('video_models');
+        ->assertSee('1 model · fal.ai Google Veo 3.1 Fast · 6 s, 720p');
 });

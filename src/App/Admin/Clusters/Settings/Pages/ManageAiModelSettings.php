@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Admin\Clusters\Settings\Pages;
 
 use App\Admin\Clusters\Settings\AdminSettingsPage;
+use App\Admin\Clusters\Settings\Components\MediaModelsTable;
 use App\Admin\Clusters\Settings\SettingsCard;
 use App\Admin\Forms\ModelPicker;
 use App\Admin\Settings\Actions\ApplyRecommendedTaskModelsAction;
@@ -22,6 +23,7 @@ use App\Admin\Settings\RerankerCheck;
 use BackedEnum;
 use Closure;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Enums\GeneratedMediaKind;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
 use Domain\Knowledge\Embedding\Exceptions\EmbeddingDimensionsMismatchException;
@@ -42,6 +44,7 @@ use Domain\Llm\Contracts\Speaker;
 use Domain\Llm\Data\Catalog\ModelFactsData;
 use Domain\Llm\Data\Catalog\ModelListData;
 use Domain\Llm\Data\Catalog\RemoteModelData;
+use Domain\Llm\Data\Media\MediaModelData;
 use Domain\Llm\Data\Speech\SpeechVoiceData;
 use Domain\Llm\Enums\AiCapability;
 use Domain\Llm\Enums\AiProvider;
@@ -58,7 +61,6 @@ use Domain\Llm\Services\MediaModelCatalog;
 use Domain\Llm\Services\ModelListing;
 use Domain\Llm\Services\ModelPresets;
 use Domain\Llm\Services\ModelsDevCatalog;
-use Domain\Llm\Services\OpenRouterImageModels;
 use Domain\Llm\Services\ProviderAdapters;
 use Domain\Llm\Services\SourceSummaryModel;
 use Domain\Llm\Services\TaskModels;
@@ -89,13 +91,16 @@ use Illuminate\Support\HtmlString;
 use Illuminate\Support\Js;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use Livewire\Attributes\On;
 
 /**
  * What runs on the connected AI providers: the chat models agents can use
  * (added from a provider's list, removed with their agents moved to another
  * model) and the default for new agents; the embedding service; the
- * reranker; document reading; speech to text; voice; reading aloud; image,
- * audio and video generation, which stay off until an admin picks a service. The models
+ * reranker; document reading; speech to text; voice; reading aloud; audio
+ * generation, which stays off until an admin picks a service; and image and
+ * video generation, a table of models like Chat's from one service or
+ * several ({@see MediaModelsTable}), off while it is empty. The models
  * behind the app's own tasks ({@see LlmTask}) are a closed card of their
  * own: the model for quick tasks, and one per task, grouped by when the
  * task runs. "Use the
@@ -418,54 +423,9 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 ]),
             ])->summary(fn (): string => $this->readAloudSummary()),
             SettingsCard::make('image_generation', 'Image generation', 'Pictures agents make in the hosted chat when a chatter asks.', Heroicon::OutlinedPhoto, fn (): array => [
-                $this->serviceChoice('image_generator', 'Image generation', [
-                    'openai' => 'OpenAI GPT Image',
-                    'openrouter' => 'OpenRouter',
-                    'google' => 'Google Gemini',
-                    'fal' => 'fal.ai',
-                    'none' => 'Off',
-                ], 'Off until you pick a service, even when a key is connected. Each agent must also turn it on, under Capabilities. Every picture counts against the workspace\'s monthly generation limit, when it has one.',
-                    check: fn (string $provider): ConnectionCheckData => app(AiProviderCheck::class)->check(AiProvider::from($provider)))
-                    ->live(),
-                $this->choice('openai_image_model', 'Model', MediaModelCatalog::IMAGE_MODELS['openai'])->visible(fn (Get $get): bool => $get('image_generator') === 'openai'),
-                $this->choice('openrouter_image_model', 'Model', $openRouterImages = app(OpenRouterImageModels::class)->options(),
-                    help: 'Listed with a few good picks first, then every model on OpenRouter whose output includes images.')
-                    ->options(ModelLogo::labels($openRouterImages, LlmProviderKind::OpenRouter))
-                    ->allowHtml()
-                    ->searchable()
-                    ->visible(fn (Get $get): bool => $get('image_generator') === 'openrouter'),
-                $this->choice('google_image_model', 'Model', MediaModelCatalog::IMAGE_MODELS['google'])->visible(fn (Get $get): bool => $get('image_generator') === 'google'),
-                $this->choice('fal_image_model', 'Model', MediaModelCatalog::IMAGE_MODELS['fal'])
-                    ->visible(fn (Get $get): bool => $get('image_generator') === 'fal'),
-                Callout::make('A small text model hands OpenAI the prompt')
-                    ->description('OpenAI draws through its Responses API, so each picture also costs a few text tokens. OpenAI does not keep the pictures.')
-                    ->icon(Heroicon::OutlinedInformationCircle)
-                    ->info()
-                    ->visible(fn (Get $get): bool => $get('image_generator') === 'openai'),
-                Callout::make('Prices differ a lot between OpenRouter models')
-                    ->description('Check a model\'s price on OpenRouter before you pick it. Any model whose output includes images works.')
-                    ->icon(Heroicon::OutlinedInformationCircle)
-                    ->info()
-                    ->visible(fn (Get $get): bool => $get('image_generator') === 'openrouter'),
-                Callout::make('Google marks every picture')
-                    ->description('Each picture carries Google\'s SynthID watermark, which people cannot see but tools can find.')
-                    ->icon(Heroicon::OutlinedInformationCircle)
-                    ->info()
-                    ->visible(fn (Get $get): bool => $get('image_generator') === 'google'),
-                Callout::make('Prices differ between fal.ai models')
-                    ->description('Check a model\'s price on fal.ai before you pick it. FLUX.2 dev and Qwen-Image are open models.')
-                    ->icon(Heroicon::OutlinedInformationCircle)
-                    ->info()
-                    ->visible(fn (Get $get): bool => $get('image_generator') === 'fal'),
-                $this->toggle('image_model_choice', 'Let workspaces offer a choice of models',
-                    'Lets each agent show chatters an "Image model" menu in the hosted chat, with the models you tick here. The model above is always in it, as the default. Each agent turns this on under Setup → Model.')
-                    ->live(),
-                Callout::make('Each agent turns the menu on')
-                    ->description('This switch only allows the choice. Chatters see the "Image model" menu once an agent has Image generation under Capabilities and turns on "Let people choose the image model" under Setup → Model.')
-                    ->icon(Heroicon::OutlinedInformationCircle)
-                    ->info()
-                    ->visible(fn (Get $get): bool => (bool) $get('image_model_choice') && $get('image_generator') !== 'none'),
-                $this->mediaModelPicker('image_models', 'image_generator', 'image_model_choice', fn (string $service): array => app(MediaModelCatalog::class)->imageModels($service)),
+                EmbeddedTable::make(MediaModelsTable::class, ['kind' => GeneratedMediaKind::Image->value])->key('image-models'),
+                $this->mediaDefaultChoice(GeneratedMediaKind::Image,
+                    'Pictures are made with this model unless a chatter picks another. Empty uses the first model on the list. With two or more models, each agent can let chatters pick one, under Setup → Model.'),
                 $this->integer('images_per_chat_per_hour', 'Pictures per chat per hour', help: 'The most pictures an agent makes in one chat in an hour. A chatter who asks for more is told to wait.', min: 1, max: 100),
             ])->summary(fn (): string => $this->imageGenerationSummary()),
             SettingsCard::make('audio_generation', 'Audio generation', 'Audio files agents make in the hosted chat when a chatter asks: a text, or an attached PDF, read aloud.', Heroicon::OutlinedMusicalNote, fn (): array => [
@@ -485,63 +445,9 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 $this->integer('audio_max_characters', 'Longest text, in characters', help: 'The most text one audio file reads, such as a PDF a chatter attached. 20,000 characters is about 6 pages, or 20 minutes of audio. A longer text is refused.', min: 1000, max: 50000),
             ])->summary(fn (): string => $this->providerInUse('audio_generator')),
             SettingsCard::make('video_generation', 'Video generation', 'Short videos agents make in the hosted chat when a chatter asks.', Heroicon::OutlinedFilm, fn (): array => [
-                $this->serviceChoice('video_generator', 'Video generation', [
-                    'google' => 'Google Gemini',
-                    'elevenlabs' => 'ElevenLabs',
-                    'kling' => 'Kling',
-                    'byteplus' => 'BytePlus Seedance',
-                    'runway' => 'Runway',
-                    'fal' => 'fal.ai',
-                    'none' => 'Off',
-                ], 'Off until you pick a service, even when a key is connected. Each agent must also turn it on, under Capabilities. A video takes a few minutes and costs far more than a picture, so it counts against the workspace\'s own monthly video limit, when it has one.',
-                    check: fn (string $provider): ConnectionCheckData => app(AiProviderCheck::class)->check(AiProvider::from($provider)))
-                    ->live(),
-                $this->choice('google_video_model', 'Model', MediaModelCatalog::VIDEO_MODELS['google'])
-                    ->visible(fn (Get $get): bool => $get('video_generator') === 'google'),
-                $this->choice('elevenlabs_video_model', 'Model', MediaModelCatalog::VIDEO_MODELS['elevenlabs'])
-                    ->visible(fn (Get $get): bool => $get('video_generator') === 'elevenlabs'),
-                $this->choice('kling_video_model', 'Model', MediaModelCatalog::VIDEO_MODELS['kling'])
-                    ->visible(fn (Get $get): bool => $get('video_generator') === 'kling'),
-                $this->choice('byteplus_video_model', 'Model', MediaModelCatalog::VIDEO_MODELS['byteplus'])
-                    ->visible(fn (Get $get): bool => $get('video_generator') === 'byteplus'),
-                $this->choice('runway_video_model', 'Model', MediaModelCatalog::VIDEO_MODELS['runway'])
-                    ->visible(fn (Get $get): bool => $get('video_generator') === 'runway'),
-                $this->choice('fal_video_model', 'Model', MediaModelCatalog::VIDEO_MODELS['fal'])
-                    ->visible(fn (Get $get): bool => $get('video_generator') === 'fal'),
-                Callout::make('Google moved on from Veo')
-                    ->description('Google shut down the Veo 3.1 preview models on the Gemini API. Gemini Omni Flash is used by default, and Veo 3 is listed while Google still serves it. For Veo 3.1, pick ElevenLabs, Runway or fal.ai. Each video carries Google\'s SynthID watermark.')
-                    ->icon(Heroicon::OutlinedInformationCircle)
-                    ->info()
-                    ->visible(fn (Get $get): bool => $get('video_generator') === 'google'),
-                Callout::make('ElevenLabs needs a Pro plan')
-                    ->description('Making videos through its API needs the Pro plan or above. Its Seedance models work only after ElevenLabs approves your account for them.')
-                    ->icon(Heroicon::OutlinedInformationCircle)
-                    ->info()
-                    ->visible(fn (Get $get): bool => $get('video_generator') === 'elevenlabs'),
-                Callout::make('Seedance needs a resource pack')
-                    ->description('Buy a prepaid resource pack for the model in the BytePlus console first, or every video fails. A pack works for one model only.')
-                    ->icon(Heroicon::OutlinedInformationCircle)
-                    ->info()
-                    ->visible(fn (Get $get): bool => $get('video_generator') === 'byteplus'),
-                Callout::make('Runway bills in credits')
-                    ->description('Each second of video costs credits from your Runway organization. Add credits in the Runway developer portal.')
-                    ->icon(Heroicon::OutlinedInformationCircle)
-                    ->info()
-                    ->visible(fn (Get $get): bool => $get('video_generator') === 'runway'),
-                Callout::make('Prices differ a lot between models')
-                    ->description('A video can cost from a few cents to a few dollars. Check the model\'s price before you pick it.')
-                    ->icon(Heroicon::OutlinedInformationCircle)
-                    ->info()
-                    ->visible(fn (Get $get): bool => collect(['kling', 'fal'])->containsStrict($get('video_generator'))),
-                $this->toggle('video_model_choice', 'Let workspaces offer a choice of models',
-                    'Lets each agent show chatters a "Video model" menu in the hosted chat, with the models you tick here. The model above is always in it, as the default. Each agent turns this on under Setup → Model.')
-                    ->live(),
-                Callout::make('Each agent turns the menu on')
-                    ->description('This switch only allows the choice. Chatters see the "Video model" menu once an agent has Video generation under Capabilities and turns on "Let people choose the video model" under Setup → Model.')
-                    ->icon(Heroicon::OutlinedInformationCircle)
-                    ->info()
-                    ->visible(fn (Get $get): bool => (bool) $get('video_model_choice') && $get('video_generator') !== 'none'),
-                $this->mediaModelPicker('video_models', 'video_generator', 'video_model_choice', fn (string $service): array => app(MediaModelCatalog::class)->videoModels($service)),
+                EmbeddedTable::make(MediaModelsTable::class, ['kind' => GeneratedMediaKind::Video->value])->key('video-models'),
+                $this->mediaDefaultChoice(GeneratedMediaKind::Video,
+                    'Videos are made with this model unless a chatter picks another. Empty uses the first model on the list. With two or more models, each agent can let chatters pick one, under Setup → Model.'),
                 $this->integer('videos_per_chat_per_hour', 'Videos per chat per hour', help: 'The most videos an agent makes in one chat in an hour. A chatter who asks for more is told to wait.', min: 1, max: 20),
                 $this->integer('video_duration', 'Length, in seconds', help: 'How long each video is. Each service makes the length nearest to this that its model can. Longer videos cost more.', min: 2, max: 15),
                 $this->choice('video_resolution', 'Resolution', [
@@ -1057,18 +963,32 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     }
 
     /**
-     * The models chatters may pick from, of the service picked above. Ticks
-     * of another service stay saved but are not offered.
-     *
-     * @param  Closure(string): array<string, string>  $models
+     * The image or video model used unless a chatter picks another, among
+     * the models in the card's table. Hidden while the table is empty.
      */
-    private function mediaModelPicker(string $property, string $service, string $choice, Closure $models): ModelPicker
+    private function mediaDefaultChoice(GeneratedMediaKind $kind, string $help): Field
     {
-        return ModelPicker::make($property)
-            ->hiddenLabel(false)
-            ->label('Models people can pick')
-            ->options(fn (Get $get): array => $models((string) $get($service)))
-            ->visible(fn (Get $get): bool => (bool) $get($choice) && $models((string) $get($service)) !== []);
+        $models = fn (): array => collect($kind === GeneratedMediaKind::Video ? app(MediaModelCatalog::class)->videoModels() : app(MediaModelCatalog::class)->imageModels())
+            ->mapWithKeys(fn (MediaModelData $model): array => [$model->key() => OptionLabel::provider($model->label, $model->service)])
+            ->all();
+
+        return $this->withHelp(Select::make("default_{$kind->value}_model")
+            ->label('Default model')
+            ->options($models)
+            ->allowHtml()
+            ->native(false)
+            ->placeholder('The first model on the list')
+            ->in(fn (): array => array_keys($models()))
+            ->visible(fn (): bool => $models() !== []), $help);
+    }
+
+    /** The table of image or video models changed: show its models and default as saved. */
+    #[On('media-models-changed')]
+    public function refreshMediaModels(): void
+    {
+        $ai = app(AiSettings::class);
+        $this->data['default_image_model'] = $ai->default_image_model;
+        $this->data['default_video_model'] = $ai->default_video_model;
     }
 
     /** The empty choice of a model picker that chooses for itself, with the model it takes now. */
@@ -1372,7 +1292,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             'transcriber' => AiProvider::firstConnectedFor(AiCapability::Speech)?->value ?? 'none',
             'voice' => AiProvider::firstConnectedFor(AiCapability::Voice)?->value ?? 'none',
             'speaker' => AiProvider::firstConnectedFor(AiCapability::TextToSpeech)?->value ?? 'none',
-            'image_generator', 'audio_generator', 'video_generator' => 'none',
+            'audio_generator' => 'none',
             default => throw new InvalidArgumentException("{$property} is not a service choice."),
         };
     }
@@ -1479,39 +1399,32 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
         return collect([$get('speaker'), $get('audio_generator')])->containsStrict($provider);
     }
 
-    /** The image service in use, with its model, or "off". */
+    /** How many image models are listed, with the default, or "off". */
     private function imageGenerationSummary(): string
     {
-        $provider = $this->providerInUse('image_generator');
-        $model = match ($this->driverInUse('image_generator')) {
-            'openai' => config('services.openai.image_model'),
-            'openrouter' => config('services.openrouter.image_model'),
-            'google' => config('services.gemini.image_model'),
-            'fal' => config('services.fal.image_model'),
-            default => null,
-        };
-
-        return $provider === 'off' || blank($model) ? $provider : "{$provider} · {$model}";
+        return $this->mediaSummary(app(MediaModelCatalog::class)->imageModels(), app(MediaModelCatalog::class)->defaultImage());
     }
 
-    /** The video service in use, with its model and the length and resolution asked for, or "off". */
+    /** How many video models are listed, with the default and the length and resolution asked for, or "off". */
     private function videoGenerationSummary(): string
     {
-        $model = match ($this->driverInUse('video_generator')) {
-            'google' => config('services.gemini.video_model'),
-            'elevenlabs' => config('services.elevenlabs.video_model'),
-            'kling' => config('services.kling.video_model'),
-            'byteplus' => config('services.byteplus.video_model'),
-            'runway' => config('services.runway.video_model'),
-            'fal' => config('services.fal.video_model'),
-            default => null,
-        };
+        $summary = $this->mediaSummary(app(MediaModelCatalog::class)->videoModels(), app(MediaModelCatalog::class)->defaultVideo());
 
-        if (blank($model)) {
+        return $summary === 'off' ? $summary : "{$summary} · ".config('chatvia.ai.video_duration').' s, '.config('chatvia.ai.video_resolution');
+    }
+
+    /**
+     * @param  list<MediaModelData>  $models
+     */
+    private function mediaSummary(array $models, ?MediaModelData $default): string
+    {
+        if (! $default instanceof MediaModelData) {
             return 'off';
         }
 
-        return "{$this->providerInUse('video_generator')} · {$model} · ".config('chatvia.ai.video_duration').' s, '.config('chatvia.ai.video_resolution');
+        $count = count($models);
+
+        return ($count === 1 ? '1 model' : "{$count} models")." · {$default->service->label()} {$default->name}";
     }
 
     private function embeddingSummary(): string

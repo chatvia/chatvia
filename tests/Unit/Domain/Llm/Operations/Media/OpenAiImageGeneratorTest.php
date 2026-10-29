@@ -37,9 +37,7 @@ it('draws the prompt with the image tool and returns the PNG', function (): void
 
     expect($image->bytes)->toBe('png-bytes')
         ->and($image->mimeType)->toBe('image/png')
-        ->and($image->extension())->toBe('png')
-        ->and($generator->name())->toBe('openai gpt-image-2.5-flare')
-        ->and($generator->isEnabled())->toBeTrue();
+        ->and($image->extension())->toBe('png');
 
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.openai.test/v1/responses'
         && $request->hasHeader('Authorization', 'Bearer sk-test')

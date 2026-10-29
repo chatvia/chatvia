@@ -81,16 +81,6 @@ class FalVideoGenerator implements VideoGenerator
 
     public function forget(string $taskId): void {}
 
-    public function isEnabled(): bool
-    {
-        return true;
-    }
-
-    public function name(?string $model = null): string
-    {
-        return "fal {$this->model($model)}";
-    }
-
     /**
      * Length, size and sound in the fields the model takes.
      *

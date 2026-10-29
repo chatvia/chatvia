@@ -50,9 +50,9 @@ final class AiServiceChecks
                 AiService::Speech => $this->onProvider($service, AiCapability::Speech),
                 AiService::Voice => $this->onProvider($service, AiCapability::Voice),
                 AiService::ReadAloud => $this->onProvider($service, AiCapability::TextToSpeech),
-                AiService::ImageGeneration => $this->onProvider($service, AiCapability::ImageGeneration),
+                AiService::ImageGeneration => $this->onListed(AiCapability::ImageGeneration),
                 AiService::AudioGeneration => $this->onProvider($service, AiCapability::AudioGeneration),
-                AiService::VideoGeneration => $this->onProvider($service, AiCapability::VideoGeneration),
+                AiService::VideoGeneration => $this->onListed(AiCapability::VideoGeneration),
                 AiService::WebPages => $this->webPages(),
                 AiService::VisitorCountry => $this->visitorCountry(),
             };
@@ -70,6 +70,24 @@ final class AiServiceChecks
             return new ServiceStatusData(ServiceState::Down, __('No chat model is ready, so agents cannot reply. Add one in Settings → AI models.'));
         }
 
+        return $this->worstOf($providers);
+    }
+
+    /** The services of the image or video models listed; the worst of them decides. Off while none is listed. */
+    private function onListed(AiCapability $capability): ServiceStatusData
+    {
+        $providers = $this->usage->providersFor($capability);
+
+        return $providers === [] ? new ServiceStatusData(ServiceState::Off, __('Not set up.')) : $this->worstOf($providers);
+    }
+
+    /**
+     * Running when every provider answers, Down when none does, Warning in between.
+     *
+     * @param  non-empty-list<AiProvider>  $providers
+     */
+    private function worstOf(array $providers): ServiceStatusData
+    {
         $failed = array_values(array_filter($providers, fn (AiProvider $provider): bool => ! $this->provider($provider)->connected));
         $names = array_map(fn (AiProvider $provider): string => $provider->label(), $providers);
         $values = array_map(fn (AiProvider $provider): string => $provider->value, $providers);

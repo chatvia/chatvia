@@ -27,15 +27,16 @@ it('names the provider a voice call runs on now', function (string $voice, array
     'a provider without voice picked' => ['mistral', [AiProvider::Mistral], null],
 ]);
 
-it('names the provider pictures are made on, none until one is picked', function (string $driver, ?AiProvider $provider): void {
-    config(['chatvia.ai.image_generator' => $driver]);
+it('names every service of the image models listed, none while none is', function (array $models, array $providers): void {
+    config(['chatvia.ai.image_models' => $models]);
     connectAiProviders(AiProvider::OpenAi, AiProvider::Google);
+    $usage = app(AiProviderUsage::class);
 
-    expect(app(AiProviderUsage::class)->providerFor(AiCapability::ImageGeneration))->toBe($provider);
+    expect($usage->providersFor(AiCapability::ImageGeneration))->toBe($providers)
+        ->and(collect($providers)->every(fn (AiProvider $provider): bool => collect($usage->usedFor($provider))->containsStrict(AiCapability::ImageGeneration)))->toBeTrue();
 })->with([
-    'off, keys connected' => ['none', null],
-    'Google picked' => ['google', AiProvider::Google],
-    'a provider that cannot draw' => ['mistral', null],
+    'none listed, keys connected' => [[], []],
+    'two services' => [['google:gemini-3-pro-image', 'fal:fal-ai/flux-2', 'google:gemini-3.1-flash-image'], [AiProvider::Google, AiProvider::Fal]],
 ]);
 
 it('names the provider audio files are made on, apart from Read aloud', function (): void {

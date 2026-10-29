@@ -6,20 +6,20 @@ namespace Domain\Integration\Connector\Catalog\Connectors;
 
 use Domain\Integration\Connector\Catalog\CapabilityConnector;
 use Domain\Integration\Connector\Enums\ConnectorCategory;
-use Domain\Llm\Contracts\ImageGenerator;
+use Domain\Llm\Services\MediaModelCatalog;
 use Support\License\Entitlements;
 
 /**
  * Pictures the agent makes for the visitor, shown under its reply. Only the
  * hosted chat can show and keep them, so the router withholds the tool on
  * every other surface, and a voice call never offers it. It works only while
- * an admin has picked an image service (Settings → AI models).
+ * an admin has listed an image model (Settings → AI models).
  */
 final class ImageGenerationConnector extends CapabilityConnector
 {
     public function __construct(
         Entitlements $entitlements,
-        private readonly ImageGenerator $images,
+        private readonly MediaModelCatalog $catalog,
     ) {
         parent::__construct($entitlements);
     }
@@ -55,6 +55,6 @@ final class ImageGenerationConnector extends CapabilityConnector
     #[\Override]
     public function isAvailable(): bool
     {
-        return parent::isAvailable() && $this->images->isEnabled();
+        return parent::isAvailable() && $this->catalog->imageEnabled();
     }
 }

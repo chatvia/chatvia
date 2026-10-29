@@ -88,16 +88,6 @@ class ElevenLabsVideoGenerator implements VideoGenerator
 
     public function forget(string $taskId): void {}
 
-    public function isEnabled(): bool
-    {
-        return true;
-    }
-
-    public function name(?string $model = null): string
-    {
-        return "elevenlabs {$this->model($model)}";
-    }
-
     /** @param callable(PendingRequest): Response $request */
     private function call(callable $request): Response
     {

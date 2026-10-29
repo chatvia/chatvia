@@ -82,16 +82,6 @@ class GoogleImageGenerator implements ImageGenerator
         throw new ImageGenerationFailedException('Google sent no image'.(filled($blocked) ? " ({$blocked})." : '.'));
     }
 
-    public function isEnabled(): bool
-    {
-        return true;
-    }
-
-    public function name(?string $model = null): string
-    {
-        return "google {$this->model($model)}";
-    }
-
     private function model(?string $picked = null): string
     {
         return filled($picked) ? $picked : (string) config('services.gemini.image_model');

@@ -4,16 +4,21 @@ declare(strict_types=1);
 
 namespace Domain\Llm\Services;
 
+use Closure;
+use Domain\Llm\Data\Media\MediaModelData;
 use Domain\Llm\Enums\AiProvider;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /**
  * The image and video models each service offers, with a label for the
  * admin (Settings → AI models) and a short name for chatters who pick one in
- * the hosted chat. Each generator's `MODELS` lists the same ids. OpenRouter's
- * image models come from {@see OpenRouterImageModels}, as they change often.
- * Only the service the admin chose makes pictures or videos, so the models
- * offered are always that service's.
+ * the hosted chat, and the models the admin listed: from one service or
+ * several, as `{service}:{model}` keys ({@see MediaModelData}), one of them
+ * the default. Each generator's `MODELS` lists the same ids. OpenRouter's
+ * image models come from {@see OpenRouterImageModels}, as they change often,
+ * so any id the admin added there stays listed. A kind with no models listed
+ * is off.
  */
 final readonly class MediaModelCatalog
 {
@@ -86,92 +91,161 @@ final readonly class MediaModelCatalog
         private OpenRouterImageModels $openRouter,
     ) {}
 
-    /** The image service in use (Settings → AI models), or `none`. */
-    public function imageService(): string
+    /**
+     * The image models the admin listed, in their order; a model its service
+     * no longer offers is left out.
+     *
+     * @return list<MediaModelData>
+     */
+    public function imageModels(): array
     {
-        return $this->driver('image_generator');
-    }
-
-    /** The video service in use (Settings → AI models), or `none`. */
-    public function videoService(): string
-    {
-        return $this->driver('video_generator');
+        return $this->listed('image_models', $this->imageModelsOf(...));
     }
 
     /**
-     * @return array<string, string> model id => label for the admin
+     * The video models the admin listed, in their order.
+     *
+     * @return list<MediaModelData>
      */
-    public function imageModels(?string $service = null): array
+    public function videoModels(): array
     {
-        $service ??= $this->imageService();
+        return $this->listed('video_models', $this->videoModelsOf(...));
+    }
 
-        return $service === AiProvider::OpenRouter->value ? $this->openRouter->options() : self::IMAGE_MODELS[$service] ?? [];
+    /** The image model used unless a chatter picks another: the admin's default, else the first listed. */
+    public function defaultImage(): ?MediaModelData
+    {
+        return $this->defaultOf($this->imageModels(), 'default_image_model');
+    }
+
+    /** The video model used unless a chatter picks another. */
+    public function defaultVideo(): ?MediaModelData
+    {
+        return $this->defaultOf($this->videoModels(), 'default_video_model');
+    }
+
+    /** Whether agents can make pictures: at least one image model is listed. */
+    public function imageEnabled(): bool
+    {
+        return $this->imageModels() !== [];
+    }
+
+    /** Whether agents can make videos: at least one video model is listed. */
+    public function videoEnabled(): bool
+    {
+        return $this->videoModels() !== [];
     }
 
     /**
+     * The services that make pictures.
+     *
+     * @return list<AiProvider>
+     */
+    public function imageServices(): array
+    {
+        return [AiProvider::OpenAi, AiProvider::OpenRouter, AiProvider::Google, AiProvider::Fal];
+    }
+
+    /**
+     * The services that make videos.
+     *
+     * @return list<AiProvider>
+     */
+    public function videoServices(): array
+    {
+        return collect(array_keys(self::VIDEO_MODELS))->map(AiProvider::from(...))->all();
+    }
+
+    /**
+     * The image models a service offers, for the admin to add.
+     *
      * @return array<string, string> model id => label for the admin
      */
-    public function videoModels(?string $service = null): array
+    public function imageModelsOf(AiProvider $service): array
     {
-        return self::VIDEO_MODELS[$service ?? $this->videoService()] ?? [];
+        return $service === AiProvider::OpenRouter ? $this->openRouter->options() : self::IMAGE_MODELS[$service->value] ?? [];
     }
 
-    /** The model the admin picked for the image service in use; empty while it is off. */
-    public function defaultImageModel(): string
+    /**
+     * The video models a service offers, for the admin to add.
+     *
+     * @return array<string, string> model id => label for the admin
+     */
+    public function videoModelsOf(AiProvider $service): array
     {
-        return $this->configured($this->imageService(), 'image_model');
+        return self::VIDEO_MODELS[$service->value] ?? [];
     }
 
-    /** The model the admin picked for the video service in use; empty while it is off. */
-    public function defaultVideoModel(): string
+    /**
+     * @param  Closure(AiProvider): array<string, string>  $offered
+     * @return list<MediaModelData>
+     */
+    private function listed(string $key, Closure $offered): array
     {
-        return $this->configured($this->videoService(), 'video_model');
+        $models = collect((array) config("chatvia.ai.{$key}"))
+            ->map(fn (mixed $entry): string => (string) $entry)
+            ->unique()
+            ->map(function (string $entry) use ($offered): ?MediaModelData {
+                $service = AiProvider::tryFrom(Str::before($entry, ':'));
+                $model = Str::after($entry, ':');
+
+                if (! $service instanceof AiProvider || $model === '' || $model === $entry) {
+                    return null;
+                }
+
+                $label = $offered($service)[$model] ?? null;
+
+                if ($label === null && $service !== AiProvider::OpenRouter) {
+                    return null;
+                }
+
+                return new MediaModelData($service, $model, $label ?? $model, $this->nameOf($service, $model, $label));
+            })
+            ->filter()
+            ->values();
+
+        return $this->withServiceOnSharedNames($models)->all();
+    }
+
+    /**
+     * Two services can offer the same model ("Google Veo 3.1 Fast" on Runway
+     * and fal.ai), so a name more than one model has also says the service.
+     *
+     * @param  Collection<int, MediaModelData>  $models
+     * @return Collection<int, MediaModelData>
+     */
+    private function withServiceOnSharedNames(Collection $models): Collection
+    {
+        $shared = $models->countBy(fn (MediaModelData $model): string => $model->name)->filter(fn (int $count): bool => $count > 1);
+
+        return $models->map(fn (MediaModelData $model): MediaModelData => $shared->has($model->name)
+            ? new MediaModelData($model->service, $model->model, $model->label, "{$model->name} ({$model->service->label()})")
+            : $model);
+    }
+
+    /**
+     * @param  list<MediaModelData>  $models
+     */
+    private function defaultOf(array $models, string $key): ?MediaModelData
+    {
+        $picked = (string) config("chatvia.ai.{$key}");
+
+        return collect($models)->first(fn (MediaModelData $model): bool => $model->key() === $picked) ?? $models[0] ?? null;
     }
 
     /** A model's name for chatters: its admin label without the notes, or its id. */
-    public function imageName(string $model): string
+    private function nameOf(AiProvider $service, string $model, ?string $label): string
     {
-        $label = $this->imageModels()[$model] ?? null;
-
         if ($label === null) {
             return $model;
         }
 
         // OpenRouter's own picks carry a note after a colon; its other
         // models are named "Maker: Model", which stays whole.
-        return array_key_exists($model, OpenRouterImageModels::CURATED)
-            ? Str::before($label, ':')
-            : $this->withoutNote($label);
-    }
-
-    /** A model's name for chatters: its admin label without the notes, or its id. */
-    public function videoName(string $model): string
-    {
-        $label = $this->videoModels()[$model] ?? null;
-
-        return $label === null ? $model : $this->withoutNote($label);
-    }
-
-    private function withoutNote(string $label): string
-    {
-        return Str::of($label)->before(' (')->trim()->toString();
-    }
-
-    private function driver(string $key): string
-    {
-        $driver = Str::of((string) config("chatvia.ai.{$key}"))->trim()->lower()->toString();
-
-        return $driver === '' || $driver === 'auto' ? 'none' : $driver;
-    }
-
-    private function configured(string $service, string $key): string
-    {
-        $provider = AiProvider::tryFrom($service);
-
-        if ($provider === null) {
-            return '';
+        if ($service === AiProvider::OpenRouter && array_key_exists($model, OpenRouterImageModels::CURATED)) {
+            return Str::before($label, ':');
         }
 
-        return (string) config("services.{$provider->configGroup()}.{$key}");
+        return Str::of($label)->before(' (')->trim()->toString();
     }
 }

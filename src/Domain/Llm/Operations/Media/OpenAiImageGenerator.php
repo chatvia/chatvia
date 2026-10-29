@@ -93,16 +93,6 @@ class OpenAiImageGenerator implements ImageGenerator
         throw new ImageGenerationFailedException('OpenAI sent no image.');
     }
 
-    public function isEnabled(): bool
-    {
-        return true;
-    }
-
-    public function name(?string $model = null): string
-    {
-        return "openai {$this->model($model)}";
-    }
-
     private function model(?string $picked = null): string
     {
         return filled($picked) ? $picked : (string) config('services.openai.image_model');

@@ -12,9 +12,10 @@ use Domain\Conversation\Events\GeneratedMediaUpdated;
 use Domain\Conversation\Jobs\CheckGeneratedVideoJob;
 use Domain\Conversation\Models\GeneratedMedia;
 use Domain\Conversation\Services\Media\GeneratedMediaFiles;
-use Domain\Llm\Contracts\VideoGenerator;
 use Domain\Llm\Data\Video\GeneratedVideoData;
+use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Exceptions\VideoGenerationFailedException;
+use Domain\Llm\Services\MediaGenerators;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\File as LocalFile;
 use Illuminate\Support\Facades\File;
@@ -24,7 +25,8 @@ use Illuminate\Support\Str;
 use Throwable;
 
 /**
- * Asks the video service whether a started video is made. While it is not,
+ * Asks the video service that started a video (the one kept on the item,
+ * {@see MediaGenerators}) whether it is made. While it is not,
  * it asks again in a little while ({@see CheckGeneratedVideoJob}), so no
  * worker waits on a video; a service that cannot be reached for a moment is
  * asked again too. Once made, the video is saved under the agent's folder
@@ -40,7 +42,7 @@ class CheckGeneratedVideoAction
     public const int INTERVAL_SECONDS = 15;
 
     public function __construct(
-        private readonly VideoGenerator $videos,
+        private readonly MediaGenerators $generators,
         private readonly GeneratedMediaFiles $files,
         private readonly FailGeneratedMediaAction $fail,
     ) {}
@@ -56,7 +58,8 @@ class CheckGeneratedVideoAction
         }
 
         try {
-            $video = $this->videos->check($taskId);
+            $videos = $this->generators->video(AiProvider::tryFrom($media->service));
+            $video = $videos->check($taskId);
         } catch (Throwable $e) {
             if ($this->isMomentary($e)) {
                 $this->checkLater($media);
@@ -109,7 +112,7 @@ class CheckGeneratedVideoAction
             return;
         }
 
-        $this->videos->forget($taskId);
+        $videos->forget($taskId);
         $media->refresh();
 
         GeneratedMediaUpdated::dispatch($conversation->external_id, GeneratedMediaData::fromModel($media));

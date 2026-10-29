@@ -12,7 +12,7 @@ use Livewire\Features\SupportTesting\Testable;
 
 /**
  * The service pickers of Settings → AI models (reranker, document reading,
- * speech to text, voice, image generation) share one behaviour. There
+ * speech to text, voice) share one behaviour. There
  * is no "Automatic": each list shows the service in use, marks each provider
  * connected or not, and greys out the ones that are not. A new pick is
  * checked with one real call as it is saved; Off, or an unchanged pick,
@@ -47,7 +47,6 @@ dataset('service pickers', [
     'document reading' => ['document_parser', AiProvider::Mistral],
     'speech to text' => ['transcriber', AiProvider::Scaleway],
     'voice' => ['voice', AiProvider::OpenAi],
-    'image generation' => ['image_generator', AiProvider::Google],
 ]);
 
 it('shows the service in use, marks each provider connected or not, and greys out the others', function (string $property, AiProvider $provider, array $options, array $disabled): void {

@@ -90,16 +90,6 @@ class FalImageGenerator implements ImageGenerator
         return new GeneratedImageData($file->body(), filled($mimeType) ? $mimeType : 'image/png');
     }
 
-    public function isEnabled(): bool
-    {
-        return true;
-    }
-
-    public function name(?string $model = null): string
-    {
-        return "fal {$this->model($model)}";
-    }
-
     /**
      * The shape in the field the model takes: a named size, or a ratio.
      *

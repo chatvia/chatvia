@@ -101,16 +101,6 @@ class GoogleVideoGenerator implements VideoGenerator
         rescue(fn () => $this->client()->timeout(15)->delete("{$this->endpoint()}/{$taskId}"), report: false);
     }
 
-    public function isEnabled(): bool
-    {
-        return true;
-    }
-
-    public function name(?string $model = null): string
-    {
-        return "google {$this->model($model)}";
-    }
-
     /** A background interaction: the video is a `video` part of its output once it is completed. */
     private function interaction(Response $response): ?GeneratedVideoData
     {

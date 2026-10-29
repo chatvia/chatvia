@@ -394,6 +394,7 @@ declare namespace Domain {
                         progress: number;
                         agents_count: number;
                         created_at: string;
+                        has_summary: boolean;
                         personal_data: string[];
                         personal_data_parts: number;
                     };

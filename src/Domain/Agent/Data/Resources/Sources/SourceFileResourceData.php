@@ -11,8 +11,8 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * A knowledge file as the Knowledge page lists it: name, type, size, training
- * status and progress, how many agents use it, and any card numbers or
- * similar identifiers found in it.
+ * status and progress, how many agents use it, whether it has an AI summary,
+ * and any card numbers or similar identifiers found in it.
  */
 #[TypeScript]
 class SourceFileResourceData extends Data
@@ -28,6 +28,8 @@ class SourceFileResourceData extends Data
         public int $progress,
         public int $agents_count,
         public CarbonInterface $created_at,
+        /** False when it was trained without a summary (AI enhancement off). */
+        public bool $has_summary = false,
         /**
          * Card numbers, IBANs or US SSNs found in the trained file (filter
          * keys), and in how many of its parts; empty when none.
@@ -51,6 +53,7 @@ class SourceFileResourceData extends Data
             progress: $file->ingestionProgress(),
             agents_count: $file->agents_count ?? 0,
             created_at: $file->created_at,
+            has_summary: (bool) ($file->summary_exists ?? false),
             personal_data: array_values((array) ($file->metadata['personal_data']['types'] ?? [])),
             personal_data_parts: (int) ($file->metadata['personal_data']['parts'] ?? 0),
         );

@@ -2,7 +2,8 @@
 /**
  * One file of the agent's knowledge base: name, type, status icon, size,
  * length and date, a progress bar while it trains, and buttons to view its
- * summary (once trained), to replace it with a new version and to remove it.
+ * AI summary (once trained, if it has one), to replace it with a new version
+ * and to remove it.
  * A file holding card numbers, IBANs or similar shows a warning.
  */
 import type { SourceFile } from '@/dashboard/agents/api/fileSources';
@@ -97,7 +98,7 @@ const personalDataKinds = computed(() => (props.file.personal_data ?? []).map((k
         </div>
         <div class="flex items-center gap-1">
             <SourceActionButton
-                v-if="file.status === 'ingested'"
+                v-if="file.status === 'ingested' && file.has_summary"
                 :icon="Info"
                 :label="t('agents.sources.files.view_summary')"
                 :disabled="isBusy"

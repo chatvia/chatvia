@@ -8,7 +8,7 @@ use Domain\Knowledge\Ingestion\Models\Chunk;
  * The agent's file list (GET agents.sources.files.data) comes one page at a
  * time, newest first, split into the files waiting to be trained and the
  * trained ones; a file that is training shows its progress from the chunks
- * stored so far.
+ * stored so far, and a trained file says whether it has a summary to show.
  */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
@@ -49,4 +49,17 @@ it('shows the progress of a training file from its stored chunks', function (): 
     $this->actingAs($this->owner)
         ->getJson(route('agents.sources.files.data', $this->agent))
         ->assertJsonPath('data.0.progress', 25);
+});
+
+it('says which trained files have a summary to show', function (): void {
+    [$withSummary, $withoutSummary] = AgentFileFactory::new()->count(2)->create(['workspace_id' => $this->workspaceId, 'status' => 'ingested']);
+    $this->agent->files()->attach([$withSummary->id, $withoutSummary->id]);
+    Chunk::factory()->forSource($withSummary)->summary()->create();
+    Chunk::factory()->forSource($withoutSummary)->create();
+
+    $this->actingAs($this->owner)
+        ->getJson(route('agents.sources.files.data', $this->agent))
+        ->assertJsonPath('data.0.id', $withoutSummary->id)
+        ->assertJsonPath('data.0.has_summary', false)
+        ->assertJsonPath('data.1.has_summary', true);
 });

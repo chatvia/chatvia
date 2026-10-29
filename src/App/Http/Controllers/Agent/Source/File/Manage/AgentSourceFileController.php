@@ -32,6 +32,7 @@ class AgentSourceFileController
             ->select('source_files.*')
             ->where('source_files.status', $request->waitingForTraining() ? '=' : '!=', SourceStatus::Uploaded)
             ->withCount('agents')
+            ->withExists('summary')
             ->orderByDesc('source_files.id')
             ->paginate(self::PER_PAGE);
 

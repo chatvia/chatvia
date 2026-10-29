@@ -11,7 +11,9 @@ use Illuminate\Support\Facades\Http;
 /**
  * Background token refresh: rotating refresh tokens must not be burned by two
  * workers at once, so a refresh runs under a per-server lock and re-checks
- * staleness after taking it. It authenticates with the client the server was
+ * staleness after taking it. It never posts the refresh token to an unsafe
+ * endpoint (private ranges are relaxed in tests, so a scheme SafeUrl always
+ * refuses stands in), and it authenticates with the client the server was
  * connected with: the connector's own OAuth app, the row's client, or the
  * client registered with the authorization server.
  */
@@ -38,7 +40,7 @@ function otrStaleServer(array $overrides = []): AgentMcpServer
     ]);
 }
 
-it('swaps in a new access token and keeps the rotated refresh token', function (): void {
+it('swaps in the rotated tokens once under the lock, so a worker holding the stale row sends nothing', function (): void {
     Http::fake([
         'auth.example.test/token' => Http::response([
             'access_token' => 'fresh-access',
@@ -48,115 +50,57 @@ it('swaps in a new access token and keeps the rotated refresh token', function (
         ]),
     ]);
     $server = otrStaleServer();
+    $staleCopy = AgentMcpServer::query()->findOrFail($server->id);
 
-    app(OAuthTokenRefresher::class)->refresh($server);
+    app(OAuthTokenRefresher::class)->refreshIfStale($server);
+    app(OAuthTokenRefresher::class)->refreshIfStale($staleCopy);
+    app(OAuthTokenRefresher::class)->refreshIfStale($server->fresh());
 
     expect($server->fresh()->auth_value)->toBe('fresh-access')
         ->and($server->fresh()->oauth_refresh_token)->toBe('fresh-refresh')
         ->and($server->fresh()->oauth_scopes)->toBe('read')
-        ->and($server->fresh()->accessTokenIsStale())->toBeFalse();
-
+        ->and($server->fresh()->accessTokenIsStale())->toBeFalse()
+        ->and($staleCopy->auth_value)->toBe('fresh-access')
+        ->and($staleCopy->oauth_refresh_token)->toBe('fresh-refresh');
+    Http::assertSentCount(1);
     Http::assertSent(fn (ClientRequest $request): bool => $request['grant_type'] === 'refresh_token'
         && $request['refresh_token'] === 'old-refresh'
         && $request['client_id'] === 'client-123'
         && $request['resource'] === 'https://mcp.example.test/rpc');
 });
 
-it('skips the refresh when another worker refreshed while it waited for the lock', function (): void {
+it('refuses to refresh through an unsafe token endpoint or without a known OAuth client, sending nothing', function (): void {
     Http::fake();
-    $server = otrStaleServer();
+    $unsafe = otrStaleServer(['oauth_token_endpoint' => 'file:///etc/token']);
+    $clientless = otrStaleServer(['slug' => 'fixture-2', 'oauth_client_id' => null]);
 
-    // Another worker already rotated the tokens in the database; our copy is stale.
-    AgentMcpServer::query()->whereKey($server->id)->first()->forceFill([
-        'auth_value' => 'new-access',
-        'oauth_refresh_token' => 'new-refresh',
-        'oauth_expires_at' => now()->addHour(),
-    ])->save();
-
-    app(OAuthTokenRefresher::class)->refreshIfStale($server);
-
-    Http::assertNothingSent();
-    expect($server->auth_value)->toBe('new-access')
-        ->and($server->oauth_refresh_token)->toBe('new-refresh');
-});
-
-it('refreshes a stale token once under the lock', function (): void {
-    Http::fake([
-        'auth.example.test/token' => Http::response([
-            'access_token' => 'fresh-access',
-            'refresh_token' => 'fresh-refresh',
-            'expires_in' => 3600,
-        ]),
-    ]);
-    $server = otrStaleServer();
-
-    app(OAuthTokenRefresher::class)->refreshIfStale($server);
-    // A second caller holding the same (now fresh) row does nothing.
-    app(OAuthTokenRefresher::class)->refreshIfStale($server->fresh());
-
-    Http::assertSentCount(1);
-    expect($server->fresh()->auth_value)->toBe('fresh-access');
-});
-
-it('refuses to post the refresh token to an unsafe token endpoint', function (): void {
-    Http::fake();
-    $server = otrStaleServer();
-    // Private-range checks are relaxed in tests, so use a scheme SafeUrl always refuses.
-    $server->forceFill(['oauth_token_endpoint' => 'file:///etc/token'])->save();
-
-    expect(fn () => app(OAuthTokenRefresher::class)->refresh($server))
-        ->toThrow(McpOAuthException::class, 'unsafe token endpoint');
-
-    Http::assertNothingSent();
-});
-
-it('sends the connector app\'s current secret for a row connected with that app', function (): void {
-    config(['connectors.oauth_apps.gmail.client_id' => 'gmail-app', 'connectors.oauth_apps.gmail.client_secret' => 'rotated-secret']);
-    Http::fake(['auth.example.test/token' => Http::response(['access_token' => 'fresh-access'])]);
-    $server = otrStaleServer(['connector_slug' => 'gmail', 'oauth_client_id' => 'gmail-app', 'oauth_client_secret' => 'secret-at-connect']);
-
-    app(OAuthTokenRefresher::class)->refresh($server);
-
-    Http::assertSent(fn (ClientRequest $request): bool => $request['client_id'] === 'gmail-app'
-        && $request['client_secret'] === 'rotated-secret');
-});
-
-it('sends the row\'s own secret for a client the connector app did not issue', function (?string $connectorSlug): void {
-    config(['connectors.oauth_apps.gmail.client_id' => 'gmail-app', 'connectors.oauth_apps.gmail.client_secret' => 'app-secret']);
-    Http::fake(['auth.example.test/token' => Http::response(['access_token' => 'fresh-access'])]);
-    $server = otrStaleServer(['connector_slug' => $connectorSlug, 'oauth_client_id' => 'workspace-client', 'oauth_client_secret' => 'row-secret']);
-
-    app(OAuthTokenRefresher::class)->refresh($server);
-
-    Http::assertSent(fn (ClientRequest $request): bool => $request['client_id'] === 'workspace-client'
-        && $request['client_secret'] === 'row-secret');
-})->with([
-    'a connector row with another client id' => ['gmail'],
-    'a custom server' => [null],
-]);
-
-it('falls back to the client registered with the authorization server', function (): void {
-    Http::fake(['auth.example.test/token' => Http::response(['access_token' => 'fresh-access'])]);
-    ConnectorOAuthClient::query()->create([
-        'auth_server_url' => 'https://auth.example.test',
-        'client_id' => 'dcr-client',
-        'token_endpoint' => 'https://auth.example.test/token',
-        'authorization_endpoint' => 'https://auth.example.test/authorize',
-    ]);
-    $server = otrStaleServer(['oauth_client_id' => null]);
-
-    app(OAuthTokenRefresher::class)->refresh($server);
-
-    Http::assertSent(fn (ClientRequest $request): bool => $request['client_id'] === 'dcr-client'
-        && ! array_key_exists('client_secret', $request->data()));
-});
-
-it('refuses to refresh when no OAuth client is known for the server', function (): void {
-    Http::fake();
-    $server = otrStaleServer(['oauth_client_id' => null]);
-
-    expect(fn () => app(OAuthTokenRefresher::class)->refresh($server))
+    expect(fn () => app(OAuthTokenRefresher::class)->refresh($unsafe))
+        ->toThrow(McpOAuthException::class, 'unsafe token endpoint')
+        ->and(fn () => app(OAuthTokenRefresher::class)->refresh($clientless))
         ->toThrow(McpOAuthException::class, 'No registered OAuth client found for https://auth.example.test');
 
     Http::assertNothingSent();
 });
+
+it('authenticates with the client the server was connected with', function (array $overrides, bool $registered, string $clientId, ?string $secret): void {
+    config(['connectors.oauth_apps.gmail.client_id' => 'gmail-app', 'connectors.oauth_apps.gmail.client_secret' => 'rotated-secret']);
+    Http::fake(['auth.example.test/token' => Http::response(['access_token' => 'fresh-access'])]);
+    if ($registered) {
+        ConnectorOAuthClient::query()->create([
+            'auth_server_url' => 'https://auth.example.test',
+            'client_id' => 'dcr-client',
+            'token_endpoint' => 'https://auth.example.test/token',
+            'authorization_endpoint' => 'https://auth.example.test/authorize',
+        ]);
+    }
+
+    app(OAuthTokenRefresher::class)->refresh(otrStaleServer($overrides));
+
+    Http::assertSent(fn (ClientRequest $request): bool => $request['client_id'] === $clientId
+        && ($secret === null ? ! array_key_exists('client_secret', $request->data()) : $request['client_secret'] === $secret));
+})->with([
+    'the connector app, with its current secret' => [['connector_slug' => 'gmail', 'oauth_client_id' => 'gmail-app', 'oauth_client_secret' => 'secret-at-connect'], false, 'gmail-app', 'rotated-secret'],
+    'a connector row with another client id' => [['connector_slug' => 'gmail', 'oauth_client_id' => 'workspace-client', 'oauth_client_secret' => 'row-secret'], false, 'workspace-client', 'row-secret'],
+    'a custom server' => [['connector_slug' => null, 'oauth_client_id' => 'workspace-client', 'oauth_client_secret' => 'row-secret'], false, 'workspace-client', 'row-secret'],
+    'the client registered with the authorization server' => [['oauth_client_id' => null], true, 'dcr-client', null],
+]);

@@ -24,10 +24,9 @@ use Tests\Support\Channel\Slack\FakeSlackClient;
  * The find-or-create every channel resolver shares: a sender's first message
  * starts a Session of the agent (no chatter) and a Conversation of the
  * channel's source, mapped to the sender's channel id; their later messages
- * reuse it; another sender gets their own; and a mapping whose conversation
- * was pruned starts over. Each dataset entry makes a connection and returns
- * a call that resolves a sender's channel id on it. Each resolver's naming
- * rules are in its own test.
+ * reuse it; and a mapping whose conversation was pruned starts over. Each
+ * dataset entry makes a connection and returns a call that resolves a
+ * sender's channel id on it.
  */
 dataset('ccrResolvers', [
     'Telegram' => [ConversationSource::Telegram, function (): Closure {
@@ -62,37 +61,21 @@ dataset('ccrResolvers', [
     }],
 ]);
 
-it('starts a session of the agent and a conversation of the channel on first contact', function (ConversationSource $source, Closure $resolver): void {
+it('starts a session of the agent and a conversation of the channel on first contact, and reuses it when the sender returns', function (ConversationSource $source, Closure $resolver): void {
     $this->travelTo(Carbon::parse('2026-10-01 10:00:00'));
+    $resolve = $resolver();
 
-    $mapping = $resolver()('100');
+    $mapping = $resolve('100');
+    $again = $resolve('100');
 
     $agent = $mapping->session->agent;
     expect($mapping->workspace_id)->toBe($agent->workspace_id)
         ->and($mapping->session->user_id)->toBeNull()
         ->and($mapping->conversation->session->is($mapping->session))->toBeTrue()
         ->and($mapping->conversation->source)->toBe($source)
-        ->and($mapping->fresh()->last_message_at->toDateTimeString())->toBe('2026-10-01 10:00:00');
-})->with('ccrResolvers');
-
-it('reuses the mapping for a returning sender', function (ConversationSource $source, Closure $resolver): void {
-    $resolve = $resolver();
-
-    $first = $resolve('100');
-    $second = $resolve('100');
-
-    expect($second->id)->toBe($first->id)
-        ->and($first::query()->count())->toBe(1);
-})->with('ccrResolvers');
-
-it('keeps a separate conversation for each sender', function (ConversationSource $source, Closure $resolver): void {
-    $resolve = $resolver();
-
-    $a = $resolve('100');
-    $b = $resolve('200');
-
-    expect($a->id)->not->toBe($b->id)
-        ->and($a->chat_conversation_id)->not->toBe($b->chat_conversation_id);
+        ->and($mapping->fresh()->last_message_at->toDateTimeString())->toBe('2026-10-01 10:00:00')
+        ->and($again->id)->toBe($mapping->id)
+        ->and($mapping::query()->count())->toBe(1);
 })->with('ccrResolvers');
 
 it('starts over when the sender’s conversation was pruned', function (ConversationSource $source, Closure $resolver): void {

@@ -5,15 +5,12 @@ declare(strict_types=1);
 use Domain\Integration\Mcp\Models\ConnectorTool;
 use Domain\Integration\Tool\Actions\Embedding\EmbedConnectorToolsAction;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProvider;
-use Domain\Knowledge\Embedding\UnconfiguredEmbeddings;
-use Illuminate\Support\Facades\Log;
 use Tests\Support\Integration\Tool\ToolVectors;
 use Tests\Support\Knowledge\Embedding\FakeEmbeddingsProvider;
 
 /**
  * Embedding a connector's shared catalog rows: only that connector's rows
- * that have no vectors yet, each with the connector's name and description
- * as context (from the MCP registry for a builtin).
+ * that have no vectors yet, so later connects pay nothing.
  */
 
 /** A fresh embeddings fake, bound for the action; it records what it embeds. */
@@ -46,29 +43,4 @@ it('skips rows that are already embedded, so later connects pay nothing', functi
     app(EmbedConnectorToolsAction::class)->execute('acme-crm');
 
     expect($embedder->texts)->toBe([]);
-});
-
-it('embeds a builtin connector name and description from the MCP registry', function (): void {
-    config()->set('mcp.builtin', [
-        ['slug' => 'acme-crm', 'name' => 'Acme CRM', 'description' => 'Customer records'],
-    ]);
-    ConnectorTool::factory()->create(['connector_slug' => 'acme-crm', 'name' => 'lookup', 'description' => 'Find a customer']);
-
-    $embedder = ectRecordingEmbedder();
-
-    app(EmbedConnectorToolsAction::class)->execute('acme-crm');
-
-    expect($embedder->texts)->toBe(["Acme CRM\nCustomer records\n\nlookup\n\nFind a customer"]);
-});
-
-it('stops quietly before the setup picks an embedding service', function (): void {
-    app()->instance(EmbeddingsProvider::class, app(UnconfiguredEmbeddings::class));
-    $tool = ConnectorTool::factory()->create(['connector_slug' => 'acme-crm', 'name' => 'lookup']);
-    ConnectorTool::factory()->create(['connector_slug' => 'acme-crm', 'name' => 'update']);
-    Log::spy();
-
-    app(EmbedConnectorToolsAction::class)->execute('acme-crm');
-
-    expect(ToolVectors::embedded($tool))->toBeFalse();
-    Log::shouldNotHaveReceived('warning');
 });

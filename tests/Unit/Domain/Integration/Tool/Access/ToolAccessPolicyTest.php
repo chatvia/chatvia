@@ -11,9 +11,10 @@ use Domain\Integration\Tool\ValueObjects\ToolName;
 
 /**
  * The single dispatch-time governance gate. It composes the existing approval
- * policy with a per-agent-per-tool rate limit and returns one of three
- * decisions; the runner acts on each. Approval is faked here so the test
- * focuses on the composition + the rate-limit math.
+ * policy with a per-agent-per-tool rate limit (a non-positive limit means
+ * none) and returns one of three decisions; the runner acts on each. Approval
+ * is faked here so the test focuses on the composition and the rate-limit
+ * math.
  */
 function tapFakeApprovalPolicy(bool $requires): ToolApprovalPolicy
 {
@@ -35,33 +36,19 @@ it('returns RequiresApproval when the approval policy gates the tool', function 
         ->toBe(ToolAccessDecision::RequiresApproval);
 });
 
-it('returns Allow for an ungated tool within the rate limit', function (): void {
-    config(['chatvia.governance.tool_rate_limit' => 60]);
-    $policy = new ToolAccessPolicy(tapFakeApprovalPolicy(false), new ToolRateLimiter);
-
-    expect($policy->decide(Agent::factory()->create(), ToolName::parse('get_weather')))
-        ->toBe(ToolAccessDecision::Allow);
-});
-
-it('returns Deny once the per-tool rate limit is exhausted', function (): void {
+it('returns Deny once one tool’s rate limit is exhausted, leaving other tools allowed', function (): void {
     config(['chatvia.governance.tool_rate_limit' => 2, 'chatvia.governance.tool_rate_window_seconds' => 60]);
     $agent = Agent::factory()->create();
     $policy = new ToolAccessPolicy(tapFakeApprovalPolicy(false), new ToolRateLimiter);
 
-    expect($policy->decide($agent, ToolName::parse('spam')))->toBe(ToolAccessDecision::Allow)   // 1st
-        ->and($policy->decide($agent, ToolName::parse('spam')))->toBe(ToolAccessDecision::Allow) // 2nd
-        ->and($policy->decide($agent, ToolName::parse('spam')))->toBe(ToolAccessDecision::Deny); // 3rd exceeds limit of 2
-});
+    $decisions = [
+        $policy->decide($agent, ToolName::parse('spam')),
+        $policy->decide($agent, ToolName::parse('spam')),
+        $policy->decide($agent, ToolName::parse('spam')),
+        $policy->decide($agent, ToolName::parse('other')),
+    ];
 
-it('does not rate-limit a different tool on the same agent', function (): void {
-    config(['chatvia.governance.tool_rate_limit' => 1]);
-    $agent = Agent::factory()->create();
-    $policy = new ToolAccessPolicy(tapFakeApprovalPolicy(false), new ToolRateLimiter);
-
-    $policy->decide($agent, ToolName::parse('tool_a')); // exhausts tool_a
-
-    expect($policy->decide($agent, ToolName::parse('tool_a')))->toBe(ToolAccessDecision::Deny)
-        ->and($policy->decide($agent, ToolName::parse('tool_b')))->toBe(ToolAccessDecision::Allow);
+    expect($decisions)->toBe([ToolAccessDecision::Allow, ToolAccessDecision::Allow, ToolAccessDecision::Deny, ToolAccessDecision::Allow]);
 });
 
 it('treats a non-positive limit as unlimited', function (int $limit): void {

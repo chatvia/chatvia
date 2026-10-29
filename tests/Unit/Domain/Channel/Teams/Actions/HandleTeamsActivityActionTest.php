@@ -19,7 +19,6 @@ use Tests\Support\Channel\Teams\FakeTeamsClient;
  */
 function teamsHandleBot(): AgentTeamsBot
 {
-    // The app id the activity's recipient names.
     return AgentTeamsBot::factory()->create(['app_id' => 'f5e1f9d2-1111-2222-3333-444455556666']);
 }
 
@@ -53,35 +52,14 @@ function teamsHandleActivity(array $overrides = []): array
     ], $overrides);
 }
 
-it('strips the bot’s own mention through the mention entity', function (): void {
-    $bot = teamsHandleBot();
-    $client = new FakeTeamsClient;
-    $runner = new StubChannelReplyRunner('ok');
-
-    $activity = teamsHandleActivity([
-        'text' => '<at>Support Bot</at> what are your opening hours?',
-        'conversation' => ['id' => '19:channel@thread.tacv2;messageid=42', 'conversationType' => 'channel'],
-        'entities' => [
-            [
-                'type' => 'mention',
-                'text' => '<at>Support Bot</at>',
-                'mentioned' => ['id' => '28:f5e1f9d2-1111-2222-3333-444455556666', 'name' => 'Support Bot'],
-            ],
-        ],
-    ]);
-
-    teamsHandle($client, $runner, $bot, $activity);
-
-    expect($runner->received())->toBe('what are your opening hours?');
-});
-
-it('unwraps other people’s mentions instead of dropping them', function (): void {
+it('strips the bot’s own mention through the mention entity and unwraps other people’s mentions', function (): void {
     $bot = teamsHandleBot();
     $client = new FakeTeamsClient;
     $runner = new StubChannelReplyRunner('ok');
 
     $activity = teamsHandleActivity([
         'text' => '<at>Support Bot</at> summarize what <at>Lina</at> asked',
+        'conversation' => ['id' => '19:channel@thread.tacv2;messageid=42', 'conversationType' => 'channel'],
         'entities' => [
             [
                 'type' => 'mention',

@@ -33,20 +33,14 @@ function slackHandle(FakeSlackClient $client, StubChannelReplyRunner $runner, Ag
     );
 }
 
-it('strips the bot’s own mention before the turn runs', function (): void {
+it('strips the bot’s own mention before the turn runs and replies in the thread it came from', function (): void {
+    $client = new FakeSlackClient;
     $runner = new StubChannelReplyRunner('ok');
 
-    slackHandle(new FakeSlackClient, $runner, slackHandleApp(), 'C123CHAN', '<@U0BOT> hi there');
+    slackHandle($client, $runner, slackHandleApp(), 'C123CHAN', '<@U0BOT> hi there', '1699.000001');
 
-    expect($runner->received())->toBe('hi there');
-});
-
-it('replies in the thread the mention came from', function (): void {
-    $client = new FakeSlackClient;
-
-    slackHandle($client, new StubChannelReplyRunner('ok'), slackHandleApp(), 'C123CHAN', '<@U0BOT> hi', '1699.000001');
-
-    expect($client->posted[0]['threadTs'])->toBe('1699.000001');
+    expect($runner->received())->toBe('hi there')
+        ->and($client->posted[0]['threadTs'])->toBe('1699.000001');
 });
 
 it('does nothing when the message is only the mention itself', function (): void {

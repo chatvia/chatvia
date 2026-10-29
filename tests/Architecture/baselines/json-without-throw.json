@@ -86,7 +86,6 @@
     "tests/Unit/Domain/Guardrail/Services/GuardrailClassifierTest.php": 8,
     "tests/Unit/Domain/Integration/Connector/Data/OAuth/PendingOAuthStateDataTest.php": 1,
     "tests/Unit/Domain/Integration/Function/Services/HttpToolDispatcherTest.php": 2,
-    "tests/Unit/Domain/Integration/Mcp/Data/McpToolResultDataTest.php": 1,
     "tests/Unit/Domain/Integration/Mcp/Services/McpClientTest.php": 1,
     "tests/Unit/Domain/Integration/Mcp/Services/McpToolDispatcherTest.php": 3,
     "tests/Unit/Domain/Knowledge/Ingestion/Actions/Chunks/CreateSourceChunksActionTest.php": 1,

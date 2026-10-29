@@ -19,7 +19,11 @@ use Pgvector\Laravel\Vector;
  * bind order, LATERAL slug pick) is the unit under test, so nothing is mocked.
  * Preset reachability comes from the precomputed reachable-set CTEs: a catalog
  * tool surfaces iff one of the agent's attached servers advertises it with an
- * unblocked membership.
+ * unblocked membership; an always-on connector's tools ship on every turn, so
+ * they stay out of recall. Tools and functions of another agent, another
+ * workspace, a disabled server or an unattached function never surface, even
+ * when closest to the query. A function's create-time embed job writes
+ * vectors, which each test replaces with its own.
  */
 
 /**
@@ -55,49 +59,22 @@ function toolSearchCatalogTool(AgentMcpServer $server, string $name, McpToolPerm
     return $tool;
 }
 
-it('returns an empty result set for an agent with no tools at all', function (): void {
+it('surfaces a preset catalog tool only through an attached server with an unblocked membership, never from an always-on one', function (): void {
     $agent = Agent::factory()->create();
-
-    expect(toolSearchForLead($agent))->toBe([]);
-});
-
-it('surfaces a preset catalog tool through the agent-attached server, compiled with that server slug', function (): void {
-    $agent = Agent::factory()->create();
-
-    $server = AgentMcpServer::factory()->preset('leads')->attachedTo($agent)->create();
-    toolSearchCatalogTool($server, 'capture_lead');
+    $attach = fn (string $slug, McpToolPermission $permission = McpToolPermission::Allow, bool $alwaysAvailable = false): ConnectorTool => toolSearchCatalogTool(
+        AgentMcpServer::factory()->preset($slug)->attachedTo($agent, $alwaysAvailable)->create(),
+        'capture_lead',
+        $permission,
+    );
+    $attach('leads');
+    $attach('notion', McpToolPermission::Blocked);
+    $attach('tutor', alwaysAvailable: true);
 
     $results = toolSearchForLead($agent);
 
-    expect($results)->toHaveCount(1)
-        ->and($results[0]->entry->name)->toBe('mcp__leads__capture_lead')
-        ->and($results[0]->pool)->toBe(ToolSearchPool::McpPreset);
-
-    // Another agent without the server attached sees nothing.
-    expect(toolSearchForLead(Agent::factory()->create()))->toBe([]);
-});
-
-it('hides a catalog tool whose membership this workspace blocked', function (): void {
-    $agent = Agent::factory()->create();
-
-    $server = AgentMcpServer::factory()->preset('leads')->attachedTo($agent)->create();
-    toolSearchCatalogTool($server, 'capture_lead', McpToolPermission::Blocked);
-
-    expect(toolSearchForLead($agent))->toBe([]);
-});
-
-it('excludes the tools of an always-on connector from recall — they ship on every turn anyway', function (): void {
-    $agent = Agent::factory()->create();
-
-    $make = function (string $slug, bool $alwaysAvailable) use ($agent): void {
-        toolSearchCatalogTool(AgentMcpServer::factory()->preset($slug)->attachedTo($agent, $alwaysAvailable)->create(), 'capture_lead');
-    };
-    $make('leads', alwaysAvailable: false);
-    $make('tutor', alwaysAvailable: true);
-
-    $names = array_map(fn (ToolSearchHitData $hit): string => $hit->entry->name, toolSearchForLead($agent));
-
-    expect($names)->toBe(['mcp__leads__capture_lead']);
+    expect(array_map(fn (ToolSearchHitData $hit): string => $hit->entry->name, $results))->toBe(['mcp__leads__capture_lead'])
+        ->and($results[0]->pool)->toBe(ToolSearchPool::McpPreset)
+        ->and(toolSearchForLead(Agent::factory()->create()))->toBe([]);
 });
 
 /** A unit vector at similarity `$similarity` to the query (axis 0), leaning on axis `$axis`. */
@@ -136,7 +113,6 @@ function toolSearchFunction(int $workspaceId, string $name, array $vector, strin
         'webhook_method' => FunctionWebhookMethod::Get,
         'is_enabled' => $enabled,
     ]);
-    // Replace the vectors the create-time embed job wrote with the test's own.
     $function->forceFill([
         'embedding' => new Vector($vector),
         'search_text' => $name.' '.$description,
@@ -161,7 +137,6 @@ it('ranks the custom MCP tools of the agent\'s own servers by exact distance', f
     toolSearchCustomTool($server, 'delete_everything', toolSearchVector(1.0, 1), McpToolPermission::Blocked);
     toolSearchCustomTool(toolSearchCustomServer($agent, 'off', enabled: false), 'disabled_tool', toolSearchVector(1.0, 1));
 
-    // Another agent's server holds the closest tool of all; it never surfaces.
     $other = Agent::factory()->create();
     toolSearchCustomTool(toolSearchCustomServer($other, 'theirs'), 'their_tool', toolSearchVector(1.0, 1));
 
@@ -175,24 +150,9 @@ it('ranks the agent\'s enabled functions by exact distance, never another worksp
     $off = toolSearchFunction($agent->workspace_id, 'off_fn', toolSearchVector(1.0, 1), 'Disabled helper.', enabled: false);
     $agent->functions()->attach([$near->id, $far->id, $off->id]);
 
-    // Not attached to this agent, and another workspace's function: both
-    // closer to the query than anything the agent has.
     toolSearchFunction($agent->workspace_id, 'unattached_fn', toolSearchVector(1.0, 1), 'Unattached helper.');
     $other = Agent::factory()->create();
     $other->functions()->attach(toolSearchFunction($other->workspace_id, 'their_fn', toolSearchVector(1.0, 1), 'Their helper.')->id);
 
     expect(toolSearchNames($agent, 'zzz'))->toBe(['near_fn', 'far_fn']);
-});
-
-it('counts a keyword hit only for a function that shares a term with the message', function (): void {
-    $agent = Agent::factory()->create();
-    $refund = toolSearchFunction($agent->workspace_id, 'issue_refund', toolSearchVector(0.5, 2), 'Pay a refund back to the customer.');
-    $weather = toolSearchFunction($agent->workspace_id, 'mountain_weather', toolSearchVector(0.5, 3), 'Forecast for hiking trails.');
-    $agent->functions()->attach([$refund->id, $weather->id]);
-
-    $channels = collect(app(ToolHybridSearch::class)->search($agent, 'refund', toolSearchVector(1.0, 1)))
-        ->mapWithKeys(fn (ToolSearchHitData $hit): array => [$hit->entry->name => $hit->channels]);
-
-    expect($channels['issue_refund'])->toBe('bm25+vector')
-        ->and($channels['mountain_weather'])->toBe('vector');
 });

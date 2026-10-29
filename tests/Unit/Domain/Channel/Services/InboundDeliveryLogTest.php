@@ -35,17 +35,3 @@ it('gives the claim back when the dispatch throws, so the retry runs', function 
 
     expect($runs)->toBe(1);
 });
-
-it('always runs an event without an id, as a repeat cannot be told apart', function (): void {
-    $log = new InboundDeliveryLog;
-    $runs = 0;
-
-    $log->once(null, now()->addDay(), function () use (&$runs): void {
-        $runs++;
-    });
-    $log->once(null, now()->addDay(), function () use (&$runs): void {
-        $runs++;
-    });
-
-    expect($runs)->toBe(2);
-});

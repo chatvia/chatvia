@@ -37,23 +37,16 @@ it('refuses a protected agent and lets a public one through', function (): void 
         ->not->toThrow(ChannelConnectException::class);
 });
 
-it('refuses an account another agent holds', function (): void {
-    ccgPage(Agent::factory()->create());
+it('refuses an account another agent’s enabled row holds, but not the agent’s own or a deleted agent’s switched-off row', function (): void {
+    $holder = Agent::factory()->create();
+    ccgPage(tap(Agent::factory()->create())->delete(), enabled: false);
+    ccgPage($holder);
 
-    expect(fn () => new ChannelConnectionGuard()->ensureAccountIsFree(Agent::factory()->create(), ccgSamePage()))
+    expect(fn () => new ChannelConnectionGuard()->ensureAccountIsFree($holder, ccgSamePage()))
+        ->not->toThrow(ChannelConnectException::class)
+        ->and(fn () => new ChannelConnectionGuard()->ensureAccountIsFree(Agent::factory()->create(), ccgSamePage()))
         ->toThrow(fn (ChannelConnectException $e): Expectation => expect($e->failure)->toBe(ChannelConnectFailure::TakenByAnotherAgent));
 });
-
-it('lets an agent connect an account no other agent’s enabled row holds', function (Closure $holder): void {
-    $agent = Agent::factory()->create();
-    $holder($agent);
-
-    expect(fn () => new ChannelConnectionGuard()->ensureAccountIsFree($agent, ccgSamePage()))
-        ->not->toThrow(ChannelConnectException::class);
-})->with([
-    'the agent’s own row' => [fn (Agent $agent): AgentMessengerPage => ccgPage($agent)],
-    'the switched-off row of a deleted agent' => [fn (): AgentMessengerPage => ccgPage(tap(Agent::factory()->create())->delete(), enabled: false)],
-]);
 
 it('turns a unique-index clash into a taken-by-another-agent failure', function (): void {
     ccgPage(Agent::factory()->create());

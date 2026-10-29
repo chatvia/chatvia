@@ -19,7 +19,6 @@ it('carries the custom name and a workspace-unique slug in the pending state', f
 
     $owner = User::factory()->create();
     $teammate = User::factory()->employee($owner)->create();
-    // The owner already has a server with the name's slug.
     AgentMcpServer::factory()->forOwner($owner)->create(['name' => 'My CRM', 'slug' => 'my_crm']);
 
     $url = app(BeginCustomConnectorOAuthAction::class)->execute(new AddCustomConnectorData(

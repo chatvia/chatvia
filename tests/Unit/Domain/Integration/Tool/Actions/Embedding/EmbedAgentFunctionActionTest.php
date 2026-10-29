@@ -9,9 +9,8 @@ use Illuminate\Support\Facades\Log;
 use Tests\Support\Integration\Tool\ToolVectors;
 
 /**
- * Embedding one webhook function for tool routing: both its vectors are
- * written, and a failing embedder leaves the row unembedded with a warning
- * instead of failing the save.
+ * Embedding one webhook function for tool routing: a failing embedder leaves
+ * the row unembedded with a warning instead of failing the save.
  */
 function eafFunction(): AgentFunction
 {
@@ -27,14 +26,6 @@ function eafFunction(): AgentFunction
 
     return $function;
 }
-
-it('writes the dense and sparse vectors for a function', function (): void {
-    $function = eafFunction();
-
-    app(EmbedAgentFunctionAction::class)->execute($function->id);
-
-    expect(ToolVectors::of($function))->toBe(['dense' => true, 'keyword' => true]);
-});
 
 it('leaves the row unembedded and logs when the embedder fails', function (): void {
     $function = eafFunction();

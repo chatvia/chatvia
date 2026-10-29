@@ -23,21 +23,17 @@ function posState(string $binding = 'browser-secret'): PendingOAuthStateData
     );
 }
 
-it('reads back the sealed state, which keeps its secrets out of plain sight', function (): void {
+it('reads back only a sealed state with a binding, which keeps its secrets out of plain sight', function (): void {
     $sealed = posState()->seal();
+    $unbound = Crypt::encryptString((string) json_encode([...posState()->toArray(), 'session_binding_hash' => null]));
 
     expect($sealed)->not->toContain('verifier')->not->toContain('shh')
-        ->and(PendingOAuthStateData::unseal($sealed))->toEqual(posState());
+        ->and(PendingOAuthStateData::unseal($sealed))->toEqual(posState())
+        ->and(PendingOAuthStateData::unseal(posState()->toArray()))->toBeNull()
+        ->and(PendingOAuthStateData::unseal('not-encrypted'))->toBeNull()
+        ->and(PendingOAuthStateData::unseal(null))->toBeNull()
+        ->and(PendingOAuthStateData::unseal($unbound))->toBeNull();
 });
-
-it('reads nothing back from a plain array, garbage, nothing, or a state without a binding', function (mixed $payload): void {
-    expect(PendingOAuthStateData::unseal($payload))->toBeNull();
-})->with([
-    'a plain array' => [posState()->toArray()],
-    'not encrypted' => ['not-encrypted'],
-    'nothing' => [null],
-    'no session binding' => fn (): string => Crypt::encryptString((string) json_encode([...posState()->toArray(), 'session_binding_hash' => null])),
-]);
 
 it('matches only the browser session that started the flow', function (): void {
     $state = posState('browser-secret');

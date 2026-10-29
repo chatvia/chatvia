@@ -54,29 +54,19 @@ function uafData(array $changes = []): FunctionDefinitionData
     ]);
 }
 
-it('keeps requires_approval unless the caller sends it', function (bool|Optional $sent, bool $stored): void {
+it('keeps requires_approval unless the caller sends it, and a new verb only tightens it', function (): void {
     $function = uafFunction();
+    $update = fn (FunctionDefinitionData $data): AgentFunction => app(UpdateAgentFunctionAction::class)->execute($function, $data);
 
-    app(UpdateAgentFunctionAction::class)->execute($function, uafData(['requires_approval' => $sent]));
+    $leftOut = $update(uafData())->fresh()->requires_approval;
+    $toGet = $update(FunctionDefinitionData::from(['webhook_method' => 'GET']))->fresh()->requires_approval;
+    $cleared = $update(uafData(['webhook_method' => FunctionWebhookMethod::Get, 'requires_approval' => false]))->fresh()->requires_approval;
+    $toPatch = $update(FunctionDefinitionData::from(['webhook_method' => 'PATCH']))->fresh()->requires_approval;
 
-    expect($function->fresh()->requires_approval)->toBe($stored);
-})->with([
-    'left out: kept' => [new Optional, true],
-    'sent as false: cleared' => [false, false],
-]);
-
-it('only tightens approval when the verb changes', function (): void {
-    $function = AgentFunction::factory()->requiringApproval()->create();
-
-    // POST → GET keeps the gate the user had.
-    expect(app(UpdateAgentFunctionAction::class)->execute($function, FunctionDefinitionData::from(['webhook_method' => 'GET']))->requires_approval)
-        ->toBeTrue();
-
-    $function->forceFill(['requires_approval' => false])->save();
-
-    // GET → PATCH turns it on.
-    expect(app(UpdateAgentFunctionAction::class)->execute($function, FunctionDefinitionData::from(['webhook_method' => 'PATCH']))->requires_approval)
-        ->toBeTrue();
+    expect($leftOut)->toBeTrue()
+        ->and($toGet)->toBeTrue()
+        ->and($cleared)->toBeFalse()
+        ->and($toPatch)->toBeTrue();
 });
 
 it('drops the stored secret when auth_type changes, keeping only a new value', function (?string $sent, array $config): void {
@@ -84,7 +74,6 @@ it('drops the stored secret when auth_type changes, keeping only a new value', f
 
     app(UpdateAgentFunctionAction::class)->execute($function, uafData(['auth_type' => FunctionAuthType::Hmac, 'auth_value' => $sent]));
 
-    // The old bearer token never survives the change of type.
     expect($function->fresh()->auth_type)->toBe(FunctionAuthType::Hmac)
         ->and($function->fresh()->auth_config)->toBe($config);
 })->with([

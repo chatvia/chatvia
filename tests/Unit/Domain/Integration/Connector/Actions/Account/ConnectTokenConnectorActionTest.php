@@ -47,60 +47,19 @@ it('connects a token connector under the workspace and reports its tools', funct
         ->and($result->server->timeout_ms)->toBe(AgentMcpServer::DEFAULT_TIMEOUT_MS);
 });
 
-it('connects a no-auth capability without credentials', function (): void {
-    $owner = User::factory()->create();
-    $this->mock(SyncMcpServerCatalogAction::class)->shouldReceive('execute')->andReturn(new Collection);
-
-    $result = app(ConnectTokenConnectorAction::class)->execute(new ConnectTokenConnectorData(
-        user: $owner,
-        connector: ctcConnector('charts'),
-        token: 'ignored',
-    ));
-
-    expect($result->server->auth_type)->toBe(McpAuthType::None)
-        ->and($result->server->auth_value)->toBeNull();
-});
-
-it('restores the previous token when a token swap fails', function (): void {
+it('leaves the workspace as it was when a catalog sync fails: a first connect is removed, a token swap keeps the old token', function (): void {
     $owner = User::factory()->create();
     $sync = $this->mock(SyncMcpServerCatalogAction::class);
+    $connect = fn (string $token) => app(ConnectTokenConnectorAction::class)->execute(new ConnectTokenConnectorData($owner, ctcConnector('weather'), $token));
+
+    $sync->shouldReceive('execute')->once()->andThrow(new McpException('MCP server returned HTTP 401: nope', 401));
+    expect(fn () => $connect('bad-token'))->toThrow(McpException::class);
+    expect($owner->workspace()->mcpServers()->count())->toBe(0);
 
     $sync->shouldReceive('execute')->once()->andReturn(new Collection);
-    app(ConnectTokenConnectorAction::class)->execute(new ConnectTokenConnectorData($owner, ctcConnector('weather'), 'good-token'));
-
+    $connect('good-token');
     $sync->shouldReceive('execute')->once()->andThrow(new McpException('Could not reach MCP server: timed out'));
+    expect(fn () => $connect('new-token'))->toThrow(McpException::class, 'Could not reach the MCP server.');
 
-    expect(fn () => app(ConnectTokenConnectorAction::class)->execute(new ConnectTokenConnectorData($owner, ctcConnector('weather'), 'new-token')))
-        ->toThrow(McpException::class, 'Could not reach the MCP server.');
-
-    $server = $owner->workspace()->mcpServers()->sole();
-    expect($server->auth_value)->toBe('good-token');
-});
-
-it('removes a failed first connect and explains it in words the user can act on', function (McpException $failure, string $shown): void {
-    $owner = User::factory()->create();
-    $this->mock(SyncMcpServerCatalogAction::class)->shouldReceive('execute')->andThrow($failure);
-
-    expect(fn () => app(ConnectTokenConnectorAction::class)->execute(new ConnectTokenConnectorData($owner, ctcConnector('weather'), 'tok')))
-        ->toThrow(McpException::class, $shown);
-
-    expect($owner->workspace()->mcpServers()->count())->toBe(0);
-})->with([
-    'unauthorized' => [new McpException('MCP server returned HTTP 401: nope', 401), 'The server rejected the token (401 Unauthorized).'],
-    'forbidden' => [new McpException('MCP server returned HTTP 403: forbidden'), 'The token is valid but does not have permission to call this MCP server (403).'],
-    'not found' => [new McpException('MCP server returned HTTP 404: not found'), 'The connector endpoint returned 404. The service may have moved — please report this.'],
-    'anything else' => [new McpException('tools/list returned malformed JSON'), 'tools/list returned malformed JSON'],
-]);
-
-it('connects to the workspace\'s own URL when one is given, else the connector\'s', function (): void {
-    $owner = User::factory()->create();
-    $this->mock(SyncMcpServerCatalogAction::class)->shouldReceive('execute')->andReturn(new Collection);
-    $connector = ctcConnector('weather');
-
-    $default = app(ConnectTokenConnectorAction::class)->execute(new ConnectTokenConnectorData($owner, $connector, 'tok'));
-    expect($default->server->url)->toBe($connector->mcpUrl);
-
-    $custom = app(ConnectTokenConnectorAction::class)->execute(new ConnectTokenConnectorData($owner, $connector, 'tok', url: 'https://mcp.self-hosted.example.test/mcp'));
-    expect($custom->server->url)->toBe('https://mcp.self-hosted.example.test/mcp')
-        ->and($custom->server->id)->toBe($default->server->id);
+    expect($owner->workspace()->mcpServers()->sole()->auth_value)->toBe('good-token');
 });

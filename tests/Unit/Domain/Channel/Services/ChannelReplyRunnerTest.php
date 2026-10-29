@@ -6,13 +6,11 @@ use Domain\Channel\Data\ChannelTurnData;
 use Domain\Channel\Services\ChannelReplyRunner;
 use Domain\Channel\Telegram\Data\TelegramSenderData;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
-use Domain\Channel\Telegram\Models\TelegramChat;
 use Domain\Channel\Telegram\Services\TelegramChatResolver;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Services\AgentChatRateLimiter;
 use Domain\Llm\Models\Llm;
-use Spectra\Spectra;
 use Tests\Support\Llm\ScriptedLlmProvider;
 
 /**
@@ -21,8 +19,7 @@ use Tests\Support\Llm\ScriptedLlmProvider;
  * ChatTurnStreamer*Test files are the web side): a deactivated workspace, a
  * reached message limit, no model, and the visitor's and the agent's rate
  * limits each answer with a fixed reply and run nothing. It also strips the
- * web-only `<render-form …>` tag from a reply, and tags the turn's AI calls
- * with the channel's conversation while Spectra records.
+ * web-only `<render-form …>` and `<render-calendar …>` tags from a reply.
  */
 beforeEach(function (): void {
     bindFakeLlmProvider(ScriptedLlmProvider::answering('Happy to help.'));
@@ -56,9 +53,21 @@ function crrTurn(Agent $agent, string $message = 'I would like a demo'): Channel
     );
 }
 
-it('answers with the model’s reply', function (): void {
-    expect(app(ChannelReplyRunner::class)->reply(crrTurn(crrAgent())))->toBe('Happy to help.');
-});
+it('answers with the model’s reply, stripped of web-only render tags', function (string $answer, string $reply): void {
+    bindFakeLlmProvider(ScriptedLlmProvider::answering($answer));
+
+    expect(app(ChannelReplyRunner::class)->reply(crrTurn(crrAgent())))->toBe($reply);
+})->with([
+    'a plain answer' => ['Happy to help.', 'Happy to help.'],
+    'a self-closing calendar tag, and the gap it leaves' => [
+        "Pick a time.\n\n<render-calendar meeting_type=\"intro\"/>\n\nSee you soon.",
+        "Pick a time.\n\nSee you soon.",
+    ],
+    'a paired form tag with inner content' => [
+        'Please fill this: <render-form slug="lead-capture">fallback</render-form> thanks!',
+        'Please fill this:  thanks!',
+    ],
+]);
 
 it('answers with a fixed reply and runs no turn while a gate is shut', function (Closure $shut, string $reply): void {
     $agent = crrAgent();
@@ -101,42 +110,4 @@ it('answers that the assistant is not set up when no model can answer', function
     $agent = Agent::factory()->create(['is_public' => true]);
 
     expect(app(ChannelReplyRunner::class)->reply(crrTurn($agent)))->toBe('Sorry — this assistant is not fully configured yet.');
-});
-
-it('strips a web-only render-form or render-calendar tag from the reply', function (string $answer, string $reply): void {
-    bindFakeLlmProvider(ScriptedLlmProvider::answering($answer));
-
-    expect(app(ChannelReplyRunner::class)->reply(crrTurn(crrAgent())))->toBe($reply);
-})->with([
-    'a self-closing tag, and the gap it leaves' => [
-        "Here are your details.\n\n<render-form slug=\"book-a-demo\"/>\n\nOur team will follow up.",
-        "Here are your details.\n\nOur team will follow up.",
-    ],
-    'a paired tag with inner content' => [
-        'Please fill this: <render-form slug="lead-capture">fallback</render-form> thanks!',
-        'Please fill this:  thanks!',
-    ],
-    'a calendar tag' => [
-        "Pick a time.\n\n<render-calendar meeting_type=\"intro\"/>\n\nSee you soon.",
-        "Pick a time.\n\nSee you soon.",
-    ],
-]);
-
-it('tags the turn with its conversation while Spectra records', function (): void {
-    config(['spectra.enabled' => true]);
-    $turn = crrTurn(crrAgent());
-
-    app(ChannelReplyRunner::class)->reply($turn);
-
-    $request = app(Spectra::class)->startRequest('openai', 'gpt-test');
-    expect($request->trackableType)->toBe('conversation')
-        ->and($request->trackableId)->toBe(TelegramChat::query()->sole()->chat_conversation_id);
-});
-
-it('tags nothing while Spectra is not recording', function (): void {
-    config(['spectra.enabled' => false]);
-
-    app(ChannelReplyRunner::class)->reply(crrTurn(crrAgent()));
-
-    expect(app(Spectra::class)->startRequest('openai', 'gpt-test')->trackableType)->toBeNull();
 });

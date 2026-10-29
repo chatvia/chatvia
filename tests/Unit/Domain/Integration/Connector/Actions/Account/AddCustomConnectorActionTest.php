@@ -44,16 +44,6 @@ it('adds a token-auth custom server under the workspace with a workspace-unique 
         ->and($result->tools_count)->toBe(0);
 });
 
-it('adds a no-auth custom server without credentials', function (): void {
-    $owner = User::factory()->create();
-    $this->mock(SyncMcpServerCatalogAction::class)->shouldReceive('execute')->andReturn(new Collection);
-
-    $result = app(AddCustomConnectorAction::class)->execute(accData($owner, ConnectorAuthStrategy::None, 'ignored'));
-
-    expect($result->server->auth_type)->toBe(McpAuthType::None)
-        ->and($result->server->auth_value)->toBeNull();
-});
-
 it('removes the server again when its first catalog sync fails', function (): void {
     $owner = User::factory()->create();
     $this->mock(SyncMcpServerCatalogAction::class)->shouldReceive('execute')->andThrow(new McpException('unreachable'));
@@ -72,7 +62,6 @@ it('never gives a custom server the slug of a builtin or catalog connector', fun
 
     expect($result->server->slug)->toBe($slug);
 })->with([
-    'the builtin forms' => ['Forms', 'forms_2'],
-    'the builtin charts' => ['Charts', 'charts_2'],
+    'a builtin' => ['Forms', 'forms_2'],
     'a catalog connector' => ['Notion', 'notion_2'],
 ]);

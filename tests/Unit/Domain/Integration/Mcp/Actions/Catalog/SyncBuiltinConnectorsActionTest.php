@@ -7,18 +7,16 @@ use Domain\Integration\Mcp\Data\Catalog\SyncBuiltinConnectorsData;
 use Domain\Integration\Mcp\Data\Catalog\SyncedBuiltinConnectorData;
 use Domain\Integration\Mcp\Data\McpToolDefinitionData;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
-use Domain\Integration\Mcp\Models\ConnectorTool;
 use Domain\Integration\Mcp\Models\McpServerTool;
 use Domain\Integration\Tool\Jobs\EmbedConnectorToolsJob;
 use Domain\Integration\Tool\Registry\ToolRegistry;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Queue;
 
 /**
  * The deploy-time builtin sync, with the code-defined tool definitions
  * stubbed: global builtins get a global row, capability servers do not,
  * every workspace server of a builtin gets new tools, every agent's cached
- * tool pool is dropped, and the catalog is embedded inline or on the queue.
+ * tool pool is dropped, and the catalog is embedded on the queue.
  */
 beforeEach(function (): void {
     Queue::fake();
@@ -77,27 +75,4 @@ it('carries new tools to every workspace server of a builtin and drops every cac
         ->and($result->flushedAgents)->toBe(Agent::query()->count());
 
     $registry->shouldHaveReceived('forgetMany')->withArgs(fn (array $ids): bool => in_array($agent->id, $ids, true));
-});
-
-it('embeds the catalog inline when embedding is not queued', function (): void {
-    app(SyncBuiltinConnectorsAction::class)->execute(new SyncBuiltinConnectorsData(queueEmbedding: false));
-
-    $catalog = fn (): Builder => ConnectorTool::query()->whereIn('connector_slug', ['charts', 'forms']);
-
-    expect($catalog()->count())->toBe(3)
-        ->and($catalog()->whereNotNull('embedding')->whereNotNull('search_text')->count())->toBe(3);
-    Queue::assertNotPushed(EmbedConnectorToolsJob::class);
-});
-
-it('keeps stored vectors on a re-run and clears them all for a full re-embed', function (): void {
-    $catalog = fn (): Builder => ConnectorTool::query()->whereIn('connector_slug', ['charts', 'forms']);
-    app(SyncBuiltinConnectorsAction::class)->execute(new SyncBuiltinConnectorsData(queueEmbedding: false));
-
-    // Unchanged descriptions keep their vectors.
-    app(SyncBuiltinConnectorsAction::class)->execute(new SyncBuiltinConnectorsData(queueEmbedding: true));
-    expect($catalog()->whereNotNull('embedding')->whereNotNull('search_text')->count())->toBe(3);
-
-    // The queue is faked, so the cleared rows stay empty here.
-    app(SyncBuiltinConnectorsAction::class)->execute(new SyncBuiltinConnectorsData(queueEmbedding: true, reembedAll: true));
-    expect($catalog()->whereNull('embedding')->whereNull('search_text')->count())->toBe(3);
 });

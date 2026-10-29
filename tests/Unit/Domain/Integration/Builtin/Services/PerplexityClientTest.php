@@ -12,8 +12,8 @@ use Illuminate\Support\Facades\Http;
 /**
  * Perplexity's Sonar and Agent APIs with the workspace's own key, sent only
  * as a bearer token: answers without their reasoning, sources without
- * duplicates, a sandbox run read back, and an upstream error or empty answer
- * turned into one clear failure.
+ * duplicates, and an upstream error or empty answer turned into one clear
+ * failure.
  */
 beforeEach(function (): void {
     config([
@@ -48,31 +48,6 @@ it('asks a Sonar model and returns the answer without its reasoning', function (
         ]);
 });
 
-it('runs one Agent API tool and parses the sandbox run', function (): void {
-    Http::fake(['perplexity.example.test/v1/agent' => Http::response([
-        'output' => [
-            ['type' => 'sandbox_results', 'language' => 'python', 'code' => 'print(1)', 'status' => 'completed', 'results' => [['stdout' => "1\n", 'exit_code' => 0]]],
-            ['type' => 'message', 'role' => 'assistant', 'content' => [['text' => 'It printed 1.']]],
-        ],
-    ])]);
-
-    $answer = app(PerplexityClient::class)->agent('key', new PerplexityAgentRequestData('sandbox', 'print one', 'Run it.', 240));
-
-    expect($answer->answer)->toBe('It printed 1.')
-        ->and($answer->citations)->toBe([])
-        ->and($answer->sandbox->language)->toBe('python')
-        ->and($answer->sandbox->executions[0]->stdout)->toBe("1\n")
-        ->and($answer->sandbox->executions[0]->stderr)->toBe('')
-        ->and($answer->sandbox->executions[0]->exitCode)->toBe(0);
-
-    Http::assertSent(fn (ClientRequest $request): bool => $request->data() === [
-        'model' => 'perplexity/sonar',
-        'input' => 'print one',
-        'tools' => [['type' => 'sandbox']],
-        'instructions' => 'Run it.',
-    ]);
-});
-
 it('fails on an upstream error or an empty answer', function (string $method, array $body, int $status, string $message): void {
     Http::fake(['perplexity.example.test/*' => Http::response($body, $status)]);
 
@@ -82,8 +57,7 @@ it('fails on an upstream error or an empty answer', function (string $method, ar
 
     expect($call)->toThrow(PerplexityException::class, $message);
 })->with([
-    'sonar upstream error' => ['sonar', [], 500, 'Perplexity returned HTTP 500.'],
-    'agent upstream error' => ['agent', [], 401, 'Perplexity returned HTTP 401.'],
+    'an upstream error' => ['sonar', [], 500, 'Perplexity returned HTTP 500.'],
     'sonar empty answer, even with sources' => ['sonar', ['choices' => [['message' => ['content' => '']]], 'citations' => ['https://x.example']], 200, 'Perplexity returned no answer.'],
     'agent no answer and no sources' => ['agent', ['output' => []], 200, 'Perplexity returned no answer.'],
 ]);

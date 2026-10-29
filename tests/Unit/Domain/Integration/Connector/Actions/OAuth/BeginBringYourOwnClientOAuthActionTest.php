@@ -6,12 +6,12 @@ use App\Identity\Workspace\Models\User;
 use Domain\Integration\Connector\Actions\OAuth\BeginBringYourOwnClientOAuthAction;
 use Domain\Integration\Connector\Data\OAuth\BringYourOwnOAuthData;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
-use Illuminate\Support\Uri;
 use Tests\Support\Integration\Connector\PendingConnectorOAuth;
 
 /**
  * A workspace-registered OAuth client drives PKCE straight off the supplied
- * client id + endpoints — no discovery, no dynamic registration.
+ * client id + endpoints — no discovery, no dynamic registration. The client
+ * travels with the pending flow so the callback can store it on the row.
  */
 it('builds a PKCE authorize URL from the supplied client + endpoints', function (): void {
     $connector = app(ConnectorCatalog::class)->find('salesforce');
@@ -33,13 +33,11 @@ it('builds a PKCE authorize URL from the supplied client + endpoints', function 
         ->and($url)->toContain('response_type=code')
         ->and($url)->toContain('code_challenge_method=S256')
         ->and($url)->toContain('code_challenge=')
-        // mcp_api + refresh_token (Uri encodes the space as %20, RFC 3986).
         ->and($url)->toContain('scope=mcp_api%20refresh_token')
         ->and($url)->toContain('redirect_uri=');
 
     $pending = PendingConnectorOAuth::fromAuthorizeUrl($url);
 
-    // The client travels with the flow so the callback can store it on the row.
     expect($pending?->clientId)->toBe('CONSUMER_KEY_123')
         ->and($pending?->clientSecret)->toBe('consumer-secret')
         ->and($pending?->tokenEndpoint)->toBe('https://login.salesforce.com/services/oauth2/token');

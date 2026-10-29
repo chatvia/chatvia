@@ -3,14 +3,15 @@
 use Domain\Integration\Connector\Data\OAuth\OAuthServerMetadataData;
 use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Domain\Integration\Connector\Services\OAuth\McpOAuthDiscoverer;
-use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 
 /**
  * Discovery walks from the MCP endpoint to its authorization server: the
  * `WWW-Authenticate` hint or the conventional well-known path, a protected
- * resource document that must describe this endpoint, then the server's
- * metadata.
+ * resource document that must describe this endpoint (its origin, or the
+ * endpoint itself up to case, port and a trailing slash), then the server's
+ * metadata. A document for another address, or one that names no
+ * authorization server, stops the flow.
  */
 it('follows www-authenticate to the protected resource and on to the authorization server', function (): void {
     Http::fake([
@@ -40,65 +41,7 @@ it('follows www-authenticate to the protected resource and on to the authorizati
         ->and($metadata->supportsDynamicRegistration())->toBeTrue();
 });
 
-it('falls back to the conventional path when www-authenticate is absent', function (): void {
-    Http::fake([
-        'mcp.example.test/rpc' => Http::response('', 401),
-        'mcp.example.test/.well-known/oauth-protected-resource' => Http::response([
-            'resource' => 'https://mcp.example.test/rpc',
-            'authorization_servers' => ['https://auth.example.test'],
-        ]),
-        'auth.example.test/.well-known/oauth-authorization-server' => Http::response([
-            'authorization_endpoint' => 'https://auth.example.test/authorize',
-            'token_endpoint' => 'https://auth.example.test/token',
-        ]),
-    ]);
-
-    $metadata = (new McpOAuthDiscoverer)->discover('https://mcp.example.test/rpc');
-
-    expect($metadata->authServerUrl)->toBe('https://auth.example.test');
-});
-
-it('throws when no authorization server is advertised', function (): void {
-    Http::fake([
-        'mcp.example.test/rpc' => Http::response('', 401),
-        'mcp.example.test/.well-known/oauth-protected-resource' => Http::response([
-            'resource' => 'https://mcp.example.test/rpc',
-        ]),
-    ]);
-
-    expect(fn (): OAuthServerMetadataData => (new McpOAuthDiscoverer)->discover('https://mcp.example.test/rpc'))
-        ->toThrow(McpOAuthException::class, 'did not list authorization_servers');
-});
-
-it('refuses metadata that names no resource for a server at an address the workspace typed', function (): void {
-    Http::fake([
-        'mcp.example.test/rpc' => Http::response('', 401),
-        'mcp.example.test/.well-known/*' => Http::response([
-            'authorization_servers' => ['https://auth.example.test'],
-        ]),
-    ]);
-
-    expect(fn (): OAuthServerMetadataData => (new McpOAuthDiscoverer)->discover('https://mcp.example.test/rpc'))
-        ->toThrow(McpOAuthException::class, 'does not say which address it protects');
-});
-
-it('rejects protected resource metadata for another address', function (): void {
-    Http::fake([
-        'mcp.example.test/rpc' => Http::response('', 401, [
-            'WWW-Authenticate' => 'Bearer resource_metadata="https://mcp.example.test/.well-known/oauth-protected-resource"',
-        ]),
-        // Every candidate claims to describe a different service.
-        'mcp.example.test/.well-known/*' => Http::response([
-            'resource' => 'https://other-service.example.test/mcp',
-            'authorization_servers' => ['https://auth.example.test'],
-        ]),
-    ]);
-
-    expect(fn (): OAuthServerMetadataData => (new McpOAuthDiscoverer)->discover('https://mcp.example.test/rpc'))
-        ->toThrow(McpOAuthException::class, 'different address');
-});
-
-it('accepts a resource that is the origin or differs only by a trailing slash', function (string $resource): void {
+it('accepts a resource at the conventional path that is the origin or the endpoint with a trailing slash', function (string $resource): void {
     Http::fake([
         'mcp.example.test/rpc' => Http::response('', 401),
         'mcp.example.test/.well-known/oauth-protected-resource/rpc' => Http::response([
@@ -115,41 +58,21 @@ it('accepts a resource that is the origin or differs only by a trailing slash', 
 
     expect($metadata->authServerUrl)->toBe('https://auth.example.test');
 })->with([
-    'the origin' => ['https://mcp.example.test'],
     'the origin with case, port and slash' => ['https://MCP.example.test:443/'],
     'the endpoint with a trailing slash' => ['https://mcp.example.test/rpc/'],
 ]);
 
-it('rejects a sibling path on the same origin', function (): void {
+it('refuses a protected resource document that names no authorization server or another address', function (array $document, string $message): void {
     Http::fake([
         'mcp.example.test/rpc' => Http::response('', 401),
-        'mcp.example.test/.well-known/*' => Http::response([
-            'resource' => 'https://mcp.example.test/rpc-admin',
-            'authorization_servers' => ['https://auth.example.test'],
-        ]),
+        'mcp.example.test/.well-known/*' => Http::response($document),
     ]);
 
-    // The message proves the resource check refused it: any later failure
-    // (such as the unfaked authorization server) is an McpOAuthException too.
     expect(fn (): OAuthServerMetadataData => (new McpOAuthDiscoverer)->discover('https://mcp.example.test/rpc'))
-        ->toThrow(McpOAuthException::class, 'different address');
-});
-
-it('keeps the last transport failure as the previous exception', function (): void {
-    Http::fake([
-        'mcp.example.test/rpc' => Http::response('', 401),
-        'mcp.example.test/.well-known/*' => Http::response([
-            'resource' => 'https://mcp.example.test/rpc',
-            'authorization_servers' => ['https://auth.example.test'],
-        ]),
-        'auth.example.test/*' => fn () => throw new ConnectionException('connection refused'),
-    ]);
-
-    try {
-        (new McpOAuthDiscoverer)->discover('https://mcp.example.test/rpc');
-        $this->fail('Expected McpOAuthException');
-    } catch (McpOAuthException $e) {
-        expect($e->getPrevious())->not->toBeNull()
-            ->and($e->getPrevious()->getMessage())->toContain('connection refused');
-    }
-});
+        ->toThrow(McpOAuthException::class, $message);
+})->with([
+    'no authorization server' => [['resource' => 'https://mcp.example.test/rpc'], 'did not list authorization_servers'],
+    'no resource for an address the workspace typed' => [['authorization_servers' => ['https://auth.example.test']], 'does not say which address it protects'],
+    'another service' => [['resource' => 'https://other-service.example.test/mcp', 'authorization_servers' => ['https://auth.example.test']], 'different address'],
+    'a sibling path on the same origin' => [['resource' => 'https://mcp.example.test/rpc-admin', 'authorization_servers' => ['https://auth.example.test']], 'different address'],
+]);

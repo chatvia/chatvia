@@ -17,8 +17,9 @@ use Tests\Support\Integration\Connector\PendingConnectorOAuth;
 /**
  * Starting a catalog connector's OAuth flow: PKCE S256 is mandatory, the
  * pending state is cached encrypted and bound to the user + browser session,
- * and a connector whose operator credentials are missing is a reportable
- * misconfiguration rather than a user error.
+ * the token is bound to the MCP server (RFC 8707 `resource`), and a connector
+ * wired for a pre-registered OAuth app whose client id the operator never set
+ * is a reportable misconfiguration rather than a user error.
  */
 
 /**
@@ -55,7 +56,6 @@ it('returns the authorize URL with PKCE and caches the encrypted, bound state', 
         ->and($query->get('redirect_uri'))->toBe('https://chatvia.test/connectors/oauth/callback')
         ->and($query->get('state'))->not->toBeEmpty()
         ->and($query->get('code_challenge'))->not->toBeEmpty()
-        // RFC 8707: the token is bound to this MCP server.
         ->and($query->get('resource'))->toBe('https://mcp.example.test/rpc');
 
     $cached = PendingConnectorOAuth::sealedFor($url);
@@ -93,8 +93,6 @@ it('refuses to start when the authorization server does not advertise S256 PKCE'
 it('raises a misconfiguration when the pre-registered OAuth app credentials are missing', function (): void {
     test()->mock(McpOAuthDiscoverer::class)->shouldNotReceive('discover');
 
-    // Wired for a pre-registered OAuth app (authorization endpoint set) but the
-    // operator never set the client id: reportable, not a user-facing error.
     $connector = bcoConnector([
         'oauthAuthorizationEndpoint' => 'https://auth.example.test/authorize',
         'oauthTokenEndpoint' => 'https://auth.example.test/token',

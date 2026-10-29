@@ -38,6 +38,8 @@ it('removes bearer tokens and form-encoded secrets', function (): void {
         ->and($redacted)->toContain('Bearer [redacted]');
 });
 
-it('caps very long messages', function (): void {
-    expect(Str::length(RedactedException::redact(Str::repeat('a', 5000))))->toBeLessThanOrEqual(301);
+it('cuts a very long message to the logged maximum', function (): void {
+    $redacted = RedactedException::redact(Str::repeat('a', 5000));
+
+    expect(Str::length($redacted))->toBeLessThanOrEqual(301);
 });

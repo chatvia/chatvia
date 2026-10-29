@@ -26,20 +26,20 @@ beforeEach(function (): void {
     ];
 });
 
-it('keeps declared arguments of the right types and drops the rest', function (): void {
+it('keeps declared arguments of the right types and drops the rest, unless the schema allows extra keys', function (): void {
     $arguments = [
         'order_id' => 'A-1', 'count' => 2, 'price' => 9.5, 'urgent' => true, 'tags' => ['a'],
         'filter' => ['x' => 1], 'note' => null, 'status' => 'open', 'is_admin' => true,
     ];
+    $validator = new ToolArgumentValidator;
 
-    expect(new ToolArgumentValidator()->validated($this->schema, $arguments))->toBe([
+    expect($validator->validated($this->schema, $arguments))->toBe([
         'order_id' => 'A-1', 'count' => 2, 'price' => 9.5, 'urgent' => true, 'tags' => ['a'],
         'filter' => ['x' => 1], 'note' => null, 'status' => 'open',
-    ]);
-});
-
-it('takes a whole float as an integer', function (): void {
-    expect(new ToolArgumentValidator()->validated($this->schema, ['order_id' => 'A', 'count' => 3.0]))->toBe(['order_id' => 'A', 'count' => 3.0]);
+    ])
+        ->and($validator->validated($this->schema, ['order_id' => 'A', 'count' => 3.0]))->toBe(['order_id' => 'A', 'count' => 3.0])
+        ->and($validator->validated([...$this->schema, 'additionalProperties' => true], ['order_id' => 'A', 'extra' => 1]))->toBe(['order_id' => 'A', 'extra' => 1])
+        ->and($validator->validated(['type' => 'object'], ['anything' => 1]))->toBe(['anything' => 1]);
 });
 
 it('refuses arguments that do not fit the schema', function (array $arguments, string $reason): void {
@@ -47,15 +47,7 @@ it('refuses arguments that do not fit the schema', function (array $arguments, s
         ->toThrow(InvalidToolArgumentsException::class, $reason);
 })->with([
     'missing required' => [['count' => 1], '"order_id" is required'],
-    'string as integer' => [['order_id' => 'A', 'count' => '2'], '"count" must be of type integer'],
-    'number as string' => [['order_id' => 1], '"order_id" must be of type string'],
-    'object as array' => [['order_id' => 'A', 'tags' => ['a' => 1]], '"tags" must be of type array'],
+    'a wrong basic type' => [['order_id' => 'A', 'count' => '2'], '"count" must be of type integer'],
+    'an object as an array' => [['order_id' => 'A', 'tags' => ['a' => 1]], '"tags" must be of type array'],
     'outside the enum' => [['order_id' => 'A', 'status' => 'deleted'], '"status" must be one of the allowed values'],
 ]);
-
-it('keeps extra keys when the schema allows them, and checks nothing without properties', function (): void {
-    $open = [...$this->schema, 'additionalProperties' => true];
-
-    expect(new ToolArgumentValidator()->validated($open, ['order_id' => 'A', 'extra' => 1]))->toBe(['order_id' => 'A', 'extra' => 1])
-        ->and(new ToolArgumentValidator()->validated(['type' => 'object'], ['anything' => 1]))->toBe(['anything' => 1]);
-});

@@ -11,9 +11,9 @@ use Domain\Integration\Mcp\Models\McpServerTool;
 
 /**
  * A workspace server's memberships of the shared catalog follow the catalog:
- * new tools join with the catalog default, a tool the server stops
- * advertising leaves, and the workspace's own permission choice survives a
- * re-sync.
+ * new tools join with the catalog default (reads run, writes wait), a tool
+ * the server stops advertising leaves, an empty catalog drops them all, and
+ * the workspace's own permission choice survives a re-sync.
  */
 
 /**
@@ -35,22 +35,18 @@ it('adds and drops memberships to match the catalog, keeping the workspace choic
     $tools = app(UpsertConnectorToolsAction::class)->execute('weather', rtmDefinitions());
 
     app(ReconcileToolMembershipsAction::class)->execute($server, $tools);
-    // New memberships start from the catalog default: reads run, writes wait.
     expect(McpServerTool::where('mcp_server_id', $server->id)->orderBy('connector_tool_id')->pluck('permission')->all())
         ->toBe([McpToolPermission::Allow, McpToolPermission::Approval]);
     McpServerTool::where('mcp_server_id', $server->id)->where('connector_tool_id', $tools[1]->id)
         ->update(['permission' => McpToolPermission::Blocked->value]);
 
-    // Re-sync with the same catalog: the workspace's "blocked" survives.
     app(ReconcileToolMembershipsAction::class)->execute($server, $tools);
     expect(McpServerTool::where('mcp_server_id', $server->id)->where('connector_tool_id', $tools[1]->id)->value('permission'))
         ->toBe(McpToolPermission::Blocked);
 
-    // The server stops advertising the write tool: its membership goes.
     app(ReconcileToolMembershipsAction::class)->execute($server, $tools->take(1));
     expect(McpServerTool::where('mcp_server_id', $server->id)->pluck('connector_tool_id')->all())->toBe([$tools[0]->id]);
 
-    // An empty catalog drops every membership.
     app(ReconcileToolMembershipsAction::class)->execute($server, $tools->take(0));
     expect(McpServerTool::where('mcp_server_id', $server->id)->count())->toBe(0);
 });

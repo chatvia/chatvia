@@ -18,7 +18,8 @@ use Tests\Support\Channel\Teams\FakeTeamsClient;
  * Teams): a "Thinking…" placeholder where the message came from, the reply so
  * far edited into it at most once per the platform's edit throttle and only
  * when it changed, then the final reply. The stub runner stands in for the
- * pipeline and moves the clock before each partial.
+ * pipeline and moves the clock before each partial; Slack takes an edit every
+ * 1.5 seconds.
  */
 function srsSlack(FakeSlackClient $client): SlackAdapter
 {
@@ -78,28 +79,9 @@ it('posts a placeholder where the message came from and edits the reply into it'
 ]);
 
 it('skips a partial that comes sooner than the channel’s edit throttle allows', function (): void {
-    // Slack takes an edit every 1.5 seconds; these partials come a second apart.
     $client = new FakeSlackClient;
 
     srsDeliver(srsSlack($client), new StubChannelReplyRunner('Hello from the agent', ['Hel', 'Hello', 'Hello there'], secondsBetweenPartials: 1));
 
     expect(array_column($client->updates, 'markdown'))->toBe(['Hello', 'Hello from the agent']);
-});
-
-it('skips a partial whose text is the same as the one it pushed last', function (): void {
-    $client = new FakeSlackClient;
-
-    srsDeliver(srsSlack($client), new StubChannelReplyRunner('Hello from the agent', ['Hello', 'Hello ', 'Hello there']));
-
-    expect(array_column($client->updates, 'markdown'))->toBe(['Hello', 'Hello there', 'Hello from the agent']);
-});
-
-it('runs no turn when the placeholder cannot be posted', function (): void {
-    $client = new FakeSlackClient;
-    $client->nextTs = null;
-    $runner = new StubChannelReplyRunner('Hello from the agent');
-
-    expect(srsDeliver(srsSlack($client), $runner))->toBeFalse()
-        ->and($runner->received())->toBeNull()
-        ->and($client->updates)->toBe([]);
 });

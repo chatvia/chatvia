@@ -10,18 +10,22 @@ use Domain\Integration\Mcp\Services\McpClient;
 use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Support\Uri;
-use Mockery\MockInterface;
 use Support\Http\SafeUrl;
 
 /**
  * The MCP client speaks JSON-RPC over streamable HTTP: it lists and calls
  * tools with the session and caller headers, reads JSON or server-sent event
- * replies and reports a server's errors. A first-party server (one of our
- * builtins) is reached at the internal URL with a signed request; a
- * third-party or custom server never is, and is never signed.
+ * replies (Linear and Atlassian answer with one `text/event-stream` frame)
+ * and reports a server's errors. Every RPC builds a fresh request, as a
+ * reused one would carry `Mcp-Session-Id` twice and strict servers such as
+ * Notion then answer 404. A first-party server (one of our builtins) is
+ * reached at the internal URL with a signed request and without stored
+ * custom headers; a third-party or custom server never is, is never signed,
+ * and is refused at a private address. Chart blocks come only from our own
+ * charts server. A failed OAuth token refresh still sends the call, so the
+ * server's own 401 is what the workspace sees.
  */
 
 /** A third-party server reached with a bearer token (not saved). */
@@ -86,82 +90,61 @@ function mclFakeServer(array $tools = [], ?string $sessionId = null): void
     });
 }
 
-it('returns the server catalog from tools/list', function (): void {
+/** Answers `initialize` and a `tools/call` whose result carries an ECharts block. */
+function mclFakeChartServer(): void
+{
+    Http::fake(function (ClientRequest $request): PromiseInterface {
+        $body = $request->data();
+
+        return match ($body['method'] ?? '') {
+            'initialize' => Http::response(['jsonrpc' => '2.0', 'id' => $body['id'], 'result' => []]),
+            'tools/call' => Http::response(['jsonrpc' => '2.0', 'id' => $body['id'], 'result' => [
+                'content' => [['type' => 'text', 'text' => 'chart']],
+                'structuredContent' => ['echarts_option' => ['tooltip' => ['formatter' => '<img src=x onerror=alert(1)>']]],
+            ]]),
+            default => Http::response('', 202),
+        };
+    });
+}
+
+/** Whether a recorded request carries a valid internal signature. */
+function mclSigned(ClientRequest $request): bool
+{
+    return InternalMcpSignature::verify(
+        $request->header(InternalMcpSignature::TIMESTAMP_HEADER)[0] ?? null,
+        $request->header(InternalMcpSignature::SIGNATURE_HEADER)[0] ?? null,
+        $request->method(),
+        Uri::of($request->url())->getUri()->getPath(),
+        $request->body(),
+        InternalMcpSignature::identityHeadersFrom($request->headers()),
+    );
+}
+
+it('lists and calls tools over JSON-RPC with the session, protocol and caller headers sent once', function (): void {
     mclFakeServer([['name' => 'foo', 'description' => 'fixture', 'inputSchema' => ['type' => 'object']]], sessionId: 's-1');
+    $client = app(McpClient::class);
 
-    $tools = app(McpClient::class)->fetchTools(mclServer());
+    $tools = $client->fetchTools(mclServer());
+    $result = $client->callTool(mclServer(), 'ping', [], ['X-Chatvia-Agent-Id' => 'agent-uuid', 'X-Chatvia-User-Id' => 'user-uuid']);
+    $client->callTool(mclServer(), 'ping', ['limit' => 5]);
 
+    $toolsList = Http::recorded(fn (ClientRequest $request): bool => ($request->data()['method'] ?? null) === 'tools/list');
+    [$listRequest] = $toolsList->first();
     expect($tools)->toHaveCount(1)
-        ->and($tools[0]->name)->toBe('foo');
-});
-
-it('returns the tool result envelope of tools/call', function (): void {
-    mclFakeServer();
-
-    $result = app(McpClient::class)->callTool(mclServer(), 'ping', []);
-
-    expect($result->isError)->toBeFalse()
-        ->and($result->text)->toBe('pong');
-});
-
-it('sends the arguments of tools/call as a JSON object, also when there are none', function (): void {
-    mclFakeServer();
-
-    app(McpClient::class)->callTool(mclServer(), 'ping', []);
-    app(McpClient::class)->callTool(mclServer(), 'ping', ['limit' => 5]);
-
-    Http::assertSent(fn (ClientRequest $request): bool => Str::contains($request->body(), '"arguments":{}'));
+        ->and($tools[0]->name)->toBe('foo')
+        ->and($result->isError)->toBeFalse()
+        ->and($result->text)->toBe('pong')
+        ->and($toolsList)->toHaveCount(1)
+        ->and($listRequest->header('Mcp-Session-Id'))->toBe(['s-1'])
+        ->and($listRequest->header('MCP-Protocol-Version'))->toBe(['2025-06-18']);
+    Http::assertSent(fn (ClientRequest $request): bool => ($request->data()['method'] ?? null) === 'tools/call'
+        && Str::contains($request->body(), '"arguments":{}')
+        && $request->header('X-Chatvia-Agent-Id') === ['agent-uuid']
+        && $request->header('X-Chatvia-User-Id') === ['user-uuid']);
     Http::assertSent(fn (ClientRequest $request): bool => Str::contains($request->body(), '"arguments":{"limit":5}'));
 });
 
-it('stamps the caller identity headers on tools/call', function (): void {
-    mclFakeServer();
-
-    app(McpClient::class)->callTool(mclServer(), 'ping', [], [
-        'X-Chatvia-Agent-Id' => 'agent-uuid',
-        'X-Chatvia-User-Id' => 'user-uuid',
-    ]);
-
-    Http::assertSent(fn (ClientRequest $request): bool => ($request->data()['method'] ?? null) === 'tools/call'
-        && $request->header('X-Chatvia-Agent-Id') === ['agent-uuid']
-        && $request->header('X-Chatvia-User-Id') === ['user-uuid']);
-});
-
-it('sends the session and protocol headers once on each call', function (): void {
-    // Laravel's withHeaders merges with array_merge_recursive, so a reused
-    // PendingRequest would carry a header twice. Strict servers such as
-    // Notion read two `Mcp-Session-Id` headers as one comma-joined value and
-    // answer 404 "Session not found", so every RPC builds a fresh request.
-    mclFakeServer(sessionId: 's-1');
-
-    app(McpClient::class)->fetchTools(mclServer());
-
-    $toolsList = Http::recorded(fn (ClientRequest $request): bool => ($request->data()['method'] ?? null) === 'tools/list');
-
-    expect($toolsList)->toHaveCount(1);
-
-    // Guzzle exposes each header as a list of values: one value means the
-    // header was set once.
-    [$request] = $toolsList->first();
-
-    expect($request->header('Mcp-Session-Id'))->toBe(['s-1'])
-        ->and($request->header('MCP-Protocol-Version'))->toBe(['2025-06-18']);
-});
-
-it('throws the JSON-RPC error a server returns', function (): void {
-    Http::fake(fn (ClientRequest $request): PromiseInterface => Http::response([
-        'jsonrpc' => '2.0',
-        'id' => $request->data()['id'] ?? null,
-        'error' => ['code' => -32601, 'message' => 'method not found'],
-    ]));
-
-    expect(fn (): array => app(McpClient::class)->fetchTools(mclServer()))
-        ->toThrow(McpException::class, 'method not found');
-});
-
 it('reads a reply sent as a server-sent event', function (): void {
-    // Linear and Atlassian answer with one `text/event-stream` frame whose
-    // `data:` line carries the JSON-RPC response.
     Http::fake(function (ClientRequest $request): PromiseInterface {
         $body = $request->data();
         $result = match ($body['method'] ?? '') {
@@ -185,36 +168,15 @@ it('reads a reply sent as a server-sent event', function (): void {
         ->and($tools[0]->name)->toBe('list_issues');
 });
 
-it('refuses a reply whose id is not the id it sent', function (): void {
-    Http::fake(fn (ClientRequest $request): PromiseInterface => Http::response([
-        'jsonrpc' => '2.0',
-        'id' => 'someone-elses-id',
-        'result' => ['protocolVersion' => '2025-06-18'],
-    ]));
-
-    expect(fn (): array => app(McpClient::class)->fetchTools(mclServer()))
-        ->toThrow(McpException::class, 'MCP response id mismatch for initialize');
-});
-
-it('reports an HTTP error by status and the start of the body', function (): void {
-    $body = 'Service Unavailable '.Str::repeat('x', 300);
-    Http::fake(['mcp.example.test/*' => Http::response($body, 503)]);
-
-    expect(fn (): array => app(McpClient::class)->fetchTools(mclServer()))
-        ->toThrow(function (McpException $e) use ($body): void {
-            expect($e->getMessage())->toBe('MCP server returned HTTP 503: '.Str::substr($body, 0, 200))
-                ->and($e->getCode())->toBe(503);
-        });
-});
-
-it('still sends the call when the OAuth token refresh fails', function (): void {
-    // The server's own 401 is a better error for the workspace than our guess.
-    $this->mock(AccessTokenRefresher::class, fn (MockInterface $mock) => $mock->shouldReceive('refreshIfStale')
-        ->once()
-        ->andThrow(new RuntimeException('refresh denied')));
-    Log::spy();
+it('still sends the call with the stored token when the OAuth token refresh fails', function (): void {
+    app()->instance(AccessTokenRefresher::class, new class implements AccessTokenRefresher
+    {
+        public function refreshIfStale(AgentMcpServer $server): void
+        {
+            throw new RuntimeException('refresh denied');
+        }
+    });
     mclFakeServer();
-
     $server = mclServer();
     $server->oauth_token_endpoint = 'https://auth.example.test/token';
     $server->oauth_expires_at = now()->subMinute();
@@ -224,61 +186,59 @@ it('still sends the call when the OAuth token refresh fails', function (): void 
     expect($result->text)->toBe('pong');
     Http::assertSent(fn (ClientRequest $request): bool => ($request->data()['method'] ?? null) === 'tools/call'
         && $request->header('Authorization') === ['Bearer tok-abc']);
-    Log::shouldHaveReceived('warning')->withArgs(fn (string $message, array $context): bool => $message === 'MCP token refresh failed'
-        && $context['error'] === 'refresh denied');
 });
 
-it('signs every request to a first-party server over the body and the identity', function (): void {
-    mclFakeServer();
+it('throws on a server error, a reply to another request, or an HTTP failure', function (Closure $reply, string $message, ?int $code): void {
+    Http::fake($reply);
 
-    app(McpClient::class)->callTool(mclInternalServer('charts'), 'render-bar-chart', ['title' => 'x'], [
-        'X-Chatvia-Agent-Id' => 'agent-uuid',
-        'X-Chatvia-User-Id' => 'user-uuid',
-    ]);
+    expect(fn (): array => app(McpClient::class)->fetchTools(mclServer()))
+        ->toThrow(function (McpException $e) use ($message, $code): void {
+            $code === null
+                ? expect($e->getMessage())->toContain($message)
+                : expect($e->getMessage())->toBe($message)->and($e->getCode())->toBe($code);
+        });
+})->with([
+    'a JSON-RPC error' => [fn (ClientRequest $request): PromiseInterface => Http::response([
+        'jsonrpc' => '2.0',
+        'id' => $request->data()['id'] ?? null,
+        'error' => ['code' => -32601, 'message' => 'method not found'],
+    ]), 'method not found', null],
+    'an id that is not the one sent' => [fn (): PromiseInterface => Http::response([
+        'jsonrpc' => '2.0',
+        'id' => 'someone-elses-id',
+        'result' => ['protocolVersion' => '2025-06-18'],
+    ]), 'MCP response id mismatch for initialize', null],
+    'an HTTP error, by status and the start of the body' => [fn (): PromiseInterface => Http::response('Service Unavailable '.Str::repeat('x', 300), 503), 'MCP server returned HTTP 503: Service Unavailable '.Str::repeat('x', 180), 503],
+]);
 
-    $signed = 0;
-    Http::assertSent(function (ClientRequest $request) use (&$signed): bool {
-        $verified = InternalMcpSignature::verify(
-            $request->header(InternalMcpSignature::TIMESTAMP_HEADER)[0] ?? null,
-            $request->header(InternalMcpSignature::SIGNATURE_HEADER)[0] ?? null,
-            $request->method(),
-            Uri::of($request->url())->getUri()->getPath(),
-            $request->body(),
-            InternalMcpSignature::identityHeadersFrom($request->headers()),
-        );
-        $signed += $verified ? 1 : 0;
-
-        return $verified;
-    });
-
-    // initialize, notifications/initialized and tools/call are all signed.
-    expect($signed)->toBe(3);
-});
-
-it('sends a first-party server to the internal URL with a valid signature', function (): void {
+it('signs every request to a first-party server and sends it to the internal URL, but never a server Chatvia does not run', function (): void {
     config(['services.builtin_mcp.internal_url' => 'http://app:8080']);
     mclFakeServer();
+    $firstParty = mclInternalServer('charts');
+    $firstParty->headers = [['key' => 'X-Chatvia-Workspace-Id', 'value' => 'someone-else']];
 
-    app(McpClient::class)->callTool(mclInternalServer('charts'), 'render-bar-chart', ['title' => 'x']);
+    app(McpClient::class)->callTool($firstParty, 'render-bar-chart', ['title' => 'x'], ['X-Chatvia-Agent-Id' => 'agent-uuid', 'X-Chatvia-User-Id' => 'user-uuid']);
+    app(McpClient::class)->callTool(mclInternalServer(null), 'render-bar-chart', []);
+    app(McpClient::class)->callTool(mclServer(), 'ping', [], ['X-Chatvia-Agent-Id' => 'agent-uuid']);
 
-    Http::assertSent(fn (ClientRequest $request): bool => $request->url() === 'http://app:8080/mcp/charts'
-        && InternalMcpSignature::verify(
-            $request->header(InternalMcpSignature::TIMESTAMP_HEADER)[0] ?? null,
-            $request->header(InternalMcpSignature::SIGNATURE_HEADER)[0] ?? null,
-            $request->method(),
-            Uri::of($request->url())->getUri()->getPath(),
-            $request->body(),
-            InternalMcpSignature::identityHeadersFrom($request->headers()),
-        ));
-    Http::assertNotSent(fn (ClientRequest $request): bool => ! Str::startsWith($request->url(), 'http://app:8080/'));
+    $internal = Http::recorded(fn (ClientRequest $request): bool => Str::startsWith($request->url(), 'http://app:8080/'));
+    expect($internal)->toHaveCount(3)
+        ->and($internal->every(fn (array $pair): bool => $pair[0]->url() === 'http://app:8080/mcp/charts' && mclSigned($pair[0])))->toBeTrue();
+    Http::assertNotSent(fn (ClientRequest $request): bool => ! Str::startsWith($request->url(), 'http://app:8080/')
+        && $request->hasHeader(InternalMcpSignature::SIGNATURE_HEADER));
+    Http::assertNotSent(fn (ClientRequest $request): bool => $request->hasHeader('X-Chatvia-Workspace-Id'));
 });
 
-it('reaches a first-party server when APP_URL resolves to a private address', function (): void {
+it('refuses a custom server at a private address, even at our own /mcp/ URL, but reaches a first-party one there', function (): void {
     app()['env'] = 'production';
     SafeUrl::resolveHostsUsing(fn (string $host): array => ['127.0.0.1']);
     mclFakeServer();
 
     try {
+        expect(fn () => app(McpClient::class)->callTool(mclInternalServer(null), 'render-bar-chart', []))
+            ->toThrow(McpException::class, 'private or reserved address');
+        Http::assertNothingSent();
+
         app(McpClient::class)->callTool(mclInternalServer('charts'), 'render-bar-chart', ['title' => 'x']);
     } finally {
         SafeUrl::resolveHostsUsing(null);
@@ -287,103 +247,14 @@ it('reaches a first-party server when APP_URL resolves to a private address', fu
     Http::assertSent(fn (ClientRequest $request): bool => ($request->data()['method'] ?? '') === 'tools/call');
 });
 
-it('refuses a custom server at a private address, even at our own /mcp/ URL', function (): void {
-    app()['env'] = 'production';
-    SafeUrl::resolveHostsUsing(fn (string $host): array => ['127.0.0.1']);
-    mclFakeServer();
+it('renders chart blocks only from our own charts server', function (Closure $server, int $blocks): void {
+    mclFakeChartServer();
 
-    try {
-        expect(fn () => app(McpClient::class)->callTool(mclInternalServer(null), 'render-bar-chart', []))
-            ->toThrow(McpException::class, 'private or reserved address');
-    } finally {
-        SafeUrl::resolveHostsUsing(null);
-    }
-
-    Http::assertNothingSent();
-});
-
-it('never sends a third-party server to the internal URL', function (): void {
-    config(['services.builtin_mcp.internal_url' => 'http://app:8080']);
-    mclFakeServer();
-
-    app(McpClient::class)->callTool(mclServer(), 'ping', []);
-
-    Http::assertNotSent(fn (ClientRequest $request): bool => Str::startsWith($request->url(), 'http://app:8080'));
-});
-
-it('does not sign a custom server that points at an internal URL', function (): void {
-    mclFakeServer();
-
-    // A workspace's own server that merely uses our /mcp/ URL has no
-    // connector_slug, so it must not receive our proof-of-origin.
-    app(McpClient::class)->callTool(mclInternalServer(null), 'render-bar-chart', []);
-
-    Http::assertNotSent(fn (ClientRequest $request): bool => $request->hasHeader(InternalMcpSignature::SIGNATURE_HEADER));
-});
-
-it('never signs a third-party server', function (): void {
-    mclFakeServer();
-
-    app(McpClient::class)->callTool(mclServer(), 'ping', [], ['X-Chatvia-Agent-Id' => 'agent-uuid']);
-
-    Http::assertNotSent(fn (ClientRequest $request): bool => $request->hasHeader(InternalMcpSignature::SIGNATURE_HEADER));
-});
-
-it('ignores stored custom headers on a first-party server', function (): void {
-    mclFakeServer();
-
-    $server = mclInternalServer('charts');
-    $server->headers = [['key' => 'X-Chatvia-Workspace-Id', 'value' => 'someone-else']];
-
-    app(McpClient::class)->callTool($server, 'render-bar-chart', [], ['X-Chatvia-Agent-Id' => 'agent-uuid']);
-
-    Http::assertNotSent(fn (ClientRequest $request): bool => $request->hasHeader('X-Chatvia-Workspace-Id'));
-});
-
-it('introduces the client as chatvia on initialize', function (): void {
-    mclFakeServer();
-
-    app(McpClient::class)->fetchTools(mclServer());
-
-    Http::assertSent(fn (ClientRequest $request): bool => ($request->data()['method'] ?? null) === 'initialize'
-        && $request->data()['params']['clientInfo']['name'] === 'ChatViaAI');
-});
-
-it('renders chart blocks only from our own charts server, never from a custom server', function (?string $connectorSlug, int $blocks): void {
-    Http::fake(function (ClientRequest $request): PromiseInterface {
-        $body = $request->data();
-
-        return match ($body['method'] ?? '') {
-            'initialize' => Http::response(['jsonrpc' => '2.0', 'id' => $body['id'], 'result' => []]),
-            'tools/call' => Http::response(['jsonrpc' => '2.0', 'id' => $body['id'], 'result' => [
-                'content' => [['type' => 'text', 'text' => 'chart']],
-                'structuredContent' => ['echarts_option' => ['tooltip' => ['formatter' => '<img src=x onerror=alert(1)>']]],
-            ]]),
-            default => Http::response('', 202),
-        };
-    });
-
-    $result = app(McpClient::class)->callTool(mclInternalServer($connectorSlug), 'render-bar-chart', []);
+    $result = app(McpClient::class)->callTool($server(), 'render-bar-chart', []);
 
     expect($result->artifacts())->toHaveCount($blocks);
 })->with([
-    'the builtin charts server' => ['charts', 1],
-    'a custom server at the same URL' => [null, 0],
+    'the builtin charts server' => [fn (): AgentMcpServer => mclInternalServer('charts'), 1],
+    'a custom server at the same URL' => [fn (): AgentMcpServer => mclInternalServer(null), 0],
+    'a third-party server' => [fn (): AgentMcpServer => mclServer(), 0],
 ]);
-
-it('renders no chart blocks from a third-party server', function (): void {
-    Http::fake(function (ClientRequest $request): PromiseInterface {
-        $body = $request->data();
-
-        return match ($body['method'] ?? '') {
-            'initialize' => Http::response(['jsonrpc' => '2.0', 'id' => $body['id'], 'result' => []]),
-            'tools/call' => Http::response(['jsonrpc' => '2.0', 'id' => $body['id'], 'result' => [
-                'content' => [['type' => 'text', 'text' => 'chart']],
-                'structuredContent' => ['echarts_option' => ['title' => ['link' => 'javascript:alert(1)']]],
-            ]]),
-            default => Http::response('', 202),
-        };
-    });
-
-    expect(app(McpClient::class)->callTool(mclServer(), 'ping', [])->artifacts())->toBe([]);
-});

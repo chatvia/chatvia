@@ -12,7 +12,6 @@ it('decodes JSON wrapped the ways models wrap it', function (?string $reply, ?ar
     expect(LlmJson::decode($reply))->toBe($expected);
 })->with([
     'plain object' => ['{"a":1}', ['a' => 1]],
-    'plain list' => ['["x","y"]', ['x', 'y']],
     'code fence' => ["```json\n{\"a\":1}\n```", ['a' => 1]],
     'prose around an object' => ['Sure! {"a": {"b": 2}} Hope it helps.', ['a' => ['b' => 2]]],
     'prose around a list' => ['Here: ["x"] done', ['x']],

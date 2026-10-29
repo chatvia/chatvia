@@ -93,8 +93,6 @@
     "tests/Unit/Domain/Knowledge/Ingestion/Actions/Chunks/IngestSourceChunkActionTest.php": 1,
     "tests/Unit/Domain/Knowledge/Ingestion/Actions/Sources/CreateSourceSummaryActionTest.php": 1,
     "tests/Unit/Domain/Knowledge/Ingestion/Services/Chunking/ChunkerTest.php": 2,
-    "tests/Unit/Domain/Llm/Operations/Query/QueryRewriterTest.php": 6,
-    "tests/Unit/Domain/Llm/Operations/Realtime/OpenAiRealtimeCallsTest.php": 1,
     "tests/Unit/Domain/Llm/Providers/AnthropicTest.php": 1,
     "tests/Unit/Domain/Llm/Providers/Messages/MessagesPayloadTest.php": 3,
     "tests/Unit/Domain/Llm/Providers/OpenAiTest.php": 1,

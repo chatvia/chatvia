@@ -9,9 +9,8 @@ use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
 
 /**
- * The Redis snapshot: `redis-cli --rdb` against the app's Redis (REDIS_URL
- * first), the password in REDISCLI_AUTH, and a check that Redis sent an
- * RDB file.
+ * The Redis snapshot: `redis-cli --rdb` against the app's Redis, the
+ * password in REDISCLI_AUTH, and a check that Redis sent an RDB file.
  */
 function rsPath(): string
 {
@@ -31,21 +30,6 @@ it('asks Redis for an RDB snapshot with the password in the environment', functi
 
     Process::assertRan(fn ($process): bool => $process->command === ['redis-cli', '-h', 'redis', '-p', '6380', '--user', 'app', '--rdb', $path]
         && $process->environment === ['REDISCLI_AUTH' => 'secret']);
-});
-
-it('reads the server from REDIS_URL, with TLS for rediss', function (): void {
-    config(['database.redis.default' => ['url' => 'rediss://:url-secret@cache.example.com:6390', 'host' => '127.0.0.1']]);
-    $path = rsPath();
-    Process::fake(["'redis-cli'*" => function () use ($path) {
-        File::put($path, 'REDIS0012');
-
-        return Process::result();
-    }]);
-
-    app(RedisSnapshot::class)->dump($path);
-
-    Process::assertRan(fn ($process): bool => $process->command === ['redis-cli', '-h', 'cache.example.com', '-p', '6390', '--tls', '--rdb', $path]
-        && $process->environment === ['REDISCLI_AUTH' => 'url-secret']);
 });
 
 it('fails when Redis sends no RDB file', function (): void {

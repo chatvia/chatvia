@@ -23,14 +23,6 @@ function beKey(string $name): string
     return File::get(base_path("tests/Fixtures/backup/{$name}.asc"));
 }
 
-it('reads the fingerprint, name and expiry of a public key', function (): void {
-    $key = app(BackupEncryption::class)->inspect(beKey('public'));
-
-    expect($key->fingerprint)->toBe('B267A209E6AEC7A0993FA6038E89D0F7F34C5DE7')
-        ->and($key->userId)->toBe('ChatVia Backup Test <backup-test@example.com>')
-        ->and($key->expiresAt)->toBeNull();
-});
-
 it('refuses a key it cannot encrypt a backup with', function (string $text, string $message): void {
     expect(fn () => app(BackupEncryption::class)->inspect($text))
         ->toThrow(InvalidPublicKeyException::class, $message);
@@ -43,14 +35,18 @@ it('refuses a key it cannot encrypt a backup with', function (string $text, stri
     'an expired key' => [fn (): string => beKey('expired'), 'This key is expired.'],
 ]);
 
-it('encrypts a file to the encryption subkey and leaves no keyring behind', function (): void {
+it('reads a public key and encrypts a file to its encryption subkey, leaving no keyring behind', function (): void {
     $dir = deleteAfterTest(create_temp_dir('/be-'.Str::random(8)));
     File::put($dir.'/backup.tar', 'the archive');
     $homes = File::glob(sys_get_temp_dir().'/chatvia-gpg-*');
 
+    $key = app(BackupEncryption::class)->inspect(beKey('public'));
     $fingerprint = app(BackupEncryption::class)->encrypt(beKey('public'), $dir.'/backup.tar', $dir.'/backup.tar.gpg');
 
-    expect($fingerprint)->toBe('B267A209E6AEC7A0993FA6038E89D0F7F34C5DE7')
+    expect($key->fingerprint)->toBe('B267A209E6AEC7A0993FA6038E89D0F7F34C5DE7')
+        ->and($key->userId)->toBe('ChatVia Backup Test <backup-test@example.com>')
+        ->and($key->expiresAt)->toBeNull()
+        ->and($fingerprint)->toBe('B267A209E6AEC7A0993FA6038E89D0F7F34C5DE7')
         ->and(File::get($dir.'/backup.tar.gpg'))->not->toContain('the archive')
         ->and(File::glob(sys_get_temp_dir().'/chatvia-gpg-*'))->toBe($homes);
 

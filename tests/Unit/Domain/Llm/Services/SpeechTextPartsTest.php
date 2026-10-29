@@ -7,13 +7,10 @@ use Illuminate\Support\Str;
  * A text to read aloud, in parts a speech service takes in one call: cut
  * between sentences, and a sentence too long for one part between words.
  */
-it('keeps a short text whole', function (): void {
+it('keeps a short text whole and cuts a long one between sentences', function (): void {
     expect(app(SpeechTextParts::class)->split('One. Two.', 100))->toBe(['One. Two.'])
-        ->and(app(SpeechTextParts::class)->split('  ', 100))->toBe([]);
-});
-
-it('cuts a long text between sentences', function (): void {
-    expect(app(SpeechTextParts::class)->split('First one here. Second one here. Third one here.', 33))
+        ->and(app(SpeechTextParts::class)->split('  ', 100))->toBe([])
+        ->and(app(SpeechTextParts::class)->split('First one here. Second one here. Third one here.', 33))
         ->toBe(['First one here. Second one here.', 'Third one here.']);
 });
 

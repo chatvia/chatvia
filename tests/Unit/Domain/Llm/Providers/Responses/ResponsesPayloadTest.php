@@ -34,7 +34,11 @@ function rpBody(array $extra = []): array
     ]);
 }
 
-it('writes the history as input items', function (): void {
+it('writes the history as input items, with a PDF as an input file', function (): void {
+    $pdf = ResponsesPayload::fromChatCompletions(['model' => 'gpt-6-sol', 'messages' => [['role' => 'user', 'content' => [
+        ['type' => 'document_url', 'document_url' => 'data:application/pdf;base64,JVBERg==', 'document_name' => 'report.pdf'],
+    ]]]]);
+
     expect(rpBody()['input'])->toBe([
         ['role' => 'system', 'content' => 'Be brief.'],
         ['role' => 'user', 'content' => [
@@ -45,40 +49,27 @@ it('writes the history as input items', function (): void {
         ['type' => 'function_call_output', 'call_id' => 'call_1', 'output' => 'Sunny'],
         ['role' => 'assistant', 'content' => 'It is sunny.'],
         ['role' => 'user', 'content' => 'Thanks'],
-    ]);
+    ])
+        ->and($pdf['input'][0]['content'])->toBe([['type' => 'input_file', 'filename' => 'report.pdf', 'file_data' => 'data:application/pdf;base64,JVBERg==']]);
 });
 
-it('moves the tools up a level, with strict schemas off', function (): void {
-    expect(rpBody()['tools'])->toBe([[
+it('moves the tools up a level with strict schemas off, asks for the effort streamed and not stored, and adds a summary only when the model reasons', function (): void {
+    $body = rpBody();
+
+    expect($body['tools'])->toBe([[
         'type' => 'function',
         'name' => 'get_weather',
         'description' => 'Weather for a city',
         'parameters' => ['type' => 'object', 'properties' => ['city' => ['type' => 'string']]],
         'strict' => false,
-    ]]);
-});
-
-it('asks for the effort, streamed and not stored', function (): void {
-    $body = rpBody();
-
-    expect($body['reasoning'])->toBe(['effort' => 'medium'])
+    ]])
+        ->and($body['reasoning'])->toBe(['effort' => 'medium'])
         ->and($body['presence_penalty'])->toBe(0.5)
         ->and($body['stream'])->toBeTrue()
         ->and($body['store'])->toBeFalse()
         ->and($body['max_output_tokens'])->toBe(500)
         ->and($body['tool_choice'])->toBe('auto')
-        ->and($body)->not->toHaveKeys(['messages', 'reasoning_effort', 'stream_options', 'top_k', 'max_completion_tokens']);
-});
-
-it('adds a summary of the thinking on request, only when the model reasons', function (): void {
-    expect(ResponsesPayload::withSummary(rpBody())['reasoning'])->toBe(['effort' => 'medium', 'summary' => 'auto'])
+        ->and($body)->not->toHaveKeys(['messages', 'reasoning_effort', 'stream_options', 'top_k', 'max_completion_tokens'])
+        ->and(ResponsesPayload::withSummary($body)['reasoning'])->toBe(['effort' => 'medium', 'summary' => 'auto'])
         ->and(ResponsesPayload::withSummary(rpBody(['reasoning_effort' => null])))->not->toHaveKey('reasoning');
-});
-
-it('sends a PDF as an input file with its bytes and name', function (): void {
-    $body = ResponsesPayload::fromChatCompletions(['model' => 'gpt-6-sol', 'messages' => [['role' => 'user', 'content' => [
-        ['type' => 'document_url', 'document_url' => 'data:application/pdf;base64,JVBERg==', 'document_name' => 'report.pdf'],
-    ]]]]);
-
-    expect($body['input'][0]['content'])->toBe([['type' => 'input_file', 'filename' => 'report.pdf', 'file_data' => 'data:application/pdf;base64,JVBERg==']]);
 });

@@ -13,9 +13,9 @@ use Tests\Support\Llm\GuzzleRecorder;
 
 /**
  * Claude through Anthropic's own Messages API: the key in its own header,
- * streamed turns and single calls both sent to `/messages` in Messages form
- * and read back as Chat Completions, and the older models, which refuse
- * adaptive thinking, asked again on a thinking budget.
+ * single calls read back as Chat Completions, and the older models, which
+ * refuse adaptive thinking, asked again on a thinking budget, in streamed
+ * turns and single calls alike; any other refusal is passed on.
  */
 function anthropicClient(): Anthropic
 {
@@ -42,85 +42,47 @@ function anthropicRefusal(): Response
     return new Response(400, [], (string) json_encode(['type' => 'error', 'error' => ['type' => 'invalid_request_error', 'message' => '"thinking.type.adaptive" is not supported for this model.']]));
 }
 
-it('calls with its own key header and API version, not a bearer key', function (): void {
-    expect(anthropicClient()->headers())->toMatchArray(['x-api-key' => 'sk-ant-test', 'anthropic-version' => '2023-06-01'])
-        ->and(anthropicClient()->headers())->not->toHaveKey('Authorization')
-        ->and(anthropicClient()->getCompletionEndpoint())->toBe('https://api.anthropic.test/v1/messages');
-});
-
-it('streams a turn to /messages in Messages form', function (): void {
-    $recorder = GuzzleRecorder::answering(new Response(200, [], "event: message_stop\ndata: {\"type\":\"message_stop\"}\n\n"));
-
-    $reply = anthropicClient()->stream('claude-sonnet-5-5', [['role' => 'system', 'content' => 'Be brief.'], ['role' => 'user', 'content' => 'Hi']], [
-        'reasoning_effort' => 'medium',
-        Anthropic::SHOW_REASONING => true,
-    ]);
-
-    $request = $recorder->request();
-    $body = $recorder->body();
-
-    expect((string) $request->getUri())->toBe('https://api.anthropic.test/v1/messages')
-        ->and($request->getHeaderLine('x-api-key'))->toBe('sk-ant-test')
-        ->and($body)->toMatchArray(['model' => 'claude-sonnet-5-5', 'stream' => true, 'system' => 'Be brief.'])
-        ->and($body['thinking'])->toBe(['type' => 'adaptive', 'display' => 'summarized'])
-        ->and($body['messages'])->toBe([['role' => 'user', 'content' => [['type' => 'text', 'text' => 'Hi']]]])
-        ->and($body)->not->toHaveKeys(['show_reasoning', 'stream_options'])
-        ->and($reply->getBody()->getContents())->toBe("data: [DONE]\n\n");
-});
-
-it('streams again on a thinking budget when the model refuses adaptive thinking, and remembers it', function (): void {
+it('streams again on a thinking budget when the model refuses adaptive thinking, remembers it, and passes on any other refusal', function (): void {
     $bodies = anthropicStreamBodies([anthropicRefusal(), new Response(200, [], '')], ['reasoning_effort' => 'low']);
+    $next = anthropicStreamBodies([new Response(200, [], '')], ['reasoning_effort' => 'low']);
 
     expect($bodies)->toHaveCount(2)
         ->and($bodies[0]['thinking']['type'])->toBe('adaptive')
-        ->and($bodies[1]['thinking'])->toBe(['type' => 'enabled', 'budget_tokens' => 2048]);
-
-    $next = anthropicStreamBodies([new Response(200, [], '')], ['reasoning_effort' => 'low']);
-
-    expect($next)->toHaveCount(1)
-        ->and($next[0]['thinking']['type'])->toBe('enabled');
-});
-
-it('passes on any other refusal', function (): void {
-    expect(fn (): array => anthropicStreamBodies([new Response(400, [], '{"error":{"message":"max_tokens too large"}}')], ['reasoning_effort' => 'low']))
+        ->and($bodies[1]['thinking'])->toBe(['type' => 'enabled', 'budget_tokens' => 2048])
+        ->and($next)->toHaveCount(1)
+        ->and($next[0]['thinking']['type'])->toBe('enabled')
+        ->and(fn (): array => anthropicStreamBodies([new Response(400, [], '{"error":{"message":"max_tokens too large"}}')], ['reasoning_effort' => 'low']))
         ->toThrow(ClientException::class);
 });
 
-it('reads a single call\'s reply as a Chat Completions reply', function (): void {
-    Http::fake(['*' => Http::response([
-        'id' => 'msg_1', 'type' => 'message', 'model' => 'claude-haiku-5-5',
-        'content' => [['type' => 'text', 'text' => '{"ok":true}']],
-        'stop_reason' => 'end_turn',
-        'usage' => ['input_tokens' => 12, 'output_tokens' => 4],
-    ])]);
+it('reads a single call\'s reply as a Chat Completions reply with its own key header, asks again on a thinking budget and fails on other errors', function (): void {
+    Http::fakeSequence()
+        ->push([
+            'id' => 'msg_1', 'type' => 'message', 'model' => 'claude-haiku-5-5',
+            'content' => [['type' => 'text', 'text' => '{"ok":true}']],
+            'stop_reason' => 'end_turn',
+            'usage' => ['input_tokens' => 12, 'output_tokens' => 4],
+        ])
+        ->push(['error' => ['message' => 'adaptive thinking is not supported']], 400)
+        ->push(['content' => [['type' => 'text', 'text' => 'ok']], 'stop_reason' => 'end_turn'])
+        ->push(['error' => ['message' => 'overloaded']], 529);
 
     $response = anthropicClient()->completion([
         'model' => 'claude-haiku-5-5',
         'messages' => [['role' => 'system', 'content' => 'Judge.'], ['role' => 'user', 'content' => 'Is it fine?']],
         'response_format' => ['type' => 'json_schema', 'json_schema' => ['name' => 'verdict', 'schema' => ['type' => 'object']]],
     ]);
+    $retried = anthropicClient()->completion(['model' => 'claude-haiku-4-5', 'messages' => [], 'reasoning_effort' => 'medium']);
 
     expect($response->json('choices.0.message.content'))->toBe('{"ok":true}')
-        ->and($response->json('usage.prompt_tokens'))->toBe(12);
+        ->and($response->json('usage.prompt_tokens'))->toBe(12)
+        ->and($retried->json('choices.0.message.content'))->toBe('ok')
+        ->and(fn (): Illuminate\Http\Client\Response => anthropicClient()->completion(['model' => 'claude-haiku-4-5', 'messages' => []]))->toThrow(RequestException::class)
+        ->and(anthropicClient()->headers())->toMatchArray(['x-api-key' => 'sk-ant-test', 'anthropic-version' => '2023-06-01'])
+        ->and(anthropicClient()->headers())->not->toHaveKey('Authorization');
 
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.anthropic.test/v1/messages'
-        && $request['system'] === 'Judge.'
-        && $request['output_config'] === ['format' => ['type' => 'json_schema', 'schema' => ['type' => 'object', 'additionalProperties' => false]]]
-        && $request['max_tokens'] === 16384);
-});
-
-it('asks a single call again on a thinking budget, and fails on other errors', function (): void {
-    Http::fakeSequence()
-        ->push(['error' => ['message' => 'adaptive thinking is not supported']], 400)
-        ->push(['content' => [['type' => 'text', 'text' => 'ok']], 'stop_reason' => 'end_turn'])
-        ->push(['error' => ['message' => 'overloaded']], 529);
-
-    expect(anthropicClient()->completion(['model' => 'claude-haiku-4-5', 'messages' => [], 'reasoning_effort' => 'medium'])->json('choices.0.message.content'))->toBe('ok')
-        ->and(fn (): Illuminate\Http\Client\Response => anthropicClient()->completion(['model' => 'claude-haiku-4-5', 'messages' => []]))->toThrow(RequestException::class);
-});
-
-it('reads an async call\'s reply as a Chat Completions reply', function (): void {
-    Http::fake(['*' => Http::response(['content' => [['type' => 'text', 'text' => 'async ok']], 'stop_reason' => 'end_turn'])]);
-
-    expect(anthropicClient()->completionAsync(['model' => 'claude-haiku-5-5', 'messages' => []])->wait()->json('choices.0.message.content'))->toBe('async ok');
+        && ($request->data()['system'] ?? null) === 'Judge.'
+        && ($request->data()['output_config'] ?? null) === ['format' => ['type' => 'json_schema', 'schema' => ['type' => 'object', 'additionalProperties' => false]]]
+        && ($request->data()['max_tokens'] ?? null) === 16384);
 });

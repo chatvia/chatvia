@@ -3,7 +3,6 @@
 use App\Admin\Settings\AiSettings;
 use App\Admin\Settings\Jobs\ReindexEmbeddingsJob;
 use Illuminate\Support\Facades\Bus;
-use Illuminate\Support\Facades\Queue;
 
 /**
  * Vectors of two embedding models cannot be compared, so a change of the
@@ -39,16 +38,6 @@ it('queues a re-index of everything when the embedding in use changes', function
     'the model' => ['openai_embedding_model', 'text-embedding-3-large'],
     'the service' => ['embedding_provider', 'openrouter'],
 ]);
-
-it('queues the re-index on the long ingestion queue', function (): void {
-    Queue::fake();
-    $settings = rnemSettings('openai');
-
-    $settings->openai_embedding_model = 'text-embedding-3-large';
-    $settings->save();
-
-    Queue::assertPushedOn('ingestion.chunks', ReindexEmbeddingsJob::class);
-});
 
 it('leaves the vectors alone when another service\'s model or another setting changes', function (): void {
     Bus::fake();

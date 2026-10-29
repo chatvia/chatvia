@@ -402,16 +402,6 @@ function jobQueue(object|string $job): ?string
 }
 
 /**
- * A job's timeout in seconds.
- *
- * @param  object|class-string  $job
- */
-function jobTimeout(object|string $job): ?int
-{
-    return jobSetting($job, Timeout::class, 'timeout');
-}
-
-/**
  * A setting as the next request reads it. Settings classes are scoped
  * instances, so the cached copy is forgotten first and the value comes from
  * storage.
@@ -472,7 +462,8 @@ function withoutLicense(): void
  * Saves $key (null removes it) as the admin panel saves it. Saving re-applies every setting,
  * which would also undo the config a test (or TestCase::setUp) set on other
  * settings keys, such as the fake AI provider key; those keep their values.
- * The license flags, the credit and the Splitting options follow the key.
+ * The license flags, the credit, the logo and the Splitting options follow
+ * the key.
  */
 function saveLicenseKey(?string $key): void
 {
@@ -483,6 +474,7 @@ function saveLicenseKey(?string $key): void
         ->map(fn (ConfigKey $configKey): string => $configKey->key)
         ->reject(fn (string $configKey): bool => Str::startsWith($configKey, 'chatvia.license.')
             || $configKey === 'chatvia.powered_by'
+            || $configKey === 'chatvia.logo'
             || in_array($configKey, SettingsConfig::SPLITTING_KEYS, true))
         ->mapWithKeys(fn (string $configKey): array => [$configKey => config($configKey)])
         ->all();

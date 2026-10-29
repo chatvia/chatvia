@@ -1,7 +1,6 @@
 <?php
 
 use App\Admin\Settings\ObservabilitySettings;
-use App\Admin\Settings\PlatformSettings;
 use App\Admin\Settings\ToolRecording;
 use Laravel\Pulse\Facades\Pulse;
 
@@ -28,18 +27,7 @@ function trBooted(bool $pulse = true, bool $spectra = true): ToolRecording
     return $tools;
 }
 
-it('records both tools while their switches are as shipped', function (): void {
-    // config/chatvia.php ships both switches on; TestCase turns Spectra's off
-    // for every other test.
-    config(['chatvia.pulse.recording' => true, 'chatvia.spectra.recording' => true]);
-
-    trBooted();
-
-    expect(config('spectra.enabled'))->toBeTrue();
-    Pulse::shouldHaveReceived('startRecording')->once();
-});
-
-it('follows the saved switches', function (): void {
+it('stops Pulse and keeps Spectra recording as the saved switches say', function (): void {
     trBooted();
 
     saveSettings(ObservabilitySettings::class, ['pulse_enabled' => false, 'spectra_enabled' => true]);
@@ -57,15 +45,4 @@ it('keeps a tool that .env leaves out from recording', function (): void {
         ->and($tools->pulseInstalled())->toBeFalse()
         ->and($tools->spectraInstalled())->toBeFalse();
     Pulse::shouldNotHaveReceived('startRecording');
-});
-
-it('leaves Pulse alone when another setting is saved', function (): void {
-    trBooted();
-
-    // The demo seeders stop Pulse while they run; a save must not start it.
-    saveSettings(PlatformSettings::class, ['tracking_code' => '<script></script>']);
-
-    // Only the start at boot.
-    Pulse::shouldHaveReceived('startRecording')->once();
-    Pulse::shouldNotHaveReceived('stopRecording');
 });

@@ -30,82 +30,50 @@ beforeEach(function (): void {
     ]);
 });
 
-it('keeps a key that is still active', function (): void {
-    Http::fake(['licenses.test/api/licenses/check' => Http::response(['active' => true])]);
-
-    expect(app(CheckLicenseAction::class)->execute())->toBeFalse()
-        ->and(savedSetting(BrandSettings::class, 'license_key'))->toBe(LicenseKeys::activatedFor('chat.acme.com'))
-        ->and(config('chatvia.powered_by'))->toBeFalse();
-});
-
-it('keeps the key when chatvia.ai gives no answer', function (Closure $answer): void {
+it('asks nothing without a key, and changes nothing when chatvia.ai gives no answer, so an expired key stays locked', function (Closure $answer): void {
+    $this->travelTo('2027-11-20 06:00:00');
     Http::fake($answer);
-
-    expect(app(CheckLicenseAction::class)->execute())->toBeFalse()
-        ->and(savedSetting(BrandSettings::class, 'license_key'))->toBe(LicenseKeys::activatedFor('chat.acme.com'));
-})->with([
-    'unreachable' => fn (): Closure => fn (): never => throw new ConnectionException('Connection refused'),
-    'an error' => fn (): Closure => fn (): PromiseInterface => Http::response('Bad gateway', 502),
-]);
-
-it('asks nothing without a key that works here', function (): void {
-    Http::fake();
-
     saveSettings(BrandSettings::class, ['license_key' => null]);
 
     expect(app(CheckLicenseAction::class)->execute())->toBeFalse();
-
     Http::assertNothingSent();
-});
 
-it('saves the fresh key of a renewed license', function (): void {
-    $this->travelTo('2027-11-10 06:00:00');
-    saveSettings(BrandSettings::class, ['license_key' => LicenseKeys::enterpriseUntil('2027-11-15', 'chat.acme.com')]);
-    $renewed = LicenseKeys::enterpriseUntil('2028-11-15', 'chat.acme.com');
-
-    Http::fake(['licenses.test/api/licenses/check' => Http::response(['active' => true, 'paid_until' => '2028-11-01', 'key' => $renewed])]);
-
-    expect(app(CheckLicenseAction::class)->execute())->toBeFalse()
-        ->and(savedSetting(BrandSettings::class, 'license_key'))->toBe($renewed)
-        ->and(config('chatvia.license.enterprise'))->toBeTrue();
-});
-
-it('brings back an expired key that was renewed since', function (): void {
-    $this->travelTo('2027-11-20 06:00:00');
-    saveSettings(BrandSettings::class, ['license_key' => LicenseKeys::enterpriseUntil('2027-11-15', 'chat.acme.com')]);
-    $renewed = LicenseKeys::enterpriseUntil('2028-11-15', 'chat.acme.com');
-
-    expect(config('chatvia.license.licensed'))->toBeFalse();
-
-    Http::fake(['licenses.test/api/licenses/check' => Http::response(['active' => true, 'key' => $renewed])]);
-
-    app(CheckLicenseAction::class)->execute();
-
-    expect(savedSetting(BrandSettings::class, 'license_key'))->toBe($renewed)
-        ->and(config('chatvia.license.licensed'))->toBeTrue();
-});
-
-it('keeps an expired key locked when chatvia.ai gives no answer', function (): void {
-    $this->travelTo('2027-11-20 06:00:00');
     $expired = LicenseKeys::enterpriseUntil('2027-11-15', 'chat.acme.com');
     saveSettings(BrandSettings::class, ['license_key' => $expired]);
-
-    Http::fake(fn (): never => throw new ConnectionException('Connection refused'));
 
     expect(app(CheckLicenseAction::class)->execute())->toBeFalse()
         ->and(savedSetting(BrandSettings::class, 'license_key'))->toBe($expired)
         ->and(app(CreditLicense::class)->status($expired))->toBe(LicenseStatus::Expired)
         ->and(config('chatvia.license.licensed'))->toBeFalse();
-});
-
-it('ignores a fresh key that is not for this license or this domain', function (string $fresh): void {
-    Http::fake(['licenses.test/api/licenses/check' => Http::response(['active' => true, 'key' => $fresh])]);
-
-    app(CheckLicenseAction::class)->execute();
-
-    expect(savedSetting(BrandSettings::class, 'license_key'))->toBe(LicenseKeys::activatedFor('chat.acme.com'));
 })->with([
-    'another domain' => fn (): string => LicenseKeys::activatedFor('chat.other.com'),
-    'already ended' => fn (): string => LicenseKeys::enterpriseUntil('2020-01-01', 'chat.acme.com'),
-    'not a key' => 'hello',
+    'unreachable' => fn (): Closure => fn (): never => throw new ConnectionException('Connection refused'),
+    'an error' => fn (): Closure => fn (): PromiseInterface => Http::response('Bad gateway', 502),
+]);
+
+it('keeps a key that is still active, and ignores a fresh key that is not for this license or this domain', function (array $answer): void {
+    Http::fake(['licenses.test/api/licenses/check' => Http::response($answer)]);
+
+    expect(app(CheckLicenseAction::class)->execute())->toBeFalse()
+        ->and(savedSetting(BrandSettings::class, 'license_key'))->toBe(LicenseKeys::activatedFor('chat.acme.com'))
+        ->and(config('chatvia.powered_by'))->toBeFalse();
+})->with([
+    'no fresh key' => [['active' => true]],
+    'another domain' => fn (): array => ['active' => true, 'key' => LicenseKeys::activatedFor('chat.other.com')],
+    'already ended' => fn (): array => ['active' => true, 'key' => LicenseKeys::enterpriseUntil('2020-01-01', 'chat.acme.com')],
+    'not a key' => [['active' => true, 'key' => 'hello']],
+]);
+
+it('saves the fresh key of a renewed license, and brings back an expired one', function (string $now): void {
+    $this->travelTo($now);
+    saveSettings(BrandSettings::class, ['license_key' => LicenseKeys::enterpriseUntil('2027-11-15', 'chat.acme.com')]);
+    $renewed = LicenseKeys::enterpriseUntil('2028-11-15', 'chat.acme.com');
+    Http::fake(['licenses.test/api/licenses/check' => Http::response(['active' => true, 'paid_until' => '2028-11-01', 'key' => $renewed])]);
+
+    expect(app(CheckLicenseAction::class)->execute())->toBeFalse()
+        ->and(savedSetting(BrandSettings::class, 'license_key'))->toBe($renewed)
+        ->and(config('chatvia.license.licensed'))->toBeTrue()
+        ->and(config('chatvia.license.enterprise'))->toBeTrue();
+})->with([
+    'before the last day' => '2027-11-10 06:00:00',
+    'after the last day' => '2027-11-20 06:00:00',
 ]);

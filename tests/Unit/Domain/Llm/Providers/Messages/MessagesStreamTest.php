@@ -73,10 +73,22 @@ function msgTransform(string $body, bool $showsReasoning = true, array $offeredT
     return ProviderStream::transform(new MessagesStream(Utils::streamFor($body)), $showsReasoning, $offeredToolNames);
 }
 
-it('streams the answer text with the message id and usage', function (): void {
-    [$events, $context] = msgTransform(msgStart(input: 25, cacheRead: 100).msgText(0, 'Hello', '!').msgStop(output: 15));
+it('streams the answer with the message id and usage, the thinking as reasoning apart from it, and tool_use blocks as the tool loop\'s tool calls', function (): void {
+    [$events, $context] = msgTransform(
+        msgStart(input: 25, cacheRead: 100)
+        .msgThinking(0, 'First idea.')
+        .msgThinking(1, 'Second idea.')
+        .msgText(2, 'Hello', '!')
+        .msgToolUse(3, 'toolu_01A', 'get_weather', '{"ci', 'ty": "Paris"}')
+        .msgToolUse(4, 'toolu_01B', 'get_time')
+        .msgStop(output: 15, reason: 'tool_use'),
+        offeredToolNames: ['get_weather', 'get_time'],
+    );
+
+    $calls = $context->takeToolCalls();
 
     expect(ProviderStream::texts($events, EventType::Delta))->toBe(['Hello', '!'])
+        ->and(implode('', ProviderStream::texts($events, EventType::Reasoning)))->toBe("First idea.\n\nSecond idea.")
         ->and($context->streamedMessage)->toBe('Hello!')
         ->and($context->generationId)->toBe('msg_01Ab')
         ->and($context->usage)->toMatchArray([
@@ -84,14 +96,14 @@ it('streams the answer text with the message id and usage', function (): void {
             'completion_tokens' => 15,
             'total_tokens' => 140,
             'prompt_tokens_details' => ['cached_tokens' => 100],
-        ]);
-});
-
-it('sends the thinking as reasoning, apart from the answer', function (): void {
-    [$events, $context] = msgTransform(msgStart().msgThinking(0, 'First idea.').msgThinking(1, 'Second idea.').msgText(2, 'Answer.').msgStop());
-
-    expect(implode('', ProviderStream::texts($events, EventType::Reasoning)))->toBe("First idea.\n\nSecond idea.")
-        ->and($context->streamedMessage)->toBe('Answer.');
+        ])
+        ->and($calls)->toHaveCount(2)
+        ->and($calls[0]->id)->toBe('toolu_01A')
+        ->and($calls[0]->name)->toBe('get_weather')
+        ->and($calls[0]->arguments)->toBe('{"city": "Paris"}')
+        ->and($calls[1]->id)->toBe('toolu_01B')
+        ->and($calls[1]->name)->toBe('get_time')
+        ->and($calls[1]->arguments)->toBe('');
 });
 
 it('drops the thinking when the turn does not show it', function (): void {
@@ -101,39 +113,13 @@ it('drops the thinking when the turn does not show it', function (): void {
         ->and($context->streamedMessage)->toBe('Answer.');
 });
 
-it('collects tool_use blocks as the tool loop\'s tool calls', function (): void {
-    [, $context] = msgTransform(
-        msgStart()
-        .msgText(0, 'Let me check.')
-        .msgToolUse(1, 'toolu_01A', 'get_weather', '{"ci', 'ty": "Paris"}')
-        .msgToolUse(2, 'toolu_01B', 'get_time')
-        .msgStop(reason: 'tool_use'),
-        offeredToolNames: ['get_weather', 'get_time'],
-    );
-
-    $calls = $context->takeToolCalls();
-
-    expect($calls)->toHaveCount(2)
-        ->and($calls[0]->id)->toBe('toolu_01A')
-        ->and($calls[0]->name)->toBe('get_weather')
-        ->and($calls[0]->arguments)->toBe('{"city": "Paris"}')
-        ->and($calls[1]->id)->toBe('toolu_01B')
-        ->and($calls[1]->name)->toBe('get_time')
-        ->and($calls[1]->arguments)->toBe('');
-});
-
-it('ends the read with an error on an error event', function (): void {
-    $stream = new MessagesStream(Utils::streamFor(
-        msgStart().ProviderStream::event(['type' => 'error', 'error' => ['type' => 'overloaded_error', 'message' => 'Overloaded']]),
+it('passes each event on as soon as it arrives, and ends the read with an error on an error event', function (): void {
+    $stream = new MessagesStream(ProviderStream::dripFed(
+        msgStart().msgText(0, 'Hi', ' there').ProviderStream::event(['type' => 'error', 'error' => ['type' => 'overloaded_error', 'message' => 'Overloaded']]),
     ));
-
-    expect(fn (): string => $stream->getContents())->toThrow(RuntimeException::class, 'Overloaded');
-});
-
-it('passes each event on as soon as it arrives', function (): void {
-    $stream = new MessagesStream(ProviderStream::dripFed(msgStart().msgText(0, 'Hi', ' there')));
 
     expect($stream->read(1024))->toContain('"id":"msg_01Ab"')
         ->and($stream->read(1024))->toContain('"content":"Hi"')
-        ->and($stream->read(1024))->toContain('"content":" there"');
+        ->and($stream->read(1024))->toContain('"content":" there"')
+        ->and(fn (): string => $stream->getContents())->toThrow(RuntimeException::class, 'Overloaded');
 });

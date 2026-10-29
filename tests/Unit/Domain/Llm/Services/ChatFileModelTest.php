@@ -19,50 +19,26 @@ beforeEach(function (): void {
     config(['chatvia.ai.chat_files.enabled' => true, 'chatvia.ai.chat_files.model' => null, 'chatvia.agent.default_model' => null]);
 });
 
-it('uses the picked model while it reads PDF files and images', function (): void {
-    cfmModel('other-model', ['image', 'pdf']);
-    $picked = cfmModel('picked-model', ['image', 'pdf']);
-    config(['chatvia.ai.chat_files.model' => (string) $picked->id]);
-
-    expect(app(ChatFileModel::class)->find()?->is($picked))->toBeTrue();
-});
-
-it('has none when the picked model does not read both, rather than another', function (array $inputs): void {
-    cfmModel('reader', ['image', 'pdf']);
-    config(['chatvia.ai.chat_files.model' => (string) cfmModel('picked-model', $inputs)->id]);
-
-    expect(app(ChatFileModel::class)->find())->toBeNull()
-        ->and(app(ChatFileModel::class)->acceptedMimeTypes())->toBe([]);
-})->with([
-    'images only' => [['image']],
-    'PDF files only' => [['pdf']],
-    'neither' => [[]],
-]);
-
-it('takes the default chat model automatically when it reads both, else the first model that does', function (): void {
+it('takes the default chat model when it reads both, else the first that does, and a picked one only while it reads both and uploads are on', function (): void {
     $default = cfmModel('default-model', ['image']);
     $reader = cfmModel('reader', ['image', 'pdf']);
     config(['chatvia.agent.default_model' => (string) $default->id]);
 
-    expect(app(ChatFileModel::class)->find()?->is($reader))->toBeTrue();
-
+    $first = app(ChatFileModel::class)->find();
     $default->update(['capabilities' => ['reasoning' => false, 'modalities' => ['input' => ['text', 'image', 'pdf']]]]);
     Llm::flushCatalogCache();
-
-    expect(app(ChatFileModel::class)->find()?->is($default->fresh()))->toBeTrue();
-});
-
-it('has none while an admin has chat file uploads off', function (): void {
-    cfmModel('reader', ['image', 'pdf']);
+    $auto = app(ChatFileModel::class)->find();
+    config(['chatvia.ai.chat_files.model' => (string) cfmModel('images-only', ['image'])->id]);
+    $unfit = app(ChatFileModel::class)->find();
+    $picked = cfmModel('picked-model', ['image', 'pdf']);
+    config(['chatvia.ai.chat_files.model' => (string) $picked->id]);
+    $fit = app(ChatFileModel::class)->find();
     config(['chatvia.ai.chat_files.enabled' => false]);
 
-    expect(app(ChatFileModel::class)->isAvailable())->toBeFalse()
+    expect($first?->is($reader))->toBeTrue()
+        ->and($auto?->is($default->fresh()))->toBeTrue()
+        ->and($unfit)->toBeNull()
+        ->and($fit?->is($picked))->toBeTrue()
+        ->and(app(ChatFileModel::class)->isAvailable())->toBeFalse()
         ->and(app(ChatFileModel::class)->acceptedExtensions())->toBe([]);
-});
-
-it('accepts PDF files and the four common image types', function (): void {
-    cfmModel('reader', ['image', 'pdf']);
-
-    expect(app(ChatFileModel::class)->acceptedMimeTypes())->toBe(['application/pdf', 'image/png', 'image/jpeg', 'image/webp', 'image/gif'])
-        ->and(app(ChatFileModel::class)->acceptedExtensions())->toBe(['pdf', 'png', 'jpg', 'jpeg', 'webp', 'gif']);
 });

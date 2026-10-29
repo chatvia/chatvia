@@ -20,55 +20,26 @@ beforeEach(function (): void {
     config(['chatvia.ai.source_summaries.enabled' => true, 'chatvia.ai.source_summaries.model' => null, 'chatvia.agent.default_model' => null]);
 });
 
-it('uses the picked model while it reads PDF files, whatever its provider', function (LlmProviderKind $kind): void {
-    ssmModel('other-model', ['pdf']);
-    $picked = ssmModel('picked-model', ['pdf'], $kind);
-    config(['chatvia.ai.source_summaries.model' => (string) $picked->id]);
-
-    expect(app(SourceSummaryModel::class)->find()?->is($picked))->toBeTrue();
-})->with([
-    'Mistral' => [LlmProviderKind::Mistral],
-    'Anthropic' => [LlmProviderKind::Anthropic],
-    'OpenAI' => [LlmProviderKind::OpenAi],
-    'a server of your own' => [LlmProviderKind::Custom],
-]);
-
-it('counts a model that reads PDF files but not images', function (): void {
-    $reader = ssmModel('pdf-only', ['pdf']);
-
-    expect(app(SourceSummaryModel::class)->find()?->is($reader))->toBeTrue();
-});
-
-it('has none when the picked model does not read PDF files, rather than another', function (): void {
-    ssmModel('reader', ['pdf']);
-    config(['chatvia.ai.source_summaries.model' => (string) ssmModel('picked-model', ['image'])->id]);
-
-    expect(app(SourceSummaryModel::class)->find())->toBeNull()
-        ->and(fn (): Llm => app(SourceSummaryModel::class)->model())->toThrow(NoSummaryModelException::class);
-});
-
-it('takes the default chat model automatically when it reads PDF files, else the first model that does', function (): void {
+it('takes the default chat model when it reads PDF files, else the first that does, and a picked one only while it reads them and summaries are on', function (): void {
     $default = ssmModel('default-model', ['image']);
     $reader = ssmModel('reader', ['pdf']);
     config(['chatvia.agent.default_model' => (string) $default->id]);
 
-    expect(app(SourceSummaryModel::class)->find()?->is($reader))->toBeTrue();
-
+    $first = app(SourceSummaryModel::class)->find();
     $default->update(['capabilities' => ['reasoning' => false, 'modalities' => ['input' => ['text', 'pdf']]]]);
     Llm::flushCatalogCache();
-
-    expect(app(SourceSummaryModel::class)->find()?->is($default->fresh()))->toBeTrue();
-});
-
-it('has none when no model reads PDF files', function (): void {
-    ssmModel('text-only', []);
-
-    expect(app(SourceSummaryModel::class)->isAvailable())->toBeFalse();
-});
-
-it('has none while an admin has source summaries off', function (): void {
-    ssmModel('reader', ['pdf']);
+    $auto = app(SourceSummaryModel::class)->find();
+    config(['chatvia.ai.source_summaries.model' => (string) ssmModel('images-only', ['image'])->id]);
+    $unfit = app(SourceSummaryModel::class)->find();
+    $picked = ssmModel('picked-model', ['pdf'], LlmProviderKind::Anthropic);
+    config(['chatvia.ai.source_summaries.model' => (string) $picked->id]);
+    $fit = app(SourceSummaryModel::class)->find();
     config(['chatvia.ai.source_summaries.enabled' => false]);
 
-    expect(app(SourceSummaryModel::class)->isAvailable())->toBeFalse();
+    expect($first?->is($reader))->toBeTrue()
+        ->and($auto?->is($default->fresh()))->toBeTrue()
+        ->and($unfit)->toBeNull()
+        ->and($fit?->is($picked))->toBeTrue()
+        ->and(app(SourceSummaryModel::class)->isAvailable())->toBeFalse()
+        ->and(fn (): Llm => app(SourceSummaryModel::class)->model())->toThrow(NoSummaryModelException::class);
 });

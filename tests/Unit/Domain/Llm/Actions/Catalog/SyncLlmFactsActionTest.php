@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Http;
 /**
  * The daily sync gives models their capabilities from the models.dev
  * catalog: the catalog is the reference for a model it lists, and a model it
- * does not list keeps what the admin set.
+ * does not list gets none from it.
  */
 beforeEach(function (): void {
     forgetModelsDevCatalog();
@@ -30,12 +30,4 @@ it('fills in the facts of models added before the catalog knew them', function (
         ->and($luna->fresh()->reasons())->toBeTrue()
         ->and($luna->fresh()->facts()?->efforts)->toBe(['none', 'low', 'high'])
         ->and($mine->fresh()->facts()?->efforts)->toBeNull();
-});
-
-it('keeps what the admin set for a model the catalog does not list', function (): void {
-    $mine = testLlm('my-model', LlmProviderKind::OpenAi, ['capabilities' => ['reasoning' => true]]);
-
-    app(SyncLlmFactsAction::class)->execute();
-
-    expect($mine->fresh()->capabilities)->toBe(['reasoning' => true]);
 });

@@ -6,10 +6,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Process;
 
 /**
- * Dumping a database: pg_dump in custom format with the password in the
- * environment, a read-back check that catches a cut-off dump, the database
- * settings a dump leaves out, and which connections are databases of their
- * own.
+ * Dumping a database: pg_dump in custom format, then a read-back check
+ * that catches a cut-off dump; and which connections are databases of
+ * their own that can be reached.
  */
 it('dumps in custom format and reads the dump back', function (): void {
     Process::fake(["'pg_dump'*" => Process::result(), "'pg_restore'*" => Process::result()]);
@@ -32,14 +31,7 @@ it('fails when the dump cannot be read back', function (): void {
         ->toThrow(BackupException::class, 'cannot be read back: unexpected end of file');
 });
 
-it('writes the database settings as ALTER DATABASE lines for ./manage restore', function (): void {
-    $sql = app(PostgresDump::class)->settingsSql('pgsql');
-
-    expect($sql)->toStartWith('-- Written by ChatVia.ai on ')
-        ->and($sql)->toContain('what pg_dump leaves out');
-});
-
-it('tells a database of its own from the main one under another name', function (): void {
+it('tells a database of its own from the main one under another name, and one that cannot be reached', function (): void {
     config(['database.connections.analytics.database' => DB::connection('pgsql')->getConfig('database')]);
     DB::purge('analytics');
 

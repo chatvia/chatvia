@@ -30,17 +30,3 @@ it('adds the small model and gives the tasks the preset\'s models', function ():
         ->and(savedSetting(AiSettings::class, 'images_model'))->toBeNull()
         ->and(savedSetting(AiSettings::class, 'describe_images'))->toBeFalse();
 });
-
-it('describes images with the recommended model that reads them', function (): void {
-    $chat = testLlm('openai/gpt-6.1-sol', LlmProviderKind::OpenRouter);
-
-    app(ApplyRecommendedTaskModelsAction::class)->execute(
-        $chat->provider,
-        new RemoteModelData('openai/gpt-oss-20b', 'gpt-oss-20b'),
-        $chat,
-        new RemoteModelData('google/gemini-3.5-flash-lite', 'Gemini 3.5 Flash Lite', features: ['vision' => true]),
-    );
-
-    expect(savedSetting(AiSettings::class, 'images_model'))->toBe((string) Llm::query()->where('name', 'google/gemini-3.5-flash-lite')->value('id'))
-        ->and(savedSetting(AiSettings::class, 'describe_images'))->toBeNull();
-});

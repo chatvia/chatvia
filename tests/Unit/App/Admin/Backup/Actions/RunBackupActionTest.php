@@ -16,11 +16,12 @@ use Illuminate\Support\Str;
 
 /**
  * Making a backup: the database and Redis in one tar in the layout of
- * `./manage backup`, stored on the private disk; encrypted to the public key
- * and only then with the app key; the uploaded files and the other databases
- * when they apply. A failed step, or a backup already running, saves the
- * failure and leaves no archive or work folder. pg_dump, redis-cli and gpg
- * are faked; tar runs for real.
+ * `./manage backup`, stored on the private disk, with the passwords only in
+ * the environment; encrypted to the public key and only then with the app
+ * key; the uploaded files and the other databases when they apply; older
+ * backups pruned. A failed step, a backup already running or one left by a
+ * stopped worker saves the failure and leaves no archive or work folder.
+ * pg_dump, redis-cli and gpg are faked; tar runs for real.
  */
 beforeEach(function (): void {
     Storage::fake('backups');
@@ -123,10 +124,29 @@ it('stores the database and Redis in one tar, as ./manage backup does', function
         ->and($members['database-extras.sql'])->toContain('what pg_dump leaves out');
 });
 
-it('passes the passwords in the environment, never on the command line', function (): void {
+it('keeps the passwords off the command line, encrypts to the public key before adding the app key, adds the local files without the backups and prunes older backups', function (): void {
     rbaFakePrograms();
+    config([
+        'chatvia.backup.public_key' => File::get(base_path('tests/Fixtures/backup/public.asc')),
+        'chatvia.backup.include_files' => true,
+        'chatvia.backup.keep' => 1,
+        'filesystems.storage' => 'local',
+    ]);
+    $old = Backup::factory()->completed(now()->subDay())->create();
+    Storage::disk('backups')->put($old->path, 'old');
+    $storage = deleteAfterTest(create_temp_dir('/rba-storage-'.Str::random(8)));
+    File::ensureDirectoryExists($storage.'/app/private/backups');
+    File::ensureDirectoryExists($storage.'/app/private/workspaces');
+    File::put($storage.'/app/private/workspaces/knowledge.txt', 'knowledge');
+    File::put($storage.'/app/private/backups/old.tar', 'an older backup');
+    $previous = app()->storagePath();
+    app()->useStoragePath($storage);
 
-    rbaRun();
+    try {
+        $backup = rbaRun();
+    } finally {
+        app()->useStoragePath($previous);
+    }
 
     $password = (string) DB::connection()->getConfig('password');
 
@@ -136,67 +156,31 @@ it('passes the passwords in the environment, never on the command line', functio
     Process::assertRan(fn (PendingProcess $process): bool => $process->command[0] === 'redis-cli'
         && ($process->environment['REDISCLI_AUTH'] ?? null) === 'redis-secret'
         && ! in_array('redis-secret', $process->command, true));
-});
-
-it('encrypts the archive to the public key, and only then adds the app key', function (): void {
-    rbaFakePrograms();
-    config(['chatvia.backup.public_key' => File::get(base_path('tests/Fixtures/backup/public.asc'))]);
-
-    $backup = rbaRun();
+    Process::assertRan(fn (PendingProcess $process): bool => in_array('--recipient', $process->command, true)
+        && in_array('B267A209E6AEC7A0993FA6038E89D0F7F34C5DE7', $process->command, true));
 
     expect($backup->status)->toBe(BackupStatus::Completed)
         ->and($backup->path)->toEndWith('.tar.gpg')
         ->and($backup->key_fingerprint)->toBe('B267A209E6AEC7A0993FA6038E89D0F7F34C5DE7')
-        ->and($backup->parts->all())->toBe([BackupPart::Database, BackupPart::Secrets, BackupPart::Redis]);
-
-    Process::assertRan(fn (PendingProcess $process): bool => in_array('--recipient', $process->command, true)
-        && in_array('B267A209E6AEC7A0993FA6038E89D0F7F34C5DE7', $process->command, true));
+        ->and($backup->parts->all())->toBe([BackupPart::Database, BackupPart::Secrets, BackupPart::Redis, BackupPart::Files])
+        ->and(Backup::query()->pluck('id')->all())->toBe([$backup->id])
+        ->and(Storage::disk('backups')->files('backups'))->toBe([$backup->path]);
 
     $members = rbaMembers($backup);
-
-    expect($members['secrets.env'])->toContain('APP_KEY='.config('app.key'))
-        ->and($members['backup.env'])->toContain("HOLDS=database secrets redis\n")
-        ->and(Storage::disk('backups')->files('backups'))->toBe([$backup->path]);
-});
-
-it('adds the uploaded files on this server, without the backups', function (): void {
-    rbaFakePrograms();
-    $storage = deleteAfterTest(create_temp_dir('/rba-storage-'.Str::random(8)));
-    File::ensureDirectoryExists($storage.'/app/private/backups');
-    File::ensureDirectoryExists($storage.'/app/private/workspaces');
-    File::put($storage.'/app/private/workspaces/knowledge.txt', 'knowledge');
-    File::put($storage.'/app/private/backups/old.tar', 'an older backup');
-    $previous = app()->storagePath();
-    app()->useStoragePath($storage);
-    config(['chatvia.backup.include_files' => true, 'filesystems.storage' => 'local']);
-
-    try {
-        $backup = rbaRun();
-    } finally {
-        app()->useStoragePath($previous);
-    }
-
-    expect($backup->parts->all())->toBe([BackupPart::Database, BackupPart::Redis, BackupPart::Files]);
-
     $listing = (string) Process::pipe([
         ['tar', '-xOf', Storage::disk('backups')->path((string) $backup->path), 'files.tar'],
         ['tar', '-tf', '-'],
     ])->output();
 
-    expect($listing)->toContain('app/private/workspaces/knowledge.txt')
+    expect($members['secrets.env'])->toContain('APP_KEY='.config('app.key'))
+        ->and($members['backup.env'])->toContain("HOLDS=database secrets redis files\n")
+        ->and($listing)->toContain('app/private/workspaces/knowledge.txt')
         ->not->toContain('old.tar');
 });
 
-it('leaves out the uploaded files when they are kept in S3 storage', function (): void {
+it('adds the other databases and the uploaded files only when they apply', function (array $settings, array $parts): void {
     rbaFakePrograms();
-    config(['chatvia.backup.include_files' => true, 'filesystems.storage' => 's3']);
-
-    expect(rbaRun()->parts->all())->toBe([BackupPart::Database, BackupPart::Redis]);
-});
-
-it('dumps the analytics database when the analytics tables have their own, and, when asked, the Pulse and Spectra ones', function (bool $tools, array $parts): void {
-    rbaFakePrograms();
-    config(['chatvia.backup.include_tool_databases' => $tools, 'chatvia.analytics.connection' => 'analytics']);
+    config($settings);
     $this->partialMock(PostgresDump::class, function ($mock): void {
         $mock->shouldReceive('isSeparate')->andReturnUsing(fn (string $connection): bool => $connection !== config('database.default'));
         $mock->shouldReceive('exists')->andReturnTrue();
@@ -207,12 +191,32 @@ it('dumps the analytics database when the analytics tables have their own, and, 
     expect($backup->parts->all())->toBe($parts)
         ->and(array_keys(rbaMembers($backup)))->toContain(...array_map(fn (BackupPart $part): string => $part->member(), $parts));
 })->with([
-    'with the tool databases' => [true, [BackupPart::Database, BackupPart::Redis, BackupPart::Analytics, BackupPart::Pulse, BackupPart::Spectra]],
-    'without them' => [false, [BackupPart::Database, BackupPart::Redis, BackupPart::Analytics]],
+    'analytics database of its own, tool databases asked' => [
+        ['chatvia.backup.include_tool_databases' => true, 'chatvia.analytics.connection' => 'analytics'],
+        [BackupPart::Database, BackupPart::Redis, BackupPart::Analytics, BackupPart::Pulse, BackupPart::Spectra],
+    ],
+    'analytics in the main database, no tool databases, files in S3' => [
+        ['chatvia.backup.include_tool_databases' => false, 'chatvia.analytics.connection' => null, 'chatvia.backup.include_files' => true, 'filesystems.storage' => 's3'],
+        [BackupPart::Database, BackupPart::Redis],
+    ],
 ]);
 
-it('saves a failed step on the backup and keeps no archive or work folder', function (): void {
+it('saves the failure and keeps no archive while another backup runs, after a failed step, and for a backup a stopped worker left running', function (): void {
     rbaFakePrograms(dumpFails: true);
+    $lock = Cache::lock('backups:run', 60);
+    $lock->get();
+
+    try {
+        $locked = rbaRun();
+    } finally {
+        $lock->release();
+    }
+
+    expect($locked->status)->toBe(BackupStatus::Failed)
+        ->and($locked->error)->toContain('Another backup was running');
+    Process::assertNothingRan();
+
+    $abandoned = Backup::factory()->create(['status' => BackupStatus::Running, 'started_at' => now()->subDay()]);
     $backup = Backup::factory()->create();
 
     app(RunBackupAction::class)->execute($backup);
@@ -221,54 +225,7 @@ it('saves a failed step on the backup and keeps no archive or work folder', func
         ->and($backup->error)->toContain('pg_dump of the pgsql database failed: connection refused')
         ->and($backup->finished_at)->not->toBeNull()
         ->and(Storage::disk('backups')->allFiles())->toBe([])
-        ->and(File::isDirectory(storage_path('framework/backups/'.$backup->external_id)))->toBeFalse();
-});
-
-it('fails at once while another backup is running', function (): void {
-    rbaFakePrograms();
-    $lock = Cache::lock('backups:run', 60);
-    $lock->get();
-
-    try {
-        $backup = rbaRun();
-    } finally {
-        $lock->release();
-    }
-
-    expect($backup->status)->toBe(BackupStatus::Failed)
-        ->and($backup->error)->toContain('Another backup was running');
-    Process::assertNothingRan();
-});
-
-it('marks a backup left running by a stopped worker as failed', function (): void {
-    rbaFakePrograms();
-    $abandoned = Backup::factory()->create(['status' => BackupStatus::Running, 'started_at' => now()->subDay()]);
-
-    rbaRun();
-
-    expect($abandoned->fresh()->status)->toBe(BackupStatus::Failed)
+        ->and(File::isDirectory(storage_path('framework/backups/'.$backup->external_id)))->toBeFalse()
+        ->and($abandoned->fresh()->status)->toBe(BackupStatus::Failed)
         ->and($abandoned->fresh()->error)->toBe('Stopped before it finished.');
-});
-
-it('deletes the backups past the number to keep', function (): void {
-    rbaFakePrograms();
-    config(['chatvia.backup.keep' => 1]);
-    $old = Backup::factory()->completed(now()->subDay())->create();
-    Storage::disk('backups')->put($old->path, 'old');
-
-    $backup = rbaRun();
-
-    expect(Backup::query()->pluck('id')->all())->toBe([$backup->id])
-        ->and(Storage::disk('backups')->exists($old->path))->toBeFalse();
-});
-
-it('leaves out the analytics database while the analytics tables are in the main one', function (): void {
-    rbaFakePrograms();
-    config(['chatvia.backup.include_tool_databases' => false, 'chatvia.analytics.connection' => null]);
-    $this->partialMock(PostgresDump::class, function ($mock): void {
-        $mock->shouldReceive('isSeparate')->andReturnUsing(fn (string $connection): bool => $connection !== config('database.default'));
-        $mock->shouldReceive('exists')->andReturnTrue();
-    });
-
-    expect(rbaRun()->parts->all())->toBe([BackupPart::Database, BackupPart::Redis]);
 });

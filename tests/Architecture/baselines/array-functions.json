@@ -369,9 +369,6 @@
     "tests/Unit/Domain/Knowledge/Retrieval/Services/KnowledgeBaseTest.php": 7,
     "tests/Unit/Domain/Knowledge/Source/Qa/Actions/SyncQaQuestionsActionTest.php": 2,
     "tests/Unit/Domain/Llm/Actions/Catalog/CheckLlmListingActionTest.php": 1,
-    "tests/Unit/Domain/Llm/Operations/Media/ElevenLabsSpeakerTest.php": 3,
-    "tests/Unit/Domain/Llm/Services/ModelPresetsTest.php": 3,
-    "tests/Unit/Domain/Llm/Services/ProviderAdaptersTest.php": 1,
     "tests/Unit/Domain/Membership/Agent/Actions/AcceptAgentInvitationActionTest.php": 1,
     "tests/Unit/Domain/Widget/Queries/ListWidgetConversationsQueryTest.php": 1
 }

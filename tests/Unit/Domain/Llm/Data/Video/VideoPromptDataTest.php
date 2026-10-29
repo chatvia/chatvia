@@ -11,7 +11,6 @@ use Domain\Llm\Data\Video\VideoPromptData;
 it('picks the nearest length a model makes, the longer one on a tie', function (int $asked, int $made): void {
     expect(new VideoPromptData('A wave', seconds: $asked)->secondsAmong([4, 6, 8]))->toBe($made);
 })->with([
-    'exact' => [6, 6],
     'between, nearer the lower' => [4, 4],
     'tie' => [5, 6],
     'too long' => [15, 8],

@@ -14,72 +14,7 @@ use League\Flysystem\Local\LocalFilesystemAdapter;
  * images go to the public bucket and backups to the backups bucket while one
  * is named, each with its own connection, whatever the private files use.
  */
-it('gives the private disk the s3 disk once S3-compatible storage is chosen', function (): void {
-    config([
-        'filesystems.storage' => 's3',
-        'filesystems.buckets.private.endpoint' => 'https://s3.fr-par.scw.cloud',
-        'filesystems.buckets.private.region' => 'fr-par',
-        'filesystems.buckets.private.name' => 'files',
-    ]);
-
-    app(StorageDisks::class)->apply();
-
-    expect(config('filesystems.disks.private'))->toMatchArray(['driver' => 's3', 'bucket' => 'files', 'region' => 'fr-par'])
-        ->and(config('filesystems.disks.private'))->not->toHaveKey('root');
-});
-
-it('moves knowledge files and chat attachments with the storage setting', function (): void {
-    expect(Storage::disk()->getAdapter())->toBeInstanceOf(LocalFilesystemAdapter::class)
-        ->and(Storage::disk(Attachment::DISK)->getAdapter())->toBeInstanceOf(LocalFilesystemAdapter::class);
-
-    config([
-        'filesystems.storage' => 's3',
-        'filesystems.buckets.private.region' => 'fr-par',
-        'filesystems.buckets.private.name' => 'files',
-    ]);
-    app(StorageDisks::class)->apply();
-
-    // Knowledge files go to the default disk, attachments to their own.
-    expect(Storage::disk()->getAdapter())->toBeInstanceOf(AwsS3V3Adapter::class)
-        ->and(Storage::disk(Attachment::DISK)->getAdapter())->toBeInstanceOf(AwsS3V3Adapter::class);
-});
-
-it('goes back to this server in a process that started on S3-compatible storage', function (): void {
-    $local = config('filesystems.disks.private');
-    config(['filesystems.storage' => 's3', 'filesystems.buckets.private.name' => 'files']);
-
-    // A worker that booted while S3 was chosen.
-    $disks = new StorageDisks(app('config'), app());
-    $disks->apply();
-    expect(config('filesystems.disks.private.driver'))->toBe('s3');
-
-    config(['filesystems.storage' => 'local']);
-    $disks->apply();
-
-    expect(config('filesystems.disks.private'))->toBe($local);
-});
-
-it('puts public images and backups in their buckets while private files stay here', function (): void {
-    config(['filesystems.buckets.public.name' => 'images', 'filesystems.buckets.backup.name' => 'archives']);
-
-    app(StorageDisks::class)->apply();
-
-    expect(config('filesystems.disks.private.driver'))->toBe('local')
-        ->and(config('filesystems.disks.assets'))->toMatchArray(['driver' => 's3', 'bucket' => 'images'])
-        ->and(config('filesystems.disks.backups'))->toMatchArray(['driver' => 's3', 'bucket' => 'archives']);
-});
-
-it('keeps public images and backups on this server when only the private bucket is named', function (): void {
-    $local = ['assets' => config('filesystems.disks.assets'), 'backups' => config('filesystems.disks.backups')];
-    config(['filesystems.storage' => 's3', 'filesystems.buckets.private.region' => 'fr-par', 'filesystems.buckets.private.name' => 'files']);
-
-    app(StorageDisks::class)->apply();
-
-    expect(config('filesystems.disks.assets'))->toBe($local['assets'])
-        ->and(config('filesystems.disks.backups'))->toBe($local['backups']);
-});
-
-it('gives public images and backups their own buckets, each with its own connection', function (): void {
+it('gives the private disk, the public images and the backups their own S3 buckets, each with its own connection', function (): void {
     config([
         'filesystems.storage' => 's3',
         'filesystems.buckets.private.endpoint' => 'https://s3.fr-par.scw.cloud',
@@ -99,7 +34,10 @@ it('gives public images and backups their own buckets, each with its own connect
 
     app(StorageDisks::class)->apply();
 
-    expect(config('filesystems.disks.private'))->toMatchArray(['bucket' => 'files', 'key' => 'scw-key', 'use_path_style_endpoint' => false])
+    expect(config('filesystems.disks.private'))->toMatchArray(['driver' => 's3', 'bucket' => 'files', 'region' => 'fr-par', 'key' => 'scw-key', 'use_path_style_endpoint' => false])
+        ->and(config('filesystems.disks.private'))->not->toHaveKey('root')
+        ->and(Storage::disk()->getAdapter())->toBeInstanceOf(AwsS3V3Adapter::class)
+        ->and(Storage::disk(Attachment::DISK)->getAdapter())->toBeInstanceOf(AwsS3V3Adapter::class)
         ->and(config('filesystems.disks.assets'))->toMatchArray([
             'driver' => 's3',
             'bucket' => 'images',
@@ -113,15 +51,30 @@ it('gives public images and backups their own buckets, each with its own connect
         ->and(Storage::disk('assets')->url('workspaces/a/logo.png'))->toBe('https://images.example.org/workspaces/a/logo.png');
 });
 
-it('puts every disk back on this server in a process that started on S3-compatible storage', function (): void {
-    $local = ['assets' => config('filesystems.disks.assets'), 'backups' => config('filesystems.disks.backups')];
-    config(['filesystems.storage' => 's3', 'filesystems.buckets.private.name' => 'files', 'filesystems.buckets.public.name' => 'images', 'filesystems.buckets.backup.name' => 'archives']);
-
+it('moves each disk with its own setting in a process that started on S3-compatible storage', function (): void {
+    $local = config('filesystems.disks.private');
+    $localAssets = config('filesystems.disks.assets');
+    $localBackups = config('filesystems.disks.backups');
+    config(['filesystems.storage' => 's3', 'filesystems.buckets.private.name' => 'files']);
     $disks = new StorageDisks(app('config'), app());
-    $disks->apply();
-    config(['filesystems.storage' => 'local', 'filesystems.buckets.public.name' => null, 'filesystems.buckets.backup.name' => null]);
+
     $disks->apply();
 
-    expect(config('filesystems.disks.assets'))->toBe($local['assets'])
-        ->and(config('filesystems.disks.backups'))->toBe($local['backups']);
+    expect(config('filesystems.disks.private.driver'))->toBe('s3')
+        ->and(config('filesystems.disks.assets'))->toBe($localAssets)
+        ->and(config('filesystems.disks.backups'))->toBe($localBackups);
+
+    config(['filesystems.storage' => 'local', 'filesystems.buckets.public.name' => 'images', 'filesystems.buckets.backup.name' => 'archives']);
+    $disks->apply();
+
+    expect(config('filesystems.disks.private'))->toBe($local)
+        ->and(Storage::disk()->getAdapter())->toBeInstanceOf(LocalFilesystemAdapter::class)
+        ->and(config('filesystems.disks.assets'))->toMatchArray(['driver' => 's3', 'bucket' => 'images'])
+        ->and(config('filesystems.disks.backups'))->toMatchArray(['driver' => 's3', 'bucket' => 'archives']);
+
+    config(['filesystems.buckets.public.name' => null, 'filesystems.buckets.backup.name' => null]);
+    $disks->apply();
+
+    expect(config('filesystems.disks.assets'))->toBe($localAssets)
+        ->and(config('filesystems.disks.backups'))->toBe($localBackups);
 });

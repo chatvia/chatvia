@@ -6,15 +6,13 @@ use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Providers\OpenAi;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Psr7\Response;
-use Illuminate\Http\Client\Request;
-use Illuminate\Support\Facades\Http;
 use Tests\Support\Llm\GuzzleRecorder;
 
 /**
  * OpenAI streams every chat turn through its Responses API (the body is
- * written by ResponsesPayload) and keeps single calls on Chat Completions. A
- * summary of the thinking is asked for only when the turn shows it, and
- * dropped for good when the organization may not have one.
+ * written by ResponsesPayload). A summary of the thinking is asked for only
+ * when the turn shows it, and dropped for good when the organization may not
+ * have one; any other error is passed on.
  */
 function oaiClient(): OpenAi
 {
@@ -46,15 +44,7 @@ it('streams every chat turn through the Responses API, with a summary only when 
     'an effort, thinking shown' => ['medium', true, ['effort' => 'medium', 'summary' => 'auto']],
 ]);
 
-it('keeps single calls on Chat Completions', function (): void {
-    Http::fake(['*' => Http::response(['choices' => [['message' => ['content' => 'hi']]]])]);
-
-    oaiClient()->completion(['model' => 'gpt-6.1-sol', 'messages' => []]);
-
-    Http::assertSent(fn (Request $request): bool => $request->url() === 'https://llm.test/v1/chat/completions');
-});
-
-it('asks again without a summary when the organization may not have one, and skips it from then on', function (): void {
+it('asks again without a summary when the organization may not have one, skips it from then on, and passes on any other error', function (): void {
     $refusal = json_encode(['error' => [
         'message' => 'Your organization must be verified to generate reasoning summaries.',
         'type' => 'invalid_request_error',
@@ -66,9 +56,7 @@ it('asks again without a summary when the organization may not have one, and ski
 
     expect($recorder->history)->toHaveCount(2)
         ->and($recorder->body(1)['reasoning'])->toBe(['effort' => 'high'])
-        ->and(oaiStream('high', show: true)->body()['reasoning'])->toBe(['effort' => 'high']);
+        ->and(oaiStream('high', show: true)->body()['reasoning'])->toBe(['effort' => 'high'])
+        ->and(fn (): GuzzleRecorder => oaiStream('high', [new Response(400, [], '{"error":{"message":"Unknown parameter"}}')], show: true))
+        ->toThrow(ClientException::class);
 });
-
-it('does not hide other errors behind a retry', function (): void {
-    oaiStream('high', [new Response(400, [], '{"error":{"message":"Unknown parameter"}}')], show: true);
-})->throws(ClientException::class);

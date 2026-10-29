@@ -9,22 +9,10 @@ use Domain\Llm\Enums\AiCallTag;
 use Domain\Llm\Models\Llm;
 
 /**
- * The app's own tasks (guardrails, titles, rewrites...) send a body fitted to
- * the model by Llm::requestSettings() (tested there), and a JSON schema in the
- * prompt for a model that cannot be held to one.
+ * The app's own tasks (guardrails, titles, rewrites...) send a JSON schema
+ * in the prompt for a model that cannot be held to one. Fitting the body to
+ * the model is Llm::requestSettings()'s, tested in LlmTest.
  */
-function crdPayload(Llm $model): array
-{
-    return new ChatRequestData($model, [ChatMessageData::user('Hi')], AiCallTag::Guardrails, temperature: 0.0)->toPayload();
-}
-
-it('fits the body to the model: a reasoning model gets its least thinking and no temperature', function (): void {
-    $payload = crdPayload(new Llm(['name' => 'gpt-6-luna', 'capabilities' => modelsDevEntry(['none', 'low', 'medium'], temperature: false)]));
-
-    expect($payload['reasoning_effort'])->toBe('none')
-        ->and($payload)->not->toHaveKey('temperature');
-});
-
 it('asks for a JSON reply in the prompt when the model cannot be held to a schema', function (): void {
     $schema = new ResponseSchemaData('verdict', ['type' => 'object', 'properties' => ['ok' => ['type' => 'boolean']]]);
     $request = fn (array $structuredOutput, array $messages): array => new ChatRequestData(

@@ -15,18 +15,9 @@ function tpcProxies(string $proxies, string $env): mixed
     return ConfigFile::with('trustedproxy.php', ['TRUSTED_PROXIES' => $proxies, 'APP_ENV' => $env])['proxies'];
 }
 
-it('reads the trusted proxies as a list', function (): void {
-    expect(tpcProxies('173.245.48.0/20, 10.0.0.1', 'production'))->toBe(['173.245.48.0/20', '10.0.0.1']);
-});
-
-it('expands the cloudflare keyword to the published edge ranges', function (): void {
-    expect(tpcProxies('cloudflare,10.0.0.1', 'production'))
+it('reads the trusted proxies as a list, expanding the cloudflare keyword in any case to the published edge ranges', function (): void {
+    expect(tpcProxies('Cloudflare, 10.0.0.1', 'production'))
         ->toBe([...CloudflareIps::ranges(), '10.0.0.1']);
-});
-
-it('matches the cloudflare keyword case-insensitively', function (): void {
-    expect(tpcProxies('Cloudflare', 'production'))
-        ->toBe(CloudflareIps::ranges());
 });
 
 it('trusts every proxy only in local', function (): void {

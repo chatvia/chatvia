@@ -21,32 +21,26 @@ function lfFailed(int $status, string $body = '{}'): RequestException
     return new RequestException(new Response(new PsrResponse($status, [], $body)));
 }
 
-it('reads the status of a failed call', function (int $status, LlmFailure $failure): void {
-    expect(LlmFailure::of(lfFailed($status)))->toBe($failure);
+it('reads the status and the error body of a failed call', function (int $status, string $body, LlmFailure $failure): void {
+    expect(LlmFailure::of(lfFailed($status, $body)))->toBe($failure);
 })->with([
-    'not served' => [404, LlmFailure::ModelUnavailable],
-    'unauthorized' => [401, LlmFailure::KeyRefused],
-    'forbidden' => [403, LlmFailure::KeyRefused],
-    'payment required' => [402, LlmFailure::OutOfCredit],
-    'too many requests' => [429, LlmFailure::RateLimited],
-    'server error' => [503, LlmFailure::ProviderError],
-    'bad request' => [400, LlmFailure::Other],
+    'not served' => [404, '{}', LlmFailure::ModelUnavailable],
+    'unauthorized' => [401, '{}', LlmFailure::KeyRefused],
+    'forbidden' => [403, '{}', LlmFailure::KeyRefused],
+    'payment required' => [402, '{}', LlmFailure::OutOfCredit],
+    'too many requests' => [429, '{}', LlmFailure::RateLimited],
+    'server error' => [503, '{}', LlmFailure::ProviderError],
+    'bad request' => [400, '{}', LlmFailure::Other],
+    'an empty balance in a 400 body' => [400, '{"error":{"message":"Your credit balance is too low to access the Anthropic API."}}', LlmFailure::OutOfCredit],
+    'an exhausted quota in a 429 body' => [429, '{"error":{"code":"insufficient_quota"}}', LlmFailure::OutOfCredit],
 ]);
 
-it('reads an empty balance from the error body', function (): void {
-    expect(LlmFailure::of(lfFailed(400, '{"error":{"message":"Your credit balance is too low to access the Anthropic API."}}')))->toBe(LlmFailure::OutOfCredit)
-        ->and(LlmFailure::of(lfFailed(429, '{"error":{"code":"insufficient_quota"}}')))->toBe(LlmFailure::OutOfCredit);
-});
+it('reads a connection failure, a missing model, a failed streamed call and any other error', function (): void {
+    $streamed = new ClientException('not found', new PsrRequest('POST', 'https://ai.test'), new PsrResponse(404));
 
-it('reads a connection failure and a missing model', function (): void {
     expect(LlmFailure::of(new ConnectionException('timed out')))->toBe(LlmFailure::Unreachable)
         ->and(LlmFailure::of(new ConnectException('refused', new PsrRequest('POST', 'https://ai.test'))))->toBe(LlmFailure::Unreachable)
         ->and(LlmFailure::of(new NoLlmAvailableException))->toBe(LlmFailure::NoModel)
+        ->and(LlmFailure::of($streamed))->toBe(LlmFailure::ModelUnavailable)
         ->and(LlmFailure::of(new RuntimeException('boom')))->toBe(LlmFailure::Other);
-});
-
-it('reads a failed streamed call', function (): void {
-    $e = new ClientException('not found', new PsrRequest('POST', 'https://ai.test'), new PsrResponse(404));
-
-    expect(LlmFailure::of($e))->toBe(LlmFailure::ModelUnavailable);
 });

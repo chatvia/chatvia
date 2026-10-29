@@ -87,54 +87,43 @@ function respTransform(string $body, bool $showsReasoning = true, array $offered
     return ProviderStream::transform(new ResponsesStream(Utils::streamFor($body)), $showsReasoning, $offeredToolNames);
 }
 
-it('streams the answer text with the response id and usage', function (): void {
-    [$events, $context] = respTransform(respCreated().respText('Hello ', 'world!').respCompleted());
+it('streams the answer with the response id and usage, and the summary of the thinking as reasoning apart from it', function (): void {
+    [$events, $context] = respTransform(
+        respCreated()
+        .respReasoning('rs_1', "**Analyzing integer bounds**\n\nI need to bound b.")
+        .respReasoning('rs_2', '**Checking small cases**', '**Confirming**')
+        .respText('Hello ', 'world!')
+        .respCompleted(reasoning: 706),
+    );
 
     expect(ProviderStream::texts($events, EventType::Delta))->toBe(['Hello ', 'world!'])
+        ->and(implode('', ProviderStream::texts($events, EventType::Reasoning)))
+        ->toBe("**Analyzing integer bounds**\n\nI need to bound b.\n\n**Checking small cases**\n\n**Confirming**")
         ->and($context->streamedMessage)->toBe('Hello world!')
         ->and($context->generationId)->toBe('resp_0a2')
         ->and($context->usage)->toMatchArray([
             'prompt_tokens' => 76,
             'completion_tokens' => 18,
             'total_tokens' => 94,
-        ]);
-});
-
-it('sends the summary of the thinking as reasoning, apart from the answer', function (): void {
-    [$events, $context] = respTransform(
-        respCreated()
-        .respReasoning('rs_1', "**Analyzing integer bounds**\n\nI need to bound b.")
-        .respReasoning('rs_2', '**Checking small cases**', '**Confirming**')
-        .respText('The solutions are (2,0) and (0,-2).')
-        .respCompleted(reasoning: 706),
-    );
-
-    expect(implode('', ProviderStream::texts($events, EventType::Reasoning)))
-        ->toBe("**Analyzing integer bounds**\n\nI need to bound b.\n\n**Checking small cases**\n\n**Confirming**")
-        ->and($context->streamedMessage)->toBe('The solutions are (2,0) and (0,-2).')
+        ])
         ->and($context->usage['completion_tokens_details'])->toBe(['reasoning_tokens' => 706]);
 });
 
-it('drops the thinking when the turn does not show it', function (): void {
-    [$events, $context] = respTransform(respCreated().respReasoning('rs_1', 'Thinking.').respText('Answer.').respCompleted(), showsReasoning: false);
-
-    expect(ProviderStream::texts($events, EventType::Reasoning))->toBe([])
-        ->and($context->streamedMessage)->toBe('Answer.');
-});
-
-it('collects function calls as the tool loop\'s tool calls', function (): void {
-    [, $context] = respTransform(
+it('drops the thinking of a turn that does not show it, and collects its function calls as the tool loop\'s tool calls', function (): void {
+    [$events, $context] = respTransform(
         respCreated()
         .respReasoning('rs_1', 'The user wants the weather.')
         .respFunctionCall('fc_1', 'call_Ab1', 'get_weather', '{"ci', 'ty":"Paris"}')
         .respFunctionCall('fc_2', 'call_Cd2', 'get_time', '{}')
         .respCompleted(),
+        showsReasoning: false,
         offeredToolNames: ['get_weather', 'get_time'],
     );
 
     $calls = $context->takeToolCalls();
 
-    expect($calls)->toHaveCount(2)
+    expect(ProviderStream::texts($events, EventType::Reasoning))->toBe([])
+        ->and($calls)->toHaveCount(2)
         ->and($calls[0]->id)->toBe('call_Ab1')
         ->and($calls[0]->name)->toBe('get_weather')
         ->and($calls[0]->arguments)->toBe('{"city":"Paris"}')
@@ -143,18 +132,15 @@ it('collects function calls as the tool loop\'s tool calls', function (): void {
         ->and($context->streamedMessage)->toBe('');
 });
 
-it('ends the read with an error when the response fails', function (): void {
-    $stream = new ResponsesStream(Utils::streamFor(
-        respCreated().ProviderStream::event(['type' => 'response.failed', 'response' => ['id' => 'resp_0a2', 'status' => 'failed', 'error' => ['code' => 'server_error', 'message' => 'The server had an error.']]]),
+it('passes each event on as soon as it arrives, and ends the read with an error when the response fails', function (): void {
+    $stream = new ResponsesStream(ProviderStream::dripFed(
+        respCreated()
+        .respText('Hi', ' there')
+        .ProviderStream::event(['type' => 'response.failed', 'response' => ['id' => 'resp_0a2', 'status' => 'failed', 'error' => ['code' => 'server_error', 'message' => 'The server had an error.']]]),
     ));
-
-    expect(fn (): string => $stream->getContents())->toThrow(RuntimeException::class, 'The server had an error.');
-});
-
-it('passes each event on as soon as it arrives', function (): void {
-    $stream = new ResponsesStream(ProviderStream::dripFed(respCreated().respText('Hi', ' there')));
 
     expect($stream->read(1024))->toContain('"id":"resp_0a2"')
         ->and($stream->read(1024))->toContain('"content":"Hi"')
-        ->and($stream->read(1024))->toContain('"content":" there"');
+        ->and($stream->read(1024))->toContain('"content":" there"')
+        ->and(fn (): string => $stream->getContents())->toThrow(RuntimeException::class, 'The server had an error.');
 });

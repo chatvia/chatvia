@@ -14,18 +14,14 @@ use Domain\Form\Models\FormSubmission;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
-/*
-|--------------------------------------------------------------------------
-| The database keeps workspaces apart
-|--------------------------------------------------------------------------
-|
-| Every chat row carries its workspace, and each key to a parent pairs it
-| with that workspace. So even code that forgets a check cannot write a
-| session, conversation, message, lead or chatter grant that links two
-| workspaces: Postgres refuses the row. A lead outlives the chat rows it
-| points at, and deleting a workspace takes only its own chat rows.
-*/
-
+/**
+ * The database keeps workspaces apart. Every chat row carries its workspace,
+ * and each key to a parent pairs it with that workspace. So even code that
+ * forgets a check cannot write a session, conversation, message, lead or
+ * chatter grant that links two workspaces: Postgres refuses the row. A lead
+ * outlives the chat rows it points at, and deleting a workspace takes only
+ * its own chat rows.
+ */
 beforeEach(function (): void {
     $this->agentA = Agent::factory()->create();
     $this->agentB = Agent::factory()->create();
@@ -43,7 +39,7 @@ function cwdRefused(Closure $write): void
     });
 }
 
-it('accepts each of those rows when every key is in the same workspace', function (): void {
+it('accepts those rows within one workspace, and keeps a lead when its message and then its conversation are deleted, clearing only each link', function (): void {
     $workspaceId = $this->agentA->workspace_id;
     $chatter = Chatter::factory()->ofWorkspace($this->agentA->workspace)->create();
     $form = FormDefinition::factory()->forAgent($this->agentA)->create();
@@ -64,78 +60,6 @@ it('accepts each of those rows when every key is in the same workspace', functio
     expect($message->exists)->toBeTrue()
         ->and($lead->exists)->toBeTrue()
         ->and($chatter->agents()->whereKey($this->agentA->id)->exists())->toBeTrue();
-});
-
-it('refuses a session whose agent is in another workspace', function (): void {
-    cwdRefused(fn (): Session => Session::query()->create([
-        'workspace_id' => $this->agentB->workspace_id,
-        'agent_id' => $this->agentA->id,
-    ]));
-});
-
-it('refuses a session whose chatter is in another workspace', function (): void {
-    $chatterB = Chatter::factory()->ofWorkspace($this->agentB->workspace)->create();
-
-    cwdRefused(fn (): Session => Session::query()->create([
-        'workspace_id' => $this->agentA->workspace_id,
-        'agent_id' => $this->agentA->id,
-        'chatter_id' => $chatterB->id,
-    ]));
-});
-
-it('refuses a conversation whose session is in another workspace', function (): void {
-    $sessionA = Session::factory()->create(['agent_id' => $this->agentA->id]);
-
-    cwdRefused(fn (): Conversation => Conversation::query()->create([
-        'workspace_id' => $this->agentB->workspace_id,
-        'chat_session_id' => $sessionA->id,
-        'agent_id' => $this->agentB->id,
-        'source' => ConversationSource::Widget,
-    ]));
-});
-
-it('refuses a message whose conversation is in another workspace', function (): void {
-    $conversationA = Conversation::factory()->create(['agent_id' => $this->agentA->id]);
-
-    cwdRefused(fn (): Message => Message::query()->create([
-        'workspace_id' => $this->agentB->workspace_id,
-        'chat_conversation_id' => $conversationA->id,
-        'role' => MessageRole::User,
-        'content' => 'Hello',
-    ]));
-});
-
-it('refuses a lead that points at another workspace\'s conversation', function (): void {
-    $formB = FormDefinition::factory()->forAgent($this->agentB)->create();
-    $conversationA = Conversation::factory()->create(['agent_id' => $this->agentA->id]);
-
-    cwdRefused(fn (): FormSubmission => FormSubmission::query()->create([
-        'form_definition_id' => $formB->id,
-        'workspace_id' => $this->agentB->workspace_id,
-        'agent_id' => $this->agentB->id,
-        'chat_conversation_id' => $conversationA->id,
-        'status' => FormSubmissionStatus::Pending,
-    ]));
-});
-
-it('refuses a lead that points at another workspace\'s message', function (): void {
-    $form = FormDefinition::factory()->forAgent($this->agentB)->create();
-    $messageA = Message::factory()->create(['chat_conversation_id' => Conversation::factory()->create(['agent_id' => $this->agentA->id])->id]);
-
-    cwdRefused(fn (): FormSubmission => FormSubmission::query()->create([
-        'form_definition_id' => $form->id,
-        'workspace_id' => $this->agentB->workspace_id,
-        'agent_id' => $this->agentB->id,
-        'chat_message_id' => $messageA->id,
-        'status' => FormSubmissionStatus::Pending,
-    ]));
-});
-
-it('keeps a lead when its message is deleted and clears only the link', function (): void {
-    $form = FormDefinition::factory()->forAgent($this->agentA)->create();
-    $conversation = Conversation::factory()->create(['agent_id' => $this->agentA->id]);
-    $message = Message::factory()->create(['chat_conversation_id' => $conversation->id]);
-    $lead = FormSubmission::factory()->forDefinition($form)->create(['chat_conversation_id' => $conversation->id, 'chat_message_id' => $message->id]);
 
     $message->forceDelete();
 
@@ -143,24 +67,58 @@ it('keeps a lead when its message is deleted and clears only the link', function
         ->not->toBeNull()
         ->chat_message_id->toBeNull()
         ->chat_conversation_id->toBe($conversation->id);
-});
-
-it('keeps a lead when its conversation is deleted and clears only the link', function (): void {
-    $form = FormDefinition::factory()->forAgent($this->agentA)->create();
-    $conversation = Conversation::factory()->create(['agent_id' => $this->agentA->id]);
-    $lead = FormSubmission::factory()->forDefinition($form)->create(['chat_conversation_id' => $conversation->id]);
 
     $conversation->forceDelete();
 
-    $lead->refresh();
-
-    expect($lead->chat_conversation_id)->toBeNull()
-        ->and($lead->workspace_id)->toBe($this->agentA->workspace_id);
+    expect($lead->fresh())
+        ->not->toBeNull()
+        ->chat_conversation_id->toBeNull()
+        ->workspace_id->toBe($workspaceId);
 });
 
-it('refuses a chatter grant to an agent of another workspace', function (): void {
+it('refuses a session, conversation, message, lead or chatter grant whose keys point into another workspace', function (): void {
     $chatterA = Chatter::factory()->ofWorkspace($this->agentA->workspace)->create();
+    $chatterB = Chatter::factory()->ofWorkspace($this->agentB->workspace)->create();
+    $sessionA = Session::factory()->create(['agent_id' => $this->agentA->id]);
+    $conversationA = Conversation::factory()->create(['agent_id' => $this->agentA->id]);
+    $messageA = Message::factory()->create(['chat_conversation_id' => $conversationA->id]);
+    $formB = FormDefinition::factory()->forAgent($this->agentB)->create();
 
+    cwdRefused(fn (): Session => Session::query()->create([
+        'workspace_id' => $this->agentB->workspace_id,
+        'agent_id' => $this->agentA->id,
+    ]));
+    cwdRefused(fn (): Session => Session::query()->create([
+        'workspace_id' => $this->agentA->workspace_id,
+        'agent_id' => $this->agentA->id,
+        'chatter_id' => $chatterB->id,
+    ]));
+    cwdRefused(fn (): Conversation => Conversation::query()->create([
+        'workspace_id' => $this->agentB->workspace_id,
+        'chat_session_id' => $sessionA->id,
+        'agent_id' => $this->agentB->id,
+        'source' => ConversationSource::Widget,
+    ]));
+    cwdRefused(fn (): Message => Message::query()->create([
+        'workspace_id' => $this->agentB->workspace_id,
+        'chat_conversation_id' => $conversationA->id,
+        'role' => MessageRole::User,
+        'content' => 'Hello',
+    ]));
+    cwdRefused(fn (): FormSubmission => FormSubmission::query()->create([
+        'form_definition_id' => $formB->id,
+        'workspace_id' => $this->agentB->workspace_id,
+        'agent_id' => $this->agentB->id,
+        'chat_conversation_id' => $conversationA->id,
+        'status' => FormSubmissionStatus::Pending,
+    ]));
+    cwdRefused(fn (): FormSubmission => FormSubmission::query()->create([
+        'form_definition_id' => $formB->id,
+        'workspace_id' => $this->agentB->workspace_id,
+        'agent_id' => $this->agentB->id,
+        'chat_message_id' => $messageA->id,
+        'status' => FormSubmissionStatus::Pending,
+    ]));
     cwdRefused(fn (): null => $chatterA->agents()->attach($this->agentB->id, ['workspace_id' => $chatterA->workspace_id]));
     cwdRefused(fn (): null => $chatterA->agents()->attach($this->agentB->id, ['workspace_id' => $this->agentB->workspace_id]));
 });

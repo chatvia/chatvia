@@ -3621,7 +3621,8 @@
             "dialog_description": "Wählen Sie einen Namen, damit Sie Ihre Passkeys später unterscheiden können.",
             "register": "Passkey registrieren",
             "delete_title": "Diesen Passkey löschen?",
-            "delete_description": "{name} kann damit nicht mehr zur Anmeldung verwendet werden. Diese Aktion kann nicht rückgängig gemacht werden."
+            "delete_description": "{name} kann damit nicht mehr zur Anmeldung verwendet werden. Diese Aktion kann nicht rückgängig gemacht werden.",
+            "needs_domain": "Passkeys brauchen einen Domainnamen. Öffne diese Seite über ihre Domain, nicht über eine IP-Adresse, um einen hinzuzufügen."
         },
         "social": {
             "title": "Soziale Konten",

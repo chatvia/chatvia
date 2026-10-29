@@ -3621,7 +3621,8 @@
             "dialog_description": "後で見分けられるように名前を付けてください。",
             "register": "パスキーを登録",
             "delete_title": "このパスキーを削除しますか？",
-            "delete_description": "{name} ではログインできなくなります。この操作は元に戻せません。"
+            "delete_description": "{name} ではログインできなくなります。この操作は元に戻せません。",
+            "needs_domain": "パスキーにはドメイン名が必要です。追加するには、IP アドレスではなくドメインでこのサイトを開いてください。"
         },
         "social": {
             "title": "ソーシャルアカウント",

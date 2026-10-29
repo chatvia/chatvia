@@ -3621,7 +3621,8 @@
             "dialog_description": "Geçiş anahtarlarınızı sonradan birbirinden ayırabilmek için bir ad seçin.",
             "register": "Geçiş anahtarını kaydet",
             "delete_title": "Bu geçiş anahtarı silinsin mi?",
-            "delete_description": "{name} artık giriş yapamayacak. Bu işlem geri alınamaz."
+            "delete_description": "{name} artık giriş yapamayacak. Bu işlem geri alınamaz.",
+            "needs_domain": "Geçiş anahtarları bir alan adı gerektirir. Eklemek için bu siteyi IP adresiyle değil, alan adıyla açın."
         },
         "social": {
             "title": "Sosyal hesaplar",

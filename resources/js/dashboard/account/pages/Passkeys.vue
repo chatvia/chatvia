@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // The user's passkeys: list, register (browser WebAuthn prompt) and delete.
-// Registering and deleting both ask for the password first.
+// Registering and deleting both ask for the password first. On an IP address
+// the browser refuses passkeys, so adding one is turned off there.
 import ConfirmPasswordDialog from '@/dashboard/account/components/ConfirmPasswordDialog.vue';
 import {
     AlertDialog,
@@ -21,6 +22,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useDateFormat } from '@/dashboard/composables/useDateFormat';
 import AppLayout from '@/dashboard/layouts/AppLayout.vue';
 import AccountLayout from '@/dashboard/account/layouts/Layout.vue';
+import { passkeysAllowedHere } from '@/shared/lib/passkeys';
 import { destroy as destroyPasskey } from '@/routes/passkey';
 import { type BreadcrumbItem } from '@/shared/types';
 import { Head, router } from '@inertiajs/vue3';
@@ -30,6 +32,7 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 const { formatDate, formatDateTime } = useDateFormat();
+const passkeysAllowed = passkeysAllowedHere();
 
 interface Passkey {
     id: number;
@@ -144,8 +147,11 @@ const confirmDelete = async () => {
                         <p class="text-muted-foreground mt-1 text-sm">
                             {{ t('account.passkeys.description') }}
                         </p>
+                        <p v-if="!passkeysAllowed" class="text-muted-foreground mt-2 text-sm">
+                            {{ t('account.passkeys.needs_domain') }}
+                        </p>
                     </div>
-                    <Button @click="openRegister">
+                    <Button :disabled="!passkeysAllowed" @click="openRegister">
                         <Plus class="me-1 size-4" />
                         {{ t('account.passkeys.add_passkey') }}
                     </Button>
@@ -158,7 +164,7 @@ const confirmDelete = async () => {
                     <Fingerprint class="text-muted-foreground mx-auto size-8" />
                     <p class="mt-3 text-sm font-medium">{{ t('account.passkeys.no_passkeys') }}</p>
                     <p class="text-muted-foreground mt-1 text-sm">{{ t('account.passkeys.no_passkeys_hint') }}</p>
-                    <Button class="mt-4" @click="openRegister">
+                    <Button class="mt-4" :disabled="!passkeysAllowed" @click="openRegister">
                         <Plus class="me-1 size-4" />
                         {{ t('account.passkeys.add_passkey') }}
                     </Button>

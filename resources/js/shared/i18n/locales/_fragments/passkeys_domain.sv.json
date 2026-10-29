@@ -1,0 +1,7 @@
+{
+    "account": {
+        "passkeys": {
+            "needs_domain": "Nycklar kräver ett domännamn. Öppna webbplatsen via dess domän, inte en IP-adress, för att lägga till en."
+        }
+    }
+}

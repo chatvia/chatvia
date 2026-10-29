@@ -1,0 +1,7 @@
+{
+    "account": {
+        "passkeys": {
+            "needs_domain": "Passkeys need a domain name. Open this site at its domain, not an IP address, to add one."
+        }
+    }
+}

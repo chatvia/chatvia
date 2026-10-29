@@ -1,0 +1,7 @@
+{
+    "account": {
+        "passkeys": {
+            "needs_domain": "Las llaves de acceso necesitan un nombre de dominio. Abre este sitio desde su dominio, no desde una dirección IP, para añadir una."
+        }
+    }
+}

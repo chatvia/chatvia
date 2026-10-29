@@ -3621,7 +3621,8 @@
             "dialog_description": "Choisissez un nom pour pouvoir distinguer vos clés d'accès ultérieurement.",
             "register": "Enregistrer la clé d'accès",
             "delete_title": "Supprimer cette clé d'accès ?",
-            "delete_description": "{name} ne pourra plus être utilisée pour se connecter. Cette action est irréversible."
+            "delete_description": "{name} ne pourra plus être utilisée pour se connecter. Cette action est irréversible.",
+            "needs_domain": "Les clés d'accès ont besoin d'un nom de domaine. Ouvrez ce site via son domaine, et non une adresse IP, pour en ajouter une."
         },
         "social": {
             "title": "Comptes sociaux",

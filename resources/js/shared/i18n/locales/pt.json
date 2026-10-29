@@ -3621,7 +3621,8 @@
             "dialog_description": "Escolha um nome para poder distinguir as suas chaves de acesso posteriormente.",
             "register": "Registar chave de acesso",
             "delete_title": "Eliminar esta chave de acesso?",
-            "delete_description": "{name} deixará de poder ser utilizada para iniciar sessão. Esta ação não pode ser anulada."
+            "delete_description": "{name} deixará de poder ser utilizada para iniciar sessão. Esta ação não pode ser anulada.",
+            "needs_domain": "As chaves de acesso precisam de um nome de domínio. Abra este site pelo domínio, não por um endereço IP, para adicionar uma."
         },
         "social": {
             "title": "Contas sociais",

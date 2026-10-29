@@ -1,0 +1,7 @@
+{
+    "account": {
+        "passkeys": {
+            "needs_domain": "Geçiş anahtarları bir alan adı gerektirir. Eklemek için bu siteyi IP adresiyle değil, alan adıyla açın."
+        }
+    }
+}

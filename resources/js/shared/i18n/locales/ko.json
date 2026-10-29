@@ -3621,7 +3621,8 @@
             "dialog_description": "나중에 패스키를 구분할 수 있도록 이름을 지정하세요.",
             "register": "패스키 등록",
             "delete_title": "이 패스키를 삭제할까요?",
-            "delete_description": "{name}(으)로는 더 이상 로그인할 수 없습니다. 이 작업은 취소할 수 없습니다."
+            "delete_description": "{name}(으)로는 더 이상 로그인할 수 없습니다. 이 작업은 취소할 수 없습니다.",
+            "needs_domain": "패스키에는 도메인 이름이 필요합니다. 패스키를 추가하려면 IP 주소가 아닌 도메인으로 이 사이트를 여세요."
         },
         "social": {
             "title": "소셜 계정",

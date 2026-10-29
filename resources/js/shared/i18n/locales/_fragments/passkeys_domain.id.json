@@ -1,0 +1,7 @@
+{
+    "account": {
+        "passkeys": {
+            "needs_domain": "Passkey memerlukan nama domain. Buka situs ini melalui domainnya, bukan alamat IP, untuk menambahkannya."
+        }
+    }
+}

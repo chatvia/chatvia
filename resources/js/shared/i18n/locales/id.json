@@ -3621,7 +3621,8 @@
             "dialog_description": "Pilih nama agar Anda dapat membedakan passkey Anda nanti.",
             "register": "Daftarkan passkey",
             "delete_title": "Hapus passkey ini?",
-            "delete_description": "{name} tidak akan lagi dapat masuk. Tindakan ini tidak dapat dibatalkan."
+            "delete_description": "{name} tidak akan lagi dapat masuk. Tindakan ini tidak dapat dibatalkan.",
+            "needs_domain": "Passkey memerlukan nama domain. Buka situs ini melalui domainnya, bukan alamat IP, untuk menambahkannya."
         },
         "social": {
             "title": "Akun sosial",

@@ -3621,7 +3621,8 @@
             "dialog_description": "Vælg et navn, så du kan skelne dine adgangsnøgler fra hinanden senere.",
             "register": "Registrer adgangsnøgle",
             "delete_title": "Slet denne adgangsnøgle?",
-            "delete_description": "{name} vil ikke længere kunne bruges til at logge ind. Dette kan ikke fortrydes."
+            "delete_description": "{name} vil ikke længere kunne bruges til at logge ind. Dette kan ikke fortrydes.",
+            "needs_domain": "Adgangsnøgler kræver et domænenavn. Åbn siden via dens domæne, ikke en IP-adresse, for at tilføje en."
         },
         "social": {
             "title": "Sociale konti",

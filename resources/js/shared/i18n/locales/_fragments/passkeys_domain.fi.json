@@ -1,0 +1,7 @@
+{
+    "account": {
+        "passkeys": {
+            "needs_domain": "Pääsyavaimet tarvitsevat verkkotunnuksen. Avaa sivusto sen verkkotunnuksella, ei IP-osoitteella, lisätäksesi avaimen."
+        }
+    }
+}

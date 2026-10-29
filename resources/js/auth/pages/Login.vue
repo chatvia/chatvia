@@ -2,6 +2,7 @@
 // Workspace sign-in: password or magic link (tabs), passkeys (button and
 // browser autofill), and social sign-in. Passkey autofill is armed on mount
 // and cancelled on leave so the browser prompt does not outlive the page.
+// On an IP address the browser refuses passkeys, so the option is hidden.
 import SocialLoginButtons from '@/auth/components/SocialLoginButtons.vue';
 import TurnstileWidget from '@/auth/components/TurnstileWidget.vue';
 import InputError from '@/shared/components/InputError.vue';
@@ -15,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { useBotCheck } from '@/auth/composables/useBotCheck';
 import { useSocialProviders } from '@/shared/composables/useSocialProviders';
 import AuthBase from '@/shared/layouts/AuthLayout.vue';
+import { passkeysAllowedHere } from '@/shared/lib/passkeys';
 import { dashboard, login, register } from '@/routes';
 import { send as sendMagicLink } from '@/routes/magic-link';
 import { request as requestPasswordReset } from '@/routes/password';
@@ -68,6 +70,7 @@ const submitMagicLink = () => {
     });
 };
 
+const passkeysAllowed = passkeysAllowedHere();
 const passkeyError = ref<string | null>(null);
 const passkeyPending = ref(false);
 
@@ -80,6 +83,7 @@ const redirectAfterSignIn = (redirect?: string) => {
 };
 
 const tryAutofill = async () => {
+    if (!passkeysAllowed) return;
     const { Passkeys, UserCancelledError } = await loadPasskeys();
     if (!(await Passkeys.isAutofillSupported())) return;
     try {
@@ -137,7 +141,7 @@ onBeforeUnmount(cancelPasskeys);
             </div>
 
             <Tabs v-model="mode" class="w-full">
-                <TabsList class="grid h-11 w-full grid-cols-3">
+                <TabsList class="grid h-11 w-full" :class="passkeysAllowed ? 'grid-cols-3' : 'grid-cols-2'">
                     <TabsTrigger value="password" class="flex items-center gap-2 text-sm font-medium">
                         <Lock class="h-4 w-4" />
                         {{ t('auth.login.password_tab') }}
@@ -147,6 +151,7 @@ onBeforeUnmount(cancelPasskeys);
                         {{ t('auth.login.magic_link_tab') }}
                     </TabsTrigger>
                     <button
+                        v-if="passkeysAllowed"
                         type="button"
                         :disabled="passkeyPending"
                         @click="signInWithPasskey"

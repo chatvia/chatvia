@@ -3621,7 +3621,8 @@
             "dialog_description": "Wybierz nazwę, aby móc odróżnić swoje klucze dostępu w przyszłości.",
             "register": "Zarejestruj klucz dostępu",
             "delete_title": "Usunąć ten klucz dostępu?",
-            "delete_description": "{name} nie będzie już mógł być używany do logowania. Tej operacji nie można cofnąć."
+            "delete_description": "{name} nie będzie już mógł być używany do logowania. Tej operacji nie można cofnąć.",
+            "needs_domain": "Klucze dostępu wymagają nazwy domeny. Aby dodać klucz, otwórz tę stronę przez jej domenę, a nie adres IP."
         },
         "social": {
             "title": "Konta społecznościowe",

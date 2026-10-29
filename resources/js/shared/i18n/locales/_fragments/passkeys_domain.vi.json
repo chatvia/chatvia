@@ -1,0 +1,7 @@
+{
+    "account": {
+        "passkeys": {
+            "needs_domain": "Khóa truy cập cần tên miền. Hãy mở trang này bằng tên miền, không phải địa chỉ IP, để thêm khóa."
+        }
+    }
+}

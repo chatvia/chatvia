@@ -1,0 +1,7 @@
+{
+    "account": {
+        "passkeys": {
+            "needs_domain": "Passnøkler krever et domenenavn. Åpne siden via domenet, ikke en IP-adresse, for å legge til en."
+        }
+    }
+}

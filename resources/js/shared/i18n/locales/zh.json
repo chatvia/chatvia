@@ -3621,7 +3621,8 @@
             "dialog_description": "为通行密钥取个名字，方便日后区分。",
             "register": "注册通行密钥",
             "delete_title": "删除此通行密钥？",
-            "delete_description": "{name} 将无法再用于登录。此操作无法撤销。"
+            "delete_description": "{name} 将无法再用于登录。此操作无法撤销。",
+            "needs_domain": "通行密钥需要域名。请通过域名而不是 IP 地址打开本站点，再添加通行密钥。"
         },
         "social": {
             "title": "社交账户",

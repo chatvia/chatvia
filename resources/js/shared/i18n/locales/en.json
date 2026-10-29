@@ -3621,7 +3621,8 @@
             "dialog_description": "Choose a name so you can tell your passkeys apart later.",
             "register": "Register passkey",
             "delete_title": "Delete this passkey?",
-            "delete_description": "{name} will no longer be able to sign in. This can't be undone."
+            "delete_description": "{name} will no longer be able to sign in. This can't be undone.",
+            "needs_domain": "Passkeys need a domain name. Open this site at its domain, not an IP address, to add one."
         },
         "social": {
             "title": "Social accounts",

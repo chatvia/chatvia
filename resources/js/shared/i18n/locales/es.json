@@ -3621,7 +3621,8 @@
             "dialog_description": "Elige un nombre para distinguir tus claves de acceso más adelante.",
             "register": "Registrar clave de acceso",
             "delete_title": "¿Eliminar esta clave de acceso?",
-            "delete_description": "{name} ya no podrá iniciar sesión. Esta acción no se puede deshacer."
+            "delete_description": "{name} ya no podrá iniciar sesión. Esta acción no se puede deshacer.",
+            "needs_domain": "Las llaves de acceso necesitan un nombre de dominio. Abre este sitio desde su dominio, no desde una dirección IP, para añadir una."
         },
         "social": {
             "title": "Cuentas sociales",

@@ -3621,7 +3621,8 @@
             "dialog_description": "Chọn một tên để sau này bạn có thể phân biệt các passkey.",
             "register": "Đăng ký passkey",
             "delete_title": "Xóa passkey này?",
-            "delete_description": "{name} sẽ không còn đăng nhập được nữa. Thao tác này không thể hoàn tác."
+            "delete_description": "{name} sẽ không còn đăng nhập được nữa. Thao tác này không thể hoàn tác.",
+            "needs_domain": "Khóa truy cập cần tên miền. Hãy mở trang này bằng tên miền, không phải địa chỉ IP, để thêm khóa."
         },
         "social": {
             "title": "Tài khoản mạng xã hội",

@@ -3621,7 +3621,8 @@
             "dialog_description": "Valitse nimi, jotta voit erottaa tunnistimesi toisistaan myöhemmin.",
             "register": "Rekisteröi tunnistin",
             "delete_title": "Poistetaanko tämä tunnistin?",
-            "delete_description": "{name} ei enää voi kirjautua sisään. Tätä toimintoa ei voi kumota."
+            "delete_description": "{name} ei enää voi kirjautua sisään. Tätä toimintoa ei voi kumota.",
+            "needs_domain": "Pääsyavaimet tarvitsevat verkkotunnuksen. Avaa sivusto sen verkkotunnuksella, ei IP-osoitteella, lisätäksesi avaimen."
         },
         "social": {
             "title": "Sosiaalisen median tilit",

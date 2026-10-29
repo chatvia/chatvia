@@ -3621,7 +3621,8 @@
             "dialog_description": "Välj ett namn så att du kan skilja dina nycklar åt senare.",
             "register": "Registrera nyckel",
             "delete_title": "Ta bort den här nyckeln?",
-            "delete_description": "{name} kan inte längre användas för att logga in. Det går inte att ångra."
+            "delete_description": "{name} kan inte längre användas för att logga in. Det går inte att ångra.",
+            "needs_domain": "Nycklar kräver ett domännamn. Öppna webbplatsen via dess domän, inte en IP-adress, för att lägga till en."
         },
         "social": {
             "title": "Sociala konton",

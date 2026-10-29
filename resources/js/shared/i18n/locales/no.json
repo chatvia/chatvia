@@ -3621,7 +3621,8 @@
             "dialog_description": "Velg et navn så du kan skille passøklene dine fra hverandre senere.",
             "register": "Registrer passøkkel",
             "delete_title": "Slette denne passøkkelen?",
-            "delete_description": "{name} vil ikke lenger kunne brukes til å logge inn. Dette kan ikke angres."
+            "delete_description": "{name} vil ikke lenger kunne brukes til å logge inn. Dette kan ikke angres.",
+            "needs_domain": "Passnøkler krever et domenenavn. Åpne siden via domenet, ikke en IP-adresse, for å legge til en."
         },
         "social": {
             "title": "Sosiale kontoer",

@@ -83,8 +83,8 @@ it('saves the images of document pages in the source folder, not under the agent
         ->and(array_keys($file->chunks()->sole()->metadata['images']))->toBe($images);
 });
 
-it('enhances text sources by default, even with file enhancement off, and reports their progress', function (): void {
-    config(['chatvia.ai.chunker.enhance' => false]);
+it('enhances text sources with text enhancement on, even with file enhancement off, and reports their progress', function (): void {
+    config(['chatvia.ai.chunker.enhance' => false, 'chatvia.ai.chunker.enhance_text' => true]);
 
     $agent = Agent::factory()->create();
     $text = SourceText::factory()->processing()->attachedTo($agent)->create();

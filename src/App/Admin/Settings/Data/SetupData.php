@@ -29,7 +29,7 @@ use Spatie\LaravelData\Data;
  * A null key (or endpoint, for Azure OpenAI) keeps the saved one. A null
  * embedding provider keeps the one in use (sources are trained with it
  * already); a null embedding model the saved one. A null reader, speech or
- * voice service turns that service off ("Not now"). A null reranker,
+ * voice service turns that service off ("Disable …"). A null reranker,
  * storage, mail or app name leaves those settings as they are.
  */
 final class SetupData extends Data
@@ -64,6 +64,6 @@ final class SetupData extends Data
         public ?MailSetupData $mail = null,
         public bool $recordAiCalls = true,
         public ?string $appName = null,
-        public bool $enhanceKnowledge = true,
+        public bool $enhanceKnowledge = false,
     ) {}
 }

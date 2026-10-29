@@ -164,10 +164,10 @@ use Support\License\LicenseFeature;
  *    after Finish setup, and the Finish setup button itself, in the middle
  *    in place of the action bar.
  *
- * Each step starts on the safe choice ("Not now", "This server", Spectra
+ * Each step starts on the safe choice ("Disable …", "This server", Spectra
  * on) unless it is set up already: what `.env` suggests is not a choice. The one
  * exception is the reranker with OpenRouter as the provider: the same key
- * covers it, so it starts on OpenRouter. "Not now"
+ * covers it, so it starts on OpenRouter. "Disable …"
  * turns the service off, so "Automatic" does not turn it on behind the
  * admin's back. A service on the account of an earlier step uses the key
  * typed there.
@@ -225,7 +225,7 @@ class Setup extends SimplePage
     /** The label of the models step, which Next leaves once each model answered its test. */
     private const string MODELS_STEP = 'Models';
 
-    /** The label of the ingestion step, which Next leaves once "Not now" for a document reader is confirmed. */
+    /** The label of the ingestion step, which Next leaves once "Disable document reader" is confirmed. */
     private const string INGESTION_STEP = 'Ingestion';
 
     /** The option of AI enhancement of what agents learn. */
@@ -571,7 +571,7 @@ class Setup extends SimplePage
                             ->options([
                                 AiProvider::Mistral->value => 'Mistral OCR',
                                 AiProvider::Azure->value => 'Azure Document Intelligence',
-                                self::NOT_NOW => 'Not now',
+                                self::NOT_NOW => 'Disable document reader',
                             ])
                             ->descriptions([
                                 AiProvider::Mistral->value => 'Reads scans, images and tables, also the pictures inside Word and PowerPoint files. Each file is sent to Mistral directly.',
@@ -602,7 +602,7 @@ class Setup extends SimplePage
                     ->schema([
                         CardRadio::make('website_import')
                             ->hiddenLabel()
-                            ->options([self::FIRECRAWL => 'Firecrawl', self::NOT_NOW => 'Not now'])
+                            ->options([self::FIRECRAWL => 'Firecrawl', self::NOT_NOW => 'Disable web scraper'])
                             ->descriptions([
                                 self::FIRECRAWL => 'Pay per page read. You can also run your own Firecrawl server (Settings → Knowledge).',
                                 self::NOT_NOW => 'People cannot add websites as knowledge. Files, texts and Q&A still work.',
@@ -629,21 +629,27 @@ class Setup extends SimplePage
                             ->visible(fn (Get $get): bool => $get('website_import') === self::FIRECRAWL),
                     ]),
                 Section::make('AI enhancement')
-                    ->description('While agents learn a file, a web page or a text, AI can write a short summary and the likely questions for each part of it, and a summary of each whole file. Agents then find the right part more often.')
+                    ->description('AI writes a short summary and likely questions for each part of what agents learn, so they find the right part more often.')
                     ->icon(Heroicon::OutlinedSparkles)
                     ->schema([
                         CardRadio::make('enhancement')
                             ->hiddenLabel()
-                            ->options([self::ENHANCE => 'Enhance with AI', self::NOT_NOW => 'Not now'])
+                            ->options([self::ENHANCE => 'Enable AI enhancement', self::NOT_NOW => 'Disable AI enhancement'])
                             ->descriptions([
-                                self::ENHANCE => 'Recommended. Learning is slower and makes more AI calls: one for each part, so a 100-page PDF file makes about 100. It uses the model for quick tasks from the Models step.',
-                                self::NOT_NOW => 'Files and websites are ready sooner, with no extra AI calls, and search uses their text as it is. You can turn it on later in Settings → Knowledge, for what is added after that.',
+                                self::ENHANCE => 'Recommended. Slower, and uses more tokens and AI calls, but agents find answers more accurately.',
+                                self::NOT_NOW => 'Faster, and uses fewer tokens and AI calls, but agents find answers less accurately.',
                             ])
                             ->icons([
                                 self::ENHANCE => Heroicon::OutlinedSparkles,
                                 self::NOT_NOW => Heroicon::OutlinedNoSymbol,
                             ])
-                            ->required(),
+                            ->required()
+                            ->live(),
+                        Callout::make('AI enhancement is slower and uses more tokens')
+                            ->description('It makes one AI call for each part of a source, so a 100-page PDF file makes about 100 calls and takes longer to learn. It uses the model for quick tasks from the Models step. You can turn it off later in Settings → Knowledge.')
+                            ->icon(Heroicon::OutlinedExclamationTriangle)
+                            ->warning()
+                            ->visible(fn (Get $get): bool => $get('enhancement') !== self::NOT_NOW),
                     ]),
             ])
             ->afterValidation(fn () => $this->showingErrors(function (): void {
@@ -670,7 +676,7 @@ class Setup extends SimplePage
                             ->hiddenLabel()
                             ->options([
                                 ...collect($speech)->mapWithKeys(fn (AiProvider $service): array => [$service->value => $service->label()])->all(),
-                                self::NOT_NOW => 'Not now',
+                                self::NOT_NOW => 'Disable speech to text',
                             ])
                             ->descriptions([
                                 ...collect($speech)->mapWithKeys(fn (AiProvider $service): array => [$service->value => "Whisper on {$service->label()}."])->all(),
@@ -693,7 +699,7 @@ class Setup extends SimplePage
                             ->hiddenLabel()
                             ->options([
                                 ...collect($voice)->mapWithKeys(fn (AiProvider $service): array => [$service->value => "{$service->label()} Realtime"])->all(),
-                                self::NOT_NOW => 'Not now',
+                                self::NOT_NOW => 'Disable voice conversations',
                             ])
                             ->descriptions([
                                 ...collect($voice)->mapWithKeys(fn (AiProvider $service): array => [$service->value => 'Each agent still turns calls on in its own setup. A call costs much more than a typed chat.'])->all(),
@@ -904,7 +910,7 @@ class Setup extends SimplePage
                             ->label('Send email with')
                             ->options(collect(MailProvider::cases())
                                 ->reject(fn (MailProvider $provider): bool => $provider === MailProvider::Sendmail)
-                                ->mapWithKeys(fn (MailProvider $provider): array => [$provider->value => $provider === MailProvider::Log ? 'Not now' : $provider->label()])
+                                ->mapWithKeys(fn (MailProvider $provider): array => [$provider->value => $provider === MailProvider::Log ? 'Disable email' : $provider->label()])
                                 ->all())
                             ->native(false)
                             ->selectablePlaceholder(false)
@@ -944,7 +950,7 @@ class Setup extends SimplePage
                     ->schema([
                         CardRadio::make('observability')
                             ->hiddenLabel()
-                            ->options([self::SPECTRA => 'Record AI calls with Spectra', self::NOT_NOW => 'Not now'])
+                            ->options([self::SPECTRA => 'Record AI calls with Spectra', self::NOT_NOW => 'Disable Spectra'])
                             ->descriptions([
                                 self::SPECTRA => 'Recommended. It also saves the prompts and replies, so you can read a whole call. Choose what it saves, and for how many days, in Settings → Observability.',
                                 self::NOT_NOW => 'No AI call is logged, so Spectra shows no costs or times. You can turn it on later in Settings → Observability.',
@@ -1175,7 +1181,7 @@ class Setup extends SimplePage
                     AiProvider::Cohere->value => 'Cohere',
                     AiProvider::OpenRouter->value => 'OpenRouter',
                     self::CUSTOM => 'Your own server',
-                    self::NOT_NOW => 'Not now',
+                    self::NOT_NOW => 'Disable reranker',
                 ])
                 ->descriptions([
                     AiProvider::Cohere->value => 'Cohere Rerank 4, on Cohere\'s own API.',
@@ -1820,7 +1826,7 @@ class Setup extends SimplePage
     }
 
     /**
-     * Asked when Next leaves the ingestion step on "Not now" for a document reader: without a
+     * Asked when Next leaves the ingestion step on "Disable document reader": without a
      * reader, PDF, Word, slides and images cannot be uploaded. Going on
      * moves the wizard to the next step; going back keeps the choice open.
      */
@@ -2182,7 +2188,7 @@ class Setup extends SimplePage
         }
     }
 
-    /** Stops Next on "Not now" for a document reader until the admin agrees ({@see noReaderAction()}). */
+    /** Stops Next on "Disable document reader" until the admin agrees ({@see noReaderAction()}). */
     private function confirmNoReader(): void
     {
         if (($this->form->getRawState()['document_reader'] ?? null) !== self::NOT_NOW || $this->noReaderConfirmed) {

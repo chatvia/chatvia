@@ -732,7 +732,7 @@ it('starts the reranker on OpenRouter with the key of the first step, from its l
         && $request['model'] === 'qwen/qwen3-reranker-8b');
 });
 
-it('starts the reranker on "Not now" for another provider, and checks Cohere with its own key', function (): void {
+it('starts the reranker on "Disable reranker" for another provider, and checks Cohere with its own key', function (): void {
     setupFakeScaleway($this->dimensions);
     Http::fake(['api.cohere.com/v2/rerank' => Http::response(['results' => [['index' => 0, 'relevance_score' => 0.9]]])]);
 
@@ -1300,7 +1300,7 @@ it('reads documents with the Mistral key of the first step', function (): void {
         ->and(savedSetting(AiSettings::class, 'document_parser'))->toBe('mistral');
 })->skip(fn (): bool => app(EmbeddingStorage::class)->dimensions() !== 1024, 'Mistral embeddings are 1024 dimensions only.');
 
-it('starts every optional service on "Not now" and storage on this server, whatever .env suggests', function (): void {
+it('starts every optional service on its "Disable" choice and storage on this server, whatever .env suggests', function (): void {
     config(['filesystems.storage' => 's3', 'mail.default' => 'smtp', 'chatvia.ai.transcriber' => 'auto']);
 
     setupPage($this->admin)
@@ -1310,7 +1310,7 @@ it('starts every optional service on "Not now" and storage on this server, whate
         ->assertDontSee('Optional:');
 });
 
-it('turns the services left at "Not now" off, so Automatic does not turn them on', function (): void {
+it('turns the services left at their "Disable" choice off, so Automatic does not turn them on', function (): void {
     setupFakeScaleway($this->dimensions);
 
     setupPage($this->admin)
@@ -1506,7 +1506,7 @@ it('records AI calls with Spectra by default, and says what Spectra is', functio
     expect(savedSetting(ObservabilitySettings::class, 'spectra_enabled'))->toBeNull();
 });
 
-it('turns Spectra off when the admin chooses "Not now"', function (): void {
+it('turns Spectra off when the admin chooses "Disable Spectra"', function (): void {
     setupFakeScaleway($this->dimensions);
 
     setupPage($this->admin)
@@ -1518,46 +1518,24 @@ it('turns Spectra off when the admin chooses "Not now"', function (): void {
     expect(savedSetting(ObservabilitySettings::class, 'spectra_enabled'))->toBeFalse();
 });
 
-it('starts on "Not now" for Spectra once an admin turned it off in Settings', function (): void {
+it('starts on "Disable Spectra" once an admin turned it off in Settings', function (): void {
     saveSettings(ObservabilitySettings::class, ['spectra_enabled' => false]);
 
     setupPage($this->admin)->assertFormSet(['observability' => 'none']);
 });
 
-it('enhances what agents learn by default', function (): void {
+it('turns AI enhancement of files and texts on when the admin chooses "Enable AI enhancement"', function (): void {
     setupFakeScaleway($this->dimensions);
 
     setupPage($this->admin)
-        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
-        ->assertFormSet(['enhancement' => 'enhance'])
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test', 'enhancement' => 'enhance'])
         ->goToWizardStep(3)
         ->call('complete')
         ->assertHasNoFormErrors();
 
-    // On is the default: it stays unsaved, so the default keeps applying.
-    expect(savedSetting(KnowledgeSettings::class, 'enhance_chunks'))->toBeNull()
-        ->and(savedSetting(KnowledgeSettings::class, 'enhance_text_chunks'))->toBeNull()
+    expect(savedSetting(KnowledgeSettings::class, 'enhance_chunks'))->toBeTrue()
+        ->and(savedSetting(KnowledgeSettings::class, 'enhance_text_chunks'))->toBeTrue()
         ->and(savedSetting(AiSettings::class, 'source_summaries_enabled'))->toBeNull();
-});
-
-it('turns AI enhancement of files, texts and source summaries off when the admin chooses "Not now"', function (): void {
-    setupFakeScaleway($this->dimensions);
-
-    setupPage($this->admin)
-        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test', 'enhancement' => 'none'])
-        ->goToWizardStep(3)
-        ->call('complete')
-        ->assertHasNoFormErrors();
-
-    expect(savedSetting(KnowledgeSettings::class, 'enhance_chunks'))->toBeFalse()
-        ->and(savedSetting(KnowledgeSettings::class, 'enhance_text_chunks'))->toBeFalse()
-        ->and(savedSetting(AiSettings::class, 'source_summaries_enabled'))->toBeFalse();
-});
-
-it('starts on "Not now" for AI enhancement once an admin turned it off in Settings', function (): void {
-    saveSettings(KnowledgeSettings::class, ['enhance_chunks' => false]);
-
-    setupPage($this->admin)->assertFormSet(['enhancement' => 'none']);
 });
 
 it('keeps the storage and the mailer an admin saved in Settings', function (): void {

@@ -13,10 +13,10 @@ use Domain\Knowledge\Source\Web\Models\SourceWebsite;
  * How the pages of a source are enhanced before they are stored as chunks
  * (see {@see EnhanceChunkAction}): not at all, from the page text only, or —
  * for document pages — with the neighbouring pages and the page's images and
- * tables. Text sources follow `chatvia.ai.chunker.enhance_text` (on by
- * default, they are short); files and websites follow
- * `chatvia.ai.chunker.enhance` (on by default too: search finds far more of
- * the right passages). The same switch decides the summary of the whole
+ * tables. Text sources follow `chatvia.ai.chunker.enhance_text`; files and
+ * websites follow `chatvia.ai.chunker.enhance`. Both start off: search finds
+ * the right passages only a little more often, for one model call per chunk.
+ * The same switch decides the summary of the whole
  * source, so with both off ingestion makes no model calls.
  */
 enum ChunkEnhancement: string

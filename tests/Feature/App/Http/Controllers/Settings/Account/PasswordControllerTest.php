@@ -32,7 +32,6 @@ it('keeps the session that changed the password signed in', function (): void {
         'password_confirmation' => 'brand-new-password-1',
     ])->assertSessionHasNoErrors();
 
-    // A fresh request loads the account again, as a new process would.
     Auth::forgetGuards();
 
     $this->get(route('account.password.edit'))->assertOk();
@@ -44,7 +43,6 @@ it('keeps the session that changed the password signed in', function (): void {
 it('ends a dashboard session once the password is changed somewhere else', function (): void {
     pwcSignIn($this->user);
 
-    // The change happens in another browser (or an admin resets it).
     app(UpdatePasswordAction::class)->execute(new UpdatePasswordData(User::query()->findOrFail($this->user->id), 'brand-new-password-1'));
     Auth::forgetGuards();
 

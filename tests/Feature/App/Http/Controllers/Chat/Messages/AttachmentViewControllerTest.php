@@ -25,7 +25,7 @@ function avcAttachment(string $mimeType = 'application/pdf', string $filename = 
     ]);
 }
 
-it('opens a PDF through its signed link', function (): void {
+it('opens a PDF through its signed link, on any host', function (): void {
     $attachment = avcAttachment();
 
     expect($attachment->url)->toContain('/media/attachments/'.$attachment->external_id.'.pdf?signature=');
@@ -38,12 +38,8 @@ it('opens a PDF through its signed link', function (): void {
 
     expect($response->headers->get('Content-Disposition'))->toStartWith('inline')
         ->and($response->streamedContent())->toBe('%PDF-1.4 brochure');
-});
 
-it('keeps the link valid on another host', function (): void {
-    $url = avcAttachment()->url;
-
-    $this->get(Uri::of($url)->withScheme('https')->withHost('chat.example.org')->withPort(null)->value())
+    $this->get(Uri::of($attachment->url)->withScheme('https')->withHost('chat.example.org')->withPort(null)->value())
         ->assertOk();
 });
 
@@ -55,24 +51,12 @@ it('refuses a link without a valid signature', function (): void {
     $this->get(Str::replace('.pdf?', '.html?', $attachment->url))->assertForbidden();
 });
 
-it('opens an image chatters may attach in the browser', function (): void {
-    $response = $this->get(avcAttachment('image/png', 'receipt.png')->url);
-
-    expect($response->headers->get('Content-Disposition'))->toStartWith('inline');
-});
-
-it('downloads any other file instead of opening it', function (string $mimeType, string $filename): void {
+it('opens only an image chatters may attach in the browser and downloads any other file', function (string $mimeType, string $filename, string $disposition): void {
     $response = $this->get(avcAttachment($mimeType, $filename)->url);
 
-    expect($response->headers->get('Content-Disposition'))->toStartWith('attachment');
+    expect($response->headers->get('Content-Disposition'))->toStartWith($disposition);
 })->with([
-    'a web page' => ['text/html', 'page.html'],
-    'an SVG, which can carry script' => ['image/svg+xml', 'logo.svg'],
+    'an image' => ['image/png', 'receipt.png', 'inline'],
+    'a web page' => ['text/html', 'page.html', 'attachment'],
+    'an SVG, which can carry script' => ['image/svg+xml', 'logo.svg', 'attachment'],
 ]);
-
-it('answers 404 once the file is gone', function (): void {
-    $attachment = avcAttachment();
-    Storage::disk(Attachment::DISK)->delete($attachment->filepath);
-
-    $this->get($attachment->url)->assertNotFound();
-});

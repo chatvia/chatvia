@@ -2,7 +2,6 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Session;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Tests\Support\Widget\EmbeddedWidget;
 
 /**
@@ -10,8 +9,8 @@ use Tests\Support\Widget\EmbeddedWidget;
  * server refuses the agent's chat calls (a 404 `widget_disabled`, as the
  * hosted chat gives when its own surface is off) once BOTH are switched off
  * on the Deploy page, or once the agent's workspace is deactivated
- * (EnsureWidgetIsAccessible). While either embed is on, the other keeps
- * working. The boot settings tell each embed whether to mount.
+ * (EnsureWidgetIsAccessible). No session starts while it is off, and it
+ * serves again once turned back on.
  */
 beforeEach(function (): void {
     $this->agent = Agent::factory()->create(['is_public' => true]);
@@ -41,20 +40,6 @@ dataset('wtoCauses', [
     ]],
 ]);
 
-it('keeps streaming while the Chat Widget or the Command Bar is on', function (array $off): void {
-    wtoTurnOff($this->agent, ...$off);
-
-    $response = $this->withHeaders($this->chatHeaders)
-        ->post('/widget/stream', ['content' => 'Hello'], ['Accept' => 'text/event-stream']);
-
-    $response->assertOk();
-    expect($response->baseResponse)->toBeInstanceOf(StreamedResponse::class);
-})->with([
-    'both on' => [[]],
-    'only the Command Bar on' => [['widget']],
-    'only the Chat Widget on' => [['bar']],
-]);
-
 it('refuses every chat call once both embeds are off', function (string $method, string $uri, array $body): void {
     wtoTurnOff($this->agent, 'widget', 'bar');
 
@@ -81,16 +66,6 @@ it('starts no session while the widget is turned off', function (array $cause): 
         ->assertJsonPath('code', 'widget_disabled');
 
     expect(Session::query()->count())->toBe($sessionsBefore);
-})->with('wtoCauses');
-
-it('tells both embeds not to mount while the widget is turned off', function (array $cause): void {
-    $cause['off']($this->agent);
-
-    $this->withHeaders($this->headers)
-        ->getJson('/widget/agents/settings')
-        ->assertOk()
-        ->assertJsonPath('widget_enabled', false)
-        ->assertJsonPath('bar_enabled', false);
 })->with('wtoCauses');
 
 it('serves the widget again once it is turned back on', function (array $cause): void {

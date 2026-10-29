@@ -26,7 +26,6 @@ it('erases the visitor\'s conversation', function (): void {
 });
 
 it('answers 404 for a conversation of another visitor and keeps it', function (): void {
-    // A fresh browser session is a different visitor.
     $this->flushSession();
 
     $this->deleteJson($this->url)->assertNotFound();

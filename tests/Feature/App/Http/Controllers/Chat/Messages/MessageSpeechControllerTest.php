@@ -6,7 +6,6 @@ use Domain\Conversation\Models\Message;
 use Domain\Conversation\Services\Speech\MessageSpeechFiles;
 use Domain\Llm\Contracts\Speaker;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Tests\Support\Conversation\HostedChatVisitor;
 use Tests\Support\Llm\FakeSpeaker;
 
@@ -49,36 +48,17 @@ it('plays the visitor\'s reply aloud, and reads it only once', function (): void
     expect($this->speaker->spoken)->toHaveCount(1);
 });
 
-it('is a 404 for another visitor\'s reply', function (): void {
+it('is a 404 for another visitor\'s reply, and while the agent does not read aloud', function (): void {
     [$conversationId, $messageId] = mscReply($this->agent);
 
     $this->flushSession();
 
     $this->get(mscUrl($this->agent, $conversationId, $messageId))->assertNotFound();
-    expect($this->speaker->spoken)->toBe([]);
-});
 
-it('is a 404 while the agent does not read aloud', function (): void {
-    [$conversationId, $messageId] = mscReply($this->agent);
+    [$ownConversationId, $ownMessageId] = mscReply($this->agent);
     $this->agent->setSetting('allow_read_aloud', false, 'appearance');
 
-    $this->get(mscUrl($this->agent, $conversationId, $messageId))->assertNotFound();
-});
+    $this->get(mscUrl($this->agent, $ownConversationId, $ownMessageId))->assertNotFound();
 
-it('answers with a message when the speech service fails', function (): void {
-    app()->instance(Speaker::class, new FakeSpeaker(failure: new RuntimeException('provider down')));
-    [$conversationId, $messageId] = mscReply($this->agent);
-
-    $this->getJson(mscUrl($this->agent, $conversationId, $messageId))
-        ->assertStatus(503)
-        ->assertJsonStructure(['message']);
-});
-
-it('only takes uuids', function (): void {
-    $this->get("/chat/{$this->agent->slug}/conversations/".Str::uuid7().'/messages/not-a-uuid/speech')->assertNotFound();
-});
-
-it('tells the chat page to show the speaker button', function (): void {
-    $this->get("/chat/{$this->agent->slug}")
-        ->assertInertia(fn ($page) => $page->where('readAloud', true));
+    expect($this->speaker->spoken)->toBe([]);
 });

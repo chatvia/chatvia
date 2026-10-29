@@ -40,7 +40,6 @@ it('refuses a 2FA-enabled owner on the hosted-chat password form, answering the 
         ->and(Auth::guard('web')->check())->toBeFalse()
         ->and(session('login.id'))->toBeNull();
 
-    // And so the dashboard stays closed.
     $this->get(route('dashboard'))->assertRedirect(route('login'));
 });
 
@@ -66,7 +65,6 @@ it('locks the form after five attempts for one workspace and email', function ()
         'password' => Hash::make('chatter-pass'),
     ]);
 
-    // The named `chat-login` limiter counts per workspace + email + IP.
     foreach (range(1, 5) as $_) {
         $this->from($this->login)->post($this->login, [
             'email' => 'chatter@example.test',
@@ -74,7 +72,6 @@ it('locks the form after five attempts for one workspace and email', function ()
         ])->assertSessionHasErrors(['email' => trans('auth.failed')]);
     }
 
-    // Even the right password is refused while the counter is full.
     $this->from($this->login)->post($this->login, [
         'email' => 'chatter@example.test',
         'password' => 'chatter-pass',

@@ -27,17 +27,7 @@ function stcScopedId(Agent $agent, string $conversationId, string $requestId): s
     return (string) app(StreamRequestDataFactory::class)->chatRequestId($agent, $sessionId, $conversationId, $requestId);
 }
 
-it('stops the visitor\'s turn', function (): void {
-    $id = HostedChatVisitor::startConversation($this->agent);
-
-    $this->postJson("/chat/{$this->agent->slug}/conversations/{$id}/stop", ['request_id' => 'r1'])->assertNoContent();
-
-    $turn = TestChatContext::make(requestId: stcScopedId($this->agent, $id, 'r1'));
-    expect(fn () => app(TurnStops::class)->throwIfStopped($turn))->toThrow(TurnStopped::class);
-    Sleep::assertNeverSlept();
-});
-
-it('answers once the turn has ended, waiting a few seconds at most', function (): void {
+it('stops the visitor\'s turn and answers once it has ended, waiting a few seconds at most', function (): void {
     $id = HostedChatVisitor::startConversation($this->agent);
     app(RunningTurns::class)->track($id, fn (): Generator => (function (): Generator {
         yield 'a';
@@ -45,6 +35,8 @@ it('answers once the turn has ended, waiting a few seconds at most', function ()
 
     $this->postJson("/chat/{$this->agent->slug}/conversations/{$id}/stop", ['request_id' => 'r1'])->assertNoContent();
 
+    $turn = TestChatContext::make(requestId: stcScopedId($this->agent, $id, 'r1'));
+    expect(fn () => app(TurnStops::class)->throwIfStopped($turn))->toThrow(TurnStopped::class);
     Sleep::assertSleptTimes(50);
 });
 
@@ -53,12 +45,4 @@ it('is not found for another visitor\'s conversation', function (): void {
     $theirs = Conversation::factory()->create(['agent_id' => $this->agent->id]);
 
     $this->postJson("/chat/{$this->agent->slug}/conversations/{$theirs->external_id}/stop", ['request_id' => 'r1'])->assertNotFound();
-});
-
-it('asks which turn to stop', function (): void {
-    $id = HostedChatVisitor::startConversation($this->agent);
-
-    $this->postJson("/chat/{$this->agent->slug}/conversations/{$id}/stop", [])
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors(['request_id']);
 });

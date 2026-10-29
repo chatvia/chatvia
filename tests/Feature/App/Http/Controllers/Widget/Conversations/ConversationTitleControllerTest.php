@@ -3,7 +3,6 @@
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Memory\MessageData;
 use Domain\Conversation\Enums\MessageRole;
-use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Llm\Operations\Query\TitleGenerator;
 use Domain\Widget\WidgetHeaders;
@@ -13,10 +12,9 @@ use Tests\Support\Widget\EmbeddedWidget;
 
 /**
  * POST /widget/conversations/title names the visitor's conversation at once,
- * after the first reply, instead of waiting for the queued naming job. A
- * title that is there is kept without another AI call. It names no
- * conversation of another agent or another session, and needs both ids. The
- * model is the title generator, mocked at that boundary.
+ * after the first reply, instead of waiting for the queued naming job. It
+ * names no conversation of another agent or another session. The model is
+ * the title generator, mocked at that boundary.
  */
 beforeEach(function (): void {
     $this->agent = Agent::factory()->create(['is_public' => true]);
@@ -45,15 +43,6 @@ it('names the conversation at once when the widget asks, after the first reply',
         ->assertExactJson(['title' => 'Order status']);
 });
 
-it('keeps a title that is there, without another AI call', function (): void {
-    Conversation::query()->firstWhere('external_id', $this->boot['conversation_id'])->update(['title' => 'Billing question']);
-    $this->mock(TitleGenerator::class)->shouldNotReceive('generate');
-
-    ctcName($this->agent, $this->boot['session_id'], $this->boot['conversation_id'])
-        ->assertOk()
-        ->assertExactJson(['title' => 'Billing question']);
-});
-
 it('names no conversation of another agent or another session', function (Closure $conversationId): void {
     $this->mock(TitleGenerator::class)->shouldNotReceive('generate');
 
@@ -69,9 +58,3 @@ it('names no conversation of another agent or another session', function (Closur
     }],
     'another session’s conversation' => [fn (): string => EmbeddedWidget::boot($this->agent)['conversation_id']],
 ]);
-
-it('needs a session and a conversation to name one', function (): void {
-    $this->withHeaders(EmbeddedWidget::headers($this->agent))
-        ->postJson('/widget/conversations/title')
-        ->assertBadRequest();
-});

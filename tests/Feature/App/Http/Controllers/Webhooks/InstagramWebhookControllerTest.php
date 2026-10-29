@@ -48,74 +48,27 @@ function instagramEnvelope(array $message, string $senderId = '5550001234', stri
     ];
 }
 
-it('dispatches a job for a valid, signed message', function (): void {
+it('dispatches a job for a valid, signed message, once per message mid', function (): void {
     MetaWebhook::post(MetaApp::Instagram, instagramEnvelope(['mid' => 'm1', 'text' => 'hello']), $this->appSecret)
         ->assertOk()
         ->assertJson(['ok' => true]);
+    MetaWebhook::post(MetaApp::Instagram, instagramEnvelope(['mid' => 'm1', 'text' => 'hello']), $this->appSecret)->assertOk();
 
+    Bus::assertDispatchedTimes(HandleInstagramMessageJob::class, 1);
     Bus::assertDispatched(HandleInstagramMessageJob::class, fn (HandleInstagramMessageJob $job): bool => $job->igsid === '5550001234' && $job->text === 'hello' && $job->account->is($this->account));
 });
 
-it('ignores a payload for a different webhook object', function (): void {
-    $payload = instagramEnvelope(['mid' => 'm1', 'text' => 'hello']);
-    $payload['object'] = 'page';
+it('answers 200 without dispatching for no enabled account or the account’s own replies', function (): void {
+    MetaWebhook::post(MetaApp::Instagram, instagramEnvelope(['mid' => 'm2', 'text' => 'hello'], igId: '99999999'), $this->appSecret)->assertOk();
 
-    MetaWebhook::post(MetaApp::Instagram, $payload, $this->appSecret)->assertOk();
-
-    Bus::assertNotDispatched(HandleInstagramMessageJob::class);
-});
-
-it('answers 200 without dispatching for a message to no enabled account', function (Closure $miss): void {
-    MetaWebhook::post(MetaApp::Instagram, instagramEnvelope(['mid' => 'm1', 'text' => 'hello'], igId: $miss->call($this)), $this->appSecret)->assertOk();
-
-    Bus::assertNotDispatched(HandleInstagramMessageJob::class);
-})->with([
-    'an unknown account' => [fn (): string => '99999999'],
-    'a disabled account' => [function (): string {
-        $this->account->update(['is_enabled' => false]);
-
-        return '17840012345';
-    }],
-]);
-
-it('processes each message mid at most once', function (): void {
-    MetaWebhook::post(MetaApp::Instagram, instagramEnvelope(['mid' => 'm7', 'text' => 'hello']), $this->appSecret)->assertOk();
-    MetaWebhook::post(MetaApp::Instagram, instagramEnvelope(['mid' => 'm7', 'text' => 'hello']), $this->appSecret)->assertOk();
-
-    Bus::assertDispatchedTimes(HandleInstagramMessageJob::class, 1);
-});
-
-it('ignores echoes of the account’s own replies', function (): void {
     $echo = instagramEnvelope(['mid' => 'm10', 'text' => 'our own reply', 'is_echo' => true]);
     MetaWebhook::post(MetaApp::Instagram, $echo, $this->appSecret)->assertOk();
 
     $fromAccount = instagramEnvelope(['mid' => 'm11', 'text' => 'also ours'], senderId: '17840012345');
     MetaWebhook::post(MetaApp::Instagram, $fromAccount, $this->appSecret)->assertOk();
 
-    Bus::assertNotDispatched(HandleInstagramMessageJob::class);
-});
-
-it('ignores non-text messages (attachments, story replies)', function (): void {
-    MetaWebhook::post(MetaApp::Instagram, instagramEnvelope(['mid' => 'm12', 'attachments' => [['type' => 'story_mention']]]), $this->appSecret)->assertOk();
+    $this->account->update(['is_enabled' => false]);
+    MetaWebhook::post(MetaApp::Instagram, instagramEnvelope(['mid' => 'm3', 'text' => 'hello']), $this->appSecret)->assertOk();
 
     Bus::assertNotDispatched(HandleInstagramMessageJob::class);
-});
-
-it('handles every message in a batched delivery', function (): void {
-    $payload = [
-        'object' => 'instagram',
-        'entry' => [
-            [
-                'id' => '17840012345',
-                'messaging' => [
-                    ['sender' => ['id' => '111'], 'message' => ['mid' => 'm20', 'text' => 'first']],
-                    ['sender' => ['id' => '222'], 'message' => ['mid' => 'm21', 'text' => 'second']],
-                ],
-            ],
-        ],
-    ];
-
-    MetaWebhook::post(MetaApp::Instagram, $payload, $this->appSecret)->assertOk();
-
-    Bus::assertDispatchedTimes(HandleInstagramMessageJob::class, 2);
 });

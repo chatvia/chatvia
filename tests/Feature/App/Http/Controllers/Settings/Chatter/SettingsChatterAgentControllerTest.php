@@ -1,27 +1,20 @@
 <?php
 
+use App\Identity\Chatter\Models\Chatter;
+use App\Identity\Workspace\Models\User;
+
 /**
  * The Agents tab of a chatter's detail sheet (SettingsChatterAgentController):
  * granting and revoking a chatter's access to an agent goes through
  * `can.access.agent`, so a teammate can only grant agents their team role
  * reaches, and the list offers only those.
  */
-
-use App\Identity\Chatter\Models\Chatter;
-use App\Identity\Workspace\Models\User;
-use Domain\Agent\Models\Agent;
-
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
-    $this->support = cagProtectedAgent($this->owner, 'Support Bot');
-    $this->billing = cagProtectedAgent($this->owner, 'Billing Bot');
+    $this->support = createAgent($this->owner, ['name' => 'Support Bot']);
+    $this->billing = createAgent($this->owner, ['name' => 'Billing Bot']);
     $this->chatter = Chatter::factory()->ofWorkspace($this->owner)->create();
 });
-
-function cagProtectedAgent(User $owner, string $name): Agent
-{
-    return createAgent($owner, ['name' => $name]);
-}
 
 it('lets the owner grant a chatter any protected agent of the workspace', function (): void {
     $this->actingAs($this->owner)

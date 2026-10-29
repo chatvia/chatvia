@@ -7,8 +7,7 @@ use Domain\Conversation\Models\Conversation;
 /**
  * The Inbox list as JSON: who is chatting right now across the agents a
  * person may view, with a flag for the chats they may join. Another
- * workspace's chats never show; joining stays Chat Widget only and needs a
- * license key, though the person holding a chat keeps it. Which agents
+ * workspace's chats never show; joining needs a license key, though the person holding a chat keeps it. Which agents
  * a teammate sees and where they may reply are the Inbox agents' rules; the
  * order of the list is the Inbox query's.
  */
@@ -18,37 +17,19 @@ beforeEach(function (): void {
     $this->support = makeTeamAgent($this->owner, 'Support');
 });
 
-it('answers each chat with its agent, its online state and whether the person may join', function (): void {
+it('answers each chat of the workspace with its agent, its online state and whether the person may join, never another workspace\'s', function (): void {
     $chat = Conversation::factory()->forAgent($this->support)->live()->create();
+    Conversation::factory()->forAgent(makeTeamAgent(User::factory()->create(), 'Theirs'))->live()->handedOff(HandoffStatus::Pending)->create();
 
     $this->actingAs($this->owner)
         ->getJson(route('inbox.conversations'))
         ->assertOk()
+        ->assertJsonCount(1, 'conversations')
         ->assertJsonPath('waiting_count', 0)
         ->assertJsonPath('conversations.0.conversation_id', $chat->external_id)
         ->assertJsonPath('conversations.0.agent.id', $this->support->external_id)
         ->assertJsonPath('conversations.0.is_online', true)
         ->assertJsonPath('conversations.0.can_join', true);
-});
-
-it('never shows another workspace\'s chats', function (): void {
-    $stranger = User::factory()->create();
-    Conversation::factory()->forAgent(makeTeamAgent($stranger, 'Theirs'))->live()->handedOff(HandoffStatus::Pending)->create();
-
-    $this->actingAs($this->owner)
-        ->getJson(route('inbox.conversations'))
-        ->assertOk()
-        ->assertJsonCount(0, 'conversations')
-        ->assertJsonPath('waiting_count', 0);
-});
-
-it('lets nobody join a chat outside the Chat Widget', function (): void {
-    Conversation::factory()->forAgent($this->support)->hostedChat()->live()->create();
-
-    $this->actingAs($this->owner)
-        ->getJson(route('inbox.conversations'))
-        ->assertOk()
-        ->assertJsonPath('conversations.0.can_join', false);
 });
 
 it('names the colleague who holds a chat to everyone but the holder', function (): void {

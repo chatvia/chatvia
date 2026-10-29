@@ -75,13 +75,11 @@ dataset('metaWebhookApps', [
     'WhatsApp' => [MetaApp::Whatsapp, MetaApp::Messenger],
 ]);
 
-it('echoes the challenge for the channel app\'s verify token', function (MetaApp $app): void {
+it('echoes the challenge only for the channel app\'s verify token, never another channel app\'s', function (MetaApp $app, MetaApp $other): void {
     $response = MetaWebhook::verify($app, "verify-token-{$app->value}", 'challenge-123')->assertOk();
 
     expect($response->getContent())->toBe('challenge-123');
-})->with(MetaApp::cases());
 
-it('refuses the handshake for any other verify token, another channel app\'s too', function (MetaApp $app, MetaApp $other): void {
     MetaWebhook::verify($app, 'wrong')->assertForbidden();
     MetaWebhook::verify($app, "verify-token-{$other->value}")->assertForbidden();
 })->with('metaWebhookApps');
@@ -102,7 +100,6 @@ it('verifies nothing while the channel app has no secret', function (MetaApp $ap
     $payload = metaWebhookMessage($app);
     config(["services.meta.{$app->value}.app_secret" => null]);
 
-    // An HMAC keyed with an empty secret is easy to forge.
     MetaWebhook::post($app, $payload, '')->assertOk();
 
     Bus::assertNotDispatched(metaWebhookJob($app));

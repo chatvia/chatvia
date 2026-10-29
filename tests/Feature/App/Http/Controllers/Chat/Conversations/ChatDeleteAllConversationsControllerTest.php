@@ -12,7 +12,6 @@ it('leaves the conversations of another visitor alone', function (): void {
     $agent = Agent::factory()->create(['is_public' => true]);
     $id = HostedChatVisitor::startConversation($agent);
 
-    // A fresh browser session is a different visitor.
     $this->flushSession();
 
     $this->deleteJson("/chat/{$agent->slug}/conversations")->assertOk();

@@ -13,7 +13,6 @@ it('does not remove a message of another visitor\'s conversation', function (): 
     $memory = HostedChatVisitor::memory($agent, $id);
     $firstMessageId = $memory->getMessagesForConversation()[0]->id;
 
-    // A fresh browser session is a different visitor.
     $this->flushSession();
 
     $this->deleteJson("/chat/{$agent->slug}/messages", ['conversation_id' => $id, 'message_id' => $firstMessageId])->assertOk();

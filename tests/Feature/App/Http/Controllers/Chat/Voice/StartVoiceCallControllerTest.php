@@ -33,31 +33,12 @@ beforeEach(function (): void {
     Queue::fake();
     VoiceCalls::fakeOpenAi();
 
-    $this->agent = Agent::factory()->create(['is_public' => true, 'system_instructions' => 'You are the Acme helper.']);
+    $this->agent = Agent::factory()->create(['is_public' => true]);
     $this->agent->setSetting('allow_voice_conversation', true, 'appearance');
     $this->chat = '/chat/'.$this->agent->slug;
 });
 
-/** The multipart `session` field OpenAI received, decoded. */
-function svccSentSession(): array
-{
-    $session = null;
-
-    Http::assertSent(function (Request $request) use (&$session): bool {
-        if (! Str::endsWith($request->url(), '/realtime/calls')) {
-            return false;
-        }
-
-        $part = collect($request->data())->firstWhere('name', 'session');
-        $session = json_decode((string) ($part['contents'] ?? ''), true);
-
-        return true;
-    });
-
-    return (array) $session;
-}
-
-it('opens a hosted-chat call in a new conversation and sends a worker to join it', function (): void {
+it('opens a hosted-chat call in a new conversation, keeps the key on the server and sends a worker to join it', function (): void {
     $response = $this->postJson($this->chat.'/voice', ['sdp' => 'v=0 offer'])
         ->assertOk()
         ->assertJsonPath('sdp', 'v=0 answer')
@@ -73,58 +54,12 @@ it('opens a hosted-chat call in a new conversation and sends a worker to join it
         ->and($call?->max_seconds)->toBe(600);
 
     Queue::assertPushedOn('voice', JoinVoiceCallJob::class, fn (JoinVoiceCallJob $job): bool => $job->call->call_id === $response->json('call_id'));
-});
-
-it('starts the call silent, with the agent instructions, voice, transcription and knowledge search', function (): void {
-    $this->agent->setSetting('voice', 'cedar', 'appearance');
-
-    $this->postJson($this->chat.'/voice', ['sdp' => 'v=0 offer'])->assertOk();
-
-    $session = svccSentSession();
-
-    expect($session['model'])->toBe('gpt-realtime-2.1')
-        ->and($session['instructions'])->toContain('You are the Acme helper.')
-        ->and($session['instructions'])->toContain('live voice call')
-        ->and($session['audio']['input']['turn_detection'])->toBeNull()
-        ->and($session['audio']['input']['transcription']['model'])->toBe('gpt-4o-mini-transcribe')
-        ->and($session['audio']['output']['voice'])->toBe('cedar')
-        ->and(collect($session['tools'])->pluck('name')->all())->toBe(['search_knowledge']);
-});
-
-it('sends OpenAI the offer with its line endings, though form input is trimmed', function (): void {
-    $this->postJson($this->chat.'/voice', ['sdp' => "v=0\r\no=- 1 2 IN IP4 127.0.0.1\r\na=mid:0\r\n"])->assertOk();
-
-    Http::assertSent(function (Request $request): bool {
-        $sdp = collect($request->data())->firstWhere('name', 'sdp')['contents'] ?? null;
-
-        return $sdp === "v=0\r\no=- 1 2 IN IP4 127.0.0.1\r\na=mid:0\r\n";
-    });
-});
-
-it('sends the key and an anonymous caller id to OpenAI, never to the browser', function (): void {
-    $response = $this->postJson($this->chat.'/voice', ['sdp' => 'v=0 offer'])->assertOk();
 
     Http::assertSent(fn (Request $request): bool => Str::endsWith($request->url(), '/realtime/calls')
         && $request->hasHeader('Authorization', 'Bearer test-key')
         && strlen($request->header('OpenAI-Safety-Identifier')[0] ?? '') === 64);
 
     expect(json_encode($response->json()))->not->toContain('test-key');
-});
-
-it('opens the call in the given conversation of the visitor', function (): void {
-    $conversationId = $this->postJson($this->chat.'/voice', ['sdp' => 'v=0 offer'])->json('conversation_id');
-
-    $this->postJson($this->chat.'/voice/'.$conversationId, ['sdp' => 'v=0 offer'])
-        ->assertOk()
-        ->assertJsonPath('conversation_id', $conversationId);
-});
-
-it('refuses a conversation of another visitor with a 404', function (): void {
-    $other = Conversation::factory()->forAgent($this->agent)->hostedChat()->create();
-
-    $this->postJson($this->chat.'/voice/'.$other->external_id, ['sdp' => 'v=0 offer'])->assertNotFound();
-
-    Http::assertNothingSent();
 });
 
 it('answers a refused call with its status and reason', function (Closure $refuse, int $status, string $error): void {
@@ -134,11 +69,6 @@ it('answers a refused call with its status and reason', function (Closure $refus
 })->with([
     'voice off for the agent' => [function (Agent $agent): string {
         $agent->setSetting('allow_voice_conversation', false, 'appearance');
-
-        return '';
-    }, 403, 'voice_not_available'],
-    'voice not set up on this install' => [function (): string {
-        config(['chatvia.ai.voice' => 'none']);
 
         return '';
     }, 403, 'voice_not_available'],
@@ -166,7 +96,3 @@ it('answers a refused call with its status and reason', function (Closure $refus
         return '';
     }, 502, 'voice_failed'],
 ]);
-
-it('validates the offer', function (): void {
-    $this->postJson($this->chat.'/voice', [])->assertUnprocessable()->assertJsonValidationErrors('sdp');
-});

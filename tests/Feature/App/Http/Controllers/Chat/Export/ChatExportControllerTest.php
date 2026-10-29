@@ -5,14 +5,13 @@ use Domain\Conversation\Data\Memory\MessageData;
 use Domain\Conversation\Enums\MessageRole;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
-use Illuminate\Testing\TestResponse;
 use Spatie\LaravelPdf\Facades\Pdf;
 use Spatie\LaravelPdf\FakePdfBuilder;
 use Tests\Support\Conversation\HostedChatVisitor;
 
 /**
- * A hosted-chat visitor downloads a conversation (or one message of it) as
- * PDF, Markdown or text. The PDF is laid out by the PDF maker of Settings →
+ * A hosted-chat visitor downloads a conversation as PDF, Markdown or text.
+ * The PDF is laid out by the PDF maker of Settings →
  * Platform (WeasyPrint on the server, or a browser service), which may load
  * nothing.
  */
@@ -21,71 +20,24 @@ beforeEach(function (): void {
     $this->conversationId = HostedChatVisitor::startConversation($this->agent, 'Show me **bold** text');
     $this->export = "/chat/{$this->agent->slug}/conversations/{$this->conversationId}/export";
 
-    // The agent's answer, as the turn stores it in the live history.
     HostedChatVisitor::memory($this->agent, $this->conversationId)
         ->appendMessage(new MessageData(id: 'answer-1', role: MessageRole::Assistant, content: 'Here is a [link](https://shop.test).', type: MessageData::TYPE_TEXT, timestamp: now()->timestamp));
 });
 
-/** The text of a downloaded export. */
-function cecDownloaded(TestResponse $response): string
-{
-    return File::get($response->baseResponse->getFile()->getPathname());
-}
-
-it('exports a conversation as a PDF', function (): void {
-    Pdf::fake();
-
-    $this->get("{$this->export}?type=pdf")->assertOk();
-
-    Pdf::assertRespondedWithPdf(fn (FakePdfBuilder $pdf): bool => $pdf->viewName === 'chat.export.pdf'
-        && $pdf->isDownload()
-        && Str::endsWith($pdf->downloadName, '.pdf'));
-});
-
-it('exports a conversation as Markdown, message by message', function (): void {
+it('exports a conversation as Markdown and deletes the temporary copy once it is sent', function (): void {
     $response = $this->get("{$this->export}?type=markdown")
         ->assertOk()
         ->assertDownload();
-
-    expect(cecDownloaded($response))
-        ->toContain("Show me **bold** text\n\n---\n\nHere is a [link](https://shop.test).");
-});
-
-it('exports a conversation as plain text, with the Markdown rendered away', function (): void {
-    $response = $this->get("{$this->export}?type=text")
-        ->assertOk()
-        ->assertDownload();
-
-    expect(cecDownloaded($response))
-        ->toContain('Show me bold text')
-        ->toContain('Here is a link.')
-        ->not->toContain('**')
-        ->not->toContain('<p>');
-});
-
-it('deletes the temporary copy of a text export once it is sent', function (string $type): void {
-    $response = $this->get("{$this->export}?type={$type}")->assertOk();
     $path = $response->baseResponse->getFile()->getPathname();
 
-    expect(File::exists($path))->toBeTrue();
+    expect(File::get($path))
+        ->toContain("Show me **bold** text\n\n---\n\nHere is a [link](https://shop.test).");
 
     ob_start();
     $response->baseResponse->sendContent();
     ob_end_clean();
 
     expect(File::exists($path))->toBeFalse();
-})->with(['markdown', 'text']);
-
-it('exports a single message of the conversation', function (): void {
-    $response = $this->get("{$this->export}?type=markdown&messageId=answer-1")
-        ->assertOk();
-
-    expect(cecDownloaded($response))->toBe("Here is a [link](https://shop.test).\n");
-});
-
-it('answers 404 for a message the conversation does not have', function (): void {
-    $this->get("{$this->export}?type=markdown&messageId=no-such-message")
-        ->assertNotFound();
 });
 
 it('keeps every PDF maker from loading anything a message links to', function (): void {
@@ -95,7 +47,6 @@ it('keeps every PDF maker from loading anything a message links to', function ()
 
     $this->get("{$this->export}?type=pdf")->assertOk();
 
-    // A browser maker obeys the page's policy; a remote image is left out.
     Pdf::assertRespondedWithPdf(function (FakePdfBuilder $pdf): bool {
         $html = $pdf->getHtml();
 

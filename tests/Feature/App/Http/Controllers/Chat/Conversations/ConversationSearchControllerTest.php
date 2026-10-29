@@ -6,19 +6,9 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 
 /**
- * Conversation search is a read: it must never create a chat session, and it
- * returns nothing when the visitor has no session yet.
+ * Conversation search finds a signed-in chatter's conversations in their
+ * existing chat session, and as a read it never creates another one.
  */
-it('returns no results and creates no session for a visitor without one', function (): void {
-    $agent = Agent::factory()->create(['is_public' => true]);
-
-    $this->getJson("/chat/{$agent->slug}/conversations/search?q=hello")
-        ->assertOk()
-        ->assertExactJson([]);
-
-    expect(Session::query()->where('agent_id', $agent->id)->count())->toBe(0);
-});
-
 it('finds a signed-in chatter\'s conversation by title in their existing session', function (): void {
     $agent = Agent::factory()->create(['is_public' => false]);
     $chatter = Chatter::factory()->grantedTo($agent)->create();

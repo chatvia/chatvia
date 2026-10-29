@@ -22,8 +22,6 @@ it('answers an auth exchange without a token with 401', function (): void {
 });
 
 it('refuses a staff account in a token signed with the agent secret, but takes a server-issued one', function (): void {
-    // A teammate can read the agent's secret, so a token signed with it must
-    // not open a widget session as the owner.
     $agent = Agent::factory()->create(['is_public' => false]);
     EmbeddedWidget::allowSite($agent);
     $owner = $agent->workspace->owner;

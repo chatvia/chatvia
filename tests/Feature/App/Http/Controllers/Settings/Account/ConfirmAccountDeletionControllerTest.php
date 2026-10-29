@@ -35,6 +35,5 @@ it('refuses a link that is not signed for the signed-in owner', function (string
         ->assertSessionMissing('account_deletion_confirmed_at');
 })->with([
     'without a signature' => 'unsigned',
-    // A valid signature, but for someone else's id.
     'signed for another account' => 'other',
 ]);

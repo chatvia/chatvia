@@ -36,7 +36,6 @@ beforeEach(function (): void {
         'webhook_url' => 'https://orders.example.test/cancel',
     ]);
 
-    // Round 1 asks for the gated call; round 2 answers after the decision.
     bindFakeLlmProvider(new ScriptedLlmProvider(
         ScriptedLlmProvider::body(['id' => 'gen-1', 'choices' => [['delta' => ['tool_calls' => [[
             'index' => 0,
@@ -46,7 +45,6 @@ beforeEach(function (): void {
         ScriptedLlmProvider::body(['id' => 'gen-2', 'choices' => [['delta' => ['content' => 'Order 1234 is cancelled.']]]]),
     ));
 
-    // A signed-in chatter's turn pauses on the gated call, leaving one checkpoint.
     $this->chatter = Chatter::factory()->ofWorkspace($this->agent->workspace)->create();
     $this->actingAs($this->chatter, 'chat');
     $this->post(
@@ -80,7 +78,6 @@ it('resumes the visitor\'s own paused turn and runs the approved call', function
         ->and($events->where('type', 'done')->last()['data']['reason'])->toBe('complete')
         ->and($this->checkpoint->fresh()->status)->toBe(ToolApprovalStatus::Resolved);
 
-    // The approved call still says which chatter is talking.
     Http::assertSent(fn (ClientRequest $request): bool => Str::startsWith($request->url(), 'https://orders.example.test/cancel')
         && $request->header('X-Chatvia-Chatter-Id') === [$this->chatter->external_id]);
 });
@@ -105,21 +102,15 @@ it('never offers an anonymous visitor a tool that needs approval', function (): 
     Http::assertNothingSent();
 });
 
-it('answers 404 for another chatter\'s paused turn and leaves it pending', function (): void {
-    // Another chatter in a fresh browser session.
+it('answers 404 for a paused turn of another agent or another chatter and leaves it pending', function (): void {
+    $other = Agent::factory()->create(['is_public' => true]);
+
+    rtacResolve($other, $this->checkpoint)->assertNotFound();
+
     $this->flushSession();
     $this->actingAs(Chatter::factory()->ofWorkspace($this->agent->workspace)->create(), 'chat');
 
     rtacResolve($this->agent, $this->checkpoint)->assertNotFound();
-
-    expect($this->checkpoint->fresh()->status)->toBe(ToolApprovalStatus::Pending);
-    Http::assertNothingSent();
-});
-
-it('answers 404 for a paused turn of another agent and leaves it pending', function (): void {
-    $other = Agent::factory()->create(['is_public' => true]);
-
-    rtacResolve($other, $this->checkpoint)->assertNotFound();
 
     expect($this->checkpoint->fresh()->status)->toBe(ToolApprovalStatus::Pending);
     Http::assertNothingSent();

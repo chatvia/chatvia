@@ -16,7 +16,6 @@ use Tests\Support\Widget\EmbeddedWidget;
  * week the visitor browses to, for a calendar in the caller's conversation.
  */
 beforeEach(function (): void {
-    // Capabilities and forms need a license key; EnsureCapabilityLicenseTest covers the gate.
     withLicense();
     $this->travelTo(CarbonImmutable::create(2026, 11, 2, 9, 0, 0));
     $this->scheduler = FakeScheduler::install();

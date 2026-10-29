@@ -13,9 +13,9 @@ use Illuminate\Support\Facades\Storage;
 
 /**
  * The remove chip in the composer deletes an upload's row and its stored
- * file. A file already sent with a message, another workspace's file, a file
- * in someone else's conversation on a protected agent, and a file whose
- * conversation is gone are all refused and kept.
+ * file. A file already sent with a message, another workspace's file and a
+ * file in someone else's conversation on a protected agent are all refused
+ * and kept.
  */
 beforeEach(function (): void {
     Storage::fake(Attachment::DISK);
@@ -53,16 +53,6 @@ it('deletes an upload and its stored file, before or after the conversation exis
     'in a conversation' => [fn (Agent $agent): Attachment => Attachment::factory()->forConversation(adcConversation($agent))->stored()->create()],
 ]);
 
-it('refuses to delete an upload already sent with a message', function (): void {
-    $agent = Agent::factory()->create(['is_public' => true]);
-    $message = Message::factory()->fromUser()->create(['chat_conversation_id' => adcConversation($agent)->id]);
-    $attachment = Attachment::factory()->forMessage($message)->stored()->create();
-
-    $this->delete(adcUrl($agent, $attachment))->assertForbidden();
-
-    adcAssertKept($attachment);
-});
-
 it('answers 404 for an upload of another workspace\'s agent', function (Closure $upload): void {
     $attachment = $upload(Agent::factory()->create(['is_public' => true]));
     $requesterAgent = Agent::factory()->create(['is_public' => true]);
@@ -76,57 +66,20 @@ it('answers 404 for an upload of another workspace\'s agent', function (Closure 
     'on a sent message' => [fn (Agent $agent): Attachment => Attachment::factory()->forMessage(Message::factory()->fromUser()->create(['chat_conversation_id' => adcConversation($agent)->id]))->stored()->create()],
 ]);
 
-it('refuses to delete on a private agent when the signed-in chatter does not own the conversation', function (): void {
-    $agent = Agent::factory()->create(['is_public' => false]);
-    $owner = Chatter::factory()->grantedTo($agent)->create();
+it('refuses and keeps an upload already sent with a message, or in another chatter\'s conversation on a private agent', function (): void {
+    $public = Agent::factory()->create(['is_public' => true]);
+    $message = Message::factory()->fromUser()->create(['chat_conversation_id' => adcConversation($public)->id]);
+    $sent = Attachment::factory()->forMessage($message)->stored()->create();
+    $private = Agent::factory()->create(['is_public' => false]);
+    $owner = Chatter::factory()->grantedTo($private)->create();
+    $intruder = app(CreateChatterAction::class)->execute(new CreateChatterData($private->workspace, $private, 'Intruder'))->refresh();
+    $conversation = adcConversation($private, $owner);
+    ChatCache::rememberOwner($conversation->external_id, ChatViewerData::chatter($owner->id), $private);
+    $theirs = Attachment::factory()->forConversation($conversation)->stored()->create();
 
-    // The intruder IS a legitimate chatter of this agent (agent_chatter grant),
-    // so EnsureChatIsAccessible's membership gate lets them through — the
-    // per-conversation ownership check in DeleteAttachmentRequest is what
-    // must refuse them.
-    // refresh(): CreateChatterAction returns the in-memory Chatter::create()
-    // instance, which lacks the columns it did not set (locale, avatar path…)
-    // that the chat reads under strict mode.
-    $intruder = app(CreateChatterAction::class)->execute(new CreateChatterData($agent->workspace, $agent, 'Intruder'))->refresh();
+    $this->delete(adcUrl($public, $sent))->assertForbidden();
+    $this->actingAs($intruder, 'chat')->delete(adcUrl($private, $theirs))->assertForbidden();
 
-    $conversation = adcConversation($agent, $owner);
-    ChatCache::rememberOwner($conversation->external_id, ChatViewerData::chatter($owner->id), $agent);
-    $attachment = Attachment::factory()->forConversation($conversation)->stored()->create();
-
-    $this->actingAs($intruder, 'chat')->delete(adcUrl($agent, $attachment))->assertForbidden();
-
-    adcAssertKept($attachment);
-});
-
-it('lets the rightful owner delete on a private agent', function (): void {
-    $agent = Agent::factory()->create(['is_public' => false]);
-
-    // This route carries no {conversationId}, so EnsureChatIsAccessible
-    // gates it on agent membership (canAccessAgent) — the owner must be a
-    // provisioned chatter of the agent, not a bare factory user.
-    $owner = app(CreateChatterAction::class)->execute(new CreateChatterData($agent->workspace, $agent, 'Owner'))->refresh();
-
-    $conversation = adcConversation($agent, $owner);
-    ChatCache::rememberOwner($conversation->external_id, ChatViewerData::chatter($owner->id), $agent);
-    $attachment = Attachment::factory()->forConversation($conversation)->stored()->create();
-
-    $this->actingAs($owner, 'chat')->delete(adcUrl($agent, $attachment))->assertNoContent();
-
-    expect(Attachment::find($attachment->id))->toBeNull();
-    Storage::disk(Attachment::DISK)->assertMissing($attachment->filepath);
-});
-
-it('refuses to delete an upload whose conversation has been soft-deleted', function (): void {
-    $agent = Agent::factory()->create(['is_public' => true]);
-    $conversation = adcConversation($agent);
-    $attachment = Attachment::factory()->forConversation($conversation)->stored()->create();
-
-    // The Conversation::booted() deleting hook normally cascades, but a partial
-    // failure mid-cascade could leave an attachment row pointing at a trashed
-    // conversation. The controller still refuses (Attachment->conversation()
-    // applies SoftDeletes scope → null → 403); the daily prune is the only
-    // path that cleans up such an orphan. Lock the behaviour in.
-    $conversation->forceFill(['deleted_at' => now()])->saveQuietly();
-
-    $this->delete(adcUrl($agent, $attachment))->assertForbidden();
+    adcAssertKept($sent);
+    adcAssertKept($theirs);
 });

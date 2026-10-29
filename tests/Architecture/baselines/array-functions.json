@@ -299,8 +299,6 @@
     "tests/Feature/App/Http/Controllers/Api/V1/Source/SourceListControllerTest.php": 1,
     "tests/Feature/App/Http/Controllers/Chat/Messages/MessageDeleteControllerTest.php": 1,
     "tests/Feature/App/Http/Controllers/Chat/Tools/ResolveToolApprovalControllerTest.php": 2,
-    "tests/Feature/App/Http/Controllers/Settings/Account/PreferencesControllerTest.php": 1,
-    "tests/Feature/App/Http/Controllers/Settings/Function/FunctionControllerTest.php": 1,
     "tests/Feature/App/Http/CrossWorkspaceRouteTest.php": 3,
     "tests/Feature/App/Mcp/Servers/BuiltinToolContractTest.php": 3,
     "tests/Feature/Routes/ConsoleScheduleTest.php": 1,

@@ -32,13 +32,11 @@ function cmcRead(Agent $agent, string $sessionId): TestResponse
     ]))->getJson('/widget/conversations/messages');
 }
 
-it('reads the messages of the visitor’s own conversation', function (): void {
+it('reads the visitor’s own conversation, and nothing for another visitor replaying its id', function (): void {
     cmcRead($this->agent, $this->boot['session_id'])
         ->assertOk()
         ->assertJsonPath('0.content', 'Where is my order?');
-});
 
-it('reads nothing for another visitor of the agent replaying the conversation id', function (): void {
     cmcRead($this->agent, EmbeddedWidget::boot($this->agent)['session_id'])
         ->assertOk()
         ->assertExactJson([]);

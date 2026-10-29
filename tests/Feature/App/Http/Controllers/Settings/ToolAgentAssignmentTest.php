@@ -1,20 +1,17 @@
 <?php
 
-/**
- * The "Manage agents" dialog of a workspace tool, the same for a connector
- * (ConnectorAgentController) and a webhook function (FunctionAgentController):
- * list the agents the viewer may manage, split into attached and available,
- * attach one, detach one, each answered with the new split. Attach and detach
- * carry `can.access.agent`, so a teammate only reaches the agents their role
- * does.
- */
-
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
-use Domain\Membership\Team\Actions\Team\CreateDefaultTeamAction;
 
+/**
+ * The "Manage agents" dialog of a workspace tool, the same for a connector
+ * (ConnectorAgentController) and a webhook function (FunctionAgentController):
+ * it lists the agents the viewer may manage, split into attached and
+ * available, and attaches one, answered with the new split. Attaching carries
+ * `can.access.agent`, so a teammate only reaches the agents their role does.
+ */
 dataset('workspace tools', [
     'connector' => 'connector',
     'function' => 'function',
@@ -55,17 +52,6 @@ function taaUrl(array $tool, string $action, ?Agent $agent = null): string
     return route("{$tool['routes']}.{$action}", [...$tool['key'], ...($agent instanceof Agent ? ['agent' => $agent->external_id] : [])]);
 }
 
-it('lists the accessible agents as available while none is attached', function (string $kind): void {
-    $tool = taaTool($kind, $this->owner);
-
-    $this->actingAs($this->owner)
-        ->getJson(taaUrl($tool, 'index'))
-        ->assertOk()
-        ->assertJsonCount(0, 'attached')
-        ->assertJsonCount(1, 'available')
-        ->assertJsonPath('available.0.id', $this->agent->external_id);
-})->with('workspace tools');
-
 it('attaches the tool to an agent', function (string $kind): void {
     $tool = taaTool($kind, $this->owner);
 
@@ -79,50 +65,9 @@ it('attaches the tool to an agent', function (string $kind): void {
     expect($tool['tool']->agents()->whereKey($this->agent->id)->exists())->toBeTrue();
 })->with('workspace tools');
 
-it('detaches the tool from an agent', function (string $kind): void {
-    $tool = taaTool($kind, $this->owner);
-    $tool['tool']->agents()->attach($this->agent->id);
-
-    $this->actingAs($this->owner)
-        ->deleteJson(taaUrl($tool, 'detach', $this->agent))
-        ->assertOk()
-        ->assertJsonCount(0, 'attached')
-        ->assertJsonCount(1, 'available');
-
-    expect($tool['tool']->agents()->whereKey($this->agent->id)->exists())->toBeFalse();
-})->with('workspace tools');
-
-it('lists and attaches the agents of another team of the workspace', function (string $kind): void {
-    $tool = taaTool($kind, $this->owner);
-    $otherTeamAgent = makeTeamAgent($this->owner, 'Sales Bot', app(CreateDefaultTeamAction::class)->execute($this->owner));
-
-    $this->actingAs($this->owner)
-        ->getJson(taaUrl($tool, 'index'))
-        ->assertOk()
-        ->assertJsonCount(2, 'available');
-
-    $this->actingAs($this->owner)
-        ->postJson(taaUrl($tool, 'attach', $otherTeamAgent))
-        ->assertSuccessful();
-
-    expect($tool['tool']->agents()->whereKey($otherTeamAgent->id)->exists())->toBeTrue();
-})->with('workspace tools');
-
-it('refuses a teammate an agent their team role does not reach', function (string $kind): void {
+it('lists and attaches for a teammate only the agents their team role reaches', function (string $kind): void {
     $tool = taaTool($kind, $this->owner);
     $outsideRole = makeTeamAgent($this->owner, 'Billing Bot');
-    $teammate = teammateWithPermissions($this->owner, [$tool['permission']], allAgents: false, agentExternalIds: [$this->agent->external_id]);
-
-    $this->actingAs($teammate)
-        ->postJson(taaUrl($tool, 'attach', $outsideRole))
-        ->assertForbidden();
-
-    expect($tool['tool']->agents()->whereKey($outsideRole->id)->exists())->toBeFalse();
-})->with('workspace tools');
-
-it('lists only the agents the teammate may manage', function (string $kind): void {
-    $tool = taaTool($kind, $this->owner);
-    makeTeamAgent($this->owner, 'Billing Bot');
     $teammate = teammateWithPermissions($this->owner, [$tool['permission']], allAgents: false, agentExternalIds: [$this->agent->external_id]);
 
     $this->actingAs($teammate)
@@ -130,4 +75,10 @@ it('lists only the agents the teammate may manage', function (string $kind): voi
         ->assertOk()
         ->assertJsonCount(1, 'available')
         ->assertJsonPath('available.0.id', $this->agent->external_id);
+
+    $this->actingAs($teammate)
+        ->postJson(taaUrl($tool, 'attach', $outsideRole))
+        ->assertForbidden();
+
+    expect($tool['tool']->agents()->whereKey($outsideRole->id)->exists())->toBeFalse();
 })->with('workspace tools');

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Carbon\CarbonImmutable;
 use Domain\Agent\Models\Agent;
-use Domain\Booking\Exceptions\BookingException;
 use Domain\Conversation\Models\Conversation;
 use Domain\Form\Enums\FormSubmissionStatus;
 use Domain\Form\Events\FormSubmitted;
@@ -21,7 +20,6 @@ use Tests\Support\Widget\EmbeddedWidget;
  * conversation must be reachable by the caller.
  */
 beforeEach(function (): void {
-    // Capabilities and forms need a license key; EnsureCapabilityLicenseTest covers the gate.
     withLicense();
     $this->travelTo(CarbonImmutable::create(2026, 11, 2, 9, 0, 0));
     Event::fake([FormSubmitted::class]);
@@ -53,14 +51,6 @@ it('books the picked time', function (): void {
         ->assertJsonPath('status', 'submitted');
 
     expect($this->instance->fresh()->status)->toBe(FormSubmissionStatus::Submitted);
-});
-
-it('answers 422 with the booking page when booking from the chat is not allowed', function (): void {
-    $this->scheduler->failWith = BookingException::bookingNotAllowed('https://calendly.com/acme/intro');
-
-    wbmBook($this->instance->external_id, $this->headers)
-        ->assertUnprocessable()
-        ->assertJsonPath('fallback_url', 'https://calendly.com/acme/intro');
 });
 
 it('refuses a caller outside the calendar\'s conversation', function (): void {

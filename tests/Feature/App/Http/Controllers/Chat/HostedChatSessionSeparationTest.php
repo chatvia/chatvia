@@ -10,11 +10,11 @@ use Symfony\Component\HttpFoundation\Cookie;
 
 /**
  * The hosted chat has its own sign-in and session, apart from the dashboard:
- * its own cookie (sent only to /chat) and its own guards (`chat` for
- * chatters, `chat_staff` for staff). Signing in or out on one side never
- * changes the other. Chatters are kept apart per workspace too: the same
- * email in two workspaces is two chatters, each signing in to its own
- * workspace's agents only.
+ * its own cookie (sent only to /chat, usable inside a third-party iframe) and
+ * its own guards (`chat` for chatters, `chat_staff` for staff). Signing in or
+ * out on one side never changes the other. Chatters are kept apart per
+ * workspace too: the same email in two workspaces is two chatters, each
+ * signing in to its own workspace's agents only.
  */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
@@ -26,35 +26,23 @@ function hcssCookie(TestResponse $response, string $name): ?Cookie
     return collect($response->headers->getCookies())->first(fn (Cookie $cookie): bool => $cookie->getName() === $name);
 }
 
-it('runs a chat request on the chat session cookie and guard', function (): void {
-    $response = $this->get('/chat/'.$this->agent->slug);
-
-    $cookie = hcssCookie($response, config('session.chat.cookie'));
+it('runs the chat on its own cookie and guard, and never lets a dashboard sign-in into a protected chat', function (): void {
+    $chat = $this->get('https://localhost/chat/'.$this->agent->slug);
+    $cookie = hcssCookie($chat, config('session.chat.cookie'));
 
     expect($cookie)->not->toBeNull()
         ->and($cookie?->getPath())->toBe('/chat')
-        ->and(Auth::getDefaultDriver())->toBe('chat');
-});
-
-it('runs every other request on the dashboard cookie and guard, also after a chat request', function (): void {
-    $this->get('/chat/'.$this->agent->slug);
-
-    $response = $this->get(route('login'));
-
-    expect(hcssCookie($response, config('session.dashboard.cookie')))->not->toBeNull()
-        ->and(hcssCookie($response, config('session.chat.cookie')))->toBeNull()
-        ->and(Auth::getDefaultDriver())->toBe('web');
-});
-
-it('makes the chat cookie usable inside a third-party iframe over HTTPS', function (): void {
-    $cookie = hcssCookie($this->get('https://localhost/chat/'.$this->agent->slug), config('session.chat.cookie'));
-
-    expect($cookie?->getSameSite())->toBe('none')
+        ->and($cookie?->getSameSite())->toBe('none')
         ->and($cookie?->isSecure())->toBeTrue()
-        ->and($cookie?->isPartitioned())->toBeTrue();
-});
+        ->and($cookie?->isPartitioned())->toBeTrue()
+        ->and(Auth::getDefaultDriver())->toBe('chat');
 
-it('does not carry a dashboard sign-in into a protected chat', function (): void {
+    $dashboard = $this->get(route('login'));
+
+    expect(hcssCookie($dashboard, config('session.dashboard.cookie')))->not->toBeNull()
+        ->and(hcssCookie($dashboard, config('session.chat.cookie')))->toBeNull()
+        ->and(Auth::getDefaultDriver())->toBe('web');
+
     $this->agent->update(['is_public' => false]);
 
     $this->actingAs($this->owner)
@@ -62,27 +50,20 @@ it('does not carry a dashboard sign-in into a protected chat', function (): void
         ->assertRedirect('/chat/'.$this->agent->slug.'/login');
 });
 
-it('keeps the dashboard session when the visitor signs out of the chat', function (): void {
-    $chatter = Chatter::factory()->grantedTo($this->agent)->create();
+it('keeps the dashboard session when someone signs out of the chat', function (string $guard): void {
+    $chatUser = $guard === 'chat' ? Chatter::factory()->grantedTo($this->agent)->create() : $this->owner;
 
     $this->actingAs($this->owner)
-        ->actingAs($chatter, 'chat')
+        ->actingAs($chatUser, $guard)
         ->post('/chat/'.$this->agent->slug.'/logout')
         ->assertRedirect();
 
-    expect(Auth::guard('chat')->check())->toBeFalse()
+    expect(Auth::guard($guard)->check())->toBeFalse()
         ->and(Auth::guard('web')->id())->toBe($this->owner->id);
-});
-
-it('keeps the dashboard session when staff sign out of the chat', function (): void {
-    $this->actingAs($this->owner)
-        ->actingAs($this->owner, 'chat_staff')
-        ->post('/chat/'.$this->agent->slug.'/logout')
-        ->assertRedirect();
-
-    expect(Auth::guard('chat_staff')->check())->toBeFalse()
-        ->and(Auth::guard('web')->id())->toBe($this->owner->id);
-});
+})->with([
+    'a chatter' => 'chat',
+    'staff' => 'chat_staff',
+]);
 
 it('signs the same email in as a separate chatter in each workspace', function (): void {
     $first = createAgent(User::factory()->create(), ['slug' => Str::lower(Str::random(12))]);
@@ -96,7 +77,6 @@ it('signs the same email in as a separate chatter in each workspace', function (
         'password' => Hash::make('second-pass'),
     ]);
 
-    // Each password opens its own workspace's agent only.
     $this->post("/chat/{$first->slug}/login", ['email' => 'same@example.test', 'password' => 'second-pass'])
         ->assertSessionHasErrors(['email' => trans('auth.failed')]);
     $this->post("/chat/{$second->slug}/login", ['email' => 'same@example.test', 'password' => 'first-pass'])
@@ -110,7 +90,6 @@ it('signs the same email in as a separate chatter in each workspace', function (
 
     expect(Auth::guard('chat')->user()?->is($firstChatter))->toBeTrue();
 
-    // Signed in to the first workspace, the second workspace's agent stays closed.
     $this->get("/chat/{$second->slug}")->assertForbidden();
 
     $this->post("/chat/{$first->slug}/logout")->assertRedirect();

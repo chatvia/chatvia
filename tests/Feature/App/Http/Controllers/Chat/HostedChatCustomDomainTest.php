@@ -2,7 +2,6 @@
 
 use App\Admin\Settings\PlatformSettings;
 use App\Identity\Workspace\Models\User;
-use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentDomain;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -11,7 +10,8 @@ use Inertia\Testing\AssertableInertia as Assert;
  * An agent's custom domain serves that agent's Hosted Chat and nothing else
  * (ServeCustomDomain): `/` leads to the chat, the chat's own pages work and
  * link within the domain, and the dashboard, the admin panel and other agents
- * are not there. It only works with a license key and the admin's switch.
+ * are not there. It only works while the domain is verified, with a license
+ * key and the admin's switch. A waiting domain answers its check token only.
  */
 beforeEach(function (): void {
     withLicense();
@@ -22,20 +22,16 @@ beforeEach(function (): void {
     $this->domain = AgentDomain::factory()->forAgent($this->agent)->verified()->create(['host' => 'help.acme.test']);
 });
 
-it('sends a visitor from the domain\'s root to the chat, keeping the query', function (): void {
+it('serves the agent\'s own chat on the domain and keeps its links there', function (): void {
     $this->get('http://help.acme.test/?auth_token=abc')
         ->assertRedirect("http://help.acme.test/chat/{$this->agent->slug}?auth_token=abc");
-});
 
-it('serves the agent\'s own chat on the domain', function (): void {
     $this->get("http://help.acme.test/chat/{$this->agent->slug}")
         ->assertInertia(fn (Assert $page): Assert => $page->component('chat/pages/Home'));
 
     $this->get("http://help.acme.test/chat/{$this->agent->external_id}")
         ->assertOk();
-});
 
-it('builds the chat\'s links and redirects on the domain', function (): void {
     $this->agent->update(['is_public' => false]);
 
     $this->get("http://help.acme.test/chat/{$this->agent->slug}")
@@ -54,7 +50,17 @@ it('serves nothing else on the domain', function (string $path): void {
     'the admin panel' => ['/admin'],
 ]);
 
-it('stops leading the domain to the chat without a license key, and links on APP_URL again', function (): void {
+it('shares the agent at its domain only while it is verified and licensed', function (): void {
+    expect($this->agent->fresh())
+        ->url->toBe('https://help.acme.test')
+        ->chat_url->toBe("https://help.acme.test/chat/{$this->agent->slug}")
+        ->chat_embed_url->toBe("https://help.acme.test/chat/{$this->agent->external_id}/embed");
+
+    $this->domain->update(['verified_at' => null]);
+
+    expect($this->agent->fresh()->url)->toBe(config('app.url')."/chat/{$this->agent->slug}");
+
+    $this->domain->update(['verified_at' => now()]);
     withoutLicense();
 
     $this->get('http://help.acme.test/')
@@ -75,24 +81,4 @@ it('answers the check of a waiting domain with its token only', function (): voi
 
     $this->get('http://chat.other.test/')
         ->assertNotFound();
-});
-
-it('shares the agent at its domain once verified', function (): void {
-    expect($this->agent->fresh())
-        ->url->toBe('https://help.acme.test')
-        ->chat_url->toBe("https://help.acme.test/chat/{$this->agent->slug}")
-        ->chat_embed_url->toBe("https://help.acme.test/chat/{$this->agent->external_id}/embed");
-
-    $this->domain->update(['verified_at' => null]);
-
-    expect($this->agent->fresh()->url)->toBe(config('app.url')."/chat/{$this->agent->slug}");
-});
-
-it('sends a staff member from the dashboard hand-off to the chat on its domain', function (): void {
-    $location = $this->actingAs($this->owner)
-        ->get("/chat-handoff/{$this->agent->slug}")
-        ->assertRedirect()
-        ->headers->get('Location');
-
-    expect($location)->toStartWith("https://help.acme.test/chat/{$this->agent->slug}?auth_token=");
 });

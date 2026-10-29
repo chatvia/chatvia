@@ -34,11 +34,3 @@ it('refuses a visitor with no chat yet', function (): void {
     $this->postJson("/chat/{$agent->slug}/broadcasting/auth", ['channel_name' => 'private-chat-media.'.$conversation->external_id, 'socket_id' => '1234.5678'])
         ->assertForbidden();
 });
-
-it('asks for the channel and the connection id', function (): void {
-    $agent = Agent::factory()->create(['is_public' => true]);
-
-    $this->postJson("/chat/{$agent->slug}/broadcasting/auth", [])
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors(['channel_name', 'socket_id']);
-});

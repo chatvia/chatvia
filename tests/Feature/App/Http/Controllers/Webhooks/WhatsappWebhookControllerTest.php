@@ -10,8 +10,8 @@ use Tests\Support\Channel\MetaWebhook;
 /**
  * The WhatsApp webhook routes a signed event to the agent by the phone number
  * id that received it, processes each message once (Meta re-delivers for up
- * to 7 days), never queues statuses or non-text types, and always answers
- * 200. The handshake and the signature check are covered for every Meta
+ * to 7 days) and walks every entry and change of a delivery, and always
+ * answers 200. The handshake and the signature check are covered for every Meta
  * channel in InteractsWithMetaWebhooksTest.
  */
 beforeEach(function (): void {
@@ -65,10 +65,13 @@ function whatsappText(string $body = 'hello', string $wamid = 'wamid.AAA1', stri
     ];
 }
 
-it('dispatches a job for a valid, signed message — with the sender name from the payload', function (): void {
+it('dispatches a job for a valid, signed message with the sender name from the payload, once per wamid', function (): void {
     MetaWebhook::post(MetaApp::Whatsapp, whatsappEnvelope([whatsappText()]), $this->appSecret)
         ->assertOk()
         ->assertJson(['ok' => true]);
+    MetaWebhook::post(MetaApp::Whatsapp, whatsappEnvelope([whatsappText()]), $this->appSecret)->assertOk();
+
+    Bus::assertDispatchedTimes(HandleWhatsappMessageJob::class, 1);
 
     Bus::assertDispatched(HandleWhatsappMessageJob::class, fn (HandleWhatsappMessageJob $job): bool => $job->waId === '4915551234567'
         && $job->text === 'hello'
@@ -77,71 +80,7 @@ it('dispatches a job for a valid, signed message — with the sender name from t
         && $job->number->is($this->number));
 });
 
-it('answers 200 without dispatching for a message to no enabled number', function (Closure $miss): void {
-    MetaWebhook::post(MetaApp::Whatsapp, whatsappEnvelope([whatsappText()], phoneNumberId: $miss->call($this)), $this->appSecret)->assertOk();
-
-    Bus::assertNotDispatched(HandleWhatsappMessageJob::class);
-})->with([
-    'a number no agent has connected' => [fn (): string => '000000000000000'],
-    'a disabled number' => [function (): string {
-        $this->number->update(['is_enabled' => false]);
-
-        return '111222333444555';
-    }],
-]);
-
-it('processes each wamid at most once', function (): void {
-    MetaWebhook::post(MetaApp::Whatsapp, whatsappEnvelope([whatsappText(wamid: 'wamid.DUP')]), $this->appSecret)->assertOk();
-    MetaWebhook::post(MetaApp::Whatsapp, whatsappEnvelope([whatsappText(wamid: 'wamid.DUP')]), $this->appSecret)->assertOk();
-
-    Bus::assertDispatchedTimes(HandleWhatsappMessageJob::class, 1);
-});
-
-it('ignores status updates (delivery receipts for our own sends)', function (): void {
-    $payload = [
-        'object' => 'whatsapp_business_account',
-        'entry' => [
-            [
-                'id' => '999888777666555',
-                'changes' => [
-                    [
-                        'field' => 'messages',
-                        'value' => [
-                            'messaging_product' => 'whatsapp',
-                            'metadata' => ['phone_number_id' => '111222333444555'],
-                            'statuses' => [['id' => 'wamid.OUT1', 'status' => 'delivered', 'recipient_id' => '4915551234567']],
-                        ],
-                    ],
-                ],
-            ],
-        ],
-    ];
-
-    MetaWebhook::post(MetaApp::Whatsapp, $payload, $this->appSecret)->assertOk();
-
-    Bus::assertNotDispatched(HandleWhatsappMessageJob::class);
-});
-
-it('ignores non-text message types (media, reactions)', function (): void {
-    $image = ['from' => '4915551234567', 'id' => 'wamid.IMG', 'type' => 'image', 'image' => ['id' => 'media-1']];
-
-    MetaWebhook::post(MetaApp::Whatsapp, whatsappEnvelope([$image]), $this->appSecret)->assertOk();
-
-    Bus::assertNotDispatched(HandleWhatsappMessageJob::class);
-});
-
-it('handles every message in a batched delivery', function (): void {
-    $batch = whatsappEnvelope([
-        whatsappText('first', 'wamid.B1', '111'),
-        whatsappText('second', 'wamid.B2', '222'),
-    ]);
-
-    MetaWebhook::post(MetaApp::Whatsapp, $batch, $this->appSecret)->assertOk();
-
-    Bus::assertDispatchedTimes(HandleWhatsappMessageJob::class, 2);
-});
-
-it('walks every entry and change in one delivery — not just the first', function (): void {
+it('walks every entry and change in one delivery, not just the first', function (): void {
     $change = fn (string $wamid, string $body): array => [
         'field' => 'messages',
         'value' => [

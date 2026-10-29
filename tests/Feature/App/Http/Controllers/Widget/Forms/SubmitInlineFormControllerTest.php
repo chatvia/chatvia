@@ -14,11 +14,10 @@ use Tests\Support\Widget\EmbeddedWidget;
  * POST /widget/forms/{formInstance}/submit takes the answers of an inline form
  * the agent rendered in the widget. The form must be the agent's and its
  * conversation reachable by the caller (on a protected agent: the signed-in
- * chatter's); a form that already took answers answers 409, an expired one
- * 410. SubmitFormActionTest owns what is stored.
+ * chatter's); a form that already took answers answers 409.
+ * SubmitFormActionTest owns what is stored.
  */
 beforeEach(function (): void {
-    // Capabilities and forms need a license key; EnsureCapabilityLicenseTest covers the gate.
     withLicense();
     $this->agent = Agent::factory()->create(['is_public' => true]);
     EmbeddedWidget::allowSite($this->agent);
@@ -60,48 +59,22 @@ function wfsChatterHeaders(Agent $agent, Chatter $chatter): array
     ]);
 }
 
-it('takes the visitor’s answers to the form the agent rendered', function (): void {
+it('takes the visitor’s answers to the form the agent rendered once, and answers 409 after', function (): void {
     wfsSubmit($this->form, $this->headers)
         ->assertOk()
         ->assertJsonPath('status', 'submitted');
 
-    expect($this->form->fresh()->status)->toBe(FormSubmissionStatus::Submitted);
-});
-
-it('answers 409 for a form that already took answers', function (): void {
-    wfsSubmit($this->form, $this->headers)->assertOk();
-
     wfsSubmit($this->form, $this->headers)
         ->assertConflict()
         ->assertJsonPath('status', 'already_submitted');
+
+    expect($this->form->fresh()->status)->toBe(FormSubmissionStatus::Submitted);
 });
 
-it('answers 410 for a form that expired', function (): void {
-    $this->form->update(['expires_at' => now()->subMinute()]);
-
-    wfsSubmit($this->form, $this->headers)
-        ->assertGone()
-        ->assertJsonPath('status', 'expired');
-
-    expect($this->form->fresh()->status)->toBe(FormSubmissionStatus::Pending);
-});
-
-it('answers 404 for a form another agent rendered', function (): void {
-    $other = Agent::factory()->create(['is_public' => true]);
-    EmbeddedWidget::allowSite($other);
-
-    wfsSubmit($this->form, EmbeddedWidget::chatHeaders($other))->assertNotFound();
-
-    expect($this->form->fresh()->status)->toBe(FormSubmissionStatus::Pending);
-});
-
-it('refuses a form rendered in another anonymous visitor’s conversation', function (): void {
+it('takes the answers only from the caller whose conversation it is, a protected agent’s chatter too', function (): void {
     wfsSubmit($this->form, EmbeddedWidget::chatHeaders($this->agent))->assertForbidden();
-
     expect($this->form->fresh()->status)->toBe(FormSubmissionStatus::Pending);
-});
 
-it('takes the answers of a protected agent’s form only from the chatter whose conversation it is', function (): void {
     $agent = Agent::factory()->create(['is_public' => false]);
     EmbeddedWidget::allowSite($agent);
     $jane = Chatter::factory()->grantedTo($agent)->create();

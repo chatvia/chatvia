@@ -1,13 +1,13 @@
 <?php
 
-use App\Admin\Settings\BrandSettings;
 use App\Identity\Workspace\Models\User;
 use Domain\Security\Enums\SecurityAuditAction;
 use Domain\Security\Models\SecurityAuditLog;
 
 /**
  * Settings → Security → Audit → Export: the workspace's security audit log as
- * a CSV file, an Enterprise feature. Who may reach it (account.security) is
+ * a CSV file, an Enterprise feature, with every cell a spreadsheet would run
+ * made safe. Who may reach it (account.security) and the license gate are
  * checked with the other workspace routes.
  */
 beforeEach(function (): void {
@@ -43,12 +43,4 @@ it('makes a cell that a spreadsheet would run safe', function (): void {
     $csv = $this->actingAs($this->owner)->get(route('security.audit.export'))->streamedContent();
 
     expect($csv)->toContain("'=HYPERLINK");
-});
-
-it('refuses without an Enterprise license', function (): void {
-    saveSettings(BrandSettings::class, ['license_key' => null]);
-
-    $this->actingAs($this->owner)
-        ->get(route('security.audit.export'))
-        ->assertForbidden();
 });

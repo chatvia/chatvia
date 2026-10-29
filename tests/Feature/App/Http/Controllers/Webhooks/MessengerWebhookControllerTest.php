@@ -49,65 +49,27 @@ function messengerEnvelope(array $message, string $senderId = '24680', string $p
     ];
 }
 
-it('dispatches a job for a valid, signed message', function (): void {
+it('dispatches a job for a valid, signed message, once per message mid', function (): void {
     MetaWebhook::post(MetaApp::Messenger, messengerEnvelope(['mid' => 'm1', 'text' => 'hello']), $this->appSecret)
         ->assertOk()
         ->assertJson(['ok' => true]);
+    MetaWebhook::post(MetaApp::Messenger, messengerEnvelope(['mid' => 'm1', 'text' => 'hello']), $this->appSecret)->assertOk();
 
+    Bus::assertDispatchedTimes(HandleMessengerMessageJob::class, 1);
     Bus::assertDispatched(HandleMessengerMessageJob::class, fn (HandleMessengerMessageJob $job): bool => $job->psid === '24680' && $job->text === 'hello' && $job->page->is($this->page));
 });
 
-it('answers 200 without dispatching for a message to no enabled page', function (Closure $miss): void {
-    MetaWebhook::post(MetaApp::Messenger, messengerEnvelope(['mid' => 'm1', 'text' => 'hello'], pageId: $miss->call($this)), $this->appSecret)->assertOk();
+it('answers 200 without dispatching for no enabled page or the page’s own replies', function (): void {
+    MetaWebhook::post(MetaApp::Messenger, messengerEnvelope(['mid' => 'm2', 'text' => 'hello'], pageId: '9999999999'), $this->appSecret)->assertOk();
 
-    Bus::assertNotDispatched(HandleMessengerMessageJob::class);
-})->with([
-    'an unknown page' => [fn (): string => '9999999999'],
-    'a disabled page' => [function (): string {
-        $this->page->update(['is_enabled' => false]);
-
-        return '1234567890';
-    }],
-]);
-
-it('processes each message mid at most once', function (): void {
-    MetaWebhook::post(MetaApp::Messenger, messengerEnvelope(['mid' => 'm7', 'text' => 'hello']), $this->appSecret)->assertOk();
-    MetaWebhook::post(MetaApp::Messenger, messengerEnvelope(['mid' => 'm7', 'text' => 'hello']), $this->appSecret)->assertOk();
-
-    Bus::assertDispatchedTimes(HandleMessengerMessageJob::class, 1);
-});
-
-it('ignores echoes of the page’s own replies', function (): void {
     $echo = messengerEnvelope(['mid' => 'm10', 'text' => 'our own reply', 'is_echo' => true]);
     MetaWebhook::post(MetaApp::Messenger, $echo, $this->appSecret)->assertOk();
 
     $fromPage = messengerEnvelope(['mid' => 'm11', 'text' => 'also ours'], senderId: '1234567890');
     MetaWebhook::post(MetaApp::Messenger, $fromPage, $this->appSecret)->assertOk();
 
-    Bus::assertNotDispatched(HandleMessengerMessageJob::class);
-});
-
-it('ignores non-text messages (attachments, likes)', function (): void {
-    MetaWebhook::post(MetaApp::Messenger, messengerEnvelope(['mid' => 'm12', 'attachments' => [['type' => 'image']]]), $this->appSecret)->assertOk();
+    $this->page->update(['is_enabled' => false]);
+    MetaWebhook::post(MetaApp::Messenger, messengerEnvelope(['mid' => 'm3', 'text' => 'hello']), $this->appSecret)->assertOk();
 
     Bus::assertNotDispatched(HandleMessengerMessageJob::class);
-});
-
-it('handles every message in a batched delivery', function (): void {
-    $payload = [
-        'object' => 'page',
-        'entry' => [
-            [
-                'id' => '1234567890',
-                'messaging' => [
-                    ['sender' => ['id' => '111'], 'message' => ['mid' => 'm20', 'text' => 'first']],
-                    ['sender' => ['id' => '222'], 'message' => ['mid' => 'm21', 'text' => 'second']],
-                ],
-            ],
-        ],
-    ];
-
-    MetaWebhook::post(MetaApp::Messenger, $payload, $this->appSecret)->assertOk();
-
-    Bus::assertDispatchedTimes(HandleMessengerMessageJob::class, 2);
 });

@@ -9,9 +9,8 @@ use Tests\Support\Widget\EmbeddedWidget;
 
 /**
  * DELETE /widget/conversations follows the install's chat deletion mode: `end`
- * (the default) refuses, `hide` clears the conversation from the widget and
- * keeps it for the chat log, `delete` erases it. It clears nothing of another
- * agent, and a conversation id that is not a UUID is unknown, never "clear
+ * (the default) refuses, `delete` erases the conversation. It clears nothing of another
+ * agent or another visitor, and a conversation id that is not a UUID is unknown, never "clear
  * them all".
  */
 beforeEach(function (): void {
@@ -31,7 +30,7 @@ function cdcRemove(Agent $agent, array $boot, bool $all = false): TestResponse
     return test()->withHeaders(EmbeddedWidget::headers($agent, $headers))->deleteJson('/widget/conversations');
 }
 
-it('refuses to remove anything while visitors may only end chats', function (bool $all): void {
+it('refuses to remove anything while visitors may only end chats, and erases once they may delete them', function (bool $all): void {
     $boot = EmbeddedWidget::boot($this->agent);
 
     cdcRemove($this->agent, $boot, $all)
@@ -41,31 +40,14 @@ it('refuses to remove anything while visitors may only end chats', function (boo
     $conversation = Conversation::query()->where('external_id', $boot['conversation_id'])->first();
     expect($conversation)->not->toBeNull()
         ->and($conversation->cleared_at)->toBeNull();
-})->with(['one chat' => false, 'all chats' => true]);
 
-it('clears one conversation from the widget but keeps it for the chat log', function (): void {
-    config(['chatvia.widget.chat_deletion_mode' => 'hide']);
-    $boot = EmbeddedWidget::boot($this->agent);
-
-    cdcRemove($this->agent, $boot)
-        ->assertOk()
-        ->assertJson(['success' => true]);
-
-    $conversation = Conversation::query()->where('external_id', $boot['conversation_id'])->first();
-    expect($conversation->cleared_at)->not->toBeNull()
-        ->and($conversation->deleted_by)->toBe(Conversation::DELETED_BY_VISITOR);
-});
-
-it('erases the conversation when visitors may delete chats', function (bool $all): void {
     config(['chatvia.widget.chat_deletion_mode' => 'delete']);
-    $boot = EmbeddedWidget::boot($this->agent);
 
     cdcRemove($this->agent, $boot, $all)->assertOk();
 
-    expect(Conversation::query()->where('external_id', $boot['conversation_id'])->exists())->toBeFalse();
-
     $erased = Conversation::withTrashed()->where('external_id', $boot['conversation_id'])->first();
-    expect($erased->trashed())->toBeTrue()
+    expect(Conversation::query()->where('external_id', $boot['conversation_id'])->exists())->toBeFalse()
+        ->and($erased->trashed())->toBeTrue()
         ->and($erased->deleted_by)->toBe(Conversation::DELETED_BY_VISITOR);
 })->with(['one chat' => false, 'all chats' => true]);
 

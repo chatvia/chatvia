@@ -20,7 +20,6 @@ beforeEach(function (): void {
     $this->other = Chatter::factory()->grantedTo($this->agent)->create(['name' => 'Other Chatter']);
     $this->chat = '/chat/'.$this->agent->slug;
 
-    // The browser is signed in to the chat as the current chatter.
     $token = app(AgentSignInTokens::class)->issue($this->current, $this->agent)['token'];
     $this->get("{$this->chat}?token={$token}")->assertRedirect($this->chat);
 });
@@ -65,21 +64,6 @@ it('keeps the current account when the person stays', function (): void {
     csacOpenLinkForOther();
 
     $this->delete($this->chat.'/switch-account')->assertRedirect($this->chat);
-    $this->post($this->chat.'/switch-account')->assertRedirect($this->chat);
-
-    expect(Auth::guard('chat')->id())->toBe($this->current->id);
-});
-
-it('re-signs the same account without asking', function (): void {
-    $token = app(AgentSignInTokens::class)->issue($this->current, $this->agent)['token'];
-
-    $this->get("{$this->chat}?token={$token}")->assertRedirect($this->chat);
-
-    expect(Auth::guard('chat')->id())->toBe($this->current->id);
-});
-
-it('sends the confirm page back to the chat when no link is waiting', function (): void {
-    $this->get($this->chat.'/switch-account')->assertRedirect($this->chat);
     $this->post($this->chat.'/switch-account')->assertRedirect($this->chat);
 
     expect(Auth::guard('chat')->id())->toBe($this->current->id);

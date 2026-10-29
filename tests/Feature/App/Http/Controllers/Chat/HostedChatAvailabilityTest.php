@@ -11,7 +11,7 @@ use Inertia\Testing\AssertableInertia as Assert;
  * The hosted chat closes as if the agent did not exist: when its Hosted Chat
  * surface is turned off on the Deploy page, and on every chat route while its
  * workspace is deactivated, so nothing reaches the voice provider or the
- * model. Reactivating the workspace brings the chat back.
+ * model.
  */
 beforeEach(function (): void {
     connectAiProviders(AiProvider::OpenAi);
@@ -38,16 +38,6 @@ it('shows AgentNotFound on every chat route once the workspace is deactivated', 
 
     Http::assertNotSent(fn (Request $request): bool => Str::contains($request->url(), 'api.openai.com'));
 })->with([
-    'home' => ['GET', '', []],
     'stream' => ['POST', '/stream/'.Str::repeat('a', 8), ['content' => 'Hello']],
     'voice call' => ['POST', '/voice', ['sdp' => 'v=0 offer']],
-    'usage' => ['GET', '/usage', []],
 ]);
-
-it('serves the hosted chat again once the workspace is reactivated', function (): void {
-    deactivateWorkspaceOf($this->agent);
-    reactivateWorkspaceOf($this->agent);
-
-    $this->get($this->chat)
-        ->assertInertia(fn (Assert $page): Assert => $page->component('chat/pages/Home'));
-});

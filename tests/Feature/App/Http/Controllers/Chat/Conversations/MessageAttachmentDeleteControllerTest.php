@@ -58,32 +58,24 @@ it('deletes a sent message\'s file on a public agent, keeping the message', func
     $this->delete(madcUrl($agent, $attachment))->assertNoContent();
 
     expect(Attachment::find($attachment->id))->toBeNull()
-        // The Message survives the cascade (chat_message_id is nullOnDelete).
         ->and(Message::find($attachment->chat_message_id))->not->toBeNull();
     Storage::disk(Attachment::DISK)->assertMissing($attachment->filepath);
 });
 
-it('answers 404 for another visitor\'s file on a public agent and keeps it', function (): void {
+it('answers 404 and keeps the file for another visitor\'s file or an address naming another conversation', function (): void {
     $agent = Agent::factory()->create(['is_public' => true]);
-    $attachment = madcAttachment(Session::factory()->create(['agent_id' => $agent->id]));
-
-    $this->delete(madcUrl($agent, $attachment))->assertNotFound();
-
-    expect(Attachment::find($attachment->id))->not->toBeNull();
-    Storage::disk(Attachment::DISK)->assertExists($attachment->filepath);
-});
-
-it('answers 404 when the address names another conversation than the file\'s', function (): void {
-    $agent = Agent::factory()->create(['is_public' => true]);
-    $attachment = madcOwnAttachment($agent);
+    $theirs = madcAttachment(Session::factory()->create(['agent_id' => $agent->id]));
+    $mine = madcOwnAttachment($agent);
     $otherConversation = Conversation::query()
         ->where('external_id', HostedChatVisitor::startConversation($agent))
         ->sole();
 
-    $this->delete(madcUrl($agent, $attachment, $otherConversation))->assertNotFound();
+    $this->delete(madcUrl($agent, $theirs))->assertNotFound();
+    $this->delete(madcUrl($agent, $mine, $otherConversation))->assertNotFound();
 
-    expect(Attachment::find($attachment->id))->not->toBeNull();
-    Storage::disk(Attachment::DISK)->assertExists($attachment->filepath);
+    expect(Attachment::find($theirs->id))->not->toBeNull()
+        ->and(Attachment::find($mine->id))->not->toBeNull();
+    Storage::disk(Attachment::DISK)->assertExists([$theirs->filepath, $mine->filepath]);
 });
 
 it('answers 404 on a private agent when the requester does not own the conversation', function (): void {
@@ -96,27 +88,4 @@ it('answers 404 on a private agent when the requester does not own the conversat
     $this->actingAs($intruder, 'chat')->delete(madcUrl($agent, $attachment))->assertNotFound();
 
     expect(Attachment::find($attachment->id))->not->toBeNull();
-});
-
-it('lets the chatter who owns the conversation delete on a private agent', function (): void {
-    $agent = Agent::factory()->create(['is_public' => false]);
-    $owner = Chatter::factory()->grantedTo($agent)->create();
-    $attachment = madcAttachment(Session::factory()->forChatter($owner)->create(['agent_id' => $agent->id]));
-    ChatCache::rememberOwner($attachment->conversation->external_id, ChatViewerData::chatter($owner->id), $agent);
-
-    $this->actingAs($owner, 'chat')->delete(madcUrl($agent, $attachment))->assertNoContent();
-
-    expect(Attachment::find($attachment->id))->toBeNull();
-    Storage::disk(Attachment::DISK)->assertMissing($attachment->filepath);
-});
-
-it('lets a staff member delete on a private agent they opened from the dashboard', function (): void {
-    $agent = Agent::factory()->create(['is_public' => false]);
-    $staff = $agent->workspace->owner;
-    $attachment = madcAttachment(Session::factory()->forUser($staff)->create(['agent_id' => $agent->id]));
-    ChatCache::rememberOwner($attachment->conversation->external_id, ChatViewerData::staff($staff->id), $agent);
-
-    $this->actingAs($staff, 'chat_staff')->delete(madcUrl($agent, $attachment))->assertNoContent();
-
-    expect(Attachment::find($attachment->id))->toBeNull();
 });

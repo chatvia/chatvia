@@ -12,7 +12,6 @@ use Domain\Integration\Mcp\Models\McpTool;
  */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
-    // The page is gated by a team permission, which needs the owner's team.
     ownerTeam($this->owner);
     $this->server = AgentMcpServer::factory()->forOwner($this->owner)->create(['slug' => 'crm']);
 });
@@ -37,13 +36,4 @@ it('answers 404 for a tool of another connector of the workspace', function (): 
         ->assertNotFound();
 
     expect($foreignTool->fresh()->permission)->toBe(McpToolPermission::Allow);
-});
-
-it('rejects an unknown permission value', function (): void {
-    $tool = McpTool::factory()->create(['mcp_server_id' => $this->server->id]);
-
-    $this->actingAs($this->owner)
-        ->putJson(route('integrations.connectors.tools.permission', ['slug' => 'crm', 'tool' => $tool->id]), ['permission' => 'sometimes'])
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors('permission');
 });

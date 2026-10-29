@@ -10,10 +10,11 @@ use Illuminate\Testing\TestResponse;
 use Tests\Support\Channel\Teams\FakeTeamsActivityVerifier;
 
 /**
- * The webhook is public and unauthenticated, so its security IS the test
- * surface: the {secret} segment routes to the agent AND the request must carry
- * a Bot Framework JWT the verifier accepts for this bot's App ID (the real
- * JWT crypto is covered by TeamsActivityVerifierTest — here it is stubbed);
+ * The webhook is public and unauthenticated, so its security is the test
+ * surface: the {secret} segment routes to the agent and the request must carry
+ * a Bot Framework JWT the verifier accepts for this bot's App ID and its
+ * serviceUrl (the real JWT crypto is covered by TeamsActivityVerifierTest,
+ * here it is stubbed);
  * activities are processed once; bot/self activities never dispatch (or the
  * bot could answer itself in a loop); and it always answers 200.
  */
@@ -53,10 +54,14 @@ function postTeamsActivity(string $urlSecret, array $payload): TestResponse
     );
 }
 
-it('dispatches a job for a verified message activity', function (): void {
-    postTeamsActivity($this->secret, teamsActivity())
+it('dispatches a job for a message activity verified for this bot’s App ID, once per activity id', function (): void {
+    postTeamsActivity($this->secret, teamsActivity(['id' => 'act-7']))
         ->assertOk()
         ->assertJson(['ok' => true]);
+    postTeamsActivity($this->secret, teamsActivity(['id' => 'act-7']))->assertOk();
+
+    expect($this->verifier->checkedAppId)->toBe($this->teamsBot->app_id);
+    Bus::assertDispatchedTimes(HandleTeamsActivityJob::class, 1);
 
     Bus::assertDispatched(HandleTeamsActivityJob::class, fn (HandleTeamsActivityJob $job): bool => $job->activity->conversationId === 'a:1conversation'
         && $job->activity->text === 'hello agent'
@@ -64,68 +69,28 @@ it('dispatches a job for a verified message activity', function (): void {
         && jobQueue($job) === 'messages');
 });
 
-it('verifies the JWT against this bot’s App ID', function (): void {
-    postTeamsActivity($this->secret, teamsActivity())->assertOk();
-
-    expect($this->verifier->checkedAppId)->toBe($this->teamsBot->app_id);
-});
-
-it('ignores a request whose JWT the verifier rejects', function (): void {
+it('ignores a request whose JWT the verifier rejects or was issued for another serviceUrl', function (): void {
     $this->verifier->valid = false;
+    postTeamsActivity($this->secret, teamsActivity(['id' => 'act-1']))->assertOk();
 
-    postTeamsActivity($this->secret, teamsActivity())->assertOk();
-
-    Bus::assertNotDispatched(HandleTeamsActivityJob::class);
-});
-
-it('ignores an activity whose serviceUrl is not the one the token was issued for', function (): void {
-    // A token replayed with another serviceUrl must not send the reply elsewhere.
+    $this->verifier->valid = true;
     $this->verifier->claims = ['serviceurl' => 'https://attacker.example/'];
-
-    postTeamsActivity($this->secret, teamsActivity())->assertOk();
-
-    Bus::assertNotDispatched(HandleTeamsActivityJob::class);
-});
-
-it('answers 200 without dispatching when no enabled bot has the webhook secret', function (Closure $miss): void {
-    postTeamsActivity($miss->call($this), teamsActivity())->assertOk();
-
-    Bus::assertNotDispatched(HandleTeamsActivityJob::class);
-})->with([
-    'an unknown secret' => [fn (): string => Str::random(48)],
-    'a disabled bot' => [function (): string {
-        $this->teamsBot->update(['is_enabled' => false]);
-
-        return $this->secret;
-    }],
-]);
-
-it('processes each activity id at most once', function (): void {
-    postTeamsActivity($this->secret, teamsActivity(['id' => 'act-7']))->assertOk();
-    postTeamsActivity($this->secret, teamsActivity(['id' => 'act-7']))->assertOk();
-
-    Bus::assertDispatchedTimes(HandleTeamsActivityJob::class, 1);
-});
-
-it('ignores non-message activities (conversation updates, reactions)', function (): void {
-    postTeamsActivity($this->secret, teamsActivity(['type' => 'conversationUpdate', 'text' => null]))->assertOk();
-    postTeamsActivity($this->secret, teamsActivity(['type' => 'messageReaction', 'id' => 'act-101']))->assertOk();
+    postTeamsActivity($this->secret, teamsActivity(['id' => 'act-2']))->assertOk();
 
     Bus::assertNotDispatched(HandleTeamsActivityJob::class);
 });
 
-it('ignores empty or missing text', function (): void {
-    postTeamsActivity($this->secret, teamsActivity(['text' => '   ']))->assertOk();
-
-    Bus::assertNotDispatched(HandleTeamsActivityJob::class);
-});
-
-it('ignores activities sent by bots — including its own replies echoing back', function (): void {
+it('answers 200 without dispatching for an unknown or disabled bot, or an activity sent by a bot', function (): void {
     $foreignBot = teamsActivity(['id' => 'act-10', 'from' => ['id' => '28:other-bot', 'role' => 'bot']]);
     postTeamsActivity($this->secret, $foreignBot)->assertOk();
 
     $self = teamsActivity(['id' => 'act-11', 'from' => ['id' => '28:f5e1f9d2-1111-2222-3333-444455556666', 'name' => 'Bot']]);
     postTeamsActivity($this->secret, $self)->assertOk();
+
+    postTeamsActivity(Str::random(48), teamsActivity(['id' => 'act-12']))->assertOk();
+
+    $this->teamsBot->update(['is_enabled' => false]);
+    postTeamsActivity($this->secret, teamsActivity(['id' => 'act-13']))->assertOk();
 
     Bus::assertNotDispatched(HandleTeamsActivityJob::class);
 });

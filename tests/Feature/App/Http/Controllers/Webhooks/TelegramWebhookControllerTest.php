@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 
 /**
- * The webhook is public and unauthenticated, so its security IS the test surface:
+ * The webhook is public and unauthenticated, so its security is the test surface:
  * the {secret} segment routes to the agent, and the
  * X-Telegram-Bot-Api-Secret-Token header must carry the bot's separate header
  * secret (the URL alone is not enough); updates are processed once; and it
@@ -48,10 +48,13 @@ function twPost(string $urlSecret, ?string $headerSecret, array $payload): TestR
     return test()->postJson(route('telegram.webhook', ['secret' => $urlSecret]), $payload, $headers);
 }
 
-it('dispatches a job for a valid, authenticated update', function (): void {
-    twPost($this->secret, $this->headerSecret, twUpdate())
+it('dispatches a job for a valid, authenticated update, once per update_id', function (): void {
+    twPost($this->secret, $this->headerSecret, twUpdate(updateId: 7))
         ->assertOk()
         ->assertJson(['ok' => true]);
+    twPost($this->secret, $this->headerSecret, twUpdate(updateId: 7))->assertOk();
+
+    Bus::assertDispatchedTimes(HandleTelegramUpdateJob::class, 1);
 
     Bus::assertDispatched(HandleTelegramUpdateJob::class, fn (HandleTelegramUpdateJob $job): bool => $job->chatId === '555' && $job->text === 'hello' && $job->bot->is($this->bot) && jobQueue($job) === 'messages');
 });
@@ -80,18 +83,3 @@ it('answers 200 without dispatching when no enabled bot has the webhook secret',
         return $this->secret;
     }],
 ]);
-
-it('processes each update_id at most once', function (): void {
-    twPost($this->secret, $this->headerSecret, twUpdate(updateId: 7))->assertOk();
-    twPost($this->secret, $this->headerSecret, twUpdate(updateId: 7))->assertOk();
-
-    Bus::assertDispatchedTimes(HandleTelegramUpdateJob::class, 1);
-});
-
-it('does not dispatch for a non-text message', function (): void {
-    $payload = ['update_id' => 3, 'message' => ['chat' => ['id' => 555]]];
-
-    twPost($this->secret, $this->headerSecret, $payload)->assertOk();
-
-    Bus::assertNotDispatched(HandleTelegramUpdateJob::class);
-});

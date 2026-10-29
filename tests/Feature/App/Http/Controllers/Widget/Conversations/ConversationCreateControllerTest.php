@@ -19,10 +19,16 @@ beforeEach(function (): void {
     EmbeddedWidget::allowSite($this->agent);
 });
 
-it('starts a widget conversation in the visitor’s own session', function (): void {
+it('starts a widget conversation in the visitor’s own session, or in a session id that is new', function (): void {
     $boot = EmbeddedWidget::boot($this->agent);
+    $newSessionId = (string) Str::uuid7();
 
     $id = $this->withHeaders(EmbeddedWidget::headers($this->agent, [WidgetHeaders::SESSION_ID => $boot['session_id']]))
+        ->postJson('/widget/conversations')
+        ->assertCreated()
+        ->json('id');
+    $newSessionConversationId = $this->flushHeaders()
+        ->withHeaders(EmbeddedWidget::headers($this->agent, [WidgetHeaders::SESSION_ID => $newSessionId]))
         ->postJson('/widget/conversations')
         ->assertCreated()
         ->json('id');
@@ -30,21 +36,11 @@ it('starts a widget conversation in the visitor’s own session', function (): v
     $conversation = Conversation::query()->where('external_id', $id)->sole();
     expect($id)->not->toBe($boot['conversation_id'])
         ->and($conversation->source)->toBe(ConversationSource::Widget)
-        ->and($conversation->session->external_id)->toBe($boot['session_id']);
+        ->and($conversation->session->external_id)->toBe($boot['session_id'])
+        ->and(Conversation::query()->where('external_id', $newSessionConversationId)->sole()->session->external_id)->toBe($newSessionId);
 });
 
-it('starts a conversation in a session id that is new', function (): void {
-    $sessionId = (string) Str::uuid7();
-
-    $id = $this->withHeaders(EmbeddedWidget::headers($this->agent, [WidgetHeaders::SESSION_ID => $sessionId]))
-        ->postJson('/widget/conversations')
-        ->assertSuccessful()
-        ->json('id');
-
-    expect(Conversation::query()->where('external_id', $id)->sole()->session->external_id)->toBe($sessionId);
-});
-
-it('starts no conversation in a session of another agent', function (): void {
+it('starts no conversation in a session of another agent, or of another chatter on a protected agent', function (): void {
     $session = Session::factory()->create(['agent_id' => Agent::factory()->create()->id]);
 
     $this->withHeaders(EmbeddedWidget::headers($this->agent, [WidgetHeaders::SESSION_ID => $session->external_id]))
@@ -52,9 +48,7 @@ it('starts no conversation in a session of another agent', function (): void {
         ->assertNotFound();
 
     expect(Conversation::query()->where('chat_session_id', $session->id)->count())->toBe(0);
-});
 
-it('starts no conversation in another chatter’s session on a protected agent', function (): void {
     $agent = Agent::factory()->create(['is_public' => false]);
     EmbeddedWidget::allowSite($agent);
     $jane = Chatter::factory()->grantedTo($agent)->create();

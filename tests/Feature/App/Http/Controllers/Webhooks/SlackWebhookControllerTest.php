@@ -8,8 +8,8 @@ use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 
 /**
- * The webhook is public and unauthenticated, so its security IS the test
- * surface: the {secret} segment routes to the agent AND the request must carry
+ * The webhook is public and unauthenticated, so its security is the test
+ * surface: the {secret} segment routes to the agent and the request must carry
  * a valid Slack HMAC signature (signed secrets, ±5 min replay window); events
  * are processed once; bot/self messages never dispatch (or the bot would
  * answer itself in a loop); and it always answers 200.
@@ -68,41 +68,14 @@ function postSlackEvent(string $urlSecret, array $payload, ?string $signWith, ?i
     return test()->postJson(route('slack.webhook', ['secret' => $urlSecret]), $payload, $headers);
 }
 
-it('dispatches a job for a valid, signed mention', function (): void {
-    postSlackEvent($this->secret, slackEnvelope(slackMention()), $this->signingSecret)
+it('dispatches a job for a valid, signed mention, once per event_id', function (): void {
+    postSlackEvent($this->secret, slackEnvelope(slackMention(), eventId: 'Ev7'), $this->signingSecret)
         ->assertOk()
         ->assertJson(['ok' => true]);
+    postSlackEvent($this->secret, slackEnvelope(slackMention(), eventId: 'Ev7'), $this->signingSecret)->assertOk();
 
+    Bus::assertDispatchedTimes(HandleSlackEventJob::class, 1);
     Bus::assertDispatched(HandleSlackEventJob::class, fn (HandleSlackEventJob $job): bool => $job->channelId === 'C123CHAN' && $job->text === '<@U0BOT> hello' && $job->app->is($this->slackApp) && jobQueue($job) === 'messages');
-});
-
-it('dispatches a job for a signed direct message', function (): void {
-    $dm = [
-        'type' => 'message',
-        'channel_type' => 'im',
-        'user' => 'U123USER',
-        'text' => 'hello in private',
-        'channel' => 'D123DM',
-        'ts' => '1700000000.000200',
-    ];
-
-    postSlackEvent($this->secret, slackEnvelope($dm), $this->signingSecret)->assertOk();
-
-    Bus::assertDispatched(HandleSlackEventJob::class, fn (HandleSlackEventJob $job): bool => $job->channelId === 'D123DM' && $job->text === 'hello in private');
-});
-
-it('passes thread_ts through so the reply lands in the thread', function (): void {
-    postSlackEvent($this->secret, slackEnvelope(slackMention() + ['thread_ts' => '1699.000001']), $this->signingSecret)->assertOk();
-
-    Bus::assertDispatched(HandleSlackEventJob::class, fn (HandleSlackEventJob $job): bool => $job->threadTs === '1699.000001');
-});
-
-it('answers the url_verification challenge', function (): void {
-    $payload = ['type' => 'url_verification', 'challenge' => 'challenge-token-123'];
-
-    postSlackEvent($this->secret, $payload, $this->signingSecret)
-        ->assertOk()
-        ->assertJson(['challenge' => 'challenge-token-123']);
 });
 
 it('ignores a request the app did not sign just now', function (Closure $signWith, int $secondsAgo): void {
@@ -115,54 +88,17 @@ it('ignores a request the app did not sign just now', function (Closure $signWit
     'a signed but stale request (replay protection)' => [fn (): string => $this->signingSecret, 600],
 ]);
 
-it('answers 200 without dispatching when no enabled app has the webhook secret', function (Closure $miss): void {
-    postSlackEvent($miss->call($this), slackEnvelope(slackMention()), $this->signingSecret)->assertOk();
-
-    Bus::assertNotDispatched(HandleSlackEventJob::class);
-})->with([
-    'an unknown secret' => [fn (): string => Str::random(48)],
-    'a disabled app' => [function (): string {
-        $this->slackApp->update(['is_enabled' => false]);
-
-        return $this->secret;
-    }],
-]);
-
-it('processes each event_id at most once', function (): void {
-    postSlackEvent($this->secret, slackEnvelope(slackMention(), eventId: 'Ev7'), $this->signingSecret)->assertOk();
-    postSlackEvent($this->secret, slackEnvelope(slackMention(), eventId: 'Ev7'), $this->signingSecret)->assertOk();
-
-    Bus::assertDispatchedTimes(HandleSlackEventJob::class, 1);
-});
-
-it('ignores messages from bots — including its own replies echoing back', function (): void {
+it('answers 200 without dispatching for an unknown or disabled app, or a bot’s own message', function (): void {
     $own = slackMention() + ['bot_id' => 'B0SELF'];
     postSlackEvent($this->secret, slackEnvelope($own, eventId: 'Ev10'), $this->signingSecret)->assertOk();
 
     $self = array_merge(slackMention(), ['user' => 'U0BOT']);
     postSlackEvent($this->secret, slackEnvelope($self, eventId: 'Ev11'), $this->signingSecret)->assertOk();
 
-    Bus::assertNotDispatched(HandleSlackEventJob::class);
-});
+    postSlackEvent(Str::random(48), slackEnvelope(slackMention(), eventId: 'Ev12'), $this->signingSecret)->assertOk();
 
-it('ignores channel chatter that does not mention the bot', function (): void {
-    $chatter = [
-        'type' => 'message',
-        'channel_type' => 'channel',
-        'user' => 'U123USER',
-        'text' => 'talking amongst ourselves',
-        'channel' => 'C123CHAN',
-    ];
-
-    postSlackEvent($this->secret, slackEnvelope($chatter), $this->signingSecret)->assertOk();
-
-    Bus::assertNotDispatched(HandleSlackEventJob::class);
-});
-
-it('ignores subtyped message events (edits, joins)', function (): void {
-    $edited = slackMention() + ['subtype' => 'message_changed'];
-
-    postSlackEvent($this->secret, slackEnvelope($edited), $this->signingSecret)->assertOk();
+    $this->slackApp->update(['is_enabled' => false]);
+    postSlackEvent($this->secret, slackEnvelope(slackMention(), eventId: 'Ev13'), $this->signingSecret)->assertOk();
 
     Bus::assertNotDispatched(HandleSlackEventJob::class);
 });

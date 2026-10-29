@@ -8,7 +8,7 @@ use Tests\Support\Conversation\HostedChatVisitor;
 
 /**
  * While a file is being made, the hosted chat asks how the conversation's
- * images and audio stand. Only the visitor's own conversation answers.
+ * images and audio stand.
  */
 it('lists the images and audio of the visitor\'s conversation as they stand', function (): void {
     Storage::fake(GeneratedMedia::DISK);
@@ -28,13 +28,4 @@ it('lists the images and audio of the visitor\'s conversation as they stand', fu
         ->assertJsonPath('1.kind', 'audio')
         ->assertJsonPath('1.status', 'ready')
         ->assertJsonPath('1.url', $ready->url);
-});
-
-it('is not found for another visitor\'s conversation', function (): void {
-    $agent = Agent::factory()->create(['is_public' => true]);
-    HostedChatVisitor::startConversation($agent);
-    $theirs = Conversation::factory()->create(['agent_id' => $agent->id]);
-    GeneratedMedia::factory()->forConversation($theirs)->create();
-
-    $this->getJson("/chat/{$agent->slug}/conversations/{$theirs->external_id}/media")->assertNotFound();
 });

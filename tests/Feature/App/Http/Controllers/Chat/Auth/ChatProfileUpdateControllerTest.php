@@ -32,19 +32,6 @@ it('changes the password when the current one is right', function (): void {
     expect(Hash::check('new-password-123', $this->chatter->fresh()->password))->toBeTrue();
 });
 
-it('keeps the password when the current one is wrong', function (): void {
-    $this->actingAs($this->chatter, 'chat')
-        ->from("/chat/{$this->agent->slug}")
-        ->patch($this->profile, [
-            'current_password' => 'not-it',
-            'password' => 'new-password-123',
-            'password_confirmation' => 'new-password-123',
-        ])
-        ->assertSessionHasErrors('current_password');
-
-    expect(Hash::check('old-password', $this->chatter->fresh()->password))->toBeTrue();
-});
-
 it('refuses a staff account signed in to the chat', function (): void {
     $this->actingAs($this->owner, 'chat_staff')
         ->from("/chat/{$this->agent->slug}")

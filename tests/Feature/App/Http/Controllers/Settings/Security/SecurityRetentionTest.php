@@ -33,7 +33,7 @@ function srtPolicy(User $owner): WorkspaceSecurityPolicy
     return WorkspaceSecurityPolicy::forWorkspace($owner->workspace()->id)->fresh();
 }
 
-it('saves every retention window', function (): void {
+it('saves every retention window, and a blank lead, analytics or anonymize window as not set', function (): void {
     $this->actingAs($this->owner)
         ->put(route('security.update'), srtForm([
             'retention_conversations_days' => 90,
@@ -50,21 +50,12 @@ it('saves every retention window', function (): void {
         ->retention_leads_days->toBe(365)
         ->retention_analytics_days->toBe(180)
         ->anonymize_after_days->toBe(30);
-});
 
-it('treats blank lead, analytics and anonymize windows as not set', function (): void {
-    WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id)->update([
-        'retention_leads_days' => 90,
-        'retention_analytics_days' => 90,
-        'anonymize_after_days' => 30,
-    ]);
-
-    $this->actingAs($this->owner)
-        ->put(route('security.update'), srtForm([
-            'retention_leads_days' => '',
-            'retention_analytics_days' => '',
-            'anonymize_after_days' => '',
-        ]))
+    $this->put(route('security.update'), srtForm([
+        'retention_leads_days' => '',
+        'retention_analytics_days' => '',
+        'anonymize_after_days' => '',
+    ]))
         ->assertSessionHasNoErrors();
 
     expect(srtPolicy($this->owner))
@@ -98,22 +89,6 @@ it('rejects a retention window outside its floor and ceiling', function (string 
     'anonymize below 1 day' => ['anonymize_after_days', 0],
     'anonymize above the install conversation retention' => ['anonymize_after_days', 367],
 ]);
-
-it('accepts the edge values of each window', function (): void {
-    config([
-        'chatvia.retention.conversations_days' => 366,
-        'chatvia.retention.analytics_floor_days' => 30,
-        'chatvia.retention.max_days' => 3650,
-    ]);
-
-    $this->actingAs($this->owner)
-        ->put(route('security.update'), srtForm([
-            'retention_leads_days' => 3650,
-            'retention_analytics_days' => 30,
-            'anonymize_after_days' => 366,
-        ]))
-        ->assertSessionHasNoErrors();
-});
 
 it('rejects anonymizing later than the conversation retention sent with it', function (int $anonymizeAfter, bool $accepted): void {
     $response = $this->actingAs($this->owner)

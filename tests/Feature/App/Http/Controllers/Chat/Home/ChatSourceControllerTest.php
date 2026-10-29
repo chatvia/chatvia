@@ -18,13 +18,11 @@ beforeEach(function (): void {
     HostedChatVisitor::memory($this->agent, $this->conversationId)->storeSourcesForMessage('answer-1', [$this->source]);
 });
 
-it('hides the remembered sources while the agent does not show sources', function (): void {
+it('hides the remembered sources while the agent does not show sources, and returns them once it does', function (): void {
     $this->getJson($this->sources)
         ->assertOk()
         ->assertExactJson([]);
-});
 
-it('returns the sources when the agent shows them', function (): void {
     $this->agent->setSetting('sources_display', 'list', 'appearance');
 
     $this->getJson($this->sources)

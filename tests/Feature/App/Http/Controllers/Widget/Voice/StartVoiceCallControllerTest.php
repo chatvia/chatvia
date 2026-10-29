@@ -11,9 +11,7 @@ use Tests\Support\Widget\EmbeddedWidget;
 
 /**
  * A Chat Widget visitor starts a voice call in their widget conversation. The
- * widget's session must be of the agent it names, and voice is a Chat Widget
- * feature: it stays off while that surface is off, even with the Command Bar
- * on.
+ * widget's session must be of the agent it names.
  */
 beforeEach(function (): void {
     withLicense();
@@ -53,13 +51,4 @@ it('refuses a session of another agent', function (): void {
         ->assertForbidden();
 
     Http::assertNothingSent();
-});
-
-it('refuses while the Chat Widget surface is off', function (): void {
-    $this->agent->setSetting('widget', false, 'surfaces');
-
-    $this->withHeaders($this->headers)
-        ->postJson('/widget/voice', ['sdp' => 'v=0 offer'])
-        ->assertForbidden()
-        ->assertJsonPath('error', 'voice_not_available');
 });

@@ -2106,7 +2106,10 @@
                 "starters_generate_empty": "No starters came back. Check that the knowledge base has content, then try again.",
                 "appearance_notice": "Notice under the chat box",
                 "appearance_notice_placeholder": "For example: I answer questions about our products. I can make mistakes, so check important details.",
-                "appearance_notice_help": "Optional. A short line under the message box in every chat: what the agent covers, and that answers can be wrong. Translated automatically."
+                "appearance_notice_help": "Optional. A short line under the message box in every chat: what the agent covers, and that answers can be wrong. Translated automatically.",
+                "starters_translate_confirm_title": "Translate into {count} language? | Translate into {count} languages?",
+                "starters_translate_confirm_description": "When you save, the starters you add are translated into every language this agent uses. Do you want to continue?",
+                "starters_translate_confirm_action": "Add and translate"
             },
             "languages": {
                 "title": "UI languages",

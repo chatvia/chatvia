@@ -3,7 +3,10 @@
         "setup": {
             "sections": {
                 "starters_generate_failed": "Nie udało się wygenerować starterów",
-                "starters_generate_empty": "Nie otrzymano żadnych starterów. Sprawdź, czy baza wiedzy ma treść, i spróbuj ponownie."
+                "starters_generate_empty": "Nie otrzymano żadnych starterów. Sprawdź, czy baza wiedzy ma treść, i spróbuj ponownie.",
+                "starters_translate_confirm_title": "Przetłumaczyć na wszystkie języki ({count})? | Przetłumaczyć na wszystkie języki ({count})?",
+                "starters_translate_confirm_description": "Po zapisaniu dodane startery zostaną przetłumaczone na każdy język tego agenta. Czy chcesz kontynuować?",
+                "starters_translate_confirm_action": "Dodaj i przetłumacz"
             }
         }
     }

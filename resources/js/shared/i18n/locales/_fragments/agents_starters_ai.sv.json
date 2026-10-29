@@ -3,7 +3,10 @@
         "setup": {
             "sections": {
                 "starters_generate_failed": "Det gick inte att generera startfrågor",
-                "starters_generate_empty": "Inga startfrågor kom tillbaka. Kontrollera att kunskapsbasen har innehåll och försök igen."
+                "starters_generate_empty": "Inga startfrågor kom tillbaka. Kontrollera att kunskapsbasen har innehåll och försök igen.",
+                "starters_translate_confirm_title": "Översätta till {count} språk? | Översätta till {count} språk?",
+                "starters_translate_confirm_description": "När du sparar översätts de starter du lägger till till alla språk som agenten använder. Vill du fortsätta?",
+                "starters_translate_confirm_action": "Lägg till och översätt"
             }
         }
     }

@@ -2106,7 +2106,10 @@
                 "starters_generate_empty": "Không nhận được câu mở đầu nào. Hãy kiểm tra cơ sở kiến thức có nội dung, rồi thử lại.",
                 "appearance_notice": "Ghi chú dưới ô trò chuyện",
                 "appearance_notice_placeholder": "Ví dụ: Tôi trả lời câu hỏi về sản phẩm của chúng tôi. Tôi có thể sai, nên hãy kiểm tra các chi tiết quan trọng.",
-                "appearance_notice_help": "Không bắt buộc. Một dòng ngắn dưới ô tin nhắn trong mọi cuộc trò chuyện: tác tử phụ trách những gì, và câu trả lời có thể sai. Được dịch tự động."
+                "appearance_notice_help": "Không bắt buộc. Một dòng ngắn dưới ô tin nhắn trong mọi cuộc trò chuyện: tác tử phụ trách những gì, và câu trả lời có thể sai. Được dịch tự động.",
+                "starters_translate_confirm_title": "Dịch sang {count} ngôn ngữ? | Dịch sang {count} ngôn ngữ?",
+                "starters_translate_confirm_description": "Khi bạn lưu, các câu mở đầu bạn thêm sẽ được dịch sang mọi ngôn ngữ mà tác tử này dùng. Bạn có muốn tiếp tục không?",
+                "starters_translate_confirm_action": "Thêm và dịch"
             },
             "languages": {
                 "title": "Ngôn ngữ giao diện",

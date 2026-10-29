@@ -2106,7 +2106,10 @@
                 "starters_generate_empty": "Tidak ada pembuka yang dihasilkan. Pastikan basis pengetahuan berisi konten, lalu coba lagi.",
                 "appearance_notice": "Catatan di bawah kotak chat",
                 "appearance_notice_placeholder": "Contoh: Saya menjawab pertanyaan tentang produk kami. Saya bisa salah, jadi periksa detail penting.",
-                "appearance_notice_help": "Opsional. Satu baris singkat di bawah kotak pesan di setiap chat: apa yang dicakup agen, dan bahwa jawaban bisa salah. Diterjemahkan otomatis."
+                "appearance_notice_help": "Opsional. Satu baris singkat di bawah kotak pesan di setiap chat: apa yang dicakup agen, dan bahwa jawaban bisa salah. Diterjemahkan otomatis.",
+                "starters_translate_confirm_title": "Terjemahkan ke {count} bahasa? | Terjemahkan ke {count} bahasa?",
+                "starters_translate_confirm_description": "Saat Anda menyimpan, pembuka yang Anda tambahkan diterjemahkan ke setiap bahasa yang digunakan agen ini. Lanjutkan?",
+                "starters_translate_confirm_action": "Tambah dan terjemahkan"
             },
             "languages": {
                 "title": "Bahasa UI",

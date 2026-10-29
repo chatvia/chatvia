@@ -2106,7 +2106,10 @@
                 "starters_generate_empty": "候補が返ってきませんでした。ナレッジベースにコンテンツがあるか確認して、もう一度お試しください。",
                 "appearance_notice": "チャット欄の下の注意書き",
                 "appearance_notice_placeholder": "例：当社製品に関する質問にお答えします。間違えることもあるため、重要な点はご確認ください。",
-                "appearance_notice_help": "任意。すべてのチャットでメッセージ欄の下に表示する短い一文です。エージェントが扱う内容と、回答が間違っている可能性を伝えます。自動で翻訳されます。"
+                "appearance_notice_help": "任意。すべてのチャットでメッセージ欄の下に表示する短い一文です。エージェントが扱う内容と、回答が間違っている可能性を伝えます。自動で翻訳されます。",
+                "starters_translate_confirm_title": "{count} 言語に翻訳しますか？ | {count} 言語に翻訳しますか？",
+                "starters_translate_confirm_description": "保存すると、追加したきっかけはこのエージェントのすべての言語に翻訳されます。続けますか？",
+                "starters_translate_confirm_action": "追加して翻訳"
             },
             "languages": {
                 "title": "UI 言語",

@@ -3,7 +3,10 @@
         "setup": {
             "sections": {
                 "starters_generate_failed": "시작 문구를 생성하지 못했습니다",
-                "starters_generate_empty": "받은 시작 문구가 없습니다. 지식 베이스에 콘텐츠가 있는지 확인한 후 다시 시도하세요."
+                "starters_generate_empty": "받은 시작 문구가 없습니다. 지식 베이스에 콘텐츠가 있는지 확인한 후 다시 시도하세요.",
+                "starters_translate_confirm_title": "{count}개 언어로 번역할까요? | {count}개 언어로 번역할까요?",
+                "starters_translate_confirm_description": "저장하면 추가한 시작 문구가 이 에이전트가 사용하는 모든 언어로 번역됩니다. 계속하시겠습니까?",
+                "starters_translate_confirm_action": "추가 후 번역"
             }
         }
     }

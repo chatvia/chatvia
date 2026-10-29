@@ -3,7 +3,10 @@
         "setup": {
             "sections": {
                 "starters_generate_failed": "Gagal membuat pembuka",
-                "starters_generate_empty": "Tidak ada pembuka yang dihasilkan. Pastikan basis pengetahuan berisi konten, lalu coba lagi."
+                "starters_generate_empty": "Tidak ada pembuka yang dihasilkan. Pastikan basis pengetahuan berisi konten, lalu coba lagi.",
+                "starters_translate_confirm_title": "Terjemahkan ke {count} bahasa? | Terjemahkan ke {count} bahasa?",
+                "starters_translate_confirm_description": "Saat Anda menyimpan, pembuka yang Anda tambahkan diterjemahkan ke setiap bahasa yang digunakan agen ini. Lanjutkan?",
+                "starters_translate_confirm_action": "Tambah dan terjemahkan"
             }
         }
     }

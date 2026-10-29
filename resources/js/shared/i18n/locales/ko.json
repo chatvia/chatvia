@@ -2106,7 +2106,10 @@
                 "starters_generate_empty": "받은 시작 문구가 없습니다. 지식 베이스에 콘텐츠가 있는지 확인한 후 다시 시도하세요.",
                 "appearance_notice": "채팅 입력창 아래 안내",
                 "appearance_notice_placeholder": "예: 저희 제품에 대한 질문에 답합니다. 틀릴 수 있으니 중요한 내용은 확인하세요.",
-                "appearance_notice_help": "선택 사항. 모든 채팅의 메시지 입력창 아래에 표시되는 짧은 한 줄: 에이전트가 다루는 내용과 답변이 틀릴 수 있다는 점. 자동으로 번역됩니다."
+                "appearance_notice_help": "선택 사항. 모든 채팅의 메시지 입력창 아래에 표시되는 짧은 한 줄: 에이전트가 다루는 내용과 답변이 틀릴 수 있다는 점. 자동으로 번역됩니다.",
+                "starters_translate_confirm_title": "{count}개 언어로 번역할까요? | {count}개 언어로 번역할까요?",
+                "starters_translate_confirm_description": "저장하면 추가한 시작 문구가 이 에이전트가 사용하는 모든 언어로 번역됩니다. 계속하시겠습니까?",
+                "starters_translate_confirm_action": "추가 후 번역"
             },
             "languages": {
                 "title": "UI 언어",

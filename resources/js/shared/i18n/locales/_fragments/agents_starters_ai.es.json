@@ -3,7 +3,10 @@
         "setup": {
             "sections": {
                 "starters_generate_failed": "No se pudieron generar iniciadores",
-                "starters_generate_empty": "No se recibió ningún iniciador. Comprueba que la base de conocimiento tenga contenido e inténtalo de nuevo."
+                "starters_generate_empty": "No se recibió ningún iniciador. Comprueba que la base de conocimiento tenga contenido e inténtalo de nuevo.",
+                "starters_translate_confirm_title": "¿Traducir a {count} idioma? | ¿Traducir a {count} idiomas?",
+                "starters_translate_confirm_description": "Al guardar, los iniciadores que agregues se traducen a todos los idiomas que usa este agente. ¿Quieres continuar?",
+                "starters_translate_confirm_action": "Agregar y traducir"
             }
         }
     }

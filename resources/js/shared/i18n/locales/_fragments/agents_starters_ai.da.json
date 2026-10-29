@@ -3,7 +3,10 @@
         "setup": {
             "sections": {
                 "starters_generate_failed": "Kunne ikke generere startere",
-                "starters_generate_empty": "Der kom ingen startere tilbage. Tjek, at vidensbasen har indhold, og prøv igen."
+                "starters_generate_empty": "Der kom ingen startere tilbage. Tjek, at vidensbasen har indhold, og prøv igen.",
+                "starters_translate_confirm_title": "Oversæt til {count} sprog? | Oversæt til {count} sprog?",
+                "starters_translate_confirm_description": "Når du gemmer, bliver de startere, du tilføjer, oversat til alle sprog, som denne agent bruger. Vil du fortsætte?",
+                "starters_translate_confirm_action": "Tilføj og oversæt"
             }
         }
     }

@@ -2106,7 +2106,10 @@
                 "starters_generate_empty": "Ingen startemeldinger kom tilbake. Sjekk at kunnskapsbasen har innhold, og prøv igjen.",
                 "appearance_notice": "Merknad under chatfeltet",
                 "appearance_notice_placeholder": "For eksempel: Jeg svarer på spørsmål om produktene våre. Jeg kan ta feil, så sjekk viktige detaljer.",
-                "appearance_notice_help": "Valgfritt. En kort linje under meldingsfeltet i hver chat: hva agenten dekker, og at svar kan være feil. Oversettes automatisk."
+                "appearance_notice_help": "Valgfritt. En kort linje under meldingsfeltet i hver chat: hva agenten dekker, og at svar kan være feil. Oversettes automatisk.",
+                "starters_translate_confirm_title": "Oversette til {count} språk? | Oversette til {count} språk?",
+                "starters_translate_confirm_description": "Når du lagrer, blir starterne du legger til oversatt til alle språkene denne agenten bruker. Vil du fortsette?",
+                "starters_translate_confirm_action": "Legg til og oversett"
             },
             "languages": {
                 "title": "Grensesnittspråk",

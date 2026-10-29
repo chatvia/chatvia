@@ -3,7 +3,10 @@
         "setup": {
             "sections": {
                 "starters_generate_failed": "会話のきっかけを生成できませんでした",
-                "starters_generate_empty": "候補が返ってきませんでした。ナレッジベースにコンテンツがあるか確認して、もう一度お試しください。"
+                "starters_generate_empty": "候補が返ってきませんでした。ナレッジベースにコンテンツがあるか確認して、もう一度お試しください。",
+                "starters_translate_confirm_title": "{count} 言語に翻訳しますか？ | {count} 言語に翻訳しますか？",
+                "starters_translate_confirm_description": "保存すると、追加したきっかけはこのエージェントのすべての言語に翻訳されます。続けますか？",
+                "starters_translate_confirm_action": "追加して翻訳"
             }
         }
     }

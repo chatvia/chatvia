@@ -2106,7 +2106,10 @@
                 "starters_generate_empty": "Aucune amorce n'a été renvoyée. Vérifiez que la base de connaissances contient du contenu, puis réessayez.",
                 "appearance_notice": "Note sous la zone de chat",
                 "appearance_notice_placeholder": "Par exemple : Je réponds aux questions sur nos produits. Je peux me tromper, vérifiez donc les détails importants.",
-                "appearance_notice_help": "Facultatif. Une courte ligne sous la zone de message dans chaque chat : ce que couvre l'agent, et que les réponses peuvent être fausses. Traduite automatiquement."
+                "appearance_notice_help": "Facultatif. Une courte ligne sous la zone de message dans chaque chat : ce que couvre l'agent, et que les réponses peuvent être fausses. Traduite automatiquement.",
+                "starters_translate_confirm_title": "Traduire en {count} langue ? | Traduire en {count} langues ?",
+                "starters_translate_confirm_description": "À l’enregistrement, les amorces ajoutées sont traduites dans chaque langue de cet agent. Voulez-vous continuer ?",
+                "starters_translate_confirm_action": "Ajouter et traduire"
             },
             "languages": {
                 "title": "Langues de l'interface",

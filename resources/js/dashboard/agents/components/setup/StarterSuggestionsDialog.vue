@@ -5,11 +5,23 @@
  * tick which ones to add. Ideas that already exist as starters are shown but
  * can't be picked. Nothing is saved here; the picked texts go to the parent.
  * When nothing can be made, the dialog says why (the server names the model
- * and what its provider said).
+ * and what its provider said). When the agent speaks more than two languages,
+ * adding asks first, since every added starter is translated into each of them
+ * on save.
  */
 import { generateStarters } from '@/dashboard/agents/api/agentSetup';
 import { errorMessage } from '@/shared/api/http';
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/shared/ui/alert-dialog';
 import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
@@ -23,6 +35,8 @@ const props = defineProps<{
     agentId: string;
     // Texts of the starters the agent already has.
     existing: string[];
+    // How many languages the added starters will be translated into.
+    languageCount: number;
 }>();
 
 const emit = defineEmits<{ add: [texts: string[]] }>();
@@ -30,6 +44,9 @@ const emit = defineEmits<{ add: [texts: string[]] }>();
 const open = defineModel<boolean>('open', { required: true });
 
 const { t } = useI18n();
+
+// Above this many languages, adding asks before the starters go out for translation.
+const CONFIRM_ABOVE_LANGUAGES = 2;
 
 const COUNTS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
@@ -40,6 +57,7 @@ const picked = ref<string[]>([]);
 // Why the last try made nothing: the server's reason, or '' when it gave none.
 const failure = ref<string | null>(null);
 const isEmpty = ref(false);
+const isConfirming = ref(false);
 
 const isAdded = (text: string): boolean => props.existing.some((existing) => existing.trim() === text.trim());
 const isPicked = (text: string): boolean => picked.value.includes(text);
@@ -78,9 +96,17 @@ const toggle = (text: string): void => {
     picked.value = isPicked(text) ? picked.value.filter((x) => x !== text) : [...picked.value, text];
 };
 
-const addPicked = (): void => {
+const commitPicked = (): void => {
     emit('add', picked.value);
     open.value = false;
+};
+
+const addPicked = (): void => {
+    if (props.languageCount > CONFIRM_ABOVE_LANGUAGES) {
+        isConfirming.value = true;
+        return;
+    }
+    commitPicked();
 };
 
 const addLabel = computed(() =>
@@ -150,4 +176,19 @@ const addLabel = computed(() =>
             </DialogFooter>
         </DialogContent>
     </Dialog>
+
+    <AlertDialog v-model:open="isConfirming">
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>
+                    {{ t('agents.setup.sections.starters_translate_confirm_title', { count: languageCount }, { plural: languageCount }) }}
+                </AlertDialogTitle>
+                <AlertDialogDescription>{{ t('agents.setup.sections.starters_translate_confirm_description') }}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>{{ t('common.cancel') }}</AlertDialogCancel>
+                <AlertDialogAction @click="commitPicked">{{ t('agents.setup.sections.starters_translate_confirm_action') }}</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
 </template>

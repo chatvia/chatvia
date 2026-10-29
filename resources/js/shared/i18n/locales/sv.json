@@ -2106,7 +2106,10 @@
                 "starters_generate_empty": "Inga startfrågor kom tillbaka. Kontrollera att kunskapsbasen har innehåll och försök igen.",
                 "appearance_notice": "Notis under chattrutan",
                 "appearance_notice_placeholder": "Till exempel: Jag svarar på frågor om våra produkter. Jag kan ha fel, så kontrollera viktiga detaljer.",
-                "appearance_notice_help": "Valfritt. En kort rad under meddelanderutan i varje chatt: vad agenten täcker och att svar kan vara fel. Översätts automatiskt."
+                "appearance_notice_help": "Valfritt. En kort rad under meddelanderutan i varje chatt: vad agenten täcker och att svar kan vara fel. Översätts automatiskt.",
+                "starters_translate_confirm_title": "Översätta till {count} språk? | Översätta till {count} språk?",
+                "starters_translate_confirm_description": "När du sparar översätts de starter du lägger till till alla språk som agenten använder. Vill du fortsätta?",
+                "starters_translate_confirm_action": "Lägg till och översätt"
             },
             "languages": {
                 "title": "Gränssnittsspråk",

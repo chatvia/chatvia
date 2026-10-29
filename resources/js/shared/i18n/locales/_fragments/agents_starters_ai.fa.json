@@ -3,7 +3,10 @@
         "setup": {
             "sections": {
                 "starters_generate_failed": "تولید شروع‌کننده‌ها ممکن نشد",
-                "starters_generate_empty": "هیچ شروع‌کننده‌ای برنگشت. بررسی کنید که پایگاه دانش محتوا داشته باشد، سپس دوباره تلاش کنید."
+                "starters_generate_empty": "هیچ شروع‌کننده‌ای برنگشت. بررسی کنید که پایگاه دانش محتوا داشته باشد، سپس دوباره تلاش کنید.",
+                "starters_translate_confirm_title": "به {count} زبان ترجمه شود؟ | به {count} زبان ترجمه شود؟",
+                "starters_translate_confirm_description": "هنگام ذخیره، شروع‌کننده‌هایی که اضافه می‌کنید به همه زبان‌های این عامل ترجمه می‌شوند. می‌خواهید ادامه دهید؟",
+                "starters_translate_confirm_action": "افزودن و ترجمه"
             }
         }
     }

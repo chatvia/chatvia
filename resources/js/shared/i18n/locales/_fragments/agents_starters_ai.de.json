@@ -3,7 +3,10 @@
         "setup": {
             "sections": {
                 "starters_generate_failed": "Gesprächseinstiege konnten nicht generiert werden",
-                "starters_generate_empty": "Es kamen keine Gesprächseinstiege zurück. Prüfen Sie, ob die Wissensdatenbank Inhalte hat, und versuchen Sie es erneut."
+                "starters_generate_empty": "Es kamen keine Gesprächseinstiege zurück. Prüfen Sie, ob die Wissensdatenbank Inhalte hat, und versuchen Sie es erneut.",
+                "starters_translate_confirm_title": "In {count} Sprache übersetzen? | In {count} Sprachen übersetzen?",
+                "starters_translate_confirm_description": "Beim Speichern werden die hinzugefügten Einstiege in jede Sprache dieses Agenten übersetzt. Möchten Sie fortfahren?",
+                "starters_translate_confirm_action": "Hinzufügen und übersetzen"
             }
         }
     }

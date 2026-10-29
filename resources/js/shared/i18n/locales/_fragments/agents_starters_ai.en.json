@@ -11,7 +11,10 @@
                 "starters_generate_hint": "Choose a number and generate suggestions from your knowledge base.",
                 "starters_translate_empty": "Add starters on the Default tab first, then translate them here.",
                 "starters_generate_failed": "Could not generate starters",
-                "starters_generate_empty": "No starters came back. Check that the knowledge base has content, then try again."
+                "starters_generate_empty": "No starters came back. Check that the knowledge base has content, then try again.",
+                "starters_translate_confirm_title": "Translate into {count} language? | Translate into {count} languages?",
+                "starters_translate_confirm_description": "When you save, the starters you add are translated into every language this agent uses. Do you want to continue?",
+                "starters_translate_confirm_action": "Add and translate"
             }
         }
     }

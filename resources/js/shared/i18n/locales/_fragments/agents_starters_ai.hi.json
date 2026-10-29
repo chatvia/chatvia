@@ -3,7 +3,10 @@
         "setup": {
             "sections": {
                 "starters_generate_failed": "स्टार्टर नहीं बन सके",
-                "starters_generate_empty": "कोई स्टार्टर नहीं मिला। जांचें कि नॉलेज बेस में सामग्री है, फिर दोबारा कोशिश करें।"
+                "starters_generate_empty": "कोई स्टार्टर नहीं मिला। जांचें कि नॉलेज बेस में सामग्री है, फिर दोबारा कोशिश करें।",
+                "starters_translate_confirm_title": "{count} भाषा में अनुवाद करें? | {count} भाषाओं में अनुवाद करें?",
+                "starters_translate_confirm_description": "सहेजने पर, आपके जोड़े गए शुरुआतकर्ता इस एजेंट की हर भाषा में अनुवादित हो जाते हैं। क्या आप जारी रखना चाहते हैं?",
+                "starters_translate_confirm_action": "जोड़ें और अनुवाद करें"
             }
         }
     }

@@ -11,7 +11,10 @@
                 "starters_generate_hint": "اختر عددًا ثم أنشئ اقتراحات من قاعدة معرفتك.",
                 "starters_translate_empty": "أضف الأمثلة في تبويب الافتراضية أولًا، ثم ترجمها هنا.",
                 "starters_generate_failed": "تعذّر إنشاء الأمثلة",
-                "starters_generate_empty": "لم تصل أي أمثلة. تأكد من أن قاعدة المعرفة فيها محتوى، ثم حاول مرة أخرى."
+                "starters_generate_empty": "لم تصل أي أمثلة. تأكد من أن قاعدة المعرفة فيها محتوى، ثم حاول مرة أخرى.",
+                "starters_translate_confirm_title": "الترجمة إلى كل اللغات ({count})؟ | الترجمة إلى كل اللغات ({count})؟",
+                "starters_translate_confirm_description": "عند الحفظ، تُترجم البادئات التي تضيفها إلى كل لغة يستخدمها هذا الوكيل. هل تريد المتابعة؟",
+                "starters_translate_confirm_action": "إضافة وترجمة"
             }
         }
     }

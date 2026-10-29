@@ -2106,7 +2106,10 @@
                 "starters_generate_empty": "No se recibió ningún iniciador. Comprueba que la base de conocimiento tenga contenido e inténtalo de nuevo.",
                 "appearance_notice": "Aviso bajo el cuadro de chat",
                 "appearance_notice_placeholder": "Por ejemplo: Respondo preguntas sobre nuestros productos. Puedo equivocarme, así que comprueba los detalles importantes.",
-                "appearance_notice_help": "Opcional. Una línea corta bajo el cuadro de mensaje en cada chat: qué cubre el agente y que las respuestas pueden ser incorrectas. Se traduce automáticamente."
+                "appearance_notice_help": "Opcional. Una línea corta bajo el cuadro de mensaje en cada chat: qué cubre el agente y que las respuestas pueden ser incorrectas. Se traduce automáticamente.",
+                "starters_translate_confirm_title": "¿Traducir a {count} idioma? | ¿Traducir a {count} idiomas?",
+                "starters_translate_confirm_description": "Al guardar, los iniciadores que agregues se traducen a todos los idiomas que usa este agente. ¿Quieres continuar?",
+                "starters_translate_confirm_action": "Agregar y traducir"
             },
             "languages": {
                 "title": "Idiomas de la interfaz",

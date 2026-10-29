@@ -3,7 +3,10 @@
         "setup": {
             "sections": {
                 "starters_generate_failed": "无法生成开场白",
-                "starters_generate_empty": "没有生成任何开场白。请确认知识库中有内容，然后重试。"
+                "starters_generate_empty": "没有生成任何开场白。请确认知识库中有内容，然后重试。",
+                "starters_translate_confirm_title": "翻译成 {count} 种语言？ | 翻译成 {count} 种语言？",
+                "starters_translate_confirm_description": "保存时，你添加的开场白会被翻译成此智能体使用的每种语言。要继续吗？",
+                "starters_translate_confirm_action": "添加并翻译"
             }
         }
     }

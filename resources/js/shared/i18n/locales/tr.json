@@ -2106,7 +2106,10 @@
                 "starters_generate_empty": "Hiç başlatıcı gelmedi. Bilgi tabanında içerik olduğunu kontrol edin ve tekrar deneyin.",
                 "appearance_notice": "Sohbet kutusunun altındaki not",
                 "appearance_notice_placeholder": "Örneğin: Ürünlerimizle ilgili soruları yanıtlarım. Hata yapabilirim, bu yüzden önemli ayrıntıları kontrol edin.",
-                "appearance_notice_help": "İsteğe bağlı. Her sohbette mesaj kutusunun altında kısa bir satır: ajanın neleri kapsadığı ve yanıtların yanlış olabileceği. Otomatik çevrilir."
+                "appearance_notice_help": "İsteğe bağlı. Her sohbette mesaj kutusunun altında kısa bir satır: ajanın neleri kapsadığı ve yanıtların yanlış olabileceği. Otomatik çevrilir.",
+                "starters_translate_confirm_title": "{count} dile çevrilsin mi? | {count} dile çevrilsin mi?",
+                "starters_translate_confirm_description": "Kaydettiğinizde eklediğiniz başlatıcılar bu ajanın kullandığı her dile çevrilir. Devam etmek istiyor musunuz?",
+                "starters_translate_confirm_action": "Ekle ve çevir"
             },
             "languages": {
                 "title": "Arayüz dilleri",

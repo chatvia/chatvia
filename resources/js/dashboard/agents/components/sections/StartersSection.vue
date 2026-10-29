@@ -16,6 +16,7 @@ import { Alert, AlertDescription } from '@/shared/ui/alert';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { hasAnyOverride } from '@/dashboard/agents/composables/setup/translatableItems';
+import { LOCALES } from '@/shared/i18n';
 import { Info, Plus, Sparkles, Trash2 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -67,6 +68,8 @@ const hasOverride = (code: string): boolean => hasAnyOverride(props.starters, co
 // ── AI suggestions ────────────────────────────────────────────────────────
 const isSuggesting = ref(false);
 const existingTexts = computed(() => props.starters.map((starter) => starter.text));
+// Same languages as the flag tabs: the allowed ones, or every language when none are set.
+const languageCount = computed(() => Object.keys(props.languages).filter((code) => code !== 'auto').length || LOCALES.length);
 
 const addSuggestions = (texts: string[]): void => {
     const merged = [...props.starters];
@@ -159,6 +162,12 @@ const addSuggestions = (texts: string[]): void => {
             @update:items="emit('update:starters', $event)"
         />
 
-        <StarterSuggestionsDialog v-model:open="isSuggesting" :agent-id="agentExternalId" :existing="existingTexts" @add="addSuggestions" />
+        <StarterSuggestionsDialog
+            v-model:open="isSuggesting"
+            :agent-id="agentExternalId"
+            :existing="existingTexts"
+            :language-count="languageCount"
+            @add="addSuggestions"
+        />
     </div>
 </template>

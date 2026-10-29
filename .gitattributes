@@ -6,19 +6,7 @@
 *.md diff=markdown
 *.php diff=php
 
-# ------------------------------------------------------------------------------
-# Left out of the public release.
-#
-# scripts/export-public.sh builds the public tree with `git archive`, which skips
-# every path marked `export-ignore` below. The script also checks that each of
-# these paths is really gone, so keep its list in sync when you add one here.
-# ------------------------------------------------------------------------------
-
-# Private maintainer documents and the export tooling itself
-/internal export-ignore
-/scripts/export-public.sh export-ignore
-
-# Local AI-assistant and editor settings
+# Left out of `git archive` exports: local AI-assistant and editor settings.
 /CLAUDE.md export-ignore
 /AGENTS.md export-ignore
 /.cursor export-ignore

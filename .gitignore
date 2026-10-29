@@ -59,7 +59,7 @@ Thumbs.db
 CLAUDE.md
 AGENTS.md
 
-# Private server setup of chatvia.ai. Kept on disk, never in git.
+# Local server configuration
 /server/
 /server.sh
 /postgresql.conf

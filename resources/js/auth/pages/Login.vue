@@ -1,7 +1,7 @@
 <script setup lang="ts">
-// Workspace sign-in: password or magic link (tabs), passkeys (button and
-// browser autofill), and social sign-in. Passkey autofill is armed on mount
-// and cancelled on leave so the browser prompt does not outlive the page.
+// Workspace sign-in: password or magic link (tabs), passkeys, and social
+// sign-in. The browser is asked for a passkey only when the Passkey button
+// is clicked, never on load; a pending prompt is cancelled on leave.
 // On an IP address the browser refuses passkeys, so the option is hidden.
 import SocialLoginButtons from '@/auth/components/SocialLoginButtons.vue';
 import TurnstileWidget from '@/auth/components/TurnstileWidget.vue';
@@ -22,7 +22,7 @@ import { send as sendMagicLink } from '@/routes/magic-link';
 import { request as requestPasswordReset } from '@/routes/password';
 import { Head, useForm } from '@inertiajs/vue3';
 import { Fingerprint, LoaderCircle, Lock, Mail, Sparkles } from 'lucide-vue-next';
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { onBeforeUnmount, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -82,25 +82,11 @@ const redirectAfterSignIn = (redirect?: string) => {
     window.location.href = redirect ?? dashboard.url();
 };
 
-const tryAutofill = async () => {
-    if (!passkeysAllowed) return;
-    const { Passkeys, UserCancelledError } = await loadPasskeys();
-    if (!(await Passkeys.isAutofillSupported())) return;
-    try {
-        const result = await Passkeys.autofill();
-        if (result) redirectAfterSignIn(result.redirect);
-    } catch (e: unknown) {
-        if (e instanceof UserCancelledError) return;
-        passkeyError.value = e instanceof Error ? e.message : t('auth.login.passkey_error_fallback');
-    }
-};
-
 const signInWithPasskey = async () => {
     passkeyError.value = null;
     passkeyPending.value = true;
     const { Passkeys, UserCancelledError } = await loadPasskeys();
     try {
-        Passkeys.cancel();
         const result = await Passkeys.verify();
         redirectAfterSignIn(result.redirect);
     } catch (e: unknown) {
@@ -108,8 +94,6 @@ const signInWithPasskey = async () => {
         if (!(e instanceof UserCancelledError)) {
             passkeyError.value = e instanceof Error ? e.message : t('auth.login.passkey_error_fallback');
         }
-        // Re-arm autofill so the field-anchored dropdown still works after a cancelled modal verify.
-        tryAutofill();
     }
 };
 
@@ -117,7 +101,6 @@ const cancelPasskeys = () => {
     passkeysModule?.then(({ Passkeys }) => Passkeys.cancel());
 };
 
-onMounted(tryAutofill);
 onBeforeUnmount(cancelPasskeys);
 </script>
 
@@ -179,7 +162,7 @@ onBeforeUnmount(cancelPasskeys);
                                     required
                                     autofocus
                                     :tabindex="1"
-                                    autocomplete="email webauthn"
+                                    autocomplete="email"
                                     v-model="passwordForm.email"
                                     :placeholder="t('auth.login.email_placeholder')"
                                     class="h-12 ps-10 text-base"
@@ -253,7 +236,7 @@ onBeforeUnmount(cancelPasskeys);
                                     type="email"
                                     required
                                     :tabindex="1"
-                                    autocomplete="email webauthn"
+                                    autocomplete="email"
                                     v-model="magicLinkForm.email"
                                     :placeholder="t('auth.login.email_placeholder')"
                                     class="h-12 ps-10 text-base"

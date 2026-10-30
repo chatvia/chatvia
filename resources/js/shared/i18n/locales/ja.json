@@ -1340,9 +1340,9 @@
                 "record_description": "マイクから直接音声を録音して、エージェントのナレッジベースに追加できます"
             },
             "files": {
-                "uploader_description_audio": "文字起こし用の音声ファイルをアップロードします。対応形式: {formats}。1ファイルあたり最大 {size} MB。",
-                "uploader_description_video": "文字起こし用の動画ファイルをアップロードします。対応形式: {formats}。1ファイルあたり最大 {size} MB。",
-                "uploader_description_default": "対応形式: {formats}。1ファイルあたり最大 {size} MB。",
+                "uploader_description_audio": "{formats} の録音をアップロードできます。テキストに変換されます。1ファイルあたり最大 {size} MB です。",
+                "uploader_description_video": "{formats} の動画をアップロードできます。テキストに変換されます。1ファイルあたり最大 {size} MB です。",
+                "uploader_description_default": "{formats} ファイルをアップロードできます。1ファイルあたり最大 {size} MB です。",
                 "uploader_description_archive": "ZIPアーカイブはフォルダーも含めて展開され、これらの形式のファイルだけが残されます。",
                 "archive_uploaded": "{name} から {count} 件のファイルを追加しました | {name} から {count} 件のファイルを追加しました",
                 "archive_skipped": "{count} 件のファイルをスキップしました: {names} | {count} 件のファイルをスキップしました: {names}",

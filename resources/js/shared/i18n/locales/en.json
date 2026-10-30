@@ -1340,9 +1340,9 @@
                 "record_description": "Record audio directly from your microphone to add to your agent's knowledge base"
             },
             "files": {
-                "uploader_description_audio": "Upload audio files for transcription. Supported formats: {formats}. Max {size} MB per file.",
-                "uploader_description_video": "Upload video files for transcription. Supported formats: {formats}. Max {size} MB per file.",
-                "uploader_description_default": "Supported formats: {formats}. Max {size} MB per file.",
+                "uploader_description_audio": "You can upload {formats} recordings. They are turned into text. Each file can be up to {size} MB.",
+                "uploader_description_video": "You can upload {formats} videos. They are turned into text. Each file can be up to {size} MB.",
+                "uploader_description_default": "You can upload {formats} files. Each file can be up to {size} MB.",
                 "type_unknown": "Unknown",
                 "minutes_count": "{count} minute | {count} minutes",
                 "pages_count": "{count} page | {count} pages",

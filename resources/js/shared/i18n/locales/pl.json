@@ -1340,9 +1340,9 @@
                 "record_description": "Nagraj dźwięk bezpośrednio z mikrofonu, aby dodać go do bazy wiedzy agenta"
             },
             "files": {
-                "uploader_description_audio": "Przesyłaj pliki audio do transkrypcji. Obsługiwane formaty: {formats}. Maks. {size} MB na plik.",
-                "uploader_description_video": "Przesyłaj pliki wideo do transkrypcji. Obsługiwane formaty: {formats}. Maks. {size} MB na plik.",
-                "uploader_description_default": "Obsługiwane formaty: {formats}. Maks. {size} MB na plik.",
+                "uploader_description_audio": "Możesz przesłać nagrania {formats}. Są zamieniane na tekst. Każdy plik może mieć do {size} MB.",
+                "uploader_description_video": "Możesz przesłać filmy {formats}. Są zamieniane na tekst. Każdy plik może mieć do {size} MB.",
+                "uploader_description_default": "Możesz przesłać pliki {formats}. Każdy plik może mieć do {size} MB.",
                 "type_unknown": "Nieznany",
                 "minutes_count": "{count} minuta | {count} minut",
                 "pages_count": "{count} strona | {count} stron",

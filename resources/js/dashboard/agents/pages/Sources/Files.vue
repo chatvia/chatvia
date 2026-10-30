@@ -68,6 +68,7 @@ const {
     config: uploadConfig,
     title: uploadTitle,
     description: uploadDescription,
+    note: uploadNote,
     acceptsFiles,
 } = useFileUploadConfig(agentId, props.fileType, (file) => {
     fileUploaderRef.value?.removeFileById(file.id);
@@ -128,6 +129,7 @@ defineExpose({ refreshFiles: fetchFiles });
                 :config="uploadConfig"
                 :title="uploadTitle"
                 :description="uploadDescription"
+                :note="uploadNote"
                 :length-unit="fileType === 'audio' || fileType === 'video' ? 'minutes' : 'pages'"
                 :disabled="isTraining || !acceptsFiles"
                 :disabled-message="t('agents.sources.files.uploads_disabled')"

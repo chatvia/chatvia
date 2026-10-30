@@ -1340,9 +1340,9 @@
                 "record_description": "अपने एजेंट के नॉलेज बेस में जोड़ने के लिए सीधे अपने माइक्रोफ़ोन से ऑडियो रिकॉर्ड करें"
             },
             "files": {
-                "uploader_description_audio": "ट्रांसक्रिप्शन के लिए ऑडियो फ़ाइलें अपलोड करें। समर्थित प्रारूप: {formats}। प्रति फ़ाइल अधिकतम {size} MB।",
-                "uploader_description_video": "ट्रांसक्रिप्शन के लिए वीडियो फ़ाइलें अपलोड करें। समर्थित प्रारूप: {formats}। प्रति फ़ाइल अधिकतम {size} MB।",
-                "uploader_description_default": "समर्थित प्रारूप: {formats}। प्रति फ़ाइल अधिकतम {size} MB।",
+                "uploader_description_audio": "आप {formats} रिकॉर्डिंग अपलोड कर सकते हैं। उन्हें टेक्स्ट में बदला जाता है। हर फ़ाइल अधिकतम {size} MB की हो सकती है।",
+                "uploader_description_video": "आप {formats} वीडियो अपलोड कर सकते हैं। उन्हें टेक्स्ट में बदला जाता है। हर फ़ाइल अधिकतम {size} MB की हो सकती है।",
+                "uploader_description_default": "आप {formats} फ़ाइलें अपलोड कर सकते हैं। हर फ़ाइल अधिकतम {size} MB की हो सकती है।",
                 "uploader_description_archive": "ZIP फ़ाइल को फ़ोल्डरों सहित खोला जाता है और केवल इन प्रारूपों की फ़ाइलें रखी जाती हैं।",
                 "archive_uploaded": "{name} से {count} फ़ाइल जोड़ी गई | {name} से {count} फ़ाइलें जोड़ी गईं",
                 "archive_skipped": "{count} फ़ाइल छोड़ी गई: {names} | {count} फ़ाइलें छोड़ी गईं: {names}",

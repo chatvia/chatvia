@@ -1340,9 +1340,9 @@
                 "record_description": "Записывайте аудио прямо с микрофона, чтобы добавить его в базу знаний агента"
             },
             "files": {
-                "uploader_description_audio": "Загрузите аудиофайлы для расшифровки. Поддерживаемые форматы: {formats}. Макс. {size} МБ на файл.",
-                "uploader_description_video": "Загрузите видеофайлы для расшифровки. Поддерживаемые форматы: {formats}. Макс. {size} МБ на файл.",
-                "uploader_description_default": "Поддерживаемые форматы: {formats}. Макс. {size} МБ на файл.",
+                "uploader_description_audio": "Вы можете загрузить записи {formats}. Они преобразуются в текст. Каждый файл до {size} МБ.",
+                "uploader_description_video": "Вы можете загрузить видео {formats}. Они преобразуются в текст. Каждый файл до {size} МБ.",
+                "uploader_description_default": "Вы можете загрузить файлы {formats}. Каждый файл до {size} МБ.",
                 "uploader_description_archive": "ZIP-архив распаковывается вместе с папками, и сохраняются только файлы этих форматов.",
                 "archive_uploaded": "Добавлен {count} файл из {name} | Добавлено {count} файлов из {name}",
                 "archive_skipped": "Пропущен {count} файл: {names} | Пропущено {count} файлов: {names}",

@@ -1340,9 +1340,9 @@
                 "record_description": "سجّل الصوت مباشرةً من الميكروفون لإضافته إلى قاعدة معرفة وكيلك"
             },
             "files": {
-                "uploader_description_audio": "ارفع الملفات الصوتية لتفريغها نصياً. الصيغ المدعومة: {formats}. الحد الأقصى {size} ميجابايت لكل ملف.",
-                "uploader_description_video": "ارفع ملفات الفيديو لتفريغها نصياً. الصيغ المدعومة: {formats}. الحد الأقصى {size} ميجابايت لكل ملف.",
-                "uploader_description_default": "الصيغ المدعومة: {formats}. الحد الأقصى {size} ميجابايت لكل ملف.",
+                "uploader_description_audio": "يمكنك رفع تسجيلات {formats}. يتم تحويلها إلى نص. الحد الأقصى لكل ملف {size} ميجابايت.",
+                "uploader_description_video": "يمكنك رفع مقاطع فيديو {formats}. يتم تحويلها إلى نص. الحد الأقصى لكل ملف {size} ميجابايت.",
+                "uploader_description_default": "يمكنك رفع ملفات {formats}. الحد الأقصى لكل ملف {size} ميجابايت.",
                 "type_unknown": "غير معروف",
                 "minutes_count": "{count} دقيقة | {count} دقائق",
                 "pages_count": "{count} صفحة | {count} صفحات",

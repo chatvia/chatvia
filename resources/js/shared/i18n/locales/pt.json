@@ -1340,9 +1340,9 @@
                 "record_description": "Grave áudio diretamente do seu microfone para adicionar à base de conhecimento do seu agente"
             },
             "files": {
-                "uploader_description_audio": "Carregue ficheiros de áudio para transcrição. Formatos suportados: {formats}. Máx. {size} MB por ficheiro.",
-                "uploader_description_video": "Carregue ficheiros de vídeo para transcrição. Formatos suportados: {formats}. Máx. {size} MB por ficheiro.",
-                "uploader_description_default": "Formatos suportados: {formats}. Máx. {size} MB por ficheiro.",
+                "uploader_description_audio": "Pode carregar gravações {formats}. São convertidas em texto. Cada ficheiro pode ter até {size} MB.",
+                "uploader_description_video": "Pode carregar vídeos {formats}. São convertidos em texto. Cada ficheiro pode ter até {size} MB.",
+                "uploader_description_default": "Pode carregar ficheiros {formats}. Cada ficheiro pode ter até {size} MB.",
                 "type_unknown": "Desconhecido",
                 "minutes_count": "{count} minuto | {count} minutos",
                 "pages_count": "{count} página | {count} páginas",

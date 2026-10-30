@@ -5,8 +5,9 @@
  * `useFileUploader`; the parent reads the files through the exposed API.
  */
 import UploadingFileRow from '@/dashboard/agents/components/file-uploader/UploadingFileRow.vue';
+import { Alert, AlertDescription } from '@/shared/ui/alert';
 import { Button } from '@/shared/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { ScrollArea } from '@/shared/ui/scroll-area';
 import {
     useFileUploader,
@@ -14,13 +15,15 @@ import {
     type FileUploaderConfig,
     type UploadingFileData,
 } from '@/dashboard/agents/composables/useFileUploader';
-import { Trash2, Upload } from 'lucide-vue-next';
+import { Info, Trash2, Upload } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 interface Props {
     title?: string;
     description?: string;
+    /** A second line under the description, such as what happens to an archive. */
+    note?: string;
     config: FileUploaderConfig;
     /** What a file's length counts: minutes (audio, video) or pages (everything else). */
     lengthUnit?: 'pages' | 'minutes';
@@ -158,10 +161,18 @@ defineExpose({
                 <Upload class="h-5 w-5" />
                 {{ displayTitle }}
             </CardTitle>
-            <CardDescription>{{ displayDescription }}</CardDescription>
         </CardHeader>
         <CardContent>
             <div class="space-y-4">
+                <!-- What the page takes: formats, size, archives. Coloured so it is read before picking files. -->
+                <Alert class="border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/20 dark:text-blue-300">
+                    <Info />
+                    <AlertDescription class="text-blue-700 dark:text-blue-300">
+                        <p>{{ displayDescription }}</p>
+                        <p v-if="note">{{ note }}</p>
+                    </AlertDescription>
+                </Alert>
+
                 <!-- File count -->
                 <div class="flex items-center justify-between">
                     <span class="text-muted-foreground text-sm">

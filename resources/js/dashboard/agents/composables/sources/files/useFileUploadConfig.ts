@@ -109,18 +109,17 @@ export function useFileUploadConfig(agentId: string, fileType: string | undefine
     }));
 
     const title = computed(() => t((fileType && TITLE_KEYS[fileType]) || 'agents.sources.files.upload_title_default'));
-    const description = computed(() => {
-        if (!acceptsFiles.value) {
-            return t('agents.sources.files.uploads_off');
-        }
+    const description = computed(() =>
+        acceptsFiles.value
+            ? t((fileType && DESCRIPTION_KEYS[fileType]) || 'agents.sources.files.uploader_description_default', {
+                  formats: [...extensions.value, ...(acceptsArchives.value ? ['zip'] : [])].map((extension) => extension.toUpperCase()).join(', '),
+                  size: accept.maxSizeMb,
+              })
+            : t('agents.sources.files.uploads_off'),
+    );
 
-        const formats = t((fileType && DESCRIPTION_KEYS[fileType]) || 'agents.sources.files.uploader_description_default', {
-            formats: extensions.value.map((extension) => extension.toUpperCase()).join(', '),
-            size: accept.maxSizeMb,
-        });
+    /** A second line under the description: what happens to a ZIP, on the pages that take one. */
+    const note = computed(() => (acceptsArchives.value ? t('agents.sources.files.uploader_description_archive') : undefined));
 
-        return acceptsArchives.value ? `${formats} ${t('agents.sources.files.uploader_description_archive')}` : formats;
-    });
-
-    return { config, title, description, acceptsFiles };
+    return { config, title, description, note, acceptsFiles };
 }

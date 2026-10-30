@@ -1340,9 +1340,9 @@
                 "record_description": "Graba audio directamente desde tu micrófono para agregarlo a la base de conocimiento de tu agente"
             },
             "files": {
-                "uploader_description_audio": "Sube archivos de audio para transcripción. Formatos compatibles: {formats}. Máx. {size} MB por archivo.",
-                "uploader_description_video": "Sube archivos de vídeo para transcripción. Formatos compatibles: {formats}. Máx. {size} MB por archivo.",
-                "uploader_description_default": "Formatos compatibles: {formats}. Máx. {size} MB por archivo.",
+                "uploader_description_audio": "Puedes subir grabaciones {formats}. Se convierten en texto. Cada archivo puede pesar hasta {size} MB.",
+                "uploader_description_video": "Puedes subir vídeos {formats}. Se convierten en texto. Cada archivo puede pesar hasta {size} MB.",
+                "uploader_description_default": "Puedes subir archivos {formats}. Cada archivo puede pesar hasta {size} MB.",
                 "type_unknown": "Desconocido",
                 "minutes_count": "{count} minuto | {count} minutos",
                 "pages_count": "{count} página | {count} páginas",

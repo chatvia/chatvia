@@ -1340,9 +1340,9 @@
                 "record_description": "Tallenna ääntä suoraan mikrofonistasi lisätäksesi sen agentin tietokantaan"
             },
             "files": {
-                "uploader_description_audio": "Lataa äänitiedostoja litterointia varten. Tuetut muodot: {formats}. Enintään {size} Mt per tiedosto.",
-                "uploader_description_video": "Lataa videotiedostoja litterointia varten. Tuetut muodot: {formats}. Enintään {size} Mt per tiedosto.",
-                "uploader_description_default": "Tuetut muodot: {formats}. Enintään {size} Mt per tiedosto.",
+                "uploader_description_audio": "Voit ladata {formats}-tallenteita. Ne muutetaan tekstiksi. Yksi tiedosto voi olla enintään {size} Mt.",
+                "uploader_description_video": "Voit ladata {formats}-videoita. Ne muutetaan tekstiksi. Yksi tiedosto voi olla enintään {size} Mt.",
+                "uploader_description_default": "Voit ladata {formats}-tiedostoja. Yksi tiedosto voi olla enintään {size} Mt.",
                 "type_unknown": "Tuntematon",
                 "minutes_count": "{count} minuutti | {count} minuuttia",
                 "pages_count": "{count} sivu | {count} sivua",

@@ -1340,9 +1340,9 @@
                 "record_description": "Enregistrez de l'audio directement depuis votre microphone pour l'ajouter à la base de connaissances de votre agent"
             },
             "files": {
-                "uploader_description_audio": "Importez des fichiers audio pour la transcription. Formats pris en charge : {formats}. Max {size} Mo par fichier.",
-                "uploader_description_video": "Importez des fichiers vidéo pour la transcription. Formats pris en charge : {formats}. Max {size} Mo par fichier.",
-                "uploader_description_default": "Formats pris en charge : {formats}. Max {size} Mo par fichier.",
+                "uploader_description_audio": "Vous pouvez importer des enregistrements {formats}. Ils sont convertis en texte. Chaque fichier peut peser jusqu'à {size} Mo.",
+                "uploader_description_video": "Vous pouvez importer des vidéos {formats}. Elles sont converties en texte. Chaque fichier peut peser jusqu'à {size} Mo.",
+                "uploader_description_default": "Vous pouvez importer des fichiers {formats}. Chaque fichier peut peser jusqu'à {size} Mo.",
                 "type_unknown": "Inconnu",
                 "minutes_count": "{count} minute | {count} minutes",
                 "pages_count": "{count} page | {count} pages",

@@ -38,9 +38,9 @@
                 "record_description": "Tallenna ääntä suoraan mikrofonistasi lisätäksesi sen agentin tietokantaan"
             },
             "files": {
-                "uploader_description_audio": "Lataa äänitiedostoja litterointia varten. Tuetut muodot: {formats}. Enintään {size} Mt per tiedosto.",
-                "uploader_description_video": "Lataa videotiedostoja litterointia varten. Tuetut muodot: {formats}. Enintään {size} Mt per tiedosto.",
-                "uploader_description_default": "Tuetut muodot: {formats}. Enintään {size} Mt per tiedosto.",
+                "uploader_description_audio": "Voit ladata {formats}-tallenteita. Ne muutetaan tekstiksi. Yksi tiedosto voi olla enintään {size} Mt.",
+                "uploader_description_video": "Voit ladata {formats}-videoita. Ne muutetaan tekstiksi. Yksi tiedosto voi olla enintään {size} Mt.",
+                "uploader_description_default": "Voit ladata {formats}-tiedostoja. Yksi tiedosto voi olla enintään {size} Mt.",
                 "uploader_description_archive": "ZIP-arkisto puretaan kansioineen, ja vain näiden muotojen tiedostot säilytetään.",
                 "archive_uploaded": "{count} tiedosto lisätty arkistosta {name} | {count} tiedostoa lisätty arkistosta {name}",
                 "archive_skipped": "{count} tiedosto ohitettu: {names} | {count} tiedostoa ohitettu: {names}",

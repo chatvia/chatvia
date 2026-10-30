@@ -38,9 +38,9 @@
                 "record_description": "سجّل الصوت مباشرةً من الميكروفون لإضافته إلى قاعدة معرفة وكيلك"
             },
             "files": {
-                "uploader_description_audio": "ارفع الملفات الصوتية لتفريغها نصياً. الصيغ المدعومة: {formats}. الحد الأقصى {size} ميجابايت لكل ملف.",
-                "uploader_description_video": "ارفع ملفات الفيديو لتفريغها نصياً. الصيغ المدعومة: {formats}. الحد الأقصى {size} ميجابايت لكل ملف.",
-                "uploader_description_default": "الصيغ المدعومة: {formats}. الحد الأقصى {size} ميجابايت لكل ملف.",
+                "uploader_description_audio": "يمكنك رفع تسجيلات {formats}. يتم تحويلها إلى نص. الحد الأقصى لكل ملف {size} ميجابايت.",
+                "uploader_description_video": "يمكنك رفع مقاطع فيديو {formats}. يتم تحويلها إلى نص. الحد الأقصى لكل ملف {size} ميجابايت.",
+                "uploader_description_default": "يمكنك رفع ملفات {formats}. الحد الأقصى لكل ملف {size} ميجابايت.",
                 "uploader_description_archive": "يتم فك ضغط ملف ZIP بما فيه المجلدات، ويُحتفظ فقط بالملفات من هذه الصيغ.",
                 "archive_uploaded": "تمت إضافة {count} ملف من {name} | تمت إضافة {count} ملفات من {name}",
                 "archive_skipped": "تم تخطي {count} ملف: {names} | تم تخطي {count} ملفات: {names}",

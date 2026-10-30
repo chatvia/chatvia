@@ -1340,9 +1340,9 @@
                 "record_description": "Rekam audio langsung dari mikrofon Anda untuk ditambahkan ke basis pengetahuan agen Anda"
             },
             "files": {
-                "uploader_description_audio": "Unggah file audio untuk transkripsi. Format yang didukung: {formats}. Maks. {size} MB per file.",
-                "uploader_description_video": "Unggah file video untuk transkripsi. Format yang didukung: {formats}. Maks. {size} MB per file.",
-                "uploader_description_default": "Format yang didukung: {formats}. Maks. {size} MB per file.",
+                "uploader_description_audio": "Anda dapat mengunggah rekaman {formats}. Rekaman diubah menjadi teks. Setiap file maksimal {size} MB.",
+                "uploader_description_video": "Anda dapat mengunggah video {formats}. Video diubah menjadi teks. Setiap file maksimal {size} MB.",
+                "uploader_description_default": "Anda dapat mengunggah file {formats}. Setiap file maksimal {size} MB.",
                 "uploader_description_archive": "Arsip ZIP dibuka beserta foldernya, dan hanya file dengan format ini yang disimpan.",
                 "archive_uploaded": "{count} file ditambahkan dari {name} | {count} file ditambahkan dari {name}",
                 "archive_skipped": "{count} file dilewati: {names} | {count} file dilewati: {names}",

@@ -1340,9 +1340,9 @@
                 "record_description": "Ta opp lyd direkte fra mikrofonen din og legg det til i agentens kunnskapsbase"
             },
             "files": {
-                "uploader_description_audio": "Last opp lydfiler for transkripsjon. Støttede formater: {formats}. Maks {size} MB per fil.",
-                "uploader_description_video": "Last opp videofiler for transkripsjon. Støttede formater: {formats}. Maks {size} MB per fil.",
-                "uploader_description_default": "Støttede formater: {formats}. Maks {size} MB per fil.",
+                "uploader_description_audio": "Du kan laste opp {formats}-opptak. De gjøres om til tekst. Hver fil kan være opptil {size} MB.",
+                "uploader_description_video": "Du kan laste opp {formats}-videoer. De gjøres om til tekst. Hver fil kan være opptil {size} MB.",
+                "uploader_description_default": "Du kan laste opp {formats}-filer. Hver fil kan være opptil {size} MB.",
                 "type_unknown": "Ukjent",
                 "minutes_count": "{count} minutt | {count} minutter",
                 "pages_count": "{count} side | {count} sider",

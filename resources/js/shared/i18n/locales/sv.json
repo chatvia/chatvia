@@ -1340,9 +1340,9 @@
                 "record_description": "Spela in ljud direkt från din mikrofon och lägg till det i agentens kunskapsbas"
             },
             "files": {
-                "uploader_description_audio": "Ladda upp ljudfiler för transkribering. Format som stöds: {formats}. Max {size} MB per fil.",
-                "uploader_description_video": "Ladda upp videofiler för transkribering. Format som stöds: {formats}. Max {size} MB per fil.",
-                "uploader_description_default": "Format som stöds: {formats}. Max {size} MB per fil.",
+                "uploader_description_audio": "Du kan ladda upp {formats}-inspelningar. De omvandlas till text. Varje fil får vara upp till {size} MB.",
+                "uploader_description_video": "Du kan ladda upp {formats}-videor. De omvandlas till text. Varje fil får vara upp till {size} MB.",
+                "uploader_description_default": "Du kan ladda upp {formats}-filer. Varje fil får vara upp till {size} MB.",
                 "type_unknown": "Okänd",
                 "minutes_count": "{count} minut | {count} minuter",
                 "pages_count": "{count} sida | {count} sidor",

@@ -38,9 +38,9 @@
                 "record_description": "Optag lyd direkte fra din mikrofon og tilføj det til agentens vidensbase"
             },
             "files": {
-                "uploader_description_audio": "Upload lydfiler til transskription. Understøttede formater: {formats}. Maks. {size} MB pr. fil.",
-                "uploader_description_video": "Upload videofiler til transskription. Understøttede formater: {formats}. Maks. {size} MB pr. fil.",
-                "uploader_description_default": "Understøttede formater: {formats}. Maks. {size} MB pr. fil.",
+                "uploader_description_audio": "Du kan uploade {formats}-optagelser. De bliver omsat til tekst. Hver fil må være op til {size} MB.",
+                "uploader_description_video": "Du kan uploade {formats}-videoer. De bliver omsat til tekst. Hver fil må være op til {size} MB.",
+                "uploader_description_default": "Du kan uploade {formats}-filer. Hver fil må være op til {size} MB.",
                 "uploader_description_archive": "Et ZIP-arkiv pakkes ud, mapper inklusive, og kun filer i disse formater beholdes.",
                 "archive_uploaded": "{count} fil tilføjet fra {name} | {count} filer tilføjet fra {name}",
                 "archive_skipped": "{count} fil sprunget over: {names} | {count} filer sprunget over: {names}",

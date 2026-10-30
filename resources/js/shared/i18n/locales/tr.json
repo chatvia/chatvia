@@ -1340,9 +1340,9 @@
                 "record_description": "Asistanınızın bilgi tabanına eklemek için doğrudan mikrofonunuzdan ses kaydedin"
             },
             "files": {
-                "uploader_description_audio": "Yazıya dökmek için ses dosyaları yükleyin. Desteklenen biçimler: {formats}. Dosya başına en fazla {size} MB.",
-                "uploader_description_video": "Yazıya dökmek için video dosyaları yükleyin. Desteklenen biçimler: {formats}. Dosya başına en fazla {size} MB.",
-                "uploader_description_default": "Desteklenen biçimler: {formats}. Dosya başına en fazla {size} MB.",
+                "uploader_description_audio": "{formats} kayıtları yükleyebilirsiniz. Metne dönüştürülürler. Her dosya en fazla {size} MB olabilir.",
+                "uploader_description_video": "{formats} videoları yükleyebilirsiniz. Metne dönüştürülürler. Her dosya en fazla {size} MB olabilir.",
+                "uploader_description_default": "{formats} dosyaları yükleyebilirsiniz. Her dosya en fazla {size} MB olabilir.",
                 "uploader_description_archive": "ZIP arşivi klasörleriyle birlikte açılır ve yalnızca bu biçimlerdeki dosyalar tutulur.",
                 "archive_uploaded": "{name} içinden {count} dosya eklendi | {name} içinden {count} dosya eklendi",
                 "archive_skipped": "{count} dosya atlandı: {names} | {count} dosya atlandı: {names}",

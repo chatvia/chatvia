@@ -38,7 +38,6 @@ it('keeps knowledge files under plain relative names and writes them under rando
         'folder/' => '',
         'folder\\report.md' => '# Report',
         '.hidden.txt' => 'secret',
-        'folder/Thumbs.db' => 'junk',
         'app.js' => 'alert(1)',
     ]), $folder);
 

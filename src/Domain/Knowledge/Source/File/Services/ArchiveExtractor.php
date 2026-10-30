@@ -104,7 +104,7 @@ final class ArchiveExtractor
                     continue;
                 }
 
-                $name = self::cleanName($stat['name']);
+                $name = $this->cleanName($stat['name']);
 
                 if ($name === null) {
                     continue;
@@ -167,9 +167,9 @@ final class ArchiveExtractor
 
     /**
      * The entry's name as a plain relative path, or null for a folder, a
-     * hidden file or the junk macOS and Windows tools add to archives.
+     * hidden file or the resource forks macOS adds to archives.
      */
-    private static function cleanName(string $entry): ?string
+    private function cleanName(string $entry): ?string
     {
         if (Str::endsWith($entry, '/')) {
             return null;
@@ -179,13 +179,9 @@ final class ArchiveExtractor
             ->replace('\\', '/')
             ->explode('/')
             ->map(fn (string $segment): string => Str::trim($segment))
-            ->reject(fn (string $segment): bool => $segment === '' || $segment === '.' || $segment === '..');
+            ->reject(fn (string $segment): bool => collect(['', '.', '..'])->containsStrict($segment));
 
         if ($segments->isEmpty() || $segments->contains(fn (string $segment): bool => Str::startsWith($segment, '.') || Str::startsWith($segment, '__MACOSX'))) {
-            return null;
-        }
-
-        if (Str::lower((string) $segments->last()) === 'thumbs.db') {
             return null;
         }
 

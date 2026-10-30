@@ -64,7 +64,7 @@ class TrainWebsiteUrlAction
 
         // Nothing scrapable (empty page, blocked, JS-only with no content), or
         // a page the site no longer serves: its error page is not knowledge.
-        if ($markdown === '' || $scraped->isError()) {
+        if (blank($markdown) || $scraped->isError()) {
             $this->finish($websiteUrl, $website, $agent, $progress, ['title' => $title, 'crawled_at' => now()]);
 
             return;

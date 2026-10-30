@@ -49,6 +49,7 @@ readonly DATABASE_USERS="app horizon scheduler reverb pulse"
 readonly HTTPS_TRUSTED_PROXIES="172.16.0.0/12,10.0.0.0/8,192.168.0.0/16"
 readonly HTTPS_ENV_COMMENT="# Built-in HTTPS, by Caddy on ports 80 and 443. Changed by ./manage https."
 readonly SELF_SIGNED_ENV_COMMENT="# Built-in HTTPS on the IP address, with its own certificate. Changed by ./manage https."
+readonly OWN_PROXY_ENV_COMMENT="# Your own proxy handles HTTPS, on this machine. Changed by ./manage https."
 # Where Caddy keeps the root of its own certificates (the self-signed profile).
 readonly SELF_SIGNED_ROOT="/data/caddy/pki/authorities/local/root.crt"
 
@@ -3122,6 +3123,7 @@ https_on_domain() {
         run_step 'Stopping HTTPS on the IP address' compose rm -sf proxy-self-signed || die 'Caddy did not stop.'
         https_remove_settings
     fi
+    unset_env_value "$OWN_PROXY_ENV_COMMENT"
     if ! grep -qxF "$HTTPS_ENV_COMMENT" "$DIR/.env" 2>/dev/null; then
         printf '\n%s\n' "$HTTPS_ENV_COMMENT" >>"$DIR/.env"
     fi
@@ -3239,7 +3241,7 @@ https_remove_settings() {
     local profiles proxies
     profiles=$(without_item "$(without_item "$(env_value COMPOSE_PROFILES)" https)" self-signed)
     proxies=$(without_item "$(env_value TRUSTED_PROXIES)" "$HTTPS_TRUSTED_PROXIES")
-    unset_env_value "$HTTPS_ENV_COMMENT" "$SELF_SIGNED_ENV_COMMENT" CHATVIA_DOMAIN CHATVIA_IP CHATVIA_HTTPS_PORT \
+    unset_env_value "$HTTPS_ENV_COMMENT" "$SELF_SIGNED_ENV_COMMENT" "$OWN_PROXY_ENV_COMMENT" CHATVIA_DOMAIN CHATVIA_IP CHATVIA_HTTPS_PORT \
         APP_BIND_IP CHATVIA_ON_DEMAND_TLS COMPOSE_PROFILES TRUSTED_PROXIES
     if [ -n "$profiles" ]; then set_env_value COMPOSE_PROFILES "$profiles"; fi
     if [ -n "$proxies" ]; then set_env_value TRUSTED_PROXIES "$proxies"; fi
@@ -3262,7 +3264,8 @@ https_turn_off() {
         domain=$(env_value CHATVIA_DOMAIN)
         warn "Without it, nothing here answers on ports 80 and 443, and agents' custom"
         info 'domains get no new certificates. Your own proxy then has to handle HTTPS.'
-        info "ChatVia.ai keeps the address https://$domain, and its port $port opens to the network."
+        info "ChatVia.ai keeps the address https://$domain, and its port $port stays on this machine"
+        info 'for your proxy.'
     else
         service=proxy-self-signed
         ip=$(env_value CHATVIA_IP)
@@ -3276,7 +3279,13 @@ https_turn_off() {
 
     run_step 'Stopping Caddy' compose rm -sf "$service" || die 'Caddy did not stop.'
     https_remove_settings
-    if [ "$service" = proxy-self-signed ]; then
+    if [ "$service" = proxy ]; then
+        # The install's own proxy takes Caddy's place: on this machine, in
+        # the same Docker networks.
+        printf '\n%s\n' "$OWN_PROXY_ENV_COMMENT" >>"$DIR/.env"
+        set_env_value APP_BIND_IP 127.0.0.1
+        set_env_value TRUSTED_PROXIES "$(with_item "$(env_value TRUSTED_PROXIES)" "$HTTPS_TRUSTED_PROXIES")"
+    else
         set_env_value APP_URL "http://$ip:$port"
         unset_env_value SESSION_SECURE_COOKIE
     fi
@@ -3286,7 +3295,8 @@ https_turn_off() {
     run_step 'Waiting for the web app' wait_until 180 app_is_up ||
         die 'The web app did not answer within 3 minutes.' 'See why: ./manage status, then ./manage logs app'
     if [ "$service" = proxy ]; then
-        info "Point your proxy at http://localhost:$port, and add its address to TRUSTED_PROXIES in .env."
+        info "Point your proxy at http://localhost:$port. Examples for nginx and Caddy:"
+        info "$(accent "${CHATVIA_DOCS%/manage}/docker#use-your-own-proxy")"
         info "$(dim 'The certificates stay saved, for when you turn it on again.')"
     else
         info "$(dim 'Its certificate authority stays saved: devices that trust it keep working when you turn it on again.')"

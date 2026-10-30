@@ -276,6 +276,7 @@ write_env() {
     case $APP_URL in https://*) secure=$'SESSION_SECURE_COOKIE=true\n' ;; esac
     if [ "$BUILTIN_HTTPS" = 1 ]; then https_block=$(https_env_block)$'\n'; fi
     if [ "$SELF_SIGNED" = 1 ]; then https_block=$(self_signed_env_block)$'\n'; fi
+    if own_proxy; then https_block=$(own_proxy_env_block)$'\n'; fi
     (
         umask 077
         cat >"$INSTALL_DIR/.env" <<EOF
@@ -336,6 +337,26 @@ self_signed_env_block() {
 COMPOSE_PROFILES=self-signed
 CHATVIA_IP=$HTTPS_IP
 CHATVIA_HTTPS_PORT=$HTTPS_PORT
+APP_BIND_IP=127.0.0.1
+TRUSTED_PROXIES=$HTTPS_TRUSTED_PROXIES
+EOF
+}
+
+# The install's own proxy handles HTTPS: an https:// address without the
+# built-in HTTPS. A plain http:// address on the network has no proxy, and
+# keeps the port open.
+own_proxy() {
+    [ "$BUILTIN_HTTPS" = 0 ] && [ "$SELF_SIGNED" = 0 ] && [[ $APP_URL == https://* ]]
+}
+
+# The .env lines for the install's own proxy. It runs on this machine and
+# reaches the app from a Docker network, so the same ranges are trusted as
+# for Caddy, and the port is kept off the network. ./manage https on and off
+# remove and write the same lines, the comment too.
+own_proxy_env_block() {
+    cat <<EOF
+
+# Your own proxy handles HTTPS, on this machine. Changed by ./manage https.
 APP_BIND_IP=127.0.0.1
 TRUSTED_PROXIES=$HTTPS_TRUSTED_PROXIES
 EOF
@@ -977,9 +998,9 @@ show_finish() {
         info "   To stop the warning on your own devices: $(accent './manage https ca')"
         info '   Visitors and chat apps (Slack, WhatsApp…) need a domain: ./manage https on --domain NAME'
         n=$((n + 2))
-    elif [ "$BUILTIN_HTTPS" = 0 ] && [ "$APP_URL" != "http://localhost:$APP_PORT" ]; then
-        info "$n. Point your proxy at http://localhost:$APP_PORT and set TRUSTED_PROXIES"
-        info '   in .env (see the guide).'
+    elif own_proxy; then
+        info "$n. Point your proxy at http://localhost:$APP_PORT (nginx and Caddy examples"
+        info "   in the guide: $(accent "$CHATVIA_DOCS#use-your-own-proxy"))."
         n=$((n + 1))
     fi
     info "$n. Sign in to the admin panel and set up two-factor authentication."

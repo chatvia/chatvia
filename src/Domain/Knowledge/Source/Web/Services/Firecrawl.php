@@ -95,6 +95,36 @@ class Firecrawl
     }
 
     /**
+     * The links one page carries, as FireCrawl's `/scrape` `links` format
+     * returns them (absolute, every `<a href>` on the page, same site or not).
+     *
+     * Seeds discovery for a site `/map` finds nothing on: no sitemap and no
+     * search-engine coverage yet. One scrape credit.
+     *
+     * @return list<string>
+     */
+    public function links(string $url): array
+    {
+        $payload = [
+            'url' => $url,
+            'formats' => ['links'],
+            'onlyMainContent' => false,
+            'timeout' => (int) config('services.firecrawl.timeout', 60000),
+        ];
+
+        $response = $this->client()->post('scrape', $payload)->json();
+
+        /** @var array<int, mixed> $links */
+        $links = is_array($response['data']['links'] ?? null) ? $response['data']['links'] : [];
+
+        return collect($links)
+            ->filter(fn ($link): bool => filled($link) && ! is_array($link))
+            ->map(fn ($link): string => (string) $link)
+            ->values()
+            ->all();
+    }
+
+    /**
      * Scrape a single page as Markdown.
      *
      * FireCrawl renders the page in a headless browser, so JavaScript-driven

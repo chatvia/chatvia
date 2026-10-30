@@ -4,6 +4,7 @@ namespace Domain\Knowledge\Source\Web\Services\Crawler;
 
 use Domain\Knowledge\Source\Web\Data\Crawler\CrawlerData;
 use Illuminate\Support\Str;
+use Illuminate\Support\Uri;
 use Support\Http\SafeUrl;
 
 /**
@@ -21,6 +22,9 @@ final class Crawler
      * smaller explicit limit via CrawlerData.
      */
     public const int DEFAULT_LIMIT = 1000;
+
+    /** Links to files a page embeds or offers, never pages to train. */
+    private const array ASSET_EXTENSIONS = ['css', 'js', 'map', 'woff', 'woff2', 'ttf', 'otf', 'eot', 'png', 'jpg', 'jpeg', 'gif', 'svg', 'ico', 'webp', 'avif', 'mp4', 'webm', 'mp3', 'wav'];
 
     /**
      * Reduce a seed URL to its origin (scheme://host[:port]) for discovery.
@@ -43,6 +47,44 @@ final class Crawler
         $port = $uri->port() !== null ? ":{$uri->port()}" : '';
 
         return "{$scheme}://{$uri->host()}{$port}";
+    }
+
+    /**
+     * The links of one page that point at pages of the same site: same host
+     * as the root, http(s), fragment dropped, asset files left out.
+     *
+     * @param  list<string>  $links
+     * @return list<string> de-duplicated, in page order
+     */
+    public function sameSiteLinks(string $rootUrl, array $links): array
+    {
+        $host = Str::lower((string) SafeUrl::parse($rootUrl)?->host());
+
+        if ($host === '') {
+            return [];
+        }
+
+        return collect($links)
+            ->map(fn (string $link): string => Str::before($link, '#'))
+            ->filter(function (string $link) use ($host): bool {
+                $uri = SafeUrl::parse($link);
+
+                if (! $uri instanceof Uri || Str::lower((string) $uri->host()) !== $host) {
+                    return false;
+                }
+
+                if (! collect(['http', 'https'])->containsStrict(Str::lower((string) $uri->scheme()))) {
+                    return false;
+                }
+
+                $extension = Str::lower(Str::afterLast(Str::afterLast($uri->path(), '/'), '.'));
+
+                return ! Str::contains(Str::afterLast($uri->path(), '/'), '.')
+                    || ! collect(self::ASSET_EXTENSIONS)->containsStrict($extension);
+            })
+            ->unique()
+            ->values()
+            ->all();
     }
 
     /**

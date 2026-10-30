@@ -46,12 +46,19 @@ class CrawlWebsiteAction
     {
         $startedAt = now();
 
-        $links = $this->firecrawl->map(
-            $this->crawler->rootUrl($data->url),
-            $data->country,
-            $data->languages,
-            $data->limit ?? Crawler::DEFAULT_LIMIT,
-        );
+        $rootUrl = $this->crawler->rootUrl($data->url);
+
+        $links = $this->firecrawl->map($rootUrl, $data->country, $data->languages, $data->limit ?? Crawler::DEFAULT_LIMIT);
+
+        // A site with no sitemap and no search-engine coverage yet maps to its
+        // home page alone: the pages that page links to seed discovery instead.
+        if (count($links) <= 1) {
+            $links = collect($links)
+                ->merge($this->crawler->sameSiteLinks($rootUrl, $this->firecrawl->links($rootUrl)))
+                ->unique()
+                ->values()
+                ->all();
+        }
 
         // `/map` yields URLs only, so every page maps to empty Markdown.
         $selected = $this->crawler->filterPages($data, array_fill_keys($links, ''));

@@ -118,3 +118,29 @@ it('drops the discovered links the site no longer serves and keeps the ones it c
 
     Http::assertSent(fn (Request $request): bool => $request->method() === 'HEAD' && $request->url() === 'https://docs.example.test/gone');
 });
+
+it('seeds discovery from the home page links when the map finds only the home page', function (): void {
+    Http::fake([
+        'https://firecrawl.test/v2/map' => Http::response(['links' => ['https://docs.example.test']]),
+        'https://firecrawl.test/v2/scrape' => Http::response(['success' => true, 'data' => ['links' => [
+            'https://docs.example.test/features#agents',
+            'https://docs.example.test/features',
+            'https://docs.example.test/blog/first-post',
+            'https://docs.example.test/build/assets/app.css',
+            'https://other.example.test/elsewhere',
+            'mailto:hello@docs.example.test',
+        ], 'metadata' => ['statusCode' => 200]]]),
+        'https://docs.example.test/*' => Http::response('', 200),
+    ]);
+
+    $agent = Agent::factory()->create();
+    $website = SourceWebsite::factory()->attachedTo($agent)->create(['url' => 'https://docs.example.test', 'status' => SourceStatus::Crawling]);
+
+    app(CrawlWebsiteAction::class)->execute($website, new CrawlerData(url: 'https://docs.example.test'), $agent);
+
+    expect($website->urls()->orderBy('id')->pluck('url')->all())->toBe([
+        'https://docs.example.test',
+        'https://docs.example.test/features',
+        'https://docs.example.test/blog/first-post',
+    ]);
+});

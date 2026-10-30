@@ -1409,7 +1409,11 @@
                 "replace_started": "Reemplazando {name}. Se volverá a entrenar en un momento.",
                 "replace_failed": "No se pudo reemplazar el archivo. Inténtalo de nuevo.",
                 "personal_data_title": "Puede contener datos personales",
-                "personal_data_found": "Se encontró {kinds} en {count} parte. Los visitantes podrían verlo: reemplaza o elimina el archivo si no deben. | Se encontró {kinds} en {count} partes. Los visitantes podrían verlos: reemplaza o elimina el archivo si no deben."
+                "personal_data_found": "Se encontró {kinds} en {count} parte. Los visitantes podrían verlo: reemplaza o elimina el archivo si no deben. | Se encontró {kinds} en {count} partes. Los visitantes podrían verlos: reemplaza o elimina el archivo si no deben.",
+                "uploader_description_archive": "Un archivo ZIP se descomprime, carpetas incluidas, y solo se conservan los archivos de estos formatos.",
+                "archive_uploaded": "{count} archivo añadido desde {name} | {count} archivos añadidos desde {name}",
+                "archive_skipped": "{count} archivo omitido: {names} | {count} archivos omitidos: {names}",
+                "archive_empty": "No se encontraron archivos compatibles en {name}."
             },
             "text": {
                 "load_failed": "Error al cargar la entrada de texto",

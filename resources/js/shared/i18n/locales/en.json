@@ -1409,7 +1409,11 @@
                 "replace_started": "Replacing {name}. It trains again in a moment.",
                 "replace_failed": "Could not replace the file. Please try again.",
                 "personal_data_title": "May hold personal data",
-                "personal_data_found": "Found {kinds} in {count} part. Visitors could be shown it: replace or remove the file if they must not. | Found {kinds} in {count} parts. Visitors could be shown them: replace or remove the file if they must not."
+                "personal_data_found": "Found {kinds} in {count} part. Visitors could be shown it: replace or remove the file if they must not. | Found {kinds} in {count} parts. Visitors could be shown them: replace or remove the file if they must not.",
+                "uploader_description_archive": "A ZIP archive is unpacked, folders included, and only files of these formats are kept.",
+                "archive_uploaded": "{count} file added from {name} | {count} files added from {name}",
+                "archive_skipped": "{count} file skipped: {names} | {count} files skipped: {names}",
+                "archive_empty": "No supported files were found in {name}."
             },
             "text": {
                 "load_failed": "Failed to load text entry",

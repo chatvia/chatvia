@@ -1409,7 +1409,11 @@
                 "replace_started": "Erstatter {name}. Den trænes igen om et øjeblik.",
                 "replace_failed": "Filen kunne ikke erstattes. Prøv igen.",
                 "personal_data_title": "Kan indeholde persondata",
-                "personal_data_found": "Fandt {kinds} i {count} del. Besøgende kan få det vist: erstat eller fjern filen, hvis de ikke må. | Fandt {kinds} i {count} dele. Besøgende kan få dem vist: erstat eller fjern filen, hvis de ikke må."
+                "personal_data_found": "Fandt {kinds} i {count} del. Besøgende kan få det vist: erstat eller fjern filen, hvis de ikke må. | Fandt {kinds} i {count} dele. Besøgende kan få dem vist: erstat eller fjern filen, hvis de ikke må.",
+                "uploader_description_archive": "Et ZIP-arkiv pakkes ud, mapper inklusive, og kun filer i disse formater beholdes.",
+                "archive_uploaded": "{count} fil tilføjet fra {name} | {count} filer tilføjet fra {name}",
+                "archive_skipped": "{count} fil sprunget over: {names} | {count} filer sprunget over: {names}",
+                "archive_empty": "Der blev ikke fundet understøttede filer i {name}."
             },
             "text": {
                 "load_failed": "Det lykkedes ikke at indlæse tekstindgang",

@@ -28,6 +28,16 @@ export function sourceFileUploadUrl(agentId: string): string {
     return files.upload.url(agentId);
 }
 
+/** The URL a zip archive is uploaded to (field `file`); every supported file inside it becomes a source file. */
+export function sourceArchiveUploadUrl(agentId: string): string {
+    return files.uploadArchive.url(agentId);
+}
+
+/** Whether the picked file is a zip archive, which the server unpacks. */
+export function isArchiveFile(file: File): boolean {
+    return /\.zip$/i.test(file.name);
+}
+
 /** Which files a list holds: those waiting to be trained, or the others (training, trained or failed). */
 export type SourceFileStage = 'uploaded' | 'trained';
 

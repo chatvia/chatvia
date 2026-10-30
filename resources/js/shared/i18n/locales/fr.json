@@ -1409,7 +1409,11 @@
                 "replace_started": "Remplacement de {name}. Il sera réentraîné dans un instant.",
                 "replace_failed": "Impossible de remplacer le fichier. Veuillez réessayer.",
                 "personal_data_title": "Peut contenir des données personnelles",
-                "personal_data_found": "{kinds} trouvé dans {count} partie. Les visiteurs pourraient le voir : remplacez ou supprimez le fichier s'ils ne doivent pas. | {kinds} trouvés dans {count} parties. Les visiteurs pourraient les voir : remplacez ou supprimez le fichier s'ils ne doivent pas."
+                "personal_data_found": "{kinds} trouvé dans {count} partie. Les visiteurs pourraient le voir : remplacez ou supprimez le fichier s'ils ne doivent pas. | {kinds} trouvés dans {count} parties. Les visiteurs pourraient les voir : remplacez ou supprimez le fichier s'ils ne doivent pas.",
+                "uploader_description_archive": "Une archive ZIP est décompressée, dossiers compris, et seuls les fichiers de ces formats sont conservés.",
+                "archive_uploaded": "{count} fichier ajouté depuis {name} | {count} fichiers ajoutés depuis {name}",
+                "archive_skipped": "{count} fichier ignoré : {names} | {count} fichiers ignorés : {names}",
+                "archive_empty": "Aucun fichier pris en charge n'a été trouvé dans {name}."
             },
             "text": {
                 "load_failed": "Échec du chargement de l'entrée textuelle",

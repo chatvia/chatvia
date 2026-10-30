@@ -10,7 +10,14 @@ import { computed, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
-export type FileAnalyzedData = Domain.Agent.Data.Sources.KnowledgeAnalyzeResourceData;
+/** What the server answers an upload with: a file's analysis, or what it did with an archive. */
+export type FileAnalyzedData = Domain.Agent.Data.Sources.KnowledgeAnalyzeResourceData | ArchiveUploadResult;
+
+export type ArchiveUploadResult = Domain.Knowledge.Source.File.Data.ArchiveUploadResultData;
+
+export function isArchiveUploadResult(data: FileAnalyzedData): data is ArchiveUploadResult {
+    return 'uploaded' in data && 'skipped' in data;
+}
 
 export interface FileStats {
     pages?: number;
@@ -63,6 +70,8 @@ export function useFileUploader(config: FileUploaderConfig) {
             'text/markdown': 'Markdown',
             'application/vnd.ms-excel': 'Excel',
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'Excel',
+            'application/zip': 'ZIP',
+            'application/x-zip-compressed': 'ZIP',
         };
         return typeMap[mimeType] || mimeType.split('/')[1]?.toUpperCase() || 'Unknown';
     };
@@ -262,8 +271,8 @@ export function useFileUploader(config: FileUploaderConfig) {
                     stats: {
                         pages: 0,
                         length: analyzed.length || 0,
-                        is_audio_file: analyzed.is_audio_file || false,
-                        mime_type: analyzed.mime_type || file.file.type,
+                        is_audio_file: !isArchiveUploadResult(analyzed) && analyzed.is_audio_file,
+                        mime_type: (!isArchiveUploadResult(analyzed) && analyzed.mime_type) || file.file.type,
                         encrypted: false,
                     },
                 };

@@ -1137,6 +1137,13 @@ declare namespace Domain {
                 export type SourceStatus = 'uploaded' | 'pending' | 'crawling' | 'crawled' | 'ingesting' | 'failed' | 'ingested';
             }
             namespace File {
+                namespace Data {
+                    export type ArchiveUploadResultData = {
+                        uploaded: number;
+                        length: number;
+                        skipped: string[];
+                    };
+                }
                 namespace Enums {
                     export type KnowledgeFileType = 'pdf' | 'word' | 'spreadsheet' | 'presentation' | 'text' | 'ebook' | 'image' | 'audio' | 'video';
                 }

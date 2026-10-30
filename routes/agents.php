@@ -104,6 +104,7 @@ use App\Http\Controllers\Agent\Source\File\Pages\AgentKnowledgeFileController;
 use App\Http\Controllers\Agent\Source\File\Pages\AgentKnowledgeMarkdownController;
 use App\Http\Controllers\Agent\Source\File\Pages\AgentKnowledgeSourceController;
 use App\Http\Controllers\Agent\Source\File\Pages\AgentKnowledgeWebController;
+use App\Http\Controllers\Agent\Source\File\Upload\AgentKnowledgeArchiveUploadController;
 use App\Http\Controllers\Agent\Source\File\Upload\AgentKnowledgeFilesAnalyzeController;
 use App\Http\Controllers\Agent\Source\File\Upload\AgentKnowledgeFilesProcessController;
 use App\Http\Controllers\Agent\Source\File\Upload\AgentKnowledgeFileUploadController;
@@ -257,6 +258,7 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
             ->middleware('agent.permission:agent.sources.train.connectors')->name('sources.connectors.refresh');
 
         Route::post('sources/files/upload', AgentKnowledgeFileUploadController::class)->middleware(['agent.permission:agent.sources.train.files', 'throttle:120,1,knowledge-upload'])->name('sources.files.upload');
+        Route::post('sources/files/upload-archive', AgentKnowledgeArchiveUploadController::class)->middleware(['agent.permission:agent.sources.train.files', 'throttle:120,1,knowledge-upload'])->name('sources.files.upload-archive');
         Route::delete('sources/text/{text}', [AgentTextController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.text.destroy');
         Route::delete('sources/files/{file}', AgentSourceFileDeleteController::class)->middleware('agent.permission:agent.sources.delete')->name('sources.files.delete');
         Route::post('sources/files/{file}/replace', ReplaceAgentSourceFileController::class)->middleware(['agent.permission:agent.sources.train.files', 'throttle:120,1,knowledge-upload'])->name('sources.files.replace');

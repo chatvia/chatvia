@@ -1409,7 +1409,11 @@
                 "replace_started": "Korvataan {name}. Se opetetaan uudelleen hetken päästä.",
                 "replace_failed": "Tiedostoa ei voitu korvata. Yritä uudelleen.",
                 "personal_data_title": "Voi sisältää henkilötietoja",
-                "personal_data_found": "Löytyi {kinds} {count} osasta. Kävijät voivat nähdä sen: korvaa tai poista tiedosto, jos he eivät saa. | Löytyi {kinds} {count} osasta. Kävijät voivat nähdä ne: korvaa tai poista tiedosto, jos he eivät saa."
+                "personal_data_found": "Löytyi {kinds} {count} osasta. Kävijät voivat nähdä sen: korvaa tai poista tiedosto, jos he eivät saa. | Löytyi {kinds} {count} osasta. Kävijät voivat nähdä ne: korvaa tai poista tiedosto, jos he eivät saa.",
+                "uploader_description_archive": "ZIP-arkisto puretaan kansioineen, ja vain näiden muotojen tiedostot säilytetään.",
+                "archive_uploaded": "{count} tiedosto lisätty arkistosta {name} | {count} tiedostoa lisätty arkistosta {name}",
+                "archive_skipped": "{count} tiedosto ohitettu: {names} | {count} tiedostoa ohitettu: {names}",
+                "archive_empty": "Arkistosta {name} ei löytynyt tuettuja tiedostoja."
             },
             "text": {
                 "load_failed": "Tekstimerkinnän lataaminen epäonnistui",

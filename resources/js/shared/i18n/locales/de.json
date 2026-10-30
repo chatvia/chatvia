@@ -1409,7 +1409,11 @@
                 "replace_started": "{name} wird ersetzt. Die Datei wird gleich neu trainiert.",
                 "replace_failed": "Die Datei konnte nicht ersetzt werden. Bitte versuche es erneut.",
                 "personal_data_title": "Enthält vielleicht personenbezogene Daten",
-                "personal_data_found": "{kinds} in {count} Teil gefunden. Besucher könnten es sehen: Ersetze oder entferne die Datei, wenn sie es nicht dürfen. | {kinds} in {count} Teilen gefunden. Besucher könnten sie sehen: Ersetze oder entferne die Datei, wenn sie es nicht dürfen."
+                "personal_data_found": "{kinds} in {count} Teil gefunden. Besucher könnten es sehen: Ersetze oder entferne die Datei, wenn sie es nicht dürfen. | {kinds} in {count} Teilen gefunden. Besucher könnten sie sehen: Ersetze oder entferne die Datei, wenn sie es nicht dürfen.",
+                "uploader_description_archive": "Ein ZIP-Archiv wird entpackt, Ordner eingeschlossen, und nur Dateien dieser Formate werden behalten.",
+                "archive_uploaded": "{count} Datei aus {name} hinzugefügt | {count} Dateien aus {name} hinzugefügt",
+                "archive_skipped": "{count} Datei übersprungen: {names} | {count} Dateien übersprungen: {names}",
+                "archive_empty": "In {name} wurden keine unterstützten Dateien gefunden."
             },
             "text": {
                 "load_failed": "Texteintrag konnte nicht geladen werden",

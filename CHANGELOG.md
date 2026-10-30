@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Files: a ZIP archive can be uploaded on the **Files** page. It is unpacked on
+  the server, folders and archives inside it included, and every file of a type
+  the install accepts becomes its own source file, named with its folder
+  (`policies/refunds.pdf`). Other formats, locked PDFs, files the workspace
+  already holds and files over 50 MB are left out and named in a message after
+  the upload. One ZIP holds up to 500 files, nested up to four levels deep. The
+  archive itself is not kept.
+
 ## [1.1.0] - 2026-10-30
 
 ### Added

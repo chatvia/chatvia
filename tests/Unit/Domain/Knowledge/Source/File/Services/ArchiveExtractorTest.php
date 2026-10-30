@@ -49,16 +49,19 @@ it('keeps knowledge files under plain relative names and writes them under rando
 
 it('opens archives inside the archive up to the depth cap', function (): void {
     $folder = aeFolder();
-    $level4 = aeZip(['four.txt' => '4']);
-    $level3 = aeZip(['three.txt' => '3', 'four.zip' => File::get($level4)]);
-    $level2 = aeZip(['two.txt' => '2', 'three.zip' => File::get($level3)]);
-    $level1 = aeZip(['one.txt' => '1', 'two.zip' => File::get($level2), 'broken.zip' => 'not a zip']);
+    // The upload is level one; the archive five levels down holds the sixth, past the cap.
+    $inner = aeZip(['6.txt' => '6']);
+    foreach (range(5, 2) as $level) {
+        $inner = aeZip(["{$level}.txt" => (string) $level, ($level + 1).'.zip' => File::get($inner)]);
+    }
+    $archive = aeZip(['1.txt' => '1', '2.zip' => File::get($inner), 'broken.zip' => 'not a zip']);
 
-    $contents = new ArchiveExtractor()->extract($level1, $folder);
+    $contents = new ArchiveExtractor()->extract($archive, $folder);
 
-    expect(collect($contents->files)->map(fn (ExtractedArchiveFileData $file): string => $file->name)->all())->toBe(['one.txt', 'two.zip/two.txt', 'two.zip/three.zip/three.txt'])
-        ->and($contents->skipped)->toBe(['two.zip/three.zip/four.zip', 'broken.zip'])
-        ->and(File::files($folder))->toHaveCount(3);
+    expect(collect($contents->files)->map(fn (ExtractedArchiveFileData $file): string => $file->name)->all())
+        ->toBe(['1.txt', '2.zip/2.txt', '2.zip/3.zip/3.txt', '2.zip/3.zip/4.zip/4.txt', '2.zip/3.zip/4.zip/5.zip/5.txt'])
+        ->and($contents->skipped)->toBe(['2.zip/3.zip/4.zip/5.zip/6.zip', 'broken.zip'])
+        ->and(File::files($folder))->toHaveCount(5);
 });
 
 it('skips an entry that inflates past the file cap', function (): void {

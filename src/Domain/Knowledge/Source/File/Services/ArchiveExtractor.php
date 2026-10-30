@@ -36,8 +36,8 @@ final class ArchiveExtractor
     /** The most files taken from one upload; the rest are skipped. */
     public const int MAX_FILES = 500;
 
-    /** How deep archives inside archives are opened. */
-    public const int MAX_DEPTH = 3;
+    /** How deep archives inside archives are opened: the upload and four inside it. */
+    public const int MAX_DEPTH = 5;
 
     /** The most skipped names kept; a folder of junk does not swell the result. */
     private const int MAX_SKIPPED_NAMES = 100;

@@ -39,10 +39,11 @@ jobs:
         run: installer/build --check
 
       # The installer, its build script and the auto-update script it writes,
-      # the management tool it copies next to an install, and the scripts
-      # inside the image. ShellCheck comes with the runner.
+      # the management tool it copies next to an install, the scripts inside
+      # the image, and the workflows' own helper scripts. ShellCheck comes with
+      # the runner.
       - name: ShellCheck
-        run: shellcheck install.sh installer/build installer/templates/chatvia-auto-update.sh docker/manage docker/app/bin/* docker/app/entrypoint.d/*.sh
+        run: shellcheck install.sh installer/build installer/templates/chatvia-auto-update.sh docker/manage docker/app/bin/* docker/app/entrypoint.d/*.sh .github/scripts/*
 
       # The workflow files themselves: expressions, job references and the
       # shell in each run step.

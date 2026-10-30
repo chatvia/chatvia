@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Prints the GitHub release notes for a version tag: the tag's section of
+# CHANGELOG.md, then the "Full Changelog" compare link the changelog keeps for
+# that version at its end. Exits 1 when the changelog has no section for the
+# version, so the release workflow can fall back to GitHub's generated notes.
+#
+#   .github/scripts/release-notes v1.1.0
+set -euo pipefail
+
+tag=${1:?usage: release-notes vX.Y.Z}
+version=${tag#v}
+changelog=${CHANGELOG:-CHANGELOG.md}
+
+# Everything between the version's "## [x.y.z]" heading and the next "## "
+# heading or the link references at the end, without the blank lines around it.
+section=$(awk -v head="## [$version]" '
+  /^## / { inside = (substr($0, 1, length(head)) == head); next }
+  /^\[[^]]+\]: / { inside = 0 }
+  inside { print }
+' "$changelog" | sed '/./,$!d')
+
+if [ -z "$section" ]; then
+  echo "release-notes: $changelog has no section for $version" >&2
+  exit 1
+fi
+
+printf '%s\n' "$section"
+
+# The link reference "[x.y.z]: https://.../compare/vA...vB" at the end of the
+# changelog, when there is one.
+link=$(awk -v head="[$version]: " '
+  substr($0, 1, length(head)) == head { print substr($0, length(head) + 1); exit }
+' "$changelog")
+
+if [ -n "$link" ]; then
+  printf '\n**Full Changelog**: %s\n' "$link"
+fi

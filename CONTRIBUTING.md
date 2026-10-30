@@ -409,6 +409,24 @@ Commit messages: a short summary in the imperative mood ("Add Slack thread
 replies", not "Added ..."), then a blank line and more detail if needed. When
 the change comes from an issue, close it from the commit ("Closes #123").
 
+### Releasing
+
+A release is a version tag. To make one:
+
+1. In [CHANGELOG.md](CHANGELOG.md), turn the `Unreleased` section into
+   `## [x.y.z] - YYYY-MM-DD`, start a new empty `Unreleased` section above
+   it, and add the version's compare link at the end of the file.
+2. Commit, then tag that commit `vx.y.z` (an annotated, signed tag) and push
+   the tag.
+
+The [Docker image workflow](.github/workflows/docker.yml) takes it from there:
+it runs every check, builds and pushes the image, and creates the GitHub
+release with the version's changelog section as its notes
+(`.github/scripts/release-notes` extracts it). A pre-release tag such as
+`v1.5.0-rc.1` is marked as a pre-release. When the changelog has no section
+for the version, the release gets GitHub's generated notes and the run shows
+a warning.
+
 ## Checks
 
 One Composer script, defined in `composer.json`, runs every gate.

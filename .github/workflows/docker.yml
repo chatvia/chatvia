@@ -4,7 +4,8 @@ name: Docker image
 # it to the GitHub Container Registry, next to this repository. The tag v1.4.2
 # publishes ghcr.io/<owner>/<repo>:1.4.2, :1.4, :1 and :latest. A pre-release
 # tag (v1.5.0-rc.1) only publishes its own version. The image is built only
-# after the test suite passes.
+# after the test suite passes. Once the image is pushed, the tag's GitHub
+# release is created with its CHANGELOG.md section as the notes.
 #
 # No secrets to set up: the job signs in with the workflow's own GITHUB_TOKEN.
 # The first push from a private repository creates a private package; make it
@@ -132,3 +133,46 @@ jobs:
           # start empty.
           cache-from: type=registry,ref=${{ env.IMAGE }}:buildcache
           cache-to: type=registry,ref=${{ env.IMAGE }}:buildcache,mode=max,image-manifest=true,oci-mediatypes=true
+
+  # The GitHub release for the tag, with the tag's section of CHANGELOG.md as
+  # its notes. It runs only after the image is pushed, so a release never
+  # points at an image that does not exist. A pre-release tag is marked as
+  # such and does not become "latest". A release that exists already (the
+  # workflow was run again) is left alone.
+  release:
+    name: GitHub release
+    needs: image
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG exists already; nothing to do." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          args=(--title "$TAG" --verify-tag)
+          case "$TAG" in
+            *-*) args+=(--prerelease) ;;
+          esac
+
+          if notes=$(.github/scripts/release-notes "$TAG"); then
+            args+=(--notes "$notes")
+          else
+            echo "::warning::CHANGELOG.md has no section for $TAG; the release gets GitHub's generated notes."
+            args+=(--generate-notes)
+          fi
+
+          url=$(gh release create "$TAG" "${args[@]}")
+          echo "Release: $url" >> "$GITHUB_STEP_SUMMARY"

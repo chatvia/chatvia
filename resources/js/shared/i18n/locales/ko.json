@@ -1065,7 +1065,12 @@
                     "search_placeholder": "질문 검색...",
                     "added_badge": "추가됨",
                     "no_search_results": "검색과 일치하는 질문이 없습니다.",
-                    "no_questions": "이 에이전트의 지식 베이스에 아직 질문이 없습니다.",
+                    "no_questions": "이 에이전트의 지식 베이스에서 아직 질문을 찾지 못했습니다. \"AI로 생성\"을 클릭하여 내용에서 질문을 작성하세요.",
+                    "generate": "AI로 생성",
+                    "generating": "생성 중...",
+                    "ai_badge": "AI",
+                    "generate_empty": "AI가 새 질문을 작성하지 못했습니다. 다른 샘플로 다시 시도하세요.",
+                    "generate_failed": "질문을 생성할 수 없습니다.",
                     "add_cases": "케이스 추가",
                     "add_count": "케이스 {count}개 추가 | 케이스 {count}개 추가"
                 },

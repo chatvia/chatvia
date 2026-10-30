@@ -1064,9 +1064,14 @@
                     "search_placeholder": "Pesquisar perguntas...",
                     "added_badge": "Adicionado",
                     "no_search_results": "Nenhuma pergunta corresponde à sua pesquisa.",
-                    "no_questions": "Ainda não foram encontradas perguntas na base de conhecimento deste agente.",
+                    "no_questions": "Ainda não foram encontradas perguntas na base de conhecimento deste agente. Clique em \"Gerar com IA\" para escrever algumas a partir do seu conteúdo.",
                     "add_cases": "Adicionar casos",
-                    "add_count": "Adicionar {count} caso | Adicionar {count} casos"
+                    "add_count": "Adicionar {count} caso | Adicionar {count} casos",
+                    "generate": "Gerar com IA",
+                    "generating": "A gerar...",
+                    "ai_badge": "IA",
+                    "generate_empty": "A IA não escreveu perguntas novas. Tente novamente para obter outra amostra.",
+                    "generate_failed": "Não foi possível gerar as perguntas."
                 },
                 "delete_case_title": "Eliminar caso",
                 "delete_case_description": "Eliminar \"{name}\"? Os resultados de execuções anteriores mantêm a sua cópia deste caso — apenas as execuções futuras são afetadas.",

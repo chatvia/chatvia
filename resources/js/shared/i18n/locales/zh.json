@@ -1065,7 +1065,12 @@
                     "search_placeholder": "搜索问题...",
                     "added_badge": "已添加",
                     "no_search_results": "没有问题与你的搜索匹配。",
-                    "no_questions": "该智能体的知识库中尚无任何问题。",
+                    "no_questions": "此智能体的知识库中尚未找到问题。点击“用 AI 生成”，从其内容中生成一些问题。",
+                    "generate": "用 AI 生成",
+                    "generating": "生成中...",
+                    "ai_badge": "AI",
+                    "generate_empty": "AI 没有写出新问题。请再试一次以换一组样本。",
+                    "generate_failed": "无法生成问题。",
                     "add_cases": "添加用例",
                     "add_count": "添加 {count} 个用例 | 添加 {count} 个用例"
                 },

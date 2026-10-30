@@ -1064,9 +1064,14 @@
                     "search_placeholder": "Rechercher des questions...",
                     "added_badge": "Ajouté",
                     "no_search_results": "Aucune question ne correspond à votre recherche.",
-                    "no_questions": "Aucune question trouvée dans la base de connaissances de cet agent pour l'instant.",
+                    "no_questions": "Aucune question trouvée dans la base de connaissances de cet agent pour l'instant. Cliquez sur \"Générer avec l'IA\" pour en écrire à partir de son contenu.",
                     "add_cases": "Ajouter des cas",
-                    "add_count": "Ajouter {count} cas | Ajouter {count} cas"
+                    "add_count": "Ajouter {count} cas | Ajouter {count} cas",
+                    "generate": "Générer avec l'IA",
+                    "generating": "Génération...",
+                    "ai_badge": "IA",
+                    "generate_empty": "L'IA n'a écrit aucune nouvelle question. Réessayez pour obtenir un autre échantillon.",
+                    "generate_failed": "Impossible de générer les questions."
                 },
                 "delete_case_title": "Supprimer le cas",
                 "delete_case_description": "Supprimer « {name} » ? Les résultats des exécutions passées conservent leur copie de ce cas — seules les exécutions futures sont affectées.",

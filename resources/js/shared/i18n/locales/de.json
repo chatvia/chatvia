@@ -1064,9 +1064,14 @@
                     "search_placeholder": "Fragen suchen...",
                     "added_badge": "Hinzugefügt",
                     "no_search_results": "Keine Fragen entsprechen Ihrer Suche.",
-                    "no_questions": "In der Wissensbasis dieses Agenten wurden noch keine Fragen gefunden.",
+                    "no_questions": "In der Wissensbasis dieses Agenten wurden noch keine Fragen gefunden. Klicken Sie auf \"Mit KI erzeugen\", um welche aus dem Inhalt zu schreiben.",
                     "add_cases": "Testfälle hinzufügen",
-                    "add_count": "{count} Testfall hinzufügen | {count} Testfälle hinzufügen"
+                    "add_count": "{count} Testfall hinzufügen | {count} Testfälle hinzufügen",
+                    "generate": "Mit KI erzeugen",
+                    "generating": "Wird erzeugt...",
+                    "ai_badge": "KI",
+                    "generate_empty": "Die KI hat keine neuen Fragen geschrieben. Versuchen Sie es erneut für eine andere Auswahl.",
+                    "generate_failed": "Die Fragen konnten nicht erzeugt werden."
                 },
                 "delete_case_title": "Testfall löschen",
                 "delete_case_description": "„{name}“ löschen? Vergangene Ausführungsergebnisse behalten ihre Kopie dieses Testfalls – nur zukünftige Ausführungen sind betroffen.",

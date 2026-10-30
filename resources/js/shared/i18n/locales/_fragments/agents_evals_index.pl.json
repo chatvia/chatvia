@@ -59,7 +59,12 @@
                     "search_placeholder": "Szukaj pytań...",
                     "added_badge": "Dodano",
                     "no_search_results": "Brak pytań pasujących do wyszukiwania.",
-                    "no_questions": "Nie znaleziono jeszcze żadnych pytań w bazie wiedzy tego agenta.",
+                    "no_questions": "W bazie wiedzy tego agenta nie znaleziono jeszcze pytań. Kliknij \"Wygeneruj z AI\", aby napisać kilka na podstawie jej treści.",
+                    "generate": "Wygeneruj z AI",
+                    "generating": "Generowanie...",
+                    "ai_badge": "AI",
+                    "generate_empty": "AI nie napisało nowych pytań. Spróbuj ponownie, aby uzyskać inną próbkę.",
+                    "generate_failed": "Nie udało się wygenerować pytań.",
                     "add_cases": "Dodaj przypadki",
                     "add_count": "Dodaj {count} przypadek | Dodaj {count} przypadków"
                 },

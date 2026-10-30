@@ -59,7 +59,12 @@
                     "search_placeholder": "Søk etter spørsmål...",
                     "added_badge": "Lagt til",
                     "no_search_results": "Ingen spørsmål samsvarer med søket ditt.",
-                    "no_questions": "Ingen spørsmål funnet i agentens kunnskapsbase ennå.",
+                    "no_questions": "Ingen spørsmål er funnet i denne agentens kunnskapsbase ennå. Klikk på \"Generer med KI\" for å skrive noen ut fra innholdet.",
+                    "generate": "Generer med KI",
+                    "generating": "Genererer...",
+                    "ai_badge": "KI",
+                    "generate_empty": "KI-en skrev ingen nye spørsmål. Prøv igjen for å få et annet utvalg.",
+                    "generate_failed": "Kunne ikke generere spørsmålene.",
                     "add_cases": "Legg til saker",
                     "add_count": "Legg til {count} sak | Legg til {count} saker"
                 },

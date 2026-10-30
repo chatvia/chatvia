@@ -1065,7 +1065,12 @@
                     "search_placeholder": "Soruları ara...",
                     "added_badge": "Eklendi",
                     "no_search_results": "Aramanızla eşleşen soru yok.",
-                    "no_questions": "Bu asistanın bilgi tabanında henüz soru bulunamadı.",
+                    "no_questions": "Bu ajanın bilgi tabanında henüz soru bulunamadı. İçeriğinden soru yazmak için \"Yapay zekâ ile oluştur\"a tıklayın.",
+                    "generate": "Yapay zekâ ile oluştur",
+                    "generating": "Oluşturuluyor...",
+                    "ai_badge": "YZ",
+                    "generate_empty": "Yapay zekâ yeni soru yazmadı. Farklı bir örneklem için tekrar deneyin.",
+                    "generate_failed": "Sorular oluşturulamadı.",
                     "add_cases": "Vaka ekle",
                     "add_count": "{count} vaka ekle | {count} vaka ekle"
                 },

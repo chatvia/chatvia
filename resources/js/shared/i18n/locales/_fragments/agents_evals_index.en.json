@@ -65,7 +65,12 @@
                     "search_placeholder": "Search questions...",
                     "added_badge": "Added",
                     "no_search_results": "No questions match your search.",
-                    "no_questions": "No questions found in this agent's knowledge base yet.",
+                    "no_questions": "No questions found in this agent's knowledge base yet. Click \"Generate with AI\" to write some from its content.",
+                    "generate": "Generate with AI",
+                    "generating": "Generating...",
+                    "ai_badge": "AI",
+                    "generate_empty": "The AI wrote no new questions. Try again for a different sample.",
+                    "generate_failed": "Could not generate questions.",
                     "add_cases": "Add cases",
                     "add_count": "Add {count} case | Add {count} cases"
                 },

@@ -21,6 +21,7 @@ it('scopes chunks to the agent\'s sources inside the agent\'s workspace', functi
 
     expect(Chunk::query()->hasContentForAgent($agent))->toBeTrue()
         ->and(Chunk::query()->contentSampleForAgent($agent))->toBe(['Own chunk.'])
+        ->and(Chunk::query()->randomContentForAgent($agent, 5))->toBe([['chunk_id' => $own->id, 'text' => 'Own chunk.', 'source_type' => 'source_file']])
         ->and(Chunk::query()->questionsForAgent($agent))->toBe(['What is ours?'])
         ->and(collect(Chunk::query()->questionCandidatesForAgent($agent))->pluck('chunk_id')->all())->toBe([$own->id]);
 });
@@ -37,6 +38,7 @@ it('finds nothing for an agent with no chunks in a workspace full of them', func
 
     expect(Chunk::query()->hasContentForAgent($quiet))->toBeFalse()
         ->and(Chunk::query()->contentSampleForAgent($quiet))->toBe([])
+        ->and(Chunk::query()->randomContentForAgent($quiet, 5))->toBe([])
         ->and(Chunk::query()->questionsForAgent($quiet))->toBe([])
         ->and(Chunk::query()->questionCandidatesForAgent($quiet))->toBe([])
         ->and(Chunk::query()->hasContentForAgent($busy))->toBeTrue();

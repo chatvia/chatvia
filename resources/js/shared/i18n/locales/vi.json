@@ -1065,7 +1065,12 @@
                     "search_placeholder": "Tìm kiếm câu hỏi...",
                     "added_badge": "Đã thêm",
                     "no_search_results": "Không có câu hỏi nào khớp với tìm kiếm của bạn.",
-                    "no_questions": "Chưa tìm thấy câu hỏi nào trong cơ sở kiến thức của trợ lý AI này.",
+                    "no_questions": "Chưa tìm thấy câu hỏi nào trong cơ sở kiến thức của trợ lý này. Nhấp \"Tạo bằng AI\" để viết vài câu từ nội dung của nó.",
+                    "generate": "Tạo bằng AI",
+                    "generating": "Đang tạo...",
+                    "ai_badge": "AI",
+                    "generate_empty": "AI không viết được câu hỏi mới nào. Hãy thử lại để lấy mẫu khác.",
+                    "generate_failed": "Không thể tạo câu hỏi.",
                     "add_cases": "Thêm trường hợp",
                     "add_count": "Thêm {count} trường hợp | Thêm {count} trường hợp"
                 },

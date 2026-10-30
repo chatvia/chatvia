@@ -1065,7 +1065,12 @@
                     "search_placeholder": "質問を検索...",
                     "added_badge": "追加済み",
                     "no_search_results": "検索に一致する質問がありません。",
-                    "no_questions": "このエージェントのナレッジベースにはまだ質問が見つかりません。",
+                    "no_questions": "このエージェントのナレッジベースにはまだ質問が見つかりません。「AI で生成」をクリックして、内容から質問を作成してください。",
+                    "generate": "AI で生成",
+                    "generating": "生成中...",
+                    "ai_badge": "AI",
+                    "generate_empty": "AI は新しい質問を書きませんでした。別のサンプルで再試行してください。",
+                    "generate_failed": "質問を生成できませんでした。",
                     "add_cases": "ケースを追加",
                     "add_count": "{count} 件のケースを追加 | {count} 件のケースを追加"
                 },

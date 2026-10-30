@@ -1064,9 +1064,14 @@
                     "search_placeholder": "Sök frågor...",
                     "added_badge": "Tillagd",
                     "no_search_results": "Inga frågor matchar din sökning.",
-                    "no_questions": "Inga frågor hittades i agentens kunskapsbas ännu.",
+                    "no_questions": "Inga frågor har hittats i den här agentens kunskapsbas ännu. Klicka på \"Generera med AI\" för att skriva några utifrån dess innehåll.",
                     "add_cases": "Lägg till testfall",
-                    "add_count": "Lägg till {count} testfall | Lägg till {count} testfall"
+                    "add_count": "Lägg till {count} testfall | Lägg till {count} testfall",
+                    "generate": "Generera med AI",
+                    "generating": "Genererar...",
+                    "ai_badge": "AI",
+                    "generate_empty": "AI:n skrev inga nya frågor. Försök igen för ett annat urval.",
+                    "generate_failed": "Frågorna kunde inte genereras."
                 },
                 "delete_case_title": "Ta bort testfall",
                 "delete_case_description": "Ta bort \"{name}\"? Tidigare körningsresultat behåller sin kopia av det här testfallet – endast framtida körningar påverkas.",

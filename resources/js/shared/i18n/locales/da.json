@@ -1064,9 +1064,14 @@
                     "search_placeholder": "Søg i spørgsmål...",
                     "added_badge": "Tilføjet",
                     "no_search_results": "Ingen spørgsmål matcher din søgning.",
-                    "no_questions": "Der er endnu ingen spørgsmål i denne agents vidensbase.",
+                    "no_questions": "Der er endnu ikke fundet spørgsmål i denne agents vidensbase. Klik på \"Generér med AI\" for at skrive nogle ud fra dens indhold.",
                     "add_cases": "Tilføj cases",
-                    "add_count": "Tilføj {count} case | Tilføj {count} cases"
+                    "add_count": "Tilføj {count} case | Tilføj {count} cases",
+                    "generate": "Generér med AI",
+                    "generating": "Genererer...",
+                    "ai_badge": "AI",
+                    "generate_empty": "AI'en skrev ingen nye spørgsmål. Prøv igen for at få et andet udsnit.",
+                    "generate_failed": "Spørgsmålene kunne ikke genereres."
                 },
                 "delete_case_title": "Slet case",
                 "delete_case_description": "Slet \"{name}\"? Tidligere kørselsresultater beholder deres kopi af denne case – kun fremtidige kørsler påvirkes.",

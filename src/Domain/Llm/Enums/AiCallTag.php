@@ -56,5 +56,6 @@ enum AiCallTag: string
     case AnalyticsAssistant = 'analytics-assistant';
     case Evaluation = 'evaluation';
     case EvaluationJudge = 'evaluation-judge';
+    case EvaluationQuestions = 'evaluation-questions';
     case ServiceCheck = 'service-check';
 }

@@ -52,6 +52,7 @@ use App\Http\Controllers\Agent\Eval\AgentEvalController;
 use App\Http\Controllers\Agent\Eval\AgentEvalRunController;
 use App\Http\Controllers\Agent\Eval\ClearAgentEvalRunsController;
 use App\Http\Controllers\Agent\Eval\CreateEvalCasesFromKnowledgeController;
+use App\Http\Controllers\Agent\Eval\GenerateEvalCaseQuestionsController;
 use App\Http\Controllers\Agent\Eval\RunAgentEvalController;
 use App\Http\Controllers\Agent\Eval\UpdateEvalAutoRunController;
 use App\Http\Controllers\Agent\Form\AgentFormController;
@@ -322,6 +323,8 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         Route::delete('evals/runs', ClearAgentEvalRunsController::class)->middleware('agent.permission:agent.evals.manage')->name('evals.runs.clear');
         Route::post('evals/cases', [AgentEvalCaseController::class, 'store'])->middleware('agent.permission:agent.evals.manage')->name('evals.cases.store');
         Route::post('evals/cases/from-knowledge', CreateEvalCasesFromKnowledgeController::class)->middleware('agent.permission:agent.evals.manage')->name('evals.cases.from-knowledge');
+        // AI-written questions for the picker, from a random sample of the agent's chunks.
+        Route::post('evals/cases/generate', GenerateEvalCaseQuestionsController::class)->middleware(['agent.permission:agent.evals.manage', 'throttle:10,1,eval-questions-generate'])->name('evals.cases.generate');
         Route::put('evals/auto-run', UpdateEvalAutoRunController::class)->middleware('agent.permission:agent.evals.manage')->name('evals.auto-run');
         Route::patch('evals/cases/{case}', [AgentEvalCaseController::class, 'update'])->middleware('agent.permission:agent.evals.manage')->name('evals.cases.update');
         Route::delete('evals/cases/{case}', [AgentEvalCaseController::class, 'destroy'])->middleware('agent.permission:agent.evals.manage')->name('evals.cases.destroy');

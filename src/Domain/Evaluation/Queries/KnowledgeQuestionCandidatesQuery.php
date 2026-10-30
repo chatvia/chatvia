@@ -6,6 +6,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Evaluation\Data\KnowledgeQuestionCandidateData;
 use Domain\Evaluation\Enums\EvalQuestionSource;
 use Domain\Evaluation\Models\EvalCase;
+use Domain\Evaluation\Services\KnowledgeSourceLabel;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Illuminate\Support\Collection;
@@ -28,12 +29,6 @@ class KnowledgeQuestionCandidatesQuery
     private const int MAX_QA_PAIRS = 100;
 
     private const int MAX_QUESTION_LENGTH = 255;
-
-    private const array SOURCE_LABELS = [
-        'source_file' => 'File',
-        'source_website' => 'Website',
-        'source_text' => 'Text',
-    ];
 
     /**
      * @return Collection<int, KnowledgeQuestionCandidateData>
@@ -111,7 +106,7 @@ class KnowledgeQuestionCandidatesQuery
                 EvalQuestionSource::Chunk,
                 (int) $mined['chunk_id'],
                 (string) $mined['question'],
-                self::SOURCE_LABELS[$mined['source_type']] ?? Str::ucfirst(Str::replace('_', ' ', $mined['source_type'])),
+                KnowledgeSourceLabel::for($mined['source_type']),
             ];
         }
 

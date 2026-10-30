@@ -59,7 +59,12 @@
                     "search_placeholder": "Hae kysymyksiä...",
                     "added_badge": "Lisätty",
                     "no_search_results": "Mikään kysymys ei vastaa hakuasi.",
-                    "no_questions": "Tämän agentin tietämyskannasta ei löydy vielä kysymyksiä.",
+                    "no_questions": "Tämän agentin tietopohjasta ei ole vielä löytynyt kysymyksiä. Napsauta \"Luo tekoälyllä\" kirjoittaaksesi niitä sen sisällöstä.",
+                    "generate": "Luo tekoälyllä",
+                    "generating": "Luodaan...",
+                    "ai_badge": "Tekoäly",
+                    "generate_empty": "Tekoäly ei kirjoittanut uusia kysymyksiä. Yritä uudelleen saadaksesi toisen otoksen.",
+                    "generate_failed": "Kysymyksiä ei voitu luoda.",
                     "add_cases": "Lisää tapaukset",
                     "add_count": "Lisää {count} tapaus | Lisää {count} tapausta"
                 },

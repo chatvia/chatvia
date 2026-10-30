@@ -1065,7 +1065,12 @@
                     "search_placeholder": "Cari pertanyaan...",
                     "added_badge": "Ditambahkan",
                     "no_search_results": "Tidak ada pertanyaan yang cocok dengan pencarian Anda.",
-                    "no_questions": "Belum ada pertanyaan yang ditemukan di basis pengetahuan agen ini.",
+                    "no_questions": "Belum ada pertanyaan yang ditemukan di basis pengetahuan agen ini. Klik \"Buat dengan AI\" untuk menulis beberapa dari isinya.",
+                    "generate": "Buat dengan AI",
+                    "generating": "Membuat...",
+                    "ai_badge": "AI",
+                    "generate_empty": "AI tidak menulis pertanyaan baru. Coba lagi untuk mendapatkan sampel lain.",
+                    "generate_failed": "Pertanyaan tidak dapat dibuat.",
                     "add_cases": "Tambah kasus",
                     "add_count": "Tambah {count} kasus | Tambah {count} kasus"
                 },

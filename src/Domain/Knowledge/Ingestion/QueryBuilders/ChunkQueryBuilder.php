@@ -33,6 +33,9 @@ class ChunkQueryBuilder extends Builder
     /** Characters kept per chunk in a content sample, so a sample fits one LLM call. */
     private const int SAMPLE_CHARS = 600;
 
+    /** Characters of a chunk body the eval question generator reads. */
+    private const int QUESTION_SAMPLE_CHARS = 1200;
+
     /**
      * Every chunk of one source, its summary chunk (index 0) included.
      *
@@ -126,6 +129,30 @@ class ChunkQueryBuilder extends Builder
         }
 
         return $candidates;
+    }
+
+    /**
+     * A random handful of the agent's chunks, each with its body capped, for
+     * the Evals "Generate with AI" button: the questions it writes point back
+     * at their chunk, whose text becomes the case's reference answer. Random
+     * inside each source and across sources, so repeated clicks cover
+     * different parts of the knowledge base.
+     *
+     * @return list<array{chunk_id: int, text: string, source_type: string}>
+     */
+    public function randomContentForAgent(Agent $agent, int $limit): array
+    {
+        return $this->agentChunks($agent, ['id', 'chunk', 'chunkable_type'], $limit, static fn (QueryBuilder $chunks) => $chunks->inRandomOrder())
+            ->inRandomOrder()
+            ->get()
+            ->map(fn (object $row): array => [
+                'chunk_id' => (int) $row->id,
+                'text' => Str::substr(Str::trim((string) $row->chunk), 0, self::QUESTION_SAMPLE_CHARS),
+                'source_type' => (string) $row->chunkable_type,
+            ])
+            ->filter(fn (array $row): bool => $row['text'] !== '')
+            ->values()
+            ->all();
     }
 
     /**

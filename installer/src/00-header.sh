@@ -42,8 +42,8 @@
 #   --dry-run           show what would happen and change nothing
 #   --count-install     send the anonymous install count  CHATVIA_COUNT_INSTALL=yes
 #   --no-count-install  do not send it, without asking    CHATVIA_COUNT_INSTALL=no
-#   --news-email EMAIL  get news about ChatVia.ai there   CHATVIA_NEWS_EMAIL
-#   --no-news-email     do not ask for one                CHATVIA_NEWS_EMAIL=no
+#   --news              get ChatVia.ai news at the admin e-mail  CHATVIA_NEWS=yes
+#   --no-news           do not, without asking            CHATVIA_NEWS=no
 #   -h, --help          show this help
 #
 # Only with Docker:
@@ -89,7 +89,7 @@
 #   CHATVIA_SWAP                  complete: yes or no to add swap (else: when memory is low)
 #   CHATVIA_INSTALLER_URL         complete: where to download this installer to run it with sudo
 #   CHATVIA_COUNT_URL             where to send the install count
-#   CHATVIA_NEWS_URL              where to send the e-mail for news
+#   CHATVIA_NEWS_URL              where to send the news subscription
 #   NO_COLOR                      plain output
 #
 # Everything runs inside main(), called on the last line, so a download that

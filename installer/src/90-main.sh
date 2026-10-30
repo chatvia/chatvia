@@ -61,8 +61,8 @@ parse_args() {
             --dry-run) DRY_RUN=1 ;;
             --count-install) CHATVIA_COUNT_INSTALL=yes ;;
             --no-count-install) CHATVIA_COUNT_INSTALL=no ;;
-            --news-email) CHATVIA_NEWS_EMAIL=${2:?--news-email needs an address}; shift ;;
-            --no-news-email) CHATVIA_NEWS_EMAIL=no ;;
+            --news) CHATVIA_NEWS=yes ;;
+            --no-news) CHATVIA_NEWS=no ;;
             -h | --help) usage; exit 0 ;;
             *) die "Unknown option: $1" 'See --help.' ;;
         esac

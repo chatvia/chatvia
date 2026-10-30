@@ -80,7 +80,7 @@ native_show_finish() {
     info "Install log  $NATIVE_LOG"
 
     count_install
-    send_news_email
+    subscribe_news
     offer_browser
     outro "$(dim "Guide: $NATIVE_DOCS")"
 }

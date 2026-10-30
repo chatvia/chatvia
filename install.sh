@@ -42,8 +42,8 @@
 #   --dry-run           show what would happen and change nothing
 #   --count-install     send the anonymous install count  CHATVIA_COUNT_INSTALL=yes
 #   --no-count-install  do not send it, without asking    CHATVIA_COUNT_INSTALL=no
-#   --news-email EMAIL  get news about ChatVia.ai there   CHATVIA_NEWS_EMAIL
-#   --no-news-email     do not ask for one                CHATVIA_NEWS_EMAIL=no
+#   --news              get ChatVia.ai news at the admin e-mail  CHATVIA_NEWS=yes
+#   --no-news           do not, without asking            CHATVIA_NEWS=no
 #   -h, --help          show this help
 #
 # Only with Docker:
@@ -89,7 +89,7 @@
 #   CHATVIA_SWAP                  complete: yes or no to add swap (else: when memory is low)
 #   CHATVIA_INSTALLER_URL         complete: where to download this installer to run it with sudo
 #   CHATVIA_COUNT_URL             where to send the install count
-#   CHATVIA_NEWS_URL              where to send the e-mail for news
+#   CHATVIA_NEWS_URL              where to send the news subscription
 #   NO_COLOR                      plain output
 #
 # Everything runs inside main(), called on the last line, so a download that
@@ -2039,25 +2039,25 @@ count_install() {
         "${CHATVIA_COUNT_URL:-$INSTALL_COUNT_URL}" >/dev/null 2>&1 || true
 }
 
-# An e-mail address for news about ChatVia.ai (new versions and other
-# updates), sent to chatvia.ai on its own, apart from the install count.
-# Only after a first install finishes, and only an address the person typed
-# or gave with --news-email: --yes alone never sends one. A failed send is
+# News about ChatVia.ai (new versions and other updates) to the admin's
+# e-mail address, sent to chatvia.ai on its own, apart from the install
+# count. Only after a first install finishes, and only with a yes. The
+# question starts on Yes; --yes alone never sends it. A failed send is
 # ignored.
-send_news_email() {
+subscribe_news() {
     [ "$DRY_RUN" = 0 ] || return 0
-    local email=${CHATVIA_NEWS_EMAIL:-}
-    case $email in
+    local email=$ADMIN_EMAIL
+    valid_email "$email" || return 0
+    case ${CHATVIA_NEWS:-} in
+        yes | true | 1) ;;
         no | false | 0) return 0 ;;
-        '')
+        *)
             [ "$INTERACTIVE" = 1 ] || return 0
-            ask email 'Your e-mail for ChatVia.ai news (optional)' \
-                --placeholder 'you@example.com' --optional 'Skipped' \
-                --hint 'New versions and other updates. Kept apart from the install count.' \
-                --check valid_email
-            [ -n "$email" ] || return 0
+            block text
+            info "$(dim 'New versions and other updates, to the admin e-mail. Kept apart from')"
+            info "$(dim 'the install count.')"
+            confirm "Get ChatVia.ai news at $email?" || return 0
             ;;
-        *) valid_email "$email" || return 0 ;;
     esac
     email=${email//\\/\\\\}
     email=${email//\"/\\\"}
@@ -2119,7 +2119,7 @@ show_finish() {
     info "./manage                 $(dim 'every command')"
 
     count_install
-    send_news_email
+    subscribe_news
     offer_browser
     outro "$(dim "Guide: $CHATVIA_DOCS")"
 }
@@ -4826,7 +4826,7 @@ native_show_finish() {
     info "Install log  $NATIVE_LOG"
 
     count_install
-    send_news_email
+    subscribe_news
     offer_browser
     outro "$(dim "Guide: $NATIVE_DOCS")"
 }
@@ -5113,8 +5113,8 @@ parse_args() {
             --dry-run) DRY_RUN=1 ;;
             --count-install) CHATVIA_COUNT_INSTALL=yes ;;
             --no-count-install) CHATVIA_COUNT_INSTALL=no ;;
-            --news-email) CHATVIA_NEWS_EMAIL=${2:?--news-email needs an address}; shift ;;
-            --no-news-email) CHATVIA_NEWS_EMAIL=no ;;
+            --news) CHATVIA_NEWS=yes ;;
+            --no-news) CHATVIA_NEWS=no ;;
             -h | --help) usage; exit 0 ;;
             *) die "Unknown option: $1" 'See --help.' ;;
         esac

@@ -224,6 +224,7 @@ setup_output() {
 bold() { printf '%s%s%s' "$C_BOLD" "$*" "$C_RESET"; }
 dim() { printf '%s%s%s' "$C_DIM" "$*" "$C_RESET"; }
 accent() { printf '%s%s%s' "$C_ACCENT" "$*" "$C_RESET"; }
+green() { printf '%s%s%s' "$C_GREEN" "$*" "$C_RESET"; }
 
 # Blocks are parted by an empty stretch of the line; finished tasks in a row
 # stack without one.
@@ -2074,7 +2075,7 @@ show_finish() {
     if [ "$DRY_RUN" = 1 ]; then
         title='Dry run done. A real install ends like this:'
     else
-        title=$(bold 'ChatVia.ai is running')
+        title=$(green "$(bold 'Congratulations! ChatVia.ai is running')")
     fi
 
     kv_to open 'Open the app' "$(accent "$APP_URL")"
@@ -4753,7 +4754,7 @@ native_show_finish() {
     if [ "$DRY_RUN" = 1 ]; then
         title='Dry run done. A real install ends like this:'
     else
-        title=$(bold 'ChatVia.ai is running')
+        title=$(green "$(bold 'Congratulations! ChatVia.ai is running')")
     fi
 
     kv_to open 'Open the app' "$(accent "$APP_URL")"

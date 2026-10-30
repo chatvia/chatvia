@@ -953,7 +953,7 @@ show_finish() {
     if [ "$DRY_RUN" = 1 ]; then
         title='Dry run done. A real install ends like this:'
     else
-        title=$(bold 'ChatVia.ai is running')
+        title=$(green "$(bold 'Congratulations! ChatVia.ai is running')")
     fi
 
     kv_to open 'Open the app' "$(accent "$APP_URL")"

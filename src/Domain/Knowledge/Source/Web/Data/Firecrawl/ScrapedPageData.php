@@ -34,4 +34,18 @@ final class ScrapedPageData extends Data
 
         return null;
     }
+
+    /** The HTTP status the site answered with; null when FireCrawl did not report one. */
+    public function statusCode(): ?int
+    {
+        $status = $this->metadata['statusCode'] ?? null;
+
+        return is_numeric($status) ? (int) $status : null;
+    }
+
+    /** True when the site answered with an error (4xx, 5xx): the Markdown is its error page, not content. */
+    public function isError(): bool
+    {
+        return ($this->statusCode() ?? 200) >= 400;
+    }
 }

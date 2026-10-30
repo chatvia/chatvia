@@ -40,7 +40,11 @@ class Firecrawl
      * `sitemap: include` blends the sitemap with FireCrawl's own discovery so
      * sections missing from the sitemap are still found; `includeSubdomains`
      * follows `www`/locale subdomains; `ignoreQueryParameters` collapses
-     * tracking-param variants of the same page.
+     * tracking-param variants of the same page. `useIndex: false` and
+     * `ignoreCache: true` keep FireCrawl from answering with the URLs it
+     * remembers from earlier visits (its stored index, a cached search), which
+     * outlive a relaunched site; search engines still list such pages, so the
+     * caller also drops the links the site no longer serves.
      *
      * `$country` / `$languages` set FireCrawl's `location` (proxy country +
      * Accept-Language) for the fetch. This does NOT filter a path-localised site
@@ -59,6 +63,8 @@ class Firecrawl
             'sitemap' => 'include',
             'includeSubdomains' => true,
             'ignoreQueryParameters' => true,
+            'useIndex' => false,
+            'ignoreCache' => true,
             'timeout' => (int) config('services.firecrawl.timeout', 60000),
         ];
 

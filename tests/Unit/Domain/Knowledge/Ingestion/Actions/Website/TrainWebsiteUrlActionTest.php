@@ -6,6 +6,7 @@ use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Knowledge\Ingestion\Enums\ContentKind;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Ingestion\Models\ChunkReference;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Web\Events\UrlIngestionStarted;
 use Domain\Knowledge\Source\Web\Events\WebsiteIngestionProgressed;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
@@ -37,9 +38,10 @@ function twuSplitsInto(string ...$parts): FakeTextSplitter
 /**
  * A page of a website of a new agent; FireCrawl answers its scrape.
  *
+ * @param  array<string, mixed>|null  $page  what FireCrawl returns as `data`, else a page with content
  * @return array{Agent, SourceWebsite, AgentWebsiteUrl}
  */
-function twuPage(): array
+function twuPage(?array $page = null): array
 {
     $agent = Agent::factory()->create();
     $website = SourceWebsite::factory()->processing()->attachedTo($agent)->create(['url' => 'https://docs.example.test']);
@@ -49,7 +51,7 @@ function twuPage(): array
     config()->set('services.firecrawl.key', 'fc-test');
     Http::fake(['https://firecrawl.test/v2/scrape' => Http::response([
         'success' => true,
-        'data' => ['markdown' => '# Page'.PHP_EOL.'Some content about the product.', 'metadata' => []],
+        'data' => $page ?? ['markdown' => '# Page'.PHP_EOL.'Some content about the product.', 'metadata' => []],
     ], 200)]);
 
     return [$agent, $website, $url];
@@ -98,4 +100,16 @@ it('drops the parts a changed page no longer has and deletes the chunks no page 
         ->and(Chunk::query()->find($shared->id))->not->toBeNull()
         ->and($url->chunks()->pluck('chunk')->sort()->values()->all())->toBe(['New part.', 'Shared part.'])
         ->and($other->chunks()->pluck('chunk')->all())->toBe(['Shared part.']);
+});
+
+it('stores nothing from a page the site answers with an error', function (): void {
+    $splitter = twuSplitsInto('404 Not Found');
+    [$agent, $website, $url] = twuPage(['markdown' => '# 404'.PHP_EOL.'Not Found', 'metadata' => ['statusCode' => 404]]);
+
+    app(TrainWebsiteUrlAction::class)->execute($url, $agent);
+
+    expect(Chunk::query()->where('chunkable_id', $website->id)->count())->toBe(0)
+        ->and($splitter->kinds)->toBe([])
+        ->and($url->fresh()->status)->toBe(SourceStatus::Completed)
+        ->and($url->fresh()->crawled_at)->not->toBeNull();
 });

@@ -11,6 +11,7 @@ use Domain\Knowledge\Source\Web\Events\WebsiteCrawlStarted;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Knowledge\Source\Web\Services\Crawler\Crawler;
+use Domain\Knowledge\Source\Web\Services\Crawler\LinkLiveness;
 use Domain\Knowledge\Source\Web\Services\Firecrawl;
 use Illuminate\Support\Facades\DB;
 
@@ -20,8 +21,10 @@ use Illuminate\Support\Facades\DB;
  * FireCrawl's synchronous `/map` returns the site's links in one call. The
  * whole site is mapped (not only the seed's path, which would find nothing for
  * a deep link on a site that keeps its default language at the root), and the
- * include/exclude path globs are applied here, locally. Each page is scraped
- * later, when its URL is trained.
+ * include/exclude path globs are applied here, locally, and the links the site
+ * no longer serves are dropped (FireCrawl and the search engines remember a
+ * relaunched site's old pages). Each page is scraped later, when its URL is
+ * trained.
  *
  * A re-crawl keeps the rows of pages that are still found (they wait to be
  * trained again; an unchanged page is detected by its checksum and costs
@@ -36,6 +39,7 @@ class CrawlWebsiteAction
     public function __construct(
         private readonly Firecrawl $firecrawl,
         private readonly Crawler $crawler,
+        private readonly LinkLiveness $liveness,
     ) {}
 
     public function execute(SourceWebsite $website, CrawlerData $data, Agent $agent, ?string $internalJobId = null): void
@@ -51,12 +55,13 @@ class CrawlWebsiteAction
 
         // `/map` yields URLs only, so every page maps to empty Markdown.
         $selected = $this->crawler->filterPages($data, array_fill_keys($links, ''));
+        $urls = $this->liveness->filter(array_map(strval(...), array_keys($selected)));
 
         // Idempotent: a retried job or a re-crawl must not stack duplicate URL
         // rows on top of a previous discovery. One transaction, so a failure
         // can't leave the website with its old URLs gone and no new ones.
-        DB::transaction(function () use ($website, $selected, $startedAt, $internalJobId): void {
-            $this->replaceUrls($website, array_map(strval(...), array_keys($selected)));
+        DB::transaction(function () use ($website, $urls, $startedAt, $internalJobId): void {
+            $this->replaceUrls($website, $urls);
 
             $website->update([
                 'status' => SourceStatus::Crawled,

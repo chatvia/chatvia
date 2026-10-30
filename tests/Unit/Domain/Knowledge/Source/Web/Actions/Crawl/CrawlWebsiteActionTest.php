@@ -9,14 +9,18 @@ use Domain\Knowledge\Source\Web\Data\Crawler\CrawlerData;
 use Domain\Knowledge\Source\Web\Events\WebsiteCrawlStarted;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 
 /**
  * Discovering a website's pages: one FireCrawl /map call, filtered by the
- * path filters. A re-crawl replaces the URL list in place: gone pages leave
- * with the chunks only they produced, and found pages are trained again.
+ * path filters, minus the links the site answers 404 to (FireCrawl remembers
+ * a relaunched site's old pages). A re-crawl replaces the URL list in place:
+ * gone pages leave with the chunks only they produced, and found pages are
+ * trained again.
  */
 beforeEach(function (): void {
     Bus::fake();
@@ -25,11 +29,14 @@ beforeEach(function (): void {
 });
 
 it('discovers the pages with FireCrawl and keeps the ones the path filters allow', function (): void {
-    Http::fake(['https://firecrawl.test/v2/map' => Http::response(['links' => [
-        'https://docs.example.test/guide/a',
-        'https://docs.example.test/guide/a/',
-        'https://docs.example.test/blog/b',
-    ]])]);
+    Http::fake([
+        'https://firecrawl.test/v2/map' => Http::response(['links' => [
+            'https://docs.example.test/guide/a',
+            'https://docs.example.test/guide/a/',
+            'https://docs.example.test/blog/b',
+        ]]),
+        'https://docs.example.test/*' => Http::response('', 200),
+    ]);
 
     $agent = Agent::factory()->create();
     $website = SourceWebsite::factory()->attachedTo($agent)->create(['url' => 'https://docs.example.test', 'status' => SourceStatus::Crawling]);
@@ -44,11 +51,14 @@ it('discovers the pages with FireCrawl and keeps the ones the path filters allow
 });
 
 it('re-crawls in place: gone pages leave with the chunks only they used, found pages train again', function (): void {
-    Http::fake(['https://firecrawl.test/v2/map' => Http::response(['links' => [
-        'https://docs.example.test/kept',
-        'https://docs.example.test/new-a',
-        'https://docs.example.test/new-b',
-    ]])]);
+    Http::fake([
+        'https://firecrawl.test/v2/map' => Http::response(['links' => [
+            'https://docs.example.test/kept',
+            'https://docs.example.test/new-a',
+            'https://docs.example.test/new-b',
+        ]]),
+        'https://docs.example.test/*' => Http::response('', 200),
+    ]);
 
     $agent = Agent::factory()->create();
     $website = SourceWebsite::factory()->attachedTo($agent)->create(['url' => 'https://docs.example.test', 'status' => SourceStatus::Crawling]);
@@ -76,4 +86,35 @@ it('re-crawls in place: gone pages leave with the chunks only they used, found p
         ->and(Chunk::query()->find($summary->id))->not->toBeNull()
         ->and(ChunkReference::query()->where('referenceable_id', $gone->id)->exists())->toBeFalse()
         ->and($kept->chunks()->pluck('chunks.id')->all())->toBe([$shared->id]);
+});
+
+it('drops the discovered links the site no longer serves and keeps the ones it cannot be sure about', function (): void {
+    Http::fake([
+        'https://firecrawl.test/v2/map' => Http::response(['links' => [
+            'https://docs.example.test/live',
+            'https://docs.example.test/gone',
+            'https://docs.example.test/moved',
+            'https://docs.example.test/blocked',
+            'https://docs.example.test/down',
+        ]]),
+        'https://docs.example.test/gone' => Http::response('', 404),
+        'https://docs.example.test/moved' => Http::response('', 301, ['Location' => 'https://docs.example.test/live']),
+        'https://docs.example.test/blocked' => Http::response('', 403),
+        'https://docs.example.test/down' => fn () => throw new ConnectionException('timed out'),
+        'https://docs.example.test/*' => Http::response('', 200),
+    ]);
+
+    $agent = Agent::factory()->create();
+    $website = SourceWebsite::factory()->attachedTo($agent)->create(['url' => 'https://docs.example.test', 'status' => SourceStatus::Crawling]);
+
+    app(CrawlWebsiteAction::class)->execute($website, new CrawlerData(url: 'https://docs.example.test'), $agent);
+
+    expect($website->urls()->orderBy('id')->pluck('url')->all())->toBe([
+        'https://docs.example.test/live',
+        'https://docs.example.test/moved',
+        'https://docs.example.test/blocked',
+        'https://docs.example.test/down',
+    ]);
+
+    Http::assertSent(fn (Request $request): bool => $request->method() === 'HEAD' && $request->url() === 'https://docs.example.test/gone');
 });

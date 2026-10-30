@@ -911,12 +911,14 @@ exec_flags() {
 #------------------------------------------------------------------------------
 # Lock: one command that changes things at a time (a backup from cron must
 # not run in the middle of a restore). A command started by another one, like
-# the installer that `upgrade` runs, shares its lock.
+# the installer that `upgrade` runs, shares its lock. `lock --take-over` is
+# for stop and uninstall: a hung restart or upgrade must not keep them out,
+# so they offer to stop it (or just do, with --yes) and carry on.
 #------------------------------------------------------------------------------
 
 lock() {
     LOCK_DIR="$DIR/.manage.lock"
-    local holder
+    local holder pid command
     if mkdir "$LOCK_DIR" 2>/dev/null; then
         printf '%s %s\n' "$$" "$COMMAND" >"$LOCK_DIR/pid"
         LOCKED=1
@@ -924,17 +926,55 @@ lock() {
         return
     fi
     holder=$(cat "$LOCK_DIR/pid" 2>/dev/null) || holder=''
-    if [ -n "${CHATVIA_MANAGE_LOCK:-}" ] && [ "${holder%% *}" = "$CHATVIA_MANAGE_LOCK" ]; then
+    pid=${holder%% *} command=${holder#* }
+    if [ -n "${CHATVIA_MANAGE_LOCK:-}" ] && [ "$pid" = "$CHATVIA_MANAGE_LOCK" ]; then
         return
     fi
-    if [ -n "$holder" ] && ! kill -0 "${holder%% *}" 2>/dev/null; then
+    if [ -n "$holder" ] && ! kill -0 "$pid" 2>/dev/null; then
         # Left by a command that was killed.
         rm -rf "$LOCK_DIR"
-        lock
+        lock "$@"
         return
     fi
-    die "Another ./manage command is running (${holder#* }, process ${holder%% *})." \
+    if [ "${1:-}" = --take-over ] && [ -n "$holder" ] && { [ "$INTERACTIVE" = 1 ] || [ "$YES" = 1 ]; }; then
+        warn "Another ./manage command is running ($command, process $pid)."
+        if [ "$INTERACTIVE" = 0 ] || confirm 'Stop it and continue?' y; then
+            stop_lock_holder "$pid" "$command"
+            lock
+            return
+        fi
+        die 'Wait for it to finish, then try again.'
+    fi
+    die "Another ./manage command is running ($command, process $pid)." \
         'Wait for it to finish, then try again.'
+}
+
+# stop_lock_holder PID COMMAND: ends the command holding the lock, with what
+# it started (docker compose, the installer). Its exit trap frees the lock.
+stop_lock_holder() {
+    local pid=$1 command=$2 tree
+    tree=$(process_tree "$pid")
+    # shellcheck disable=SC2086 # one pid per word
+    kill -TERM $tree 2>/dev/null || true
+    if ! wait_until 10 process_gone "$pid"; then
+        # shellcheck disable=SC2086
+        kill -KILL $tree 2>/dev/null || true
+        wait_until 6 process_gone "$pid" ||
+            die "The $command (process $pid) did not stop." "Stop it yourself: kill $pid"
+    fi
+    rm -rf "$LOCK_DIR"
+    ok "Stopped the $command"
+}
+
+# process_tree PID: the process and everything running under it.
+process_tree() {
+    local child
+    printf '%s\n' "$1"
+    for child in $(pgrep -P "$1" 2>/dev/null); do process_tree "$child"; done
+}
+
+process_gone() {
+    ! kill -0 "$1" 2>/dev/null
 }
 
 unlock() {
@@ -1349,7 +1389,7 @@ cmd_stop() {
     no_options "$@"
     intro 'Stop' "$(pretty_path "$DIR")"
     check_docker
-    lock
+    lock --take-over
     run_step 'Stopping ChatVia.ai' compose down || die 'ChatVia.ai did not stop.'
     outro "Stopped. Your data is kept. Start again: $(accent './manage start')"
 }
@@ -3346,7 +3386,7 @@ cmd_uninstall() {
     intro 'Uninstall' "$(pretty_path "$DIR")"
     need_terminal 'Uninstalling deletes all data, so it asks first.'
     check_docker
-    lock
+    lock --take-over
     warn "$(bold 'This deletes ChatVia.ai and ALL its data:') the database, the uploaded files,"
     info 'the app key, and the settings files in this folder.'
     info "$(dim "Backups in $(pretty_path "$(backup_dir)") are kept.")"
@@ -3437,7 +3477,10 @@ command_help() {
     intro "./manage $name" "$(pretty_path "$DIR")"
     case $name in
         start) info 'Starts ChatVia.ai. The database is updated first, then the app.' ;;
-        stop) info 'Stops every container. Your data stays in its Docker volumes.' ;;
+        stop)
+            info 'Stops every container. Your data stays in its Docker volumes.'
+            info 'When another ./manage command hangs, it offers to stop that one first.'
+            ;;
         restart)
             info 'Without a service: stops and starts ChatVia.ai, so changes to .env apply.'
             info "With services: recreates only them. Services: $SERVICES"
@@ -3532,6 +3575,7 @@ command_help() {
         uninstall)
             info 'Deletes the containers, all data and the settings files. Backups are kept.'
             info 'It offers a last backup first, and asks you to type delete.'
+            info 'When another ./manage command hangs, it offers to stop that one first.'
             ;;
         *) die "There is no command called $name." 'See ./manage help' ;;
     esac

@@ -165,17 +165,19 @@ class ChunkQueryBuilder extends Builder
     }
 
     /**
-     * A representative text sample of the agent's knowledge base — each chunk's
-     * summary, falling back to its body — for grounding LLM starter generation.
-     * Each entry is capped so the combined sample stays within one LLM call.
+     * A representative text sample of the agent's knowledge base, the start of
+     * each chunk's own text, for grounding LLM starter generation. The chunk
+     * text is the source's own words, so the starters come out in the source's
+     * language; the AI summary is a derived text that may not. Each entry is
+     * capped so the combined sample stays within one LLM call.
      *
      * @return array<int, string>
      */
     public function contentSampleForAgent(Agent $agent, int $limit = 30): array
     {
-        return $this->agentChunks($agent, ['summary', 'chunk'], $limit)
+        return $this->agentChunks($agent, ['chunk'], $limit)
             ->get()
-            ->map(fn (object $row): string => Str::trim((string) ($row->summary ?: $row->chunk)))
+            ->map(fn (object $row): string => Str::trim((string) $row->chunk))
             ->filter()
             ->map(fn (string $text): string => Str::substr($text, 0, self::SAMPLE_CHARS))
             ->values()

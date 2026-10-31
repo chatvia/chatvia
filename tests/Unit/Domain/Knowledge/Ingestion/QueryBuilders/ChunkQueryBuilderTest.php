@@ -15,7 +15,7 @@ it('scopes chunks to the agent\'s sources inside the agent\'s workspace', functi
     $unattached = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
     $otherWorkspace = Agent::factory()->create()->workspace_id;
 
-    $own = Chunk::factory()->forSource($file)->create(['chunk' => 'Own chunk.', 'questions' => 'What is ours?']);
+    $own = Chunk::factory()->forSource($file)->create(['chunk' => 'Own chunk.', 'summary' => 'Eget stykke.', 'questions' => 'What is ours?']);
     Chunk::factory()->forSource($file)->create(['workspace_id' => $otherWorkspace, 'chunk' => 'Same source, other workspace.', 'questions' => 'What is theirs?']);
     Chunk::factory()->forSource($unattached)->create(['chunk' => 'Source the agent does not use.']);
 

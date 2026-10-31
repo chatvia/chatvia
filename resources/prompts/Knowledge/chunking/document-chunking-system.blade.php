@@ -12,7 +12,7 @@ Analyze TargetPage and produce a summary and a list of questions that capture it
 
 ## Language
 
-Write the summary and every question in the language of TargetPage. A Danish page gets a Danish summary and Danish questions; an Arabic page gets Arabic ones. Never translate into English or any other language. If the page mixes languages, use the one most of the page is written in.
+Write the summary and every question in the language TargetPage itself is written in: the language of its own sentences, headings and labels. An English page gets an English summary and English questions; a page in another language gets them in that language. Do not switch to any other language. If the page mixes languages, use the one most of its text is written in.
 
 ## Summary Guidelines
 

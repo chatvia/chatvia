@@ -145,17 +145,29 @@ class ConversationQueryBuilder extends Builder
     /** @return self<TModel> */
     public function filterBySentiment(?string $sentiment): self
     {
-        // Conversation-level sentiment is stamped by the consolidated analysis
-        // pass onto `chat_conversations.sentiment` — the same column the chat-log
-        // UI renders (see ChatLogConversationData). Filter on the conversation
-        // row, not per-message sentiment, so the filter matches what's shown.
-        return $this->when($sentiment, fn ($query) => $query->where('sentiment', $sentiment));
+        return $this->filterByAnalysedValue('sentiment', $sentiment);
     }
 
     /** @return self<TModel> */
     public function filterByTone(?string $tone): self
     {
-        return $this->when($tone, fn ($query) => $query->where('tone', $tone));
+        return $this->filterByAnalysedValue('tone', $tone);
+    }
+
+    /**
+     * Conversations whose whole-chat analysis gave this value, or with a
+     * visitor message that got it. The sentiment and tone pages count visitor
+     * messages, analysed live, while the whole-chat value is judged once some
+     * hours later and may differ, so matching only the conversation row would
+     * hide the chats those pages count.
+     *
+     * @return self<TModel>
+     */
+    private function filterByAnalysedValue(string $column, ?string $value): self
+    {
+        return $this->when($value, fn ($query) => $query->where(fn ($match) => $match
+            ->where($column, $value)
+            ->orWhereHas('messages', fn ($q) => $q->where('role', MessageRole::User)->where($column, $value))));
     }
 
     /** @return self<TModel> */

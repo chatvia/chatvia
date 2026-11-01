@@ -11,8 +11,9 @@ use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 
 /**
  * The chat-log filters with real branches: the confidence band of an
- * assistant answer, on the band floors, and an answer that still needs a
- * look (no knowledge found and not revised, or also a thumbs-down).
+ * assistant answer, on the band floors, sentiment on the whole chat or a
+ * visitor message, and an answer that still needs a look (no knowledge found
+ * and not revised, or also a thumbs-down).
  */
 /** A widget conversation of the agent; the attributes override the defaults. */
 function cqbConversation(Agent $agent, array $attributes = []): Conversation
@@ -49,6 +50,21 @@ it('filters by the confidence band of an assistant answer, on the band floors', 
     'medium: from the medium floor up to, not including, the high floor' => ['medium', ['0.65', '0.79'], ['0.64', '0.8', '0.95']],
     'high: from the high floor up' => ['high', ['0.8', '0.95'], ['0.64', '0.65', '0.79']],
 ]);
+
+it('filters by sentiment on the whole chat or on any visitor message', function (): void {
+    $agent = Agent::factory()->create();
+    $wholeChat = cqbConversation($agent, ['sentiment' => 'negative']);
+    $oneMessage = cqbConversation($agent, ['sentiment' => 'neutral']);
+    Message::factory()->fromUser()->create(['chat_conversation_id' => $oneMessage->id, 'sentiment' => 'negative']);
+    $notYetAnalysed = cqbConversation($agent, ['sentiment' => null]);
+    Message::factory()->fromUser()->create(['chat_conversation_id' => $notYetAnalysed->id, 'sentiment' => 'negative']);
+    $assistantOnly = cqbConversation($agent, ['sentiment' => 'neutral']);
+    Message::factory()->fromAssistant()->create(['chat_conversation_id' => $assistantOnly->id, 'sentiment' => 'negative']);
+    cqbConversation($agent, ['sentiment' => 'positive']);
+
+    expect(cqbIds($agent, fn (ConversationQueryBuilder $query): ConversationQueryBuilder => $query->filterBySentiment('negative')))
+        ->toBe([$wholeChat->id, $oneMessage->id, $notYetAnalysed->id]);
+});
 
 it('filters by an unrevised reply with no knowledge found, or also a thumbs-down', function (): void {
     $agent = Agent::factory()->create();

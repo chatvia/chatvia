@@ -5,6 +5,24 @@ All notable changes to ChatVia.ai are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-11-01
+
+### Fixed
+
+- Knowledge: chunk summaries and their questions are written in the language of
+  the source itself. Before, some models wrote them in another language, such
+  as Danish or German summaries for an English page. Conversation starters now
+  come from the source's own text, so they keep its language too. Train a
+  source again to redo summaries it already has.
+- Chat: Markdown is styled while an answer streams in. Before, the markers of
+  bold, italic, code and links (such as `**`) showed for a moment and then
+  disappeared once the closing half came in. A link still being written shows
+  only its text, and an image still being written shows nothing until it is
+  complete.
+- Chat: when a guardrail or the citation check corrects an answer as it ends,
+  the rest of the answer keeps typing at its normal pace. Before, a fast
+  model's answer could appear all at once.
+
 ## [1.2.0] - 2026-10-30
 
 ### Added
@@ -51,6 +69,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 The first public version of ChatVia.ai.
 
-[Unreleased]: https://github.com/chatvia/chatvia/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/chatvia/chatvia/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/chatvia/chatvia/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/chatvia/chatvia/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/chatvia/chatvia/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/chatvia/chatvia/releases/tag/v1.0.0

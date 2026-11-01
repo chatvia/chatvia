@@ -32,6 +32,12 @@ import { ref } from 'vue';
  * Rates are deliberately calm: fast local models dump a whole response as
  * backlog, so the post-`done` drain dominates the perceived speed. Keep the
  * acceleration modest or the reveal still feels like an instant block.
+ *
+ * A `replace` (a guardrail or the citation cleaner corrected the answer)
+ * arrives right after the last delta, while a fast model's answer is still
+ * mostly in the queue. The pacer swaps what is already on screen for the
+ * same stretch of the corrected text and keeps typing the rest, so the
+ * correction never turns the reveal into one block.
  */
 const PACE_CHARS_PER_SECOND = 50;
 const FINISH_ACCELERATION = 2.5;
@@ -79,6 +85,9 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
                 async flush() {
                     /* no-op */
                 },
+                replace(text: string, id: string) {
+                    callbacks.onReplace?.(text, id);
+                },
                 drainNow() {
                     /* no-op */
                 },
@@ -90,6 +99,9 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
 
         let buffer = '';
         let bufferedId = '';
+        // Characters of the answer handed to `onDelta` so far: the stretch of
+        // a corrected answer that is swapped at once.
+        let shownLength = 0;
         let lastTickMs = 0;
         let rafHandle: number | null = null;
         let finishing = false;
@@ -114,6 +126,7 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
             if (buffer.length > 0) {
                 const slice = buffer.slice(0, budget);
                 buffer = buffer.slice(budget);
+                shownLength += slice.length;
                 callbacks.onDelta?.(slice, bufferedId);
             }
 
@@ -143,7 +156,24 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
                     scheduleTick();
                 });
             },
-            /** Hand over every buffered character at once, skipping the typing pace. */
+            /**
+             * The corrected answer: what is on screen is swapped for the same
+             * stretch of the new text at once, the rest is typed out.
+             */
+            replace(text: string, id: string) {
+                if (!isAlive()) return;
+                const visible = text.slice(0, shownLength);
+                buffer = text.slice(shownLength);
+                bufferedId = id;
+                shownLength = visible.length;
+                callbacks.onReplace?.(visible, id);
+                if (buffer.length > 0) scheduleTick();
+            },
+            /**
+             * Hand over every buffered character at once, skipping the typing
+             * pace. The text handed over leaves the answer (the chat moves it
+             * into the step chain), so the shown answer starts again empty.
+             */
             drainNow() {
                 if (rafHandle !== null) {
                     cancelAnimationFrame(rafHandle);
@@ -151,6 +181,7 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
                 }
                 if (buffer.length > 0 && isAlive()) callbacks.onDelta?.(buffer, bufferedId);
                 buffer = '';
+                shownLength = 0;
                 if (drainResolver) {
                     const resolve = drainResolver;
                     drainResolver = null;
@@ -208,10 +239,9 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
                 callbacks.onTool?.(env.data, env.id);
                 return null;
             case 'replace':
-                // Output guardrail correction: drop any buffered (uncorrected)
-                // tail and hand the consumer the full safe text to render.
-                pacer.cancel();
-                callbacks.onReplace?.(env.data.text, env.id);
+                // A guardrail or the citation cleaner corrected the answer: the
+                // pacer swaps the shown part and keeps typing the rest.
+                pacer.replace(env.data.text, env.id);
                 return null;
             case 'error':
                 pacer.cancel();

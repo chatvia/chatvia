@@ -13,13 +13,21 @@ function envelope(type: StreamEnvelope['type'], data: unknown): string {
 
 /** A response whose body sends each chunk as its own read. */
 function sse(...chunks: string[]): Response {
+    return sseAfter(0, chunks, []);
+}
+
+/** A response that sends `first` at once and `rest` after `delayMs`, while the first text is still typing. */
+function sseAfter(delayMs: number, first: string[], rest: string[]): Response {
     const encoder = new TextEncoder();
 
     return new Response(
         new ReadableStream({
             start(controller) {
-                chunks.forEach((chunk) => controller.enqueue(encoder.encode(chunk)));
-                controller.close();
+                first.forEach((chunk) => controller.enqueue(encoder.encode(chunk)));
+                setTimeout(() => {
+                    rest.forEach((chunk) => controller.enqueue(encoder.encode(chunk)));
+                    controller.close();
+                }, delayMs);
             },
         }),
         { status: 200 },
@@ -73,5 +81,49 @@ describe('useChatStream', () => {
 
         expect(log).toEqual(['start: Let me look up your event types to find that intro call.', 'end: ']);
         expect(text).toBe('Found it.');
+    });
+
+    it('swaps the shown part of a corrected answer at once and keeps typing the rest', async () => {
+        const corrected = 'Delivery takes five days[1]. Returns are free within thirty days of the order date[2].';
+        vi.stubGlobal(
+            'fetch',
+            vi.fn(async () =>
+                sseAfter(
+                    200,
+                    [envelope('delta', { text: 'Delivery takes five days [1]. Returns are free within thirty days of the order date [2].' })],
+                    [envelope('replace', { text: corrected }), envelope('done', { reason: 'complete', response_time_ms: 1, finished_at: null })],
+                ),
+            ),
+        );
+
+        let text = '';
+        let replaced: string | null = null;
+        let deltasAfterReplace = 0;
+        const finished = new Promise<void>((resolve) => {
+            useChatStream().start('/stream', '{}', {
+                onDelta: (delta) => {
+                    text += delta;
+                    if (replaced !== null) deltasAfterReplace++;
+                },
+                onReplace: (full) => {
+                    replaced = full;
+                    text = full;
+                },
+                onDone: () => resolve(),
+            });
+        });
+
+        await vi.runAllTimersAsync();
+        await finished;
+
+        // The correction arrived mid-answer: the part on screen was swapped for
+        // the matching stretch of the corrected text, nothing more.
+        expect(replaced).not.toBeNull();
+        expect(replaced!.length).toBeGreaterThan(0);
+        expect(replaced!.length).toBeLessThan(corrected.length);
+        expect(corrected.startsWith(replaced!)).toBe(true);
+        // The rest was typed out, not dumped in one block.
+        expect(deltasAfterReplace).toBeGreaterThan(1);
+        expect(text).toBe(corrected);
     });
 });

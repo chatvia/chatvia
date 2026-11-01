@@ -32,7 +32,11 @@
             "reasoning_low": "低",
             "reasoning_medium": "中",
             "reasoning_high": "高",
-            "reasoning_locked": "管理者がすべてのエージェントの推論をオフにしています(管理パネル → 設定 → AIモデル)。"
+            "reasoning_locked": "管理者がすべてのエージェントの推論をオフにしています(管理パネル → 設定 → AIモデル)。",
+            "behavior": {
+                "live_chat_idle_minutes": "AI に戻すまでの時間(分)",
+                "live_chat_idle_minutes_help": "訪問者もチームメンバーもこの時間メッセージを送らなかった場合、ライブチャットは AI に戻ります。5〜1440 分。"
+            }
         }
     }
 }

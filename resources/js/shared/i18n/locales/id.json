@@ -2021,7 +2021,9 @@
                 "allowed_sites_help": "Hanya origin ini yang diizinkan memuat widget.",
                 "keyboard_trigger": "Pemicu keyboard",
                 "placement": "Penempatan",
-                "language_switcher": "Pengalih bahasa"
+                "language_switcher": "Pengalih bahasa",
+                "live_chat_idle_minutes": "Kembalikan ke AI setelah (menit)",
+                "live_chat_idle_minutes_help": "Live chat kembali ke AI jika pengunjung maupun rekan Anda tidak menulis selama waktu ini. Dari 5 hingga 1440 menit."
             },
             "embed": {
                 "surface_preview": "Pratinjau permukaan"

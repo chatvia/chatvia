@@ -29,7 +29,10 @@ it('takes a waiting conversation over for the operator', function (): void {
     $this->actingAs($this->owner)
         ->postJson(thcTakeover($this->agent, $conversation))
         ->assertSuccessful()
-        ->assertJsonPath('handoff_status', HandoffStatus::Human->value);
+        ->assertJsonPath('handoff_status', HandoffStatus::Human->value)
+        // The dashboard compares this with the signed-in user to tell its own
+        // takeover from a colleague's.
+        ->assertJsonPath('admin_id', $this->owner->id);
 
     expect($conversation->fresh())
         ->handoff_status->toBe(HandoffStatus::Human)

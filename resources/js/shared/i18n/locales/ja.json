@@ -2021,7 +2021,9 @@
                 "allowed_sites_help": "これらのオリジンのみがウィジェットを読み込めます。",
                 "keyboard_trigger": "キーボードトリガー",
                 "placement": "配置",
-                "language_switcher": "言語切り替え"
+                "language_switcher": "言語切り替え",
+                "live_chat_idle_minutes": "AI に戻すまでの時間(分)",
+                "live_chat_idle_minutes_help": "訪問者もチームメンバーもこの時間メッセージを送らなかった場合、ライブチャットは AI に戻ります。5〜1440 分。"
             },
             "embed": {
                 "surface_preview": "画面プレビュー"

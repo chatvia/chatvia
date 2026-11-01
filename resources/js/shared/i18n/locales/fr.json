@@ -2021,7 +2021,9 @@
                 "allowed_sites_help": "Seules ces origines sont autorisées à charger le widget.",
                 "keyboard_trigger": "Raccourci clavier",
                 "placement": "Emplacement",
-                "language_switcher": "Sélecteur de langue"
+                "language_switcher": "Sélecteur de langue",
+                "live_chat_idle_minutes": "Rendre à l'IA après (minutes)",
+                "live_chat_idle_minutes_help": "Un chat en direct revient à l'IA quand ni le visiteur ni votre collègue n'ont écrit pendant cette durée. De 5 à 1440 minutes."
             },
             "embed": {
                 "surface_preview": "Aperçu de la surface"

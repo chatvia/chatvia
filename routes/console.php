@@ -36,6 +36,11 @@ Schedule::command('chatvia:prune:tool-approvals')->dailyAt('03:45')->withoutOver
 // longer be claimed and hold no captured answers, so they only bloat the table.
 Schedule::command('chatvia:prune:forms')->everyTenMinutes()->withoutOverlapping(10)->onOneServer();
 
+// Gives live chats back to the AI once nobody has written for the agent's
+// idle time (Setup → Widget → Live Chat), so a forgotten takeover does not
+// silence the AI for that visitor for good.
+Schedule::command('chatvia:handoff:return-idle')->everyMinute()->withoutOverlapping(5)->onOneServer();
+
 // Checks agents' custom domains: new ones until they reach this install,
 // verified ones daily, so a domain that moved away stops serving the chat.
 Schedule::command('chatvia:check:agent-domains')->everyTenMinutes()->withoutOverlapping(10)->onOneServer();

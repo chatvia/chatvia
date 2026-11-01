@@ -7,10 +7,7 @@
 import handoff from '@/routes/agents/handoff';
 import { post } from '@/shared/api/http';
 
-export type HandoffTakeoverResult = App.Http.Resources.Handoff.HandoffTakeoverResultData & {
-    admin_id?: number | null;
-    admin_name?: string | null;
-};
+export type HandoffTakeoverResult = App.Http.Resources.Handoff.HandoffTakeoverResultData;
 export type HandoffReturnResult = App.Http.Resources.Handoff.HandoffReturnResultData;
 export type HandoffMessageResult = App.Http.Resources.Handoff.HandoffMessageResultData;
 

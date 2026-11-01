@@ -32,7 +32,11 @@
             "reasoning_low": "Thấp",
             "reasoning_medium": "Trung bình",
             "reasoning_high": "Cao",
-            "reasoning_locked": "Quản trị viên đã tắt lập luận cho tất cả trợ lý (bảng quản trị → Cài đặt → Mô hình AI)."
+            "reasoning_locked": "Quản trị viên đã tắt lập luận cho tất cả trợ lý (bảng quản trị → Cài đặt → Mô hình AI).",
+            "behavior": {
+                "live_chat_idle_minutes": "Trả lại cho AI sau (phút)",
+                "live_chat_idle_minutes_help": "Cuộc trò chuyện trực tiếp sẽ trở lại với AI khi cả khách lẫn đồng nghiệp của bạn không viết gì trong khoảng thời gian này. Từ 5 đến 1440 phút."
+            }
         }
     }
 }

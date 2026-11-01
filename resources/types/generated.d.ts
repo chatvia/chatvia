@@ -33,6 +33,8 @@ declare namespace App {
                     success: boolean;
                     message: string;
                     handoff_status: Domain.Conversation.Enums.HandoffStatus;
+                    admin_id: number;
+                    admin_name: string;
                     user_name: string | null;
                     user_email: string | null;
                 };

@@ -2021,7 +2021,9 @@
                 "allowed_sites_help": "Chỉ những nguồn gốc này mới được phép tải widget.",
                 "keyboard_trigger": "Phím tắt kích hoạt",
                 "placement": "Vị trí đặt",
-                "language_switcher": "Trình chuyển ngôn ngữ"
+                "language_switcher": "Trình chuyển ngôn ngữ",
+                "live_chat_idle_minutes": "Trả lại cho AI sau (phút)",
+                "live_chat_idle_minutes_help": "Cuộc trò chuyện trực tiếp sẽ trở lại với AI khi cả khách lẫn đồng nghiệp của bạn không viết gì trong khoảng thời gian này. Từ 5 đến 1440 phút."
             },
             "embed": {
                 "surface_preview": "Xem trước bề mặt"

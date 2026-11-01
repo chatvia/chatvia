@@ -1,7 +1,8 @@
 <script setup lang="ts">
 /**
  * Setup → Behavior on the Widget tab: launcher position, window size, theme,
- * language, live-chat handoff, open-on-load (with delay) and the sites the
+ * language, live-chat handoff (and how long a quiet live chat waits before it
+ * goes back to the AI), open-on-load (with delay) and the sites the
  * widget may run on. Live chat needs a license key: without one the switch
  * is locked and the saved value is kept.
  */
@@ -15,7 +16,7 @@ import { Textarea } from '@/shared/ui/textarea';
 import { languageOptions, useBehaviorOptions } from '@/dashboard/agents/composables/setup/useSetupBehavior';
 import { useSetupContext } from '@/dashboard/agents/composables/setup/useSetupContext';
 import { useLicense } from '@/dashboard/composables/useLicense';
-import { Clock, Globe, Languages, MapPin, Maximize2, Palette } from 'lucide-vue-next';
+import { Bot, Clock, Globe, Languages, MapPin, Maximize2, Palette } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -76,6 +77,25 @@ const languageChoices = computed(() => languageOptions(props.availableLanguages)
                 :hint="licensed ? t('agents.setup.behavior.live_chat_hint') : t('license.unavailable')"
                 :disabled="locked || !licensed"
             />
+            <div v-if="form.handoff_enabled && licensed" class="space-y-1.5 sm:col-span-2">
+                <Label for="widget-handoff-idle" class="text-sm font-medium">{{ t('agents.setup.behavior.live_chat_idle_minutes') }}</Label>
+                <div class="relative">
+                    <div class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
+                        <Bot class="h-4 w-4" />
+                    </div>
+                    <Input
+                        id="widget-handoff-idle"
+                        type="number"
+                        min="5"
+                        max="1440"
+                        v-model="form.handoff_idle_minutes"
+                        :disabled="locked"
+                        class="h-10 ps-9"
+                    />
+                </div>
+                <p class="text-muted-foreground text-xs">{{ t('agents.setup.behavior.live_chat_idle_minutes_help') }}</p>
+                <p v-if="form.errors.handoff_idle_minutes" class="text-destructive text-xs">{{ form.errors.handoff_idle_minutes }}</p>
+            </div>
             <SetupSwitchRow
                 id="widget-show-on-load"
                 v-model="form.show_on_load"

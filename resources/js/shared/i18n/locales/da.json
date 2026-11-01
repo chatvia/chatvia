@@ -2021,7 +2021,9 @@
                 "allowed_sites_help": "Kun disse origins har lov til at indlæse widget'en.",
                 "keyboard_trigger": "Tastaturgenvej",
                 "placement": "Placering",
-                "language_switcher": "Sprogskifter"
+                "language_switcher": "Sprogskifter",
+                "live_chat_idle_minutes": "Giv tilbage til AI efter (minutter)",
+                "live_chat_idle_minutes_help": "En live chat går tilbage til AI, når hverken den besøgende eller din kollega har skrevet så længe. Fra 5 til 1440 minutter."
             },
             "embed": {
                 "surface_preview": "Overfladeforhåndsvisning"

@@ -32,7 +32,11 @@
             "reasoning_low": "Rendah",
             "reasoning_medium": "Sedang",
             "reasoning_high": "Tinggi",
-            "reasoning_locked": "Admin Anda telah mematikan penalaran untuk semua agen (panel admin → Pengaturan → Model AI)."
+            "reasoning_locked": "Admin Anda telah mematikan penalaran untuk semua agen (panel admin → Pengaturan → Model AI).",
+            "behavior": {
+                "live_chat_idle_minutes": "Kembalikan ke AI setelah (menit)",
+                "live_chat_idle_minutes_help": "Live chat kembali ke AI jika pengunjung maupun rekan Anda tidak menulis selama waktu ini. Dari 5 hingga 1440 menit."
+            }
         }
     }
 }

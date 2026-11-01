@@ -2021,7 +2021,9 @@
                 "allowed_sites_help": "Solo estos orígenes tienen permitido cargar el widget.",
                 "keyboard_trigger": "Atajo de teclado",
                 "placement": "Ubicación",
-                "language_switcher": "Selector de idioma"
+                "language_switcher": "Selector de idioma",
+                "live_chat_idle_minutes": "Devolver a la IA después de (minutos)",
+                "live_chat_idle_minutes_help": "Un chat en vivo vuelve a la IA cuando ni el visitante ni tu compañero han escrito durante este tiempo. De 5 a 1440 minutos."
             },
             "embed": {
                 "surface_preview": "Vista previa de la superficie"

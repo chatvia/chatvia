@@ -2021,7 +2021,9 @@
                 "allowed_sites_help": "Vain nämä alkuperät saavat ladata widgetin.",
                 "keyboard_trigger": "Näppäimistön käynnistin",
                 "placement": "Asettelu",
-                "language_switcher": "Kielivalitsin"
+                "language_switcher": "Kielivalitsin",
+                "live_chat_idle_minutes": "Palauta tekoälylle (minuuttia)",
+                "live_chat_idle_minutes_help": "Live-chat palaa tekoälylle, kun vierailija tai tiimiläisesi ei ole kirjoittanut näin pitkään aikaan. 5–1440 minuuttia."
             },
             "embed": {
                 "surface_preview": "Pinnan esikatselu"

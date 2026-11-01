@@ -137,6 +137,8 @@
                 "theme": "Design",
                 "live_chat": "Live-Chat",
                 "live_chat_hint": "Besucher können an einen Menschen übergeben. Funktioniert nur mit dem Website-Widget.",
+                "live_chat_idle_minutes": "Nach (Minuten) an die KI zurückgeben",
+                "live_chat_idle_minutes_help": "Ein Live-Chat geht an die KI zurück, wenn weder der Besucher noch Ihr Teammitglied so lange geschrieben hat. 5 bis 1440 Minuten.",
                 "open_on_load": "Beim Laden der Seite automatisch öffnen",
                 "delay_ms": "Verzögerung (ms)",
                 "allowed_sites": "Erlaubte Websites",

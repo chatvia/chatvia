@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.3.0] - 2026-11-01
 
+### Added
+
+- Live chat: a live chat goes back to the AI when neither the visitor nor the
+  teammate has written for a while. The time is set per agent in **Setup →
+  Chat Widget → Behavior → Hand back to AI after (minutes)**, from 5 to 1440
+  minutes, 30 by default. Before, a chat stayed with the person until someone
+  handed it back, so the AI never answered that visitor again.
+
 ### Fixed
 
 - Knowledge: chunk summaries and their questions are written in the language of
@@ -27,6 +35,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   looked at the whole conversation, which is checked some hours later and can
   differ. So the chats counted on the Sentiment and Tone pages did not show
   in the filtered list.
+- Inbox: after you take over a chat, the Inbox shows that you hold it. Before,
+  it said a colleague was handling the chat even when you were the only one,
+  and hid **Give back to AI** until the page was reloaded.
 
 ## [1.2.0] - 2026-10-30
 

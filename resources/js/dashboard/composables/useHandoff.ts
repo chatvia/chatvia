@@ -228,8 +228,8 @@ export function useHandoff(agentId: () => string | null, conversationId: () => s
             const result = await takeOverConversation(target);
             handoffState.value = {
                 status: 'human',
-                adminId: result.admin_id ?? null,
-                adminName: result.admin_name ?? null,
+                adminId: result.admin_id,
+                adminName: result.admin_name,
                 handoffAt: new Date().toISOString(),
             };
             joinChannel(target.conversationId);

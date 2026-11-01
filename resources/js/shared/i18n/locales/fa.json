@@ -2021,7 +2021,9 @@
                 "allowed_sites_help": "فقط این منابع مجاز به بارگذاری ویجت هستند.",
                 "keyboard_trigger": "میانبر صفحه‌کلید",
                 "placement": "جایگاه",
-                "language_switcher": "انتخابگر زبان"
+                "language_switcher": "انتخابگر زبان",
+                "live_chat_idle_minutes": "بازگرداندن به هوش مصنوعی پس از (دقیقه)",
+                "live_chat_idle_minutes_help": "اگر بازدیدکننده و همکار شما در این مدت چیزی ننویسند، گفتگوی زنده به هوش مصنوعی برمی‌گردد. از 5 تا 1440 دقیقه."
             },
             "embed": {
                 "surface_preview": "پیش‌نمایش سطح"

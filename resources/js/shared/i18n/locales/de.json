@@ -2021,7 +2021,9 @@
                 "allowed_sites_help": "Nur diese Ursprünge dürfen das Widget laden.",
                 "keyboard_trigger": "Tastaturkürzel",
                 "placement": "Platzierung",
-                "language_switcher": "Sprachumschalter"
+                "language_switcher": "Sprachumschalter",
+                "live_chat_idle_minutes": "Nach (Minuten) an die KI zurückgeben",
+                "live_chat_idle_minutes_help": "Ein Live-Chat geht an die KI zurück, wenn weder der Besucher noch Ihr Teammitglied so lange geschrieben hat. 5 bis 1440 Minuten."
             },
             "embed": {
                 "surface_preview": "Oberflächen-Vorschau"

@@ -2021,7 +2021,9 @@
                 "allowed_sites_help": "يُسمح لهذه المصادر فقط بتحميل الأداة.",
                 "keyboard_trigger": "مفتاح الاختصار",
                 "placement": "الموضع",
-                "language_switcher": "مُبدّل اللغة"
+                "language_switcher": "مُبدّل اللغة",
+                "live_chat_idle_minutes": "إعادة المحادثة إلى الذكاء الاصطناعي بعد (دقائق)",
+                "live_chat_idle_minutes_help": "تعود المحادثة المباشرة إلى الذكاء الاصطناعي إذا لم يكتب الزائر ولا زميلك طوال هذه المدة. من 5 إلى 1440 دقيقة."
             },
             "embed": {
                 "surface_preview": "معاينة السطح"

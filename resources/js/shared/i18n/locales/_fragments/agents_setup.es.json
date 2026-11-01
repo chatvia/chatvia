@@ -137,6 +137,8 @@
                 "theme": "Tema",
                 "live_chat": "Chat en vivo",
                 "live_chat_hint": "Permite que los visitantes transfieran la conversación a un humano. Solo funciona en el widget del sitio web.",
+                "live_chat_idle_minutes": "Devolver a la IA después de (minutos)",
+                "live_chat_idle_minutes_help": "Un chat en vivo vuelve a la IA cuando ni el visitante ni tu compañero han escrito durante este tiempo. De 5 a 1440 minutos.",
                 "open_on_load": "Abrir automáticamente al cargar la página",
                 "delay_ms": "Retraso (ms)",
                 "allowed_sites": "Sitios permitidos",

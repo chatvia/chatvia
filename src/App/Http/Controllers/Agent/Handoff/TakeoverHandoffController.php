@@ -22,12 +22,14 @@ class TakeoverHandoffController
     ): HandoffTakeoverResultData {
         abort_unless($conversation->belongsToAgent($agent), 403, __('Unauthorized.'));
 
+        $admin = $request->user();
+
         abort_unless(
-            $takeover->execute($conversation, $request->user()),
+            $takeover->execute($conversation, $admin),
             409,
             __('Unable to take over this conversation. It may already be handled by another admin.'),
         );
 
-        return HandoffTakeoverResultData::fromConversation($conversation);
+        return HandoffTakeoverResultData::fromConversation($conversation, $admin);
     }
 }

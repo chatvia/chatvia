@@ -154,6 +154,8 @@
                 "theme": "Theme",
                 "live_chat": "Live Chat",
                 "live_chat_hint": "Let visitors hand off to a human. Works on the website widget only.",
+                "live_chat_idle_minutes": "Hand back to AI after (minutes)",
+                "live_chat_idle_minutes_help": "A live chat goes back to the AI when neither the visitor nor your teammate has written for this long. From 5 to 1440 minutes.",
                 "open_on_load": "Open automatically on page load",
                 "delay_ms": "Delay (ms)",
                 "allowed_sites": "Allowed sites",

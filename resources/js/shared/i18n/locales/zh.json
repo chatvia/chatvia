@@ -2021,7 +2021,9 @@
                 "allowed_sites_help": "只有这些来源才被允许加载该挂件。",
                 "keyboard_trigger": "键盘触发",
                 "placement": "放置位置",
-                "language_switcher": "语言切换器"
+                "language_switcher": "语言切换器",
+                "live_chat_idle_minutes": "多少分钟后交还给 AI",
+                "live_chat_idle_minutes_help": "如果访客和你的同事在这段时间内都没有发消息,在线聊天会交还给 AI。5 到 1440 分钟。"
             },
             "embed": {
                 "surface_preview": "界面预览"

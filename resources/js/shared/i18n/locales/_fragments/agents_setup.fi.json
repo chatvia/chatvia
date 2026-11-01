@@ -137,6 +137,8 @@
                 "theme": "Teema",
                 "live_chat": "Live Chat",
                 "live_chat_hint": "Anna vierailijoiden siirtää chat ihmiselle. Toimii vain verkkosivuston widgetissä.",
+                "live_chat_idle_minutes": "Palauta tekoälylle (minuuttia)",
+                "live_chat_idle_minutes_help": "Live-chat palaa tekoälylle, kun vierailija tai tiimiläisesi ei ole kirjoittanut näin pitkään aikaan. 5–1440 minuuttia.",
                 "open_on_load": "Avaa automaattisesti sivun latautuessa",
                 "delay_ms": "Viive (ms)",
                 "allowed_sites": "Sallitut sivustot",

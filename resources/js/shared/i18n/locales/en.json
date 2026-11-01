@@ -2021,7 +2021,9 @@
                 "allowed_sites_help": "Only these origins are allowed to load the widget.",
                 "keyboard_trigger": "Keyboard trigger",
                 "placement": "Placement",
-                "language_switcher": "Language switcher"
+                "language_switcher": "Language switcher",
+                "live_chat_idle_minutes": "Hand back to AI after (minutes)",
+                "live_chat_idle_minutes_help": "A live chat goes back to the AI when neither the visitor nor your teammate has written for this long. From 5 to 1440 minutes."
             },
             "embed": {
                 "surface_preview": "Surface preview"

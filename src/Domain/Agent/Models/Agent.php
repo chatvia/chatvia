@@ -306,6 +306,15 @@ class Agent extends Model
     }
 
     /**
+     * How long a live chat may go without a message from the visitor or the
+     * teammate before it goes back to the AI (Setup → Widget → Live Chat).
+     */
+    public function handoffIdleMinutes(): int
+    {
+        return (int) ($this->settings('widget')->get('handoff_idle_minutes') ?? 30);
+    }
+
+    /**
      * @return BelongsTo<Workspace, $this>
      */
     public function workspace(): BelongsTo

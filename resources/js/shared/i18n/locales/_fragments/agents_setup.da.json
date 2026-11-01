@@ -137,6 +137,8 @@
                 "theme": "Tema",
                 "live_chat": "Live Chat",
                 "live_chat_hint": "Lad besøgende viderestille til en person. Fungerer kun på website-widget.",
+                "live_chat_idle_minutes": "Giv tilbage til AI efter (minutter)",
+                "live_chat_idle_minutes_help": "En live chat går tilbage til AI, når hverken den besøgende eller din kollega har skrevet så længe. Fra 5 til 1440 minutter.",
                 "open_on_load": "Åbn automatisk ved sideindlæsning",
                 "delay_ms": "Forsinkelse (ms)",
                 "allowed_sites": "Tilladte websteder",

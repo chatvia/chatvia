@@ -2021,7 +2021,9 @@
                 "allowed_sites_help": "Widget'ı yüklemesine yalnızca bu kaynaklara izin verilir.",
                 "keyboard_trigger": "Klavye tetikleyicisi",
                 "placement": "Yerleşim",
-                "language_switcher": "Dil değiştirici"
+                "language_switcher": "Dil değiştirici",
+                "live_chat_idle_minutes": "Yapay zekâya geri ver (dakika)",
+                "live_chat_idle_minutes_help": "Ziyaretçi de ekip arkadaşınız da bu süre boyunca yazmazsa canlı sohbet yapay zekâya geri döner. 5 ile 1440 dakika arası."
             },
             "embed": {
                 "surface_preview": "Yüzey önizlemesi"

@@ -2021,7 +2021,9 @@
                 "allowed_sites_help": "केवल इन मूल साइटों को विजेट लोड करने की अनुमति है।",
                 "keyboard_trigger": "कीबोर्ड ट्रिगर",
                 "placement": "प्लेसमेंट",
-                "language_switcher": "भाषा स्विचर"
+                "language_switcher": "भाषा स्विचर",
+                "live_chat_idle_minutes": "इतने मिनट बाद AI को वापस दें",
+                "live_chat_idle_minutes_help": "अगर इतनी देर तक न विज़िटर और न आपके साथी ने कुछ लिखा, तो लाइव चैट AI को वापस चली जाती है। 5 से 1440 मिनट।"
             },
             "embed": {
                 "surface_preview": "सतह पूर्वावलोकन"

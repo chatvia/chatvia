@@ -52,6 +52,7 @@ export function useSetupBehavior({ agentId, reloadPreview }: SetupSectionDeps, e
         language: widget.string('language', 'auto'),
         sites: widget.list<string>('sites'),
         handoff_enabled: widget.boolean('handoff_enabled', true),
+        handoff_idle_minutes: widget.number('handoff_idle_minutes', 30),
     });
     const isSavingWidget = ref(false);
     const saveWidget = (): void => saveGroup(widgetForm, 'widget', isSavingWidget, 'agents.setup.toasts.widget_saved');

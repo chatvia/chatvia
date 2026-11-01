@@ -32,7 +32,11 @@
             "reasoning_low": "낮음",
             "reasoning_medium": "보통",
             "reasoning_high": "높음",
-            "reasoning_locked": "관리자가 모든 에이전트의 추론을 껐습니다(관리자 패널 → 설정 → AI 모델)."
+            "reasoning_locked": "관리자가 모든 에이전트의 추론을 껐습니다(관리자 패널 → 설정 → AI 모델).",
+            "behavior": {
+                "live_chat_idle_minutes": "AI에게 되돌리기까지(분)",
+                "live_chat_idle_minutes_help": "방문자와 팀원 모두 이 시간 동안 메시지를 보내지 않으면 라이브 채팅이 AI로 돌아갑니다. 5~1440분."
+            }
         }
     }
 }

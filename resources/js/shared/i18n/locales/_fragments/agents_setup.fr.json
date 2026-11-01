@@ -137,6 +137,8 @@
                 "theme": "Thème",
                 "live_chat": "Chat en direct",
                 "live_chat_hint": "Permettre aux visiteurs de passer à un agent humain. Fonctionne uniquement sur le widget de site web.",
+                "live_chat_idle_minutes": "Rendre à l'IA après (minutes)",
+                "live_chat_idle_minutes_help": "Un chat en direct revient à l'IA quand ni le visiteur ni votre collègue n'ont écrit pendant cette durée. De 5 à 1440 minutes.",
                 "open_on_load": "Ouvrir automatiquement au chargement de la page",
                 "delay_ms": "Délai (ms)",
                 "allowed_sites": "Sites autorisés",

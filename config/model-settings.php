@@ -150,6 +150,9 @@ return [
                 'bubbles' => [],
                 'language' => 'auto',
                 'handoff_enabled' => true,
+                // A live chat with no message from either side for this long
+                // goes back to the AI (ReturnIdleHandoffsToAiAction).
+                'handoff_idle_minutes' => 30,
             ],
             'embed' => [
                 'remove_sidebar' => false,
@@ -339,6 +342,7 @@ return [
             'language' => ['nullable', 'string'],
             'bubbles' => ['nullable', 'array'],
             'handoff_enabled' => ['nullable', 'boolean'],
+            'handoff_idle_minutes' => ['nullable', 'integer', 'min:5', 'max:1440'],
         ],
         'embed' => [
             'remove_sidebar' => ['nullable', 'boolean'],

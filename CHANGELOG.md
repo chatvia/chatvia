@@ -22,6 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Chat: when a guardrail or the citation check corrects an answer as it ends,
   the rest of the answer keeps typing at its normal pace. Before, a fast
   model's answer could appear all at once.
+- Chat log: the Sentiment and Tone filters also find a conversation when one
+  of the visitor's messages has that sentiment or tone. Before, they only
+  looked at the whole conversation, which is checked some hours later and can
+  differ. So the chats counted on the Sentiment and Tone pages did not show
+  in the filtered list.
 
 ## [1.2.0] - 2026-10-30
 

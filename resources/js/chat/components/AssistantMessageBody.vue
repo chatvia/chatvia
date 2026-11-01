@@ -14,6 +14,7 @@
  * styling. Those stay in the wrappers.
  */
 import { citedSources, withCitationChips } from '@/chat/lib/citations';
+import { closeOpenMarkdown } from '@/chat/lib/streamingMarkdown';
 import { sanitizeUntrustedHtml } from '@/shared/lib/sanitizeHtml';
 import type { MessageSource } from '@/shared/types/chat';
 import type { ToolArtifact } from '@/shared/types/stream';
@@ -147,7 +148,9 @@ const citesSources = computed(() => props.cite && (props.sources ?? []).some((so
 function formatMessage(content: string): string {
     const withImages = renderableArtifacts.value.length > 0 ? stripOrphanImagePlaceholders(content) : content;
     const cleaned = citesSources.value ? withCitationChips(withImages, cited.value, props.isStreaming) : withImages;
-    const result = marked.parse(cleaned);
+    // After the chips: their pass hides a half-written `[1`, which would
+    // otherwise be closed as link text and show as a bare number.
+    const result = marked.parse(props.isStreaming ? closeOpenMarkdown(cleaned) : cleaned);
     const html = typeof result === 'string' ? result : '';
 
     // Assistant/visitor content (and prompt-injected model output) is rendered

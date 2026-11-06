@@ -16,7 +16,7 @@ Use Laravel 13 model attributes: `#[Guarded(['id'])]` by default, `#[RouteKey('e
 Cast each column that is more than a plain string or integer: `datetime`, `boolean`, `array`, `integer`, an enum class, or a custom cast. A column backed by an enum always casts to that enum.
 
 ## Keep one member order
-Traits, constants, `casts()`, relationships, accessors, scopes, then `booted()`. Keep the `@property` docblock in step with the create migration.
+Traits, constants, `casts()`, relationships, accessors, scopes, then `booted()`. Keep the `@property` docblock in step with the table's migrations.
 
 ## Type every relationship
 Each relationship has a native return type and a generic docblock: `@return BelongsTo<Agent, $this>`. Name a filtered relationship after a domain idea (`pdfFiles()`, `lastMessage()`). For "the latest X of each parent" use `hasOne()->latestOfMany()`, never `hasMany()->latest()->limit(1)` inside `with()`. Don't use `withDefault()`; read nullable relations with `?->`. A relationship never reads `auth()` or the request.

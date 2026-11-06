@@ -23,7 +23,7 @@ Form Requests validate with `Rule::enum(X::class)`; use `Rule::in()` with an enu
 Tag `#[TypeScript]` only on enums whose values reach the Vue frontend, then run `php artisan typescript:transform`.
 
 ## Database lists follow the enum
-Enum columns are Postgres `CHECK` constraints. A new case must also go into the column's list in the create migration, or inserts fail.
+Enum columns are Postgres `CHECK` constraints. A new case also needs a new migration that replaces the column's constraint, or inserts fail.
 
 ## Value objects are immutable
 A value object is a `final readonly class` whose constructor or named constructor (`fromStored()`) checks and normalises its input; every operation returns a new instance. When it is stored in a column, give it a custom cast in `src/Support/Casts/` (`CastsAttributes<TGet, TSet>`) so the model hands it out directly.

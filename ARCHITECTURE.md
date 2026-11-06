@@ -843,8 +843,8 @@ Ask: is this something the app **does**, or something the app **uses**?
 
 Enum-like strings are backed enums in `{Context}/Enums/`, cast on the model,
 and turned into `->value` only at the edges (HTTP, JSON, queue payloads). Some
-enum columns also have a Postgres `CHECK` constraint: a new case must be added
-to the column's `enum()` list in its create migration.
+enum columns also have a Postgres `CHECK` constraint: a new case needs a new
+migration that replaces the constraint.
 
 ### Feature subfolders
 
@@ -950,10 +950,10 @@ Scoping is explicit (no global scopes), with layers that catch a missed check:
 
 ### Database
 
-- Until the first release, each table has one create migration that holds its
-  whole schema. A schema change edits that migration; there are no
-  `add_*`/`alter_*` or data migrations. From the first release on, migrations
-  only move forward.
+- Migrations only move forward. A schema change is a new migration, and a
+  migration in a tagged release is never edited, because existing installs have
+  already run it. Dropping a column or table destroys data, so it is asked about
+  first, and the code stops reading it a release before it goes.
 - Do not set `protected $table` when Laravel's default name is right.
 - Pivot tables and pivot models have no timestamps.
 - Embedding columns use `$table->embedding()`: the type (`halfvec` or
@@ -1410,5 +1410,5 @@ The test prints the live ratio on every run, in the form
 | A new messaging channel | `Domain\Channel\{Name}\` with a `ChannelAdapter` |
 | Account or sign-in logic | `App\Identity\*` |
 | A generic helper with no business rule | `Support\` |
-| A schema change | the table's create migration in `database/migrations/` (before the first release) |
+| A schema change | a new migration in `database/migrations/` |
 | UI text | an i18n fragment, then `npm run i18n:merge` |

@@ -704,12 +704,13 @@ removes everything.
 
 ### Database
 
-- Until the first release, each table has one create migration. Put a schema
-  change into that migration instead of adding a new one, and do not add
-  data-fix migrations. (From the first release on, migrations only move
-  forward.)
-- Some enum-like columns have Postgres `CHECK` constraints. A new value goes
-  into the column's `enum()` list in its create migration.
+- Migrations only move forward. A schema change is a new migration. Never edit
+  a migration that is in a tagged release: it has already run on existing
+  installs. Test a new one against the last release's schema with rows in it.
+- Dropping a column or table destroys data. Ask first, and stop reading it for
+  a release before you drop it.
+- Some enum-like columns have Postgres `CHECK` constraints. A new value needs a
+  new migration that replaces the column's constraint.
 - An embedding column is `$table->embedding('name')`, never `halfvec()` or
   `vector()` with a fixed size: it takes the install's `EMBEDDING_VECTOR_TYPE`
   and `EMBEDDING_DIMENSIONS`. A query vector is cast with
@@ -794,7 +795,8 @@ and commit the regenerated file. Do not edit it by hand.
 - [ ] `composer ci:check` passes on your machine.
 - [ ] You added or updated tests, and new Actions have a unit test.
 - [ ] New classes have a docblock that says what they are for.
-- [ ] Schema changes are in the table's create migration (no new `add_*` migration).
+- [ ] Schema changes are in a new migration, and no migration from a tagged release was edited.
+- [ ] Changes that existing installs will notice are in `CHANGELOG.md` under `[Unreleased]`.
 - [ ] New listeners are registered in `DomainServiceProvider`.
 - [ ] New UI text goes through vue-i18n (fragments + `npm run i18n:merge`).
 - [ ] `resources/types/generated.d.ts` is regenerated if a `#[TypeScript]`

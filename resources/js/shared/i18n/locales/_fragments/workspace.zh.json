@@ -36,6 +36,9 @@
         },
         "enterprise": {
             "export_csv": "导出 CSV"
+        },
+        "nav": {
+            "ai_usage": "AI 用量"
         }
     }
 }

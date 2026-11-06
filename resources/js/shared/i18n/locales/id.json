@@ -3403,7 +3403,8 @@
             "prompts": "Prompt",
             "members": "Chatter",
             "security": "Keamanan",
-            "audit": "Audit"
+            "audit": "Audit",
+            "ai_usage": "Penggunaan AI"
         },
         "security": {
             "breadcrumb": "Keamanan",

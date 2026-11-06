@@ -3,10 +3,12 @@
 namespace App\Http\Middleware\Web;
 
 use App\Admin\Settings\CustomLogo;
+use App\Admin\Settings\ToolRecording;
 use App\Http\Auth\BotCheck;
 use App\Http\Middleware\Chat\ChatHandleInertiaRequests;
 use App\Identity\Workspace\Enums\SocialProvider;
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Services\WorkspaceDashboards;
 use Domain\Agent\Services\AgentUrlBuilder;
 use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
 use Domain\Membership\Team\Services\TeamRoleResolver;
@@ -34,6 +36,8 @@ class HandleInertiaRequests extends Middleware
         private readonly Entitlements $entitlements,
         private readonly TeamRoleResolver $roles,
         private readonly CustomLogo $customLogo,
+        private readonly ToolRecording $tools,
+        private readonly WorkspaceDashboards $dashboards,
     ) {}
 
     /**
@@ -56,6 +60,12 @@ class HandleInertiaRequests extends Middleware
             // The sign-in providers whose OAuth app is set up (Settings →
             // Sign-in): only their buttons are shown.
             'socialProviders' => fn (): array => array_map(fn (SocialProvider $provider): string => $provider->value, SocialProvider::configured()),
+            // The owner's link to the workspace's dashboard in Spectra, for the
+            // Workspace menu; null hides it. Spectra has its own database, and
+            // its being down must not take the dashboard down with it.
+            'spectraDashboardUrl' => fn (): ?string => $user?->isWorkspaceOwner() === true && $this->tools->spectraInstalled()
+                ? rescue(fn (): ?string => $this->dashboards->for($user->workspace())?->url(), report: false)
+                : null,
             'auth' => [
                 'user' => $user,
                 // Owner-only areas (workspace, teams) are hidden from teammates;

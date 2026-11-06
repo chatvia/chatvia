@@ -63,14 +63,14 @@ function formatConfidenceScore(score: number): string {
     return score.toFixed(2);
 }
 
-// Null unless the viewer may open /spectra (an admin-panel session, or a
-// workspace granted Spectra access) and the reply carries a trace.
+// Null unless the viewer may open the trace (an admin-panel session in Spectra,
+// or the owner on the workspace's dashboard) and the reply carries a trace.
 const page = usePage();
 
 function getTraceUrl(message: Message): string | null {
     const base = (page.props as { spectraTraceUrl?: string | null }).spectraTraceUrl;
     if (!base || !message.trace_id) return null;
-    return `${base}?trace_id=${message.trace_id}`;
+    return base.replace('{trace}', message.trace_id);
 }
 
 // The sources in the order the answer cites them, each with its chip's number.

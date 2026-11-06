@@ -5,6 +5,7 @@ namespace App\Identity\Workspace\Actions\Account;
 use App\Identity\Workspace\Jobs\DeleteWorkspaceJob;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\Workspace;
+use App\Identity\Workspace\Services\WorkspaceDashboards;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Illuminate\Support\Facades\Cache;
@@ -58,6 +59,7 @@ class DeleteUserAccountAction
     public function __construct(
         private readonly int $conversationBatch = 500,
         private readonly int $rowBatch = 5000,
+        private readonly WorkspaceDashboards $dashboards = new WorkspaceDashboards,
     ) {}
 
     public function execute(User $user): void
@@ -99,6 +101,10 @@ class DeleteUserAccountAction
                 $workspace,
             );
         }
+
+        // Spectra has its own database, so nothing cascades to the dashboard.
+        // The calls it showed go with Spectra's retention.
+        $this->dashboards->delete($workspace);
 
         // Capture the storage root BEFORE the teardown so it can be wiped once
         // the rows are gone: everything the workspace holds, its members' and

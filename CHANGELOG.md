@@ -5,6 +5,30 @@ All notable changes to ChatVia.ai are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Spectra: a workspace can have its own dashboard. On a workspace's page in the
+  admin panel, **More → Create Spectra dashboard** makes a read-only page of that
+  workspace's AI calls and nothing else, for its owner. They find it under
+  **Workspace → AI usage**, and a reply's trace link in the chat log opens on it
+  when the dashboard shows traces. It holds calls recorded after the upgrade.
+
+### Changed
+
+- Spectra is updated to 4.0. Its upgrade adds migrations to the Spectra database,
+  which the normal upgrade runs.
+- Spectra records each AI call against its workspace, not its conversation. Its
+  Trackables screen now lists workspaces; calls recorded before the upgrade keep
+  their conversation.
+
+### Removed
+
+- **Allow Spectra access** on a workspace's page. It showed the owner every
+  workspace's AI calls. An owner who had it can no longer open Spectra; create a
+  dashboard for them instead.
+
 ## [1.3.0] - 2026-11-01
 
 ### Added

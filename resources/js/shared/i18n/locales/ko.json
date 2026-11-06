@@ -3403,7 +3403,8 @@
             "prompts": "프롬프트",
             "members": "채터",
             "security": "보안",
-            "audit": "감사"
+            "audit": "감사",
+            "ai_usage": "AI 사용량"
         },
         "security": {
             "breadcrumb": "보안",

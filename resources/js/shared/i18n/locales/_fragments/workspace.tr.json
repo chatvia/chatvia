@@ -36,6 +36,9 @@
         },
         "enterprise": {
             "export_csv": "CSV dışa aktar"
+        },
+        "nav": {
+            "ai_usage": "Yapay zeka kullanımı"
         }
     }
 }

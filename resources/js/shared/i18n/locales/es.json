@@ -3403,7 +3403,8 @@
             "prompts": "Prompts",
             "members": "Usuarios",
             "security": "Seguridad",
-            "audit": "Auditoría"
+            "audit": "Auditoría",
+            "ai_usage": "Uso de IA"
         },
         "security": {
             "breadcrumb": "Seguridad",

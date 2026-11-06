@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Domain\Knowledge\Source\File\Models\SourceFile;
@@ -74,6 +75,7 @@ class AppServiceProvider extends ServiceProvider
         Relation::enforceMorphMap([
             'agent' => Agent::class,
             'user' => User::class,
+            'workspace' => Workspace::class,
             'chatter' => Chatter::class,
             'conversation' => Conversation::class,
             'source_file' => SourceFile::class,

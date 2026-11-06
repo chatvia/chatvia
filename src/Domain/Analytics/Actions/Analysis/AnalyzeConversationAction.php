@@ -11,6 +11,7 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Topic\Models\ConversationTopic;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Support\Localization\Language\Models\Language;
@@ -44,6 +45,9 @@ class AnalyzeConversationAction
         if ($conversation->analyzed_at !== null) {
             return;
         }
+
+        // The scheduled pass has no request that would have set it.
+        Context::addHidden('workspace_id', $conversation->workspace_id);
 
         $agent = $conversation->agent;
 

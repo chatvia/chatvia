@@ -1,13 +1,13 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Services\WorkspaceDashboards;
 
 /**
  * Horizon, Pulse and Spectra open only for staff signed in to the admin
  * panel (its own `admin` guard), as their gates decide
  * (Horizon/Pulse/SpectraServiceProvider ask StaffToolsAccess). A dashboard
- * session on the shared `web` guard is not enough, except for Spectra for
- * the owner of a workspace an admin granted Spectra access. Who counts as
+ * session on the shared `web` guard is not enough. Who counts as
  * staff is in tests/Unit/App/Admin/StaffToolsAccessTest.php.
  */
 dataset('staff tool dashboards', ['Horizon' => '/horizon', 'Pulse' => '/pulse', 'Spectra' => '/spectra']);
@@ -22,14 +22,9 @@ it('refuses a guest and an admin signed in on the dashboard guard only', functio
     $this->actingAs(adminUser(), 'web')->get($url)->assertForbidden();
 })->with('staff tool dashboards');
 
-it('opens Spectra on a dashboard session for the owner of a workspace granted access, never for its teammates', function (): void {
+it('never opens Spectra on a dashboard session, even for a workspace owner with a dashboard: it shows every workspace', function (): void {
     $owner = User::factory()->create();
-    $teammate = teammateWithPermissions($owner, ['agent.chat.view']);
+    app(WorkspaceDashboards::class)->create($owner->workspace(), [], false);
 
     $this->actingAs($owner, 'web')->get('/spectra')->assertForbidden();
-
-    $owner->workspace()->update(['spectra_access' => true]);
-
-    $this->actingAs($owner->fresh(), 'web')->get('/spectra')->assertOk();
-    $this->actingAs($teammate->fresh(), 'web')->get('/spectra')->assertForbidden();
 });

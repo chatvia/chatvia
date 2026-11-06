@@ -300,7 +300,8 @@
             "functions": "Funciones",
             "api_keys": "Claves API",
             "prompts": "Prompts",
-            "members": "Usuarios"
+            "members": "Usuarios",
+            "ai_usage": "Uso de IA"
         },
         "security": {
             "description": "Controles de seguridad para todo el espacio de trabajo. Restringe quién puede acceder a tu panel y a la API por red: direcciones IP y países de confianza.",

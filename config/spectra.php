@@ -549,6 +549,26 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Shared Dashboards
+    |--------------------------------------------------------------------------
+    |
+    | Read-only pages of one workspace's AI calls, for its owner. An admin makes
+    | one on the workspace's page in the admin panel, so they are always on here:
+    | none exists until then. They sit behind the same checks as the dashboard
+    | (App\Identity\Workspace\Services\WorkspaceDashboardViewers decides who).
+    |
+    | Docs: https://spectraphp.com/dashboards
+    |
+    */
+
+    'dashboards' => [
+        'enabled' => true,
+        'middleware' => ['web', 'auth', 'verified', 'can.access.dashboard', 'workspace.scope', 'throttle:60,1'],
+        'domain' => null,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Cost Configuration
     |--------------------------------------------------------------------------
     |

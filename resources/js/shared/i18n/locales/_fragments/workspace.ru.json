@@ -36,6 +36,9 @@
         },
         "enterprise": {
             "export_csv": "Экспорт в CSV"
+        },
+        "nav": {
+            "ai_usage": "Использование ИИ"
         }
     }
 }

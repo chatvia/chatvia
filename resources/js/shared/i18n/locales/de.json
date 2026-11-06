@@ -3403,7 +3403,8 @@
             "prompts": "Prompts",
             "members": "Chatter",
             "security": "Sicherheit",
-            "audit": "Audit"
+            "audit": "Audit",
+            "ai_usage": "KI-Nutzung"
         },
         "security": {
             "breadcrumb": "Sicherheit",

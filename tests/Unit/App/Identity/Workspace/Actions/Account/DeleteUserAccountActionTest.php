@@ -4,6 +4,7 @@ use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Actions\Account\DeleteUserAccountAction;
 use App\Identity\Workspace\Models\MessageLimit;
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Services\WorkspaceDashboards;
 use App\Identity\Workspace\Models\Workspace;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\ModelSetting;
@@ -123,4 +124,15 @@ it('leaves other workspaces untouched while tearing one down', function (): void
         ->and(MessageLimit::query()->where('chatter_id', $otherChatter->id)->exists())->toBeTrue()
         ->and(ModelSetting::query()->find($otherSetting))->not->toBeNull()
         ->and(Cache::driver('chat')->tags([$survivorTag, 'session-b'])->has('session-b'))->toBeTrue();
+});
+
+it('removes the workspace\'s dashboard from Spectra, whose own database no cascade reaches', function (): void {
+    $owner = User::factory()->create();
+    $workspace = $owner->workspace();
+    $dashboards = app(WorkspaceDashboards::class);
+    $dashboards->create($workspace, [], false);
+
+    app(DeleteUserAccountAction::class)->execute($owner);
+
+    expect($dashboards->for($workspace))->toBeNull();
 });

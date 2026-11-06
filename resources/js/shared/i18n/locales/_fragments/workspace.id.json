@@ -36,6 +36,9 @@
         },
         "enterprise": {
             "export_csv": "Ekspor CSV"
+        },
+        "nav": {
+            "ai_usage": "Penggunaan AI"
         }
     }
 }

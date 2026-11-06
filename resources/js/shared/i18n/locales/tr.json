@@ -3403,7 +3403,8 @@
             "prompts": "İstemler",
             "members": "Kullanıcılar",
             "security": "Güvenlik",
-            "audit": "Denetim"
+            "audit": "Denetim",
+            "ai_usage": "Yapay zeka kullanımı"
         },
         "security": {
             "breadcrumb": "Güvenlik",

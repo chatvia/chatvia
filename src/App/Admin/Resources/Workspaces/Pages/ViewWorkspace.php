@@ -27,12 +27,15 @@ use App\Identity\Workspace\Data\GenerationLimits\GenerationLimitData;
 use App\Identity\Workspace\Exceptions\ActiveDataExportExistsException;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\Workspace;
+use App\Identity\Workspace\Services\WorkspaceDashboards;
 use BackedEnum;
 use Domain\Analytics\Enums\AnalyticsPeriod;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Components\Livewire;
@@ -40,6 +43,8 @@ use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\Rules\Password as PasswordRule;
+use Spectra\Enums\DashboardSection;
+use Spectra\Models\SpectraDashboard;
 
 /**
  * One workspace's dashboard in the admin panel, in tabs: Overview (the
@@ -138,7 +143,9 @@ class ViewWorkspace extends ViewRecord
                 ActionGroup::make([
                     $this->openDashboardAction(),
                     $this->exportDataAction(),
-                    $this->spectraAccessAction(),
+                    $this->createSpectraDashboardAction(),
+                    $this->editSpectraDashboardAction(),
+                    $this->deleteSpectraDashboardAction(),
                 ])->dropdown(false),
                 ActionGroup::make([
                     $this->sendPasswordResetLinkAction(),
@@ -421,32 +428,75 @@ class ViewWorkspace extends ViewRecord
     }
 
     /**
-     * Grant or take back the workspace's access to Spectra (the AI call log).
-     * Spectra is install-wide, so the grant modal warns that the workspace's
-     * owner will see every workspace's AI calls, not just their own. The
-     * grant covers the owner only, never the teammates.
+     * Give the workspace a dashboard in Spectra: a page of its own AI calls,
+     * for its owner, instead of access to Spectra, which shows every workspace.
      */
-    private function spectraAccessAction(): Action
+    private function createSpectraDashboardAction(): Action
     {
-        $granted = fn (): bool => $this->workspace()->spectra_access;
-
-        return Action::make('spectraAccess')
-            ->label(fn (): string => $granted() ? 'Take back Spectra access' : 'Allow Spectra access')
+        return Action::make('createSpectraDashboard')
+            ->label('Create Spectra dashboard')
             ->icon(Heroicon::OutlinedCpuChip)
-            ->requiresConfirmation()
-            ->modalHeading(fn (): string => $granted() ? 'Take back Spectra access?' : 'Allow this workspace to open Spectra?')
-            ->modalDescription(fn (): string => $granted()
-                ? 'The workspace\'s owner can no longer open Spectra or see trace links in the chat logs. Nothing already recorded is removed.'
-                : 'The owner of this workspace can open Spectra and will see every AI call made on this install: every workspace\'s prompts, replies and costs, not just their own. Teammates cannot. Allow it only for a workspace owner you trust with that.')
-            ->modalSubmitActionLabel(fn (): string => $granted() ? 'Take back' : 'Allow')
-            ->color(fn (): string => $granted() ? 'gray' : 'warning')
-            ->visible(fn (): bool => app(ToolRecording::class)->spectraInstalled())
-            ->action(function () use ($granted): void {
-                $allow = ! $granted();
-                $this->workspace()->update(['spectra_access' => $allow]);
+            ->modalHeading('Create a Spectra dashboard for this workspace?')
+            ->modalDescription('The owner of this workspace gets a read-only page of this workspace\'s AI calls, and nothing from any other workspace. Teammates cannot open it. Calls made before now are not on it.')
+            ->schema([
+                CheckboxList::make('sections')
+                    ->label('Pages')
+                    ->options([
+                        DashboardSection::Requests->value => 'Requests',
+                        DashboardSection::Traces->value => 'Traces',
+                        DashboardSection::Conversations->value => 'Conversations',
+                        DashboardSection::Errors->value => 'Errors',
+                        DashboardSection::Costs->value => 'Costs',
+                    ])
+                    ->descriptions([
+                        DashboardSection::Costs->value => 'Shows what you pay the AI providers, here and across the dashboard.',
+                    ])
+                    ->default([DashboardSection::Requests->value, DashboardSection::Traces->value, DashboardSection::Errors->value]),
+                Toggle::make('show_messages')
+                    ->label('Show message text')
+                    ->helperText('Lets the owner read this workspace\'s messages, the replies and error messages. Off, they see only the numbers.')
+                    ->default(false),
+            ])
+            ->modalSubmitActionLabel('Create')
+            ->visible(fn (): bool => app(ToolRecording::class)->spectraInstalled() && ! $this->spectraDashboard() instanceof SpectraDashboard)
+            ->action(function (array $data): void {
+                app(WorkspaceDashboards::class)->create($this->workspace(), array_values($data['sections']), (bool) $data['show_messages']);
 
-                Notification::make()->success()->title($allow ? 'Spectra access allowed' : 'Spectra access taken back')->send();
+                Notification::make()->success()->title('Spectra dashboard created')->body('Copy its link from the Account card and give it to the workspace\'s owner.')->send();
             });
+    }
+
+    /** Spectra's own form, for the widgets and pages the dashboard shows. */
+    private function editSpectraDashboardAction(): Action
+    {
+        return Action::make('editSpectraDashboard')
+            ->label('Edit Spectra dashboard')
+            ->icon(Heroicon::OutlinedCpuChip)
+            ->url(fn (): string => url(config('spectra.dashboard.path')."/dashboards/{$this->spectraDashboard()?->id}/edit"), shouldOpenInNewTab: true)
+            ->visible(fn (): bool => app(ToolRecording::class)->spectraInstalled() && $this->spectraDashboard() instanceof SpectraDashboard);
+    }
+
+    private function deleteSpectraDashboardAction(): Action
+    {
+        return Action::make('deleteSpectraDashboard')
+            ->label('Remove Spectra dashboard')
+            ->icon(Heroicon::OutlinedTrash)
+            ->requiresConfirmation()
+            ->modalHeading('Remove this workspace\'s Spectra dashboard?')
+            ->modalDescription('Its link stops working. Nothing already recorded is removed.')
+            ->modalSubmitActionLabel('Remove')
+            ->color('gray')
+            ->visible(fn (): bool => app(ToolRecording::class)->spectraInstalled() && $this->spectraDashboard() instanceof SpectraDashboard)
+            ->action(function (): void {
+                app(WorkspaceDashboards::class)->delete($this->workspace());
+
+                Notification::make()->success()->title('Spectra dashboard removed')->send();
+            });
+    }
+
+    private function spectraDashboard(): ?SpectraDashboard
+    {
+        return app(WorkspaceDashboards::class)->for($this->workspace());
     }
 
     private function deleteAction(): Action

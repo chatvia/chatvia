@@ -397,7 +397,8 @@
             "prompts": "الموجّهات",
             "members": "المحادثون",
             "audit": "التدقيق",
-            "security": "الأمان"
+            "security": "الأمان",
+            "ai_usage": "استخدام الذكاء الاصطناعي"
         },
         "enterprise": {
             "export_csv": "تصدير CSV"

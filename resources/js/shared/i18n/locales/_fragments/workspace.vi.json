@@ -36,6 +36,9 @@
         },
         "enterprise": {
             "export_csv": "Xuất CSV"
+        },
+        "nav": {
+            "ai_usage": "Mức dùng AI"
         }
     }
 }

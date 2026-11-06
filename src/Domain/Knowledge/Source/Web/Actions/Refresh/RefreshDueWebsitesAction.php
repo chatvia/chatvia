@@ -15,6 +15,7 @@ use Domain\Knowledge\Source\Web\Events\WebsiteCrawlStarted;
 use Domain\Knowledge\Source\Web\Jobs\Crawler\WebsiteCrawlerJob;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Context;
 
 /**
  * Crawls and trains again every website whose refresh interval has passed:
@@ -69,6 +70,10 @@ class RefreshDueWebsitesAction
         $crawler = CrawlerData::from([...($website->options ?? []), 'url' => $website->url]);
 
         WebsiteCrawlStarted::dispatch($website, $agent->external_id);
+
+        // The scheduled pass has no request that would have set it, and the
+        // jobs carry it to Spectra (see WorkspaceAttributedSpectra).
+        Context::addHidden('workspace_id', $agent->workspace_id);
 
         Bus::chain([
             new WebsiteCrawlerJob($website, $crawler, $agent),

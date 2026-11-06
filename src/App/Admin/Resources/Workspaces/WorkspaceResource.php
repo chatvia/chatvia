@@ -6,7 +6,9 @@ use App\Admin\Resources\Workspaces\Pages\ListWorkspaces;
 use App\Admin\Resources\Workspaces\Pages\ViewWorkspace;
 use App\Admin\Resources\Workspaces\RelationManagers\AgentsRelationManager;
 use App\Admin\Resources\Workspaces\RelationManagers\TeammatesRelationManager;
+use App\Admin\Settings\ToolRecording;
 use App\Identity\Workspace\Models\Workspace;
+use App\Identity\Workspace\Services\WorkspaceDashboards;
 use BackedEnum;
 use Filament\Actions\ViewAction;
 use Filament\Infolists\Components\TextEntry;
@@ -173,12 +175,13 @@ class WorkspaceResource extends Resource
                             ->badge()
                             ->state(fn (Workspace $record): string => $record->owner?->usesTwoFactor() ? 'On' : 'Off')
                             ->color(fn (string $state): string => $state === 'On' ? 'success' : 'gray'),
-                        TextEntry::make('spectra_access')
-                            ->label('Spectra access')
-                            ->badge()
-                            ->state(fn (Workspace $record): string => $record->spectra_access ? 'Allowed' : 'Not allowed')
-                            ->color(fn (string $state): string => $state === 'Allowed' ? 'warning' : 'gray')
-                            ->tooltip('Whether the workspace\'s owner may open Spectra, which shows every workspace\'s AI calls.'),
+                        TextEntry::make('spectra_dashboard')
+                            ->label('Spectra dashboard')
+                            ->state(fn (Workspace $record): ?string => app(WorkspaceDashboards::class)->for($record)?->url())
+                            ->placeholder('None')
+                            ->copyable()
+                            ->tooltip('The link to give the workspace\'s owner. It shows only this workspace\'s AI calls.')
+                            ->visible(fn (): bool => app(ToolRecording::class)->spectraInstalled()),
                     ]),
                 Section::make('People')
                     ->description('Who works in the workspace and who chats with its agents.')

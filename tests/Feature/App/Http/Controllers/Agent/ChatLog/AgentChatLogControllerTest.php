@@ -1,28 +1,34 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Services\WorkspaceDashboards;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * The chat log offers a "trace" link into Spectra only to a viewer who may
- * actually open /spectra: an active admin signed in to the admin panel's own
- * guard, or the owner of a workspace an admin granted Spectra access.
- * Spectra shows every workspace's AI calls, so everyone else gets null.
+ * The chat log offers a "trace" link only to a viewer who may open the trace:
+ * staff in Spectra, where every workspace's calls are, or the workspace's owner
+ * on the workspace's own dashboard, when that shows traces.
  */
-it('offers the Spectra trace link only to an admin or the owner of a workspace granted Spectra', function (): void {
+it('points the trace link at Spectra for staff, at the dashboard for the owner, and nowhere for anyone else', function (): void {
     config(['spectra.enabled' => true]);
     $owner = User::factory()->create();
     $agent = createAgent($owner);
-    $traceUrl = fn (): mixed => $this->actingAs($owner)->get(route('agents.logs', $agent))->assertOk()->inertiaProps('spectraTraceUrl');
+    $teammate = teammateWithPermissions($owner, ['agent.chat.view']);
+    $dashboards = app(WorkspaceDashboards::class);
+    $traceUrl = fn (User $viewer): mixed => $this->actingAs($viewer)->get(route('agents.logs', $agent))->assertOk()->inertiaProps('spectraTraceUrl');
 
-    $dashboardOnly = $traceUrl();
-    $owner->workspace()->update(['spectra_access' => true]);
-    $granted = $traceUrl();
-    $owner->workspace()->update(['spectra_access' => false]);
+    $withoutDashboard = $traceUrl($owner);
+    $dashboards->create($owner->workspace(), [], false);
+    $withoutTraces = $traceUrl($owner);
+    $dashboard = $dashboards->create($owner->workspace(), ['traces'], false);
+    $withTraces = $traceUrl($owner);
+    $forTeammate = $traceUrl($teammate);
     Auth::guard('admin')->setUser(adminUser());
-    $admin = $traceUrl();
+    $forStaff = $traceUrl($owner);
 
-    expect($dashboardOnly)->toBeNull()
-        ->and($granted)->toBe(url('spectra/requests'))
-        ->and($admin)->toBe(url('spectra/requests'));
+    expect($withoutDashboard)->toBeNull()
+        ->and($withoutTraces)->toBeNull()
+        ->and($withTraces)->toBe($dashboard->url().'/traces/{trace}')
+        ->and($forTeammate)->toBeNull()
+        ->and($forStaff)->toBe(url('spectra/requests').'?trace_id={trace}');
 });

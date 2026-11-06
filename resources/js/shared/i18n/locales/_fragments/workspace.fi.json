@@ -300,7 +300,8 @@
             "functions": "Funktiot",
             "api_keys": "API-avaimet",
             "prompts": "Kehotteet",
-            "members": "Chatterit"
+            "members": "Chatterit",
+            "ai_usage": "Tekoälyn käyttö"
         },
         "security": {
             "description": "Koko työtilan kattavat tietoturva-asetukset. Rajoita verkon perusteella, kuka voi käyttää hallintapaneeliasi ja API:a: luotetut IP-osoitteet ja maat.",

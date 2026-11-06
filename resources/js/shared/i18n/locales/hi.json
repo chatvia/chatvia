@@ -3403,7 +3403,8 @@
             "prompts": "प्रॉम्प्ट",
             "members": "चैटर",
             "security": "सुरक्षा",
-            "audit": "ऑडिट"
+            "audit": "ऑडिट",
+            "ai_usage": "AI उपयोग"
         },
         "security": {
             "breadcrumb": "सुरक्षा",

@@ -3403,7 +3403,8 @@
             "prompts": "Kehotteet",
             "members": "Chatterit",
             "security": "Tietoturva",
-            "audit": "Tarkastus"
+            "audit": "Tarkastus",
+            "ai_usage": "Tekoälyn käyttö"
         },
         "security": {
             "breadcrumb": "Tietoturva",

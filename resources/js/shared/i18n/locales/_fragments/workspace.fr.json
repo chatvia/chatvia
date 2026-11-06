@@ -300,7 +300,8 @@
             "functions": "Fonctions",
             "api_keys": "Clés API",
             "prompts": "Prompts",
-            "members": "Chatters"
+            "members": "Chatters",
+            "ai_usage": "Utilisation de l'IA"
         },
         "security": {
             "description": "Contrôles de sécurité à l'échelle de l'espace de travail. Restreignez l'accès à votre tableau de bord et à l'API par réseau : adresses IP et pays de confiance.",

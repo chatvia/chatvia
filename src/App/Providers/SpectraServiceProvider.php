@@ -8,16 +8,22 @@ use App\Admin\Issue\Services\IssueGuzzleMiddleware;
 use App\Admin\Settings\ToolRecording;
 use App\Admin\StaffToolsAccess;
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Services\WorkspaceDashboardViewers;
+use Domain\Llm\Services\WorkspaceAttributedSpectra;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Spectra\Contracts\DashboardTrackableResolver;
+use Spectra\Spectra;
 
 /**
  * Spectra (the AI call log at /spectra): who may open it — staff signed in
- * to the admin panel ({@see StaffToolsAccess}), like Horizon and Pulse, or
- * the owner of a workspace an admin granted Spectra access — and how it sees
- * the streamed replies.
+ * to the admin panel ({@see StaffToolsAccess}), like Horizon and Pulse — whose
+ * calls it records, and how it sees the streamed replies. Spectra's screens
+ * show every workspace's calls; a workspace's owner gets a dashboard of their
+ * own workspace instead ({@see WorkspaceDashboardViewers}).
  *
  * Spectra watches Laravel's HTTP client by itself. A streamed reply goes out
  * through a plain Guzzle client from the container instead, so that client
@@ -29,15 +35,20 @@ use Illuminate\Support\ServiceProvider;
  */
 class SpectraServiceProvider extends ServiceProvider
 {
+    #[\Override]
+    public function register(): void
+    {
+        $this->app->scoped(Spectra::class, fn (Application $app): Spectra => new WorkspaceAttributedSpectra($app));
+        $this->app->bind(DashboardTrackableResolver::class, WorkspaceDashboardViewers::class);
+    }
+
     public function boot(): void
     {
-        // An admin-panel session always may; a dashboard (web-guard) session
-        // only when it is the owner of a workspace staff granted Spectra
-        // access in the admin panel. Spectra is install-wide, so that grant
-        // shows every workspace's AI calls: it is off by default and never
-        // reaches the workspace's teammates.
-        Gate::define('viewSpectra', fn (?User $user = null): bool => $this->app->make(StaffToolsAccess::class)->allows()
-            || ($user?->isWorkspaceOwner() === true && ($user->workspaceMembership?->workspace?->spectra_access ?? false)));
+        // Both ask for an admin-panel session: Spectra is install-wide, so a
+        // dashboard (web-guard) session never opens it. `manageSpectra` covers
+        // designing dashboards and the Maintenance screen's actions.
+        Gate::define('viewSpectra', fn (?User $user = null): bool => $this->app->make(StaffToolsAccess::class)->allows());
+        Gate::define('manageSpectra', fn (?User $user = null): bool => $this->app->make(StaffToolsAccess::class)->allows());
 
         // The app's Guzzle client (the streamed chat replies) goes through
         // Spectra's handler when Spectra booted installed (SPECTRA_ENABLED)

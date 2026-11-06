@@ -3403,7 +3403,8 @@
             "prompts": "提示词",
             "members": "访客",
             "security": "安全",
-            "audit": "审计"
+            "audit": "审计",
+            "ai_usage": "AI 用量"
         },
         "security": {
             "breadcrumb": "安全",

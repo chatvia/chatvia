@@ -397,7 +397,8 @@
             "prompts": "Prompts",
             "members": "Chatters",
             "audit": "Audit",
-            "security": "Security"
+            "security": "Security",
+            "ai_usage": "AI usage"
         },
         "enterprise": {
             "export_csv": "Export CSV"

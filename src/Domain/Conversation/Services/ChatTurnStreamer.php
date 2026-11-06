@@ -100,7 +100,7 @@ readonly class ChatTurnStreamer
         $conversation = $this->conversation($data);
 
         // From here the turn can call AI (guardrails, rewrite, retrieval, the
-        // model): every call Spectra records is attributed to the conversation.
+        // model): every call Spectra records is put in the conversation.
         $this->spectraTagger->tag($conversation);
 
         if ($conversation?->isHandedOff()) {

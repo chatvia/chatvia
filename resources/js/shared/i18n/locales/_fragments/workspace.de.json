@@ -300,7 +300,8 @@
             "functions": "Funktionen",
             "api_keys": "API-Schlüssel",
             "prompts": "Prompts",
-            "members": "Chatter"
+            "members": "Chatter",
+            "ai_usage": "KI-Nutzung"
         },
         "security": {
             "description": "Workspace-weite Sicherheitseinstellungen. Beschränken Sie den Netzwerkzugriff auf Ihr Dashboard und die API: vertrauenswürdige IP-Adressen und Länder.",

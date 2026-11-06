@@ -7,8 +7,8 @@ import integrations from '@/routes/integrations';
 import library from '@/routes/library';
 import people from '@/routes/people';
 import security from '@/routes/security';
-import { Link } from '@inertiajs/vue3';
-import { Code, KeyRound, Lock, MessageSquareText, Plug, ScrollText, Users, type LucideIcon } from 'lucide-vue-next';
+import { Link, usePage } from '@inertiajs/vue3';
+import { Activity, Code, KeyRound, Lock, MessageSquareText, Plug, ScrollText, Users, type LucideIcon } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -25,6 +25,8 @@ interface NavItem {
     // Extra route names that also mark this item active — the unified Audit item
     // lives on two tab routes.
     activeNames?: string[];
+    // A page outside the dashboard, opened in a new tab.
+    external?: boolean;
 }
 
 interface NavSection {
@@ -34,6 +36,8 @@ interface NavSection {
 }
 
 const { hasPermission } = useTeamPermissions();
+const page = usePage();
+const spectraDashboardUrl = computed(() => (page.props as { spectraDashboardUrl?: string | null }).spectraDashboardUrl);
 const { current } = useCurrentRoute();
 
 const baseSections: NavSection[] = [
@@ -111,6 +115,17 @@ const governanceItems = computed<NavItem[]>(() => {
         items.push({ title: 'workspace.nav.security', name: 'security.edit', href: security.edit.url(), icon: Lock });
     }
 
+    // The workspace's own page in Spectra, once an admin has made it.
+    if (spectraDashboardUrl.value) {
+        items.push({
+            title: 'workspace.nav.ai_usage',
+            name: 'spectra.dashboards.show',
+            href: spectraDashboardUrl.value,
+            icon: Activity,
+            external: true,
+        });
+    }
+
     return items;
 });
 
@@ -147,10 +162,13 @@ function isActive(item: NavItem): boolean {
                         <p class="text-muted-foreground px-3 py-1 text-xs font-medium tracking-wide uppercase">
                             {{ t(section.title) }}
                         </p>
-                        <Link
+                        <component
+                            :is="item.external ? 'a' : Link"
                             v-for="item in section.items"
                             :key="item.name"
                             :href="item.href"
+                            :target="item.external ? '_blank' : undefined"
+                            :rel="item.external ? 'noopener' : undefined"
                             :class="[
                                 'group inline-flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
                                 isActive(item)
@@ -166,7 +184,7 @@ function isActive(item: NavItem): boolean {
                                 ]"
                             />
                             {{ t(item.title) }}
-                        </Link>
+                        </component>
                     </div>
                 </nav>
             </aside>

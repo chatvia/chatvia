@@ -7,6 +7,7 @@ use App\Identity\Workspace\Actions\Account\DeleteAccountAction;
 use App\Identity\Workspace\Jobs\DeleteWorkspaceJob;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\WorkspaceActivation;
+use App\Identity\Workspace\Services\WorkspaceDashboards;
 use Illuminate\Support\Facades\Queue;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
@@ -103,4 +104,22 @@ it('deletes the workspace only after its name is typed, and locks its actions', 
         ->assertActionHidden('edit')
         ->assertActionHidden('sendPasswordResetLink')
         ->assertActionHidden('setPassword');
+});
+
+it('creates a dashboard of this workspace for its owner, and removes it again', function (): void {
+    config(['spectra.enabled' => true]);
+    $dashboards = app(WorkspaceDashboards::class);
+
+    vwaPage()->callAction('createSpectraDashboard', ['sections' => ['traces', 'costs'], 'show_messages' => true])->assertHasNoActionErrors();
+
+    $dashboard = $dashboards->for($this->workspace);
+
+    expect($dashboard->trackable_type)->toBe('workspace')
+        ->and($dashboard->trackable_id)->toBe((string) $this->workspace->id)
+        ->and($dashboard->sections)->toBe(['traces', 'costs'])
+        ->and($dashboard->show_messages)->toBeTrue();
+
+    vwaPage()->callAction('deleteSpectraDashboard');
+
+    expect($dashboards->for($this->workspace))->toBeNull();
 });

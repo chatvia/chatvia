@@ -36,6 +36,9 @@
         },
         "enterprise": {
             "export_csv": "CSV निर्यात करें"
+        },
+        "nav": {
+            "ai_usage": "AI उपयोग"
         }
     }
 }

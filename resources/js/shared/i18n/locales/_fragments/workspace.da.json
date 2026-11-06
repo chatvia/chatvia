@@ -300,7 +300,8 @@
             "functions": "Funktioner",
             "api_keys": "API-nøgler",
             "prompts": "Prompts",
-            "members": "Chattere"
+            "members": "Chattere",
+            "ai_usage": "AI-forbrug"
         },
         "security": {
             "description": "Sikkerhedskontroller for hele workspacet. Begræns hvem der kan tilgå dit dashboard og API’et ud fra netværk: betroede IP-adresser og lande.",

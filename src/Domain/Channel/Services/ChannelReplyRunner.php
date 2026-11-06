@@ -22,6 +22,7 @@ use Domain\Conversation\Services\Streaming\Sources\QaSource;
 use Domain\Conversation\Services\Turn\SpectraTurnTagger;
 use Domain\Guardrail\Services\GuardrailInspector;
 use Domain\Llm\Models\Llm;
+use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -66,6 +67,11 @@ class ChannelReplyRunner
     {
         $agent = $turn->agent;
         $agent->loadMissing(['agentPrompt', 'llm']);
+
+        // A channel's turn has no request that would have set it, as the web
+        // chat's middleware does: the AI calls and queued jobs of the turn
+        // read it to know their workspace.
+        Context::addHidden('workspace_id', $agent->workspace_id);
 
         $refusal = $this->refusal($agent, $turn->sessionExternalId);
 
@@ -147,8 +153,8 @@ class ChannelReplyRunner
         $model = $this->models->for($agent) ?? throw new RuntimeException("Agent {$agent->external_id} has no model, and no model can answer.");
 
         // The channel resolvers create the conversation before the turn runs,
-        // so Spectra attributes the turn's AI calls to it — the closure keeps
-        // the lookup off the path while Spectra is not recording.
+        // so Spectra can put the turn's AI calls in it — the closure keeps the
+        // lookup off the path while Spectra is not recording.
         $this->spectraTagger->tag(fn (): ?Conversation => Conversation::query()
             ->inSession($turn->sessionExternalId, $agent->id)
             ->where('external_id', $turn->conversationExternalId)

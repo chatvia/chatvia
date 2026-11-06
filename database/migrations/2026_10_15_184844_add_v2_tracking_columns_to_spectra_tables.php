@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Schema\Builder;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -17,10 +18,17 @@ return new class extends Migration
     {
         $schema = Schema::connection($this->getConnection());
 
-        if ($schema->hasColumn('spectra_requests', 'cached_tokens')) {
-            return;
+        if (! $schema->hasColumn('spectra_requests', 'cached_tokens')) {
+            $this->addRequestColumns($schema);
         }
 
+        if (! $schema->hasColumn('spectra_daily_stats', 'total_cached_tokens')) {
+            $this->addDailyStatsColumns($schema);
+        }
+    }
+
+    protected function addRequestColumns(Builder $schema): void
+    {
         $schema->table('spectra_requests', function (Blueprint $table) {
             $table->unsignedInteger('cached_tokens')->default(0)->after('completion_tokens');
             $table->unsignedInteger('cache_write_tokens')->default(0)->after('cached_tokens');
@@ -41,7 +49,10 @@ return new class extends Migration
 
             $table->index('conversation_id');
         });
+    }
 
+    protected function addDailyStatsColumns(Builder $schema): void
+    {
         $schema->table('spectra_daily_stats', function (Blueprint $table) {
             $table->unsignedBigInteger('total_cached_tokens')->default(0)->after('total_reasoning_tokens');
             $table->unsignedBigInteger('total_cache_write_tokens')->default(0)->after('total_cached_tokens');

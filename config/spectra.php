@@ -2,18 +2,6 @@
 
 declare(strict_types=1);
 
-use Spectra\Pricing\AnthropicPricing;
-use Spectra\Pricing\CoherePricing;
-use Spectra\Pricing\ElevenLabsPricing;
-use Spectra\Pricing\FalAiPricing;
-use Spectra\Pricing\GooglePricing;
-use Spectra\Pricing\GroqPricing;
-use Spectra\Pricing\MistralPricing;
-use Spectra\Pricing\OpenAIPricing;
-use Spectra\Pricing\OpenRouterPricing;
-use Spectra\Pricing\ReplicatePricing;
-use Spectra\Pricing\ScalewayPricing;
-use Spectra\Pricing\XAiPricing;
 use Spectra\Providers\Anthropic\Anthropic;
 use Spectra\Providers\Cohere\Cohere;
 use Spectra\Providers\ElevenLabs\ElevenLabs;
@@ -355,7 +343,7 @@ return [
         |
         */
 
-        'auto_track_user' => false,
+        'auto_track_user' => true,
 
         /*
         |--------------------------------------------------------------------------
@@ -500,6 +488,28 @@ return [
 
         /*
         |--------------------------------------------------------------------------
+        | Dashboard Playground
+        |--------------------------------------------------------------------------
+        |
+        | Whether the dashboard's Playground may send a new prompt, or a stored call
+        | again with your edits, to try a different prompt or model. Each run is a
+        | real call: it uses your API key, costs money, and sends the prompt to the
+        | provider. So it is off by default, and running it also needs the
+        | `manageSpectra` gate, which allows only the local environment unless you
+        | define it. `timeout` is how long a run may wait for the provider, in
+        | seconds.
+        |
+        | Docs: https://spectraphp.com/playground
+        |
+        */
+
+        'playground' => [
+            'enabled' => env('SPECTRA_PLAYGROUND_ENABLED', false),
+            'timeout' => env('SPECTRA_PLAYGROUND_TIMEOUT', 120),
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
         | Dashboard Layout
         |--------------------------------------------------------------------------
         |
@@ -628,45 +638,6 @@ return [
             'anthropic' => [
                 'default_tier' => env('SPECTRA_ANTHROPIC_PRICING_TIER', 'standard'),
             ],
-        ],
-
-        /*
-        |--------------------------------------------------------------------------
-        | Pricing Definitions
-        |--------------------------------------------------------------------------
-        |
-        | Map provider slugs to their pricing definition classes. Each class
-        | defines models and their pricing tiers. Spectra ships with built-in
-        | pricing for all supported providers.
-        |
-        | To add custom models, extend a built-in class and override populate():
-        |
-        |   class MyOpenAIPricing extends \Spectra\Pricing\OpenAIPricing {
-        |       protected function populate(): void {
-        |           $this->model('ft:gpt-4o:my-org', fn ($m) => $m
-        |               ->displayName('My Fine-tune')
-        |               ->canGenerateText()
-        |               ->cost(300, 1200));
-        |       }
-        |   }
-        |
-        | Then replace the openai entry with your class.
-        |
-        */
-
-        'pricing' => [
-            'openai' => OpenAIPricing::class,
-            'anthropic' => AnthropicPricing::class,
-            'google' => GooglePricing::class,
-            'xai' => XAiPricing::class,
-            'mistral' => MistralPricing::class,
-            'openrouter' => OpenRouterPricing::class,
-            'replicate' => ReplicatePricing::class,
-            'cohere' => CoherePricing::class,
-            'groq' => GroqPricing::class,
-            'falai' => FalAiPricing::class,
-            'scaleway' => ScalewayPricing::class,
-            'elevenlabs' => ElevenLabsPricing::class,
         ],
 
     ],

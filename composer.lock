@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cd30251b7c8c9805db3b8a850da6b294",
+    "content-hash": "f22afd0d9a7e475ac455733c0d16a32c",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -10877,16 +10877,16 @@
         },
         {
             "name": "spectra-php/laravel-spectra",
-            "version": "v2.3.1",
+            "version": "v4.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spectra-php/laravel-spectra.git",
-                "reference": "d400940d92a3df861eb3478594f1b3b6d9fc5596"
+                "reference": "5ad6d1caa5518084c256d1b8850c05dfc62a6150"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spectra-php/laravel-spectra/zipball/d400940d92a3df861eb3478594f1b3b6d9fc5596",
-                "reference": "d400940d92a3df861eb3478594f1b3b6d9fc5596",
+                "url": "https://api.github.com/repos/spectra-php/laravel-spectra/zipball/5ad6d1caa5518084c256d1b8850c05dfc62a6150",
+                "reference": "5ad6d1caa5518084c256d1b8850c05dfc62a6150",
                 "shasum": ""
             },
             "require": {
@@ -10897,21 +10897,25 @@
                 "symfony/polyfill-php84": "^1.31"
             },
             "require-dev": {
+                "driftingly/rector-laravel": "^2.0",
                 "james-heinrich/getid3": "2.0.x-dev",
                 "larastan/larastan": "^3.0",
                 "laravel/pint": "^1.14",
                 "nunomaduro/collision": "^8.1",
-                "openai-php/laravel": "^0.21.0",
+                "openai-php/laravel": "^0.22.0",
                 "orchestra/testbench": "^10.0||^11.0",
                 "pestphp/pest": "^3.0||^4.0||^5.0",
                 "pestphp/pest-plugin-arch": "^3.0||^4.0||^5.0",
                 "pestphp/pest-plugin-laravel": "^3.0||^4.0||^5.0",
                 "phpstan/extension-installer": "^1.4",
                 "phpstan/phpstan-deprecation-rules": "^2.0",
-                "phpstan/phpstan-phpunit": "^2.0"
+                "phpstan/phpstan-phpunit": "^2.0",
+                "phpstan/phpstan-strict-rules": "^2.0",
+                "rector/rector": "^2.0"
             },
             "suggest": {
-                "james-heinrich/getid3": "Required for extracting audio duration from TTS binary responses (minute-based cost calculation)"
+                "james-heinrich/getid3": "Required for extracting audio duration from TTS binary responses (minute-based cost calculation)",
+                "openai-php/laravel": "Lets Spectra track calls made through the OpenAI facade and client (OpenAiWatcher)"
             },
             "type": "library",
             "extra": {
@@ -10921,6 +10925,11 @@
                     },
                     "providers": [
                         "Spectra\\SpectraServiceProvider"
+                    ]
+                },
+                "phpstan/extension-installer": {
+                    "ignore": [
+                        "phpstan/phpstan-strict-rules"
                     ]
                 }
             },
@@ -10941,21 +10950,33 @@
                     "role": "Developer"
                 }
             ],
-            "description": "Comprehensive observability for AI/LLM operations in Laravel applications",
+            "description": "Observability for AI and LLM calls in Laravel. Automatically tracks requests to OpenAI, Anthropic, Gemini, Mistral and 9 more providers, calculates token and media costs, enforces per-user budgets, and ships a real-time dashboard with OpenTelemetry export.",
             "homepage": "https://github.com/spectra-php/laravel-spectra",
             "keywords": [
                 "Gemini",
-                "ahmadmayahi",
+                "OpenRouter",
                 "ai",
                 "anthropic",
+                "cost-tracking",
+                "dashboard",
                 "laravel",
+                "laravel-package",
                 "llm",
+                "llm-observability",
+                "llmops",
+                "mistral",
+                "monitoring",
                 "observability",
-                "openai"
+                "ollama",
+                "openai",
+                "opentelemetry",
+                "php",
+                "prism",
+                "token-usage"
             ],
             "support": {
                 "issues": "https://github.com/spectra-php/laravel-spectra/issues",
-                "source": "https://github.com/spectra-php/laravel-spectra/tree/v2.3.1"
+                "source": "https://github.com/spectra-php/laravel-spectra/tree/v4.0.0"
             },
             "funding": [
                 {
@@ -10963,7 +10984,8 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-10-25T08:57:44+00:00"
+            "time": "2026-11-06T14:28:36+00:00",
+            "published-time": "2026-11-06T14:35:17+00:00"
         },
         {
             "name": "spomky-labs/cbor-php",
@@ -20153,5 +20175,5 @@
         "ext-sodium": "*"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.11.0"
 }

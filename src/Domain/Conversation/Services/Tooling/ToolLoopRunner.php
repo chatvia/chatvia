@@ -14,6 +14,7 @@ use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Streaming\Sse\ToolCallPhase;
 use Domain\Conversation\Services\Tooling\Approval\ToolApprovalStore;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
+use Domain\Conversation\Services\Turn\SpectraPromptTagger;
 use Domain\Conversation\Services\Turn\TurnStops;
 use Domain\Integration\Tool\Access\ToolAccessPolicy;
 use Domain\Integration\Tool\Contracts\ToolDispatcher;
@@ -76,6 +77,7 @@ class ToolLoopRunner
         private readonly AiCallTags $tags,
         private readonly ToolCallFactory $calls,
         private readonly TurnStops $stops = new TurnStops,
+        private readonly SpectraPromptTagger $prompts = new SpectraPromptTagger,
     ) {}
 
     /**
@@ -318,8 +320,8 @@ class ToolLoopRunner
 
     /**
      * Stream one completion through the transformer. Only the call that
-     * sends it is tagged: Spectra reads the tags then, not while the stream
-     * is read.
+     * sends it is tagged, with its purpose and the agent's prompt: Spectra
+     * reads them then, not while the stream is read.
      *
      * @param  array<int, array<string, mixed>>  $llmMessages
      * @param  array<string, mixed>  $settings
@@ -327,7 +329,10 @@ class ToolLoopRunner
      */
     private function streamCompletion(ChatContext $context, ChatCompletionProvider $provider, string $modelName, array $llmMessages, array $settings): Generator
     {
-        $response = $this->tags->during(AiCallTag::ChatReply, fn (): ResponseInterface => $provider->stream($modelName, $llmMessages, $settings));
+        $response = $this->prompts->during(
+            $context->requestData->agent,
+            fn (): ResponseInterface => $this->tags->during(AiCallTag::ChatReply, fn (): ResponseInterface => $provider->stream($modelName, $llmMessages, $settings)),
+        );
 
         yield from $this->transformer->transform($response, $context);
     }

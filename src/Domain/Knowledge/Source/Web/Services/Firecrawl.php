@@ -76,7 +76,7 @@ class Firecrawl
             $payload['location'] = array_filter([
                 'country' => $country,
                 'languages' => $languages !== [] ? array_values($languages) : null,
-            ], static fn ($value): bool => $value !== null);
+            ], static fn (string|array|null $value): bool => $value !== null);
         }
 
         $response = $this->client()->post('map', $payload)->json();

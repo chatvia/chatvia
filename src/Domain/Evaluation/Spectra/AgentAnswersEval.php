@@ -46,7 +46,7 @@ class AgentAnswersEval extends Evaluation
     public function scorers(): array
     {
         return [
-            'answered' => fn (string $output): bool => filled($output),
+            'answered' => filled(...),
             'mentions_expected' => new Contains,
             'concise' => fn (string $output): bool => Str::length($output) <= 800,
         ];

@@ -16,6 +16,6 @@ final class PngImage
     /** The image's bytes. */
     public static function bytes(): string
     {
-        return (string) base64_decode(self::BASE64, true);
+        return base64_decode(self::BASE64, true);
     }
 }

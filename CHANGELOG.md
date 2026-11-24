@@ -12,6 +12,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Knowledge files: the trained files list has a checkbox on every file, a
   **Select all** box and a **Delete selected** button, to remove several files
   at once. A file that other agents also use is only removed from this agent.
+- Spectra: the Maintenance screen's Prices card has a **Recalculate costs**
+  button. It prices the stored AI calls again from the price list, so a call
+  recorded at $0 before its model had a price gets the right cost.
+- Spectra: prices for newer models, among them Claude Fable 5.2, Gemini 4
+  Carbon and Neon, and GPT-6.2 Astra and Sol.
+
+### Changed
+
+- Spectra is updated to 4.3. It has no new migrations.
+- Spectra records an OpenRouter call under the model id it was called with
+  (`anthropic/claude-sonnet-4.5`), not a display name, and takes its cost from
+  OpenRouter's answer. Calls recorded before the upgrade keep the old name, so
+  for a while the same model can show under two names.
+- Packages are updated to their newest releases.
 
 ## [1.4.0] - 2026-11-07
 
@@ -117,7 +131,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 The first public version of ChatVia.ai.
 
-[Unreleased]: https://github.com/chatvia/chatvia/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/chatvia/chatvia/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/chatvia/chatvia/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/chatvia/chatvia/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/chatvia/chatvia/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/chatvia/chatvia/compare/v1.1.0...v1.2.0

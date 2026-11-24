@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "select_all": "انتخاب همه ({count})",
+                "delete_selected": "حذف انتخاب‌شده‌ها ({count})",
+                "select_file": "انتخاب «{name}»",
+                "selected_remove_description": "این عمل فایل‌های انتخاب‌شده را به طور دائمی از پایگاه دانش دستیار شما حذف می‌کند. این عمل قابل بازگشت نیست.",
+                "selected_remove_shared": "فایل‌هایی که دستیارهای دیگر هم از آن‌ها استفاده می‌کنند فقط از این دستیار برداشته می‌شوند.",
+                "selected_removed": "{count} فایل حذف شد. | {count} فایل حذف شد.",
+                "selected_remove_failed": "حذف فایل‌های انتخاب‌شده ناموفق بود: {error}"
+            }
+        }
+    }
+}

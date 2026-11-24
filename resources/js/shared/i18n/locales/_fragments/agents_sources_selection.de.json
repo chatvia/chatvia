@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "select_all": "Alle auswählen ({count})",
+                "delete_selected": "Auswahl löschen ({count})",
+                "select_file": "{name} auswählen",
+                "selected_remove_description": "Dadurch werden die ausgewählten Dateien dauerhaft aus der Wissensdatenbank Ihres Agenten entfernt. Diese Aktion kann nicht rückgängig gemacht werden.",
+                "selected_remove_shared": "Dateien, die auch andere Agenten verwenden, werden nur von diesem Agenten entfernt.",
+                "selected_removed": "{count} Datei wurde entfernt. | {count} Dateien wurden entfernt.",
+                "selected_remove_failed": "Die ausgewählten Dateien konnten nicht entfernt werden: {error}"
+            }
+        }
+    }
+}

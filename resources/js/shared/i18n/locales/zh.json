@@ -1413,7 +1413,14 @@
                 "replace_started": "正在替换 {name}，稍后会重新训练。",
                 "replace_failed": "无法替换文件，请重试。",
                 "personal_data_title": "可能含有个人数据",
-                "personal_data_found": "在 {count} 个部分中发现 {kinds}。访客可能会看到它：如果不应如此，请替换或删除文件。 | 在 {count} 个部分中发现 {kinds}。访客可能会看到它们：如果不应如此，请替换或删除文件。"
+                "personal_data_found": "在 {count} 个部分中发现 {kinds}。访客可能会看到它：如果不应如此，请替换或删除文件。 | 在 {count} 个部分中发现 {kinds}。访客可能会看到它们：如果不应如此，请替换或删除文件。",
+                "select_all": "全选（{count}）",
+                "delete_selected": "删除所选（{count}）",
+                "select_file": "选择 {name}",
+                "selected_remove_description": "此操作将从智能体的知识库中永久移除所选文件。此操作无法撤销。",
+                "selected_remove_shared": "其他智能体也在使用的文件只会从此智能体中移除。",
+                "selected_removed": "已移除 {count} 个文件。 | 已移除 {count} 个文件。",
+                "selected_remove_failed": "无法移除所选文件：{error}"
             },
             "text": {
                 "load_failed": "无法加载文本条目",

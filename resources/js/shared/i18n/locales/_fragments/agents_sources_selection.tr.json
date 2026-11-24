@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "select_all": "Tümünü seç ({count})",
+                "delete_selected": "Seçilenleri sil ({count})",
+                "select_file": "{name} dosyasını seç",
+                "selected_remove_description": "Bu, seçili dosyaları asistanınızın bilgi tabanından kalıcı olarak kaldıracaktır. Bu işlem geri alınamaz.",
+                "selected_remove_shared": "Başka asistanların da kullandığı dosyalar yalnızca bu asistandan kaldırılır.",
+                "selected_removed": "{count} dosya kaldırıldı. | {count} dosya kaldırıldı.",
+                "selected_remove_failed": "Seçili dosyalar kaldırılamadı: {error}"
+            }
+        }
+    }
+}

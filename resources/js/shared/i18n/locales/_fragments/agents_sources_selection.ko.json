@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "select_all": "모두 선택 ({count})",
+                "delete_selected": "선택한 항목 삭제 ({count})",
+                "select_file": "{name} 선택",
+                "selected_remove_description": "이 작업은 에이전트의 지식 베이스에서 선택한 파일을 영구적으로 제거합니다. 이 작업은 취소할 수 없습니다.",
+                "selected_remove_shared": "다른 에이전트도 사용하는 파일은 이 에이전트에서만 제거됩니다.",
+                "selected_removed": "파일 {count}개가 제거되었습니다. | 파일 {count}개가 제거되었습니다.",
+                "selected_remove_failed": "선택한 파일을 제거하지 못했습니다: {error}"
+            }
+        }
+    }
+}

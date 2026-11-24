@@ -1413,7 +1413,14 @@
                 "replace_started": "Đang thay {name}. Tệp sẽ được huấn luyện lại trong giây lát.",
                 "replace_failed": "Không thể thay tệp. Vui lòng thử lại.",
                 "personal_data_title": "Có thể chứa dữ liệu cá nhân",
-                "personal_data_found": "Tìm thấy {kinds} trong {count} phần. Khách có thể thấy nội dung này: hãy thay hoặc xóa tệp nếu họ không được thấy. | Tìm thấy {kinds} trong {count} phần. Khách có thể thấy chúng: hãy thay hoặc xóa tệp nếu họ không được thấy."
+                "personal_data_found": "Tìm thấy {kinds} trong {count} phần. Khách có thể thấy nội dung này: hãy thay hoặc xóa tệp nếu họ không được thấy. | Tìm thấy {kinds} trong {count} phần. Khách có thể thấy chúng: hãy thay hoặc xóa tệp nếu họ không được thấy.",
+                "select_all": "Chọn tất cả ({count})",
+                "delete_selected": "Xóa mục đã chọn ({count})",
+                "select_file": "Chọn {name}",
+                "selected_remove_description": "Thao tác này sẽ xóa vĩnh viễn các tệp đã chọn khỏi cơ sở kiến thức của trợ lý AI. Không thể hoàn tác.",
+                "selected_remove_shared": "Các tệp mà trợ lý AI khác cũng dùng chỉ được gỡ khỏi trợ lý AI này.",
+                "selected_removed": "Đã xóa {count} tệp. | Đã xóa {count} tệp.",
+                "selected_remove_failed": "Không thể xóa các tệp đã chọn: {error}"
             },
             "text": {
                 "load_failed": "Không thể tải mục văn bản",

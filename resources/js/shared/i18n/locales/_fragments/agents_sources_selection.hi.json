@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "select_all": "सभी चुनें ({count})",
+                "delete_selected": "चयनित हटाएं ({count})",
+                "select_file": "{name} चुनें",
+                "selected_remove_description": "इससे चयनित फ़ाइलें आपके एजेंट के नॉलेज बेस से स्थायी रूप से हट जाएंगी। इस क्रिया को पूर्ववत नहीं किया जा सकता।",
+                "selected_remove_shared": "जिन फ़ाइलों का उपयोग अन्य एजेंट भी करते हैं, वे केवल इस एजेंट से हटाई जाती हैं।",
+                "selected_removed": "{count} फ़ाइल हटा दी गई। | {count} फ़ाइलें हटा दी गईं।",
+                "selected_remove_failed": "चयनित फ़ाइलें हटाने में विफल: {error}"
+            }
+        }
+    }
+}

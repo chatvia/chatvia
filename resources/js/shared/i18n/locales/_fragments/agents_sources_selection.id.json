@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "select_all": "Pilih semua ({count})",
+                "delete_selected": "Hapus yang dipilih ({count})",
+                "select_file": "Pilih {name}",
+                "selected_remove_description": "Tindakan ini akan menghapus file yang dipilih secara permanen dari basis pengetahuan agen Anda. Tindakan ini tidak dapat dibatalkan.",
+                "selected_remove_shared": "File yang juga digunakan agen lain hanya dilepas dari agen ini.",
+                "selected_removed": "{count} file telah dihapus. | {count} file telah dihapus.",
+                "selected_remove_failed": "Gagal menghapus file yang dipilih: {error}"
+            }
+        }
+    }
+}

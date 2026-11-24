@@ -54,6 +54,7 @@ dataset('agent routes', [
     'file upload' => ['agent.sources.train.files', 'POST', 'agents.sources.files.upload', [], [], 422],
     'archive upload' => ['agent.sources.train.files', 'POST', 'agents.sources.files.upload-archive', [], [], 422],
     'file processing' => ['agent.sources.train.files', 'POST', 'agents.sources.files.process', [], [], 200],
+    'files bulk delete' => ['agent.sources.delete', 'POST', 'agents.sources.files.bulk-destroy', [], [], 422],
     'audio page' => ['agent.sources.train.audio', 'GET', 'agents.sources.audio', [], [], 200],
     'video page' => ['agent.sources.train.video', 'GET', 'agents.sources.video', [], [], 200],
     'web page' => ['agent.sources.train.web', 'GET', 'agents.sources.web', [], [], 200],

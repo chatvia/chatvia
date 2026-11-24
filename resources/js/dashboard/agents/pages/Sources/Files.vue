@@ -3,7 +3,8 @@
  * File sources of an agent (all documents, or only one kind: PDF, Word,
  * Markdown, audio, video). Files are uploaded first, wait in "ready to train",
  * then train; training progress arrives live over Reverb. A trained file can
- * be replaced by a new version, which trains again. Audio and video are
+ * be replaced by a new version, which trains again. Trained files can be
+ * ticked and removed together. Audio and video are
  * measured in minutes, everything else in pages. Both lists load one page at
  * a time.
  */
@@ -21,6 +22,7 @@ import { useFileIngestionProgress } from '@/dashboard/agents/composables/sources
 import { useFileSummary } from '@/dashboard/agents/composables/sources/files/useFileSummary';
 import { useFileUploadConfig } from '@/dashboard/agents/composables/sources/files/useFileUploadConfig';
 import { useSourceFileDeletion } from '@/dashboard/agents/composables/sources/files/useSourceFileDeletion';
+import { useSourceFileSelection } from '@/dashboard/agents/composables/sources/files/useSourceFileSelection';
 import { useSourceFiles } from '@/dashboard/agents/composables/sources/files/useSourceFiles';
 import { useUploadedFiles } from '@/dashboard/agents/composables/sources/files/useUploadedFiles';
 import type { UploadingFileData } from '@/dashboard/agents/composables/useFileUploader';
@@ -78,6 +80,21 @@ const {
 const { isTraining, isClearDialogOpen, trainAll, confirmClearAll, clearAll } = useUploadedFiles(agentId, sourceFiles, fileUploaderRef);
 const deletion = useSourceFileDeletion(agentId, sourceFiles);
 const { isDialogOpen: isDeleteDialogOpen, target: fileToDelete, isUnlinking, isDeleting } = deletion;
+const selection = useSourceFileSelection(agentId, sourceFiles);
+const {
+    selectedIds,
+    selectedCount,
+    allSelected,
+    someSelected,
+    hasSharedFiles,
+    isDialogOpen: isRemoveSelectedDialogOpen,
+    isRemoving: isRemovingSelected,
+} = selection;
+const removeSelectedDescription = computed(() =>
+    [t('agents.sources.files.selected_remove_description'), hasSharedFiles.value ? t('agents.sources.files.selected_remove_shared') : '']
+        .filter(Boolean)
+        .join(' '),
+);
 const summary = useFileSummary(agentId);
 const { isOpen: isSummaryOpen, file: summaryFile, summary: summaryData, isLoading: isSummaryLoading } = summary;
 
@@ -153,11 +170,18 @@ defineExpose({ refreshFiles: fetchFiles });
 
             <TrainedFilesCard
                 :files="processedFiles"
+                :selected-ids="selectedIds"
+                :all-selected="allSelected"
+                :some-selected="someSelected"
+                :is-removing="isRemovingSelected"
                 :total="processedTotal"
                 :has-more="hasMoreProcessed"
                 :is-loading-more="isLoadingMoreProcessed"
                 :is-loading="isLoading && isInitialLoad"
                 :is-busy="isTraining"
+                @toggle="(file, checked) => selection.toggle(file.id, checked)"
+                @toggle-all="selection.toggleAll"
+                @remove-selected="selection.confirm"
                 @attach="isAttachDialogOpen = true"
                 @load-more="sourceFiles.loadMoreTrained"
                 @summary="summary.show"
@@ -188,6 +212,15 @@ defineExpose({ refreshFiles: fetchFiles });
                 :confirm-text="t('agents.sources.files.clear_all_confirm')"
                 :cancel-text="t('agents.sources.common.cancel')"
                 @confirm="clearAll"
+            />
+
+            <DeleteConfirmationDialog
+                v-model:open="isRemoveSelectedDialogOpen"
+                :title="t('agents.sources.files.bulk_delete_title', { count: selectedCount }, selectedCount)"
+                :description="removeSelectedDescription"
+                :confirm-text="t('agents.sources.files.bulk_delete_confirm')"
+                :cancel-text="t('agents.sources.common.cancel')"
+                @confirm="selection.remove"
             />
 
             <FileSummaryDialog v-model:open="isSummaryOpen" :file-name="summaryFile?.name" :summary="summaryData" :is-loading="isSummaryLoading" />

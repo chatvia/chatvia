@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "select_all": "Выбрать все ({count})",
+                "delete_selected": "Удалить выбранные ({count})",
+                "select_file": "Выбрать {name}",
+                "selected_remove_description": "Это навсегда удалит выбранные файлы из базы знаний вашего агента. Это действие нельзя отменить.",
+                "selected_remove_shared": "Файлы, которые используют и другие агенты, только отключаются от этого агента.",
+                "selected_removed": "Удалён {count} файл. | Удалено файлов: {count}.",
+                "selected_remove_failed": "Не удалось удалить выбранные файлы: {error}"
+            }
+        }
+    }
+}

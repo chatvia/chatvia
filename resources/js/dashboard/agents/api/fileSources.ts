@@ -81,6 +81,16 @@ export function deleteSourceFile(agentId: string, fileId: number): Promise<void>
     return del(files.delete.url({ agent: agentId, file: fileId }));
 }
 
+/** Most files one bulk-removal request may name; a larger selection goes in several requests. */
+const BULK_REMOVE_BATCH = 100;
+
+/** Removes the files from this agent: a file other agents also use is only unlinked, the rest are deleted everywhere. */
+export async function removeSourceFiles(agentId: string, fileIds: number[]): Promise<void> {
+    for (let start = 0; start < fileIds.length; start += BULK_REMOVE_BATCH) {
+        await post(files.bulkDestroy.url(agentId), { file_ids: fileIds.slice(start, start + BULK_REMOVE_BATCH) });
+    }
+}
+
 /** Removes a shared file from this agent only. */
 export function unlinkSourceFile(agentId: string, fileId: number): Promise<void> {
     return post(files.unlink.url({ agent: agentId, file: fileId }), { file_id: fileId });

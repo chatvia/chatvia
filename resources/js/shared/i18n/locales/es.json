@@ -1413,7 +1413,14 @@
                 "uploader_description_archive": "Un archivo ZIP se descomprime, carpetas incluidas, y solo se conservan los archivos de estos formatos.",
                 "archive_uploaded": "{count} archivo añadido desde {name} | {count} archivos añadidos desde {name}",
                 "archive_skipped": "{count} archivo omitido: {names} | {count} archivos omitidos: {names}",
-                "archive_empty": "No se encontraron archivos compatibles en {name}."
+                "archive_empty": "No se encontraron archivos compatibles en {name}.",
+                "select_all": "Seleccionar todos ({count})",
+                "delete_selected": "Eliminar seleccionados ({count})",
+                "select_file": "Seleccionar {name}",
+                "selected_remove_description": "Esto eliminará permanentemente los archivos seleccionados de la base de conocimiento de tu agente. Esta acción no se puede deshacer.",
+                "selected_remove_shared": "Los archivos que también usan otros agentes solo se quitan de este agente.",
+                "selected_removed": "Se ha eliminado {count} archivo. | Se han eliminado {count} archivos.",
+                "selected_remove_failed": "Error al eliminar los archivos seleccionados: {error}"
             },
             "text": {
                 "load_failed": "Error al cargar la entrada de texto",

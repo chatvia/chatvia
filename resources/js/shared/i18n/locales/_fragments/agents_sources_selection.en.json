@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "select_all": "Select all ({count})",
+                "delete_selected": "Delete selected ({count})",
+                "select_file": "Select {name}",
+                "selected_remove_description": "This will permanently remove the selected files from your agent's knowledge base. This action cannot be undone.",
+                "selected_remove_shared": "Files that other agents also use are only removed from this agent.",
+                "selected_removed": "{count} file has been removed. | {count} files have been removed.",
+                "selected_remove_failed": "Failed to remove the selected files: {error}"
+            }
+        }
+    }
+}

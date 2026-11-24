@@ -1409,7 +1409,14 @@
                 "replace_started": "Ersätter {name}. Den tränas om om en stund.",
                 "replace_failed": "Det gick inte att ersätta filen. Försök igen.",
                 "personal_data_title": "Kan innehålla personuppgifter",
-                "personal_data_found": "Hittade {kinds} i {count} del. Besökare kan få se det: ersätt eller ta bort filen om de inte får. | Hittade {kinds} i {count} delar. Besökare kan få se dem: ersätt eller ta bort filen om de inte får."
+                "personal_data_found": "Hittade {kinds} i {count} del. Besökare kan få se det: ersätt eller ta bort filen om de inte får. | Hittade {kinds} i {count} delar. Besökare kan få se dem: ersätt eller ta bort filen om de inte får.",
+                "select_all": "Välj alla ({count})",
+                "delete_selected": "Ta bort valda ({count})",
+                "select_file": "Välj {name}",
+                "selected_remove_description": "Det här tar permanent bort de valda filerna från agentens kunskapsbas. Åtgärden kan inte ångras.",
+                "selected_remove_shared": "Filer som andra agenter också använder tas bara bort från den här agenten.",
+                "selected_removed": "{count} fil har tagits bort. | {count} filer har tagits bort.",
+                "selected_remove_failed": "Det gick inte att ta bort de valda filerna: {error}"
             },
             "text": {
                 "load_failed": "Det gick inte att läsa in textposten",

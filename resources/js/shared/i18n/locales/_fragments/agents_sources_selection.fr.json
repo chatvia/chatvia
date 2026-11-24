@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "select_all": "Tout sélectionner ({count})",
+                "delete_selected": "Supprimer la sélection ({count})",
+                "select_file": "Sélectionner {name}",
+                "selected_remove_description": "Cette action supprimera définitivement les fichiers sélectionnés de la base de connaissances de votre agent. Cette action est irréversible.",
+                "selected_remove_shared": "Les fichiers que d'autres agents utilisent aussi sont seulement retirés de cet agent.",
+                "selected_removed": "{count} fichier a été supprimé. | {count} fichiers ont été supprimés.",
+                "selected_remove_failed": "Échec de la suppression des fichiers sélectionnés : {error}"
+            }
+        }
+    }
+}

@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "select_all": "全选（{count}）",
+                "delete_selected": "删除所选（{count}）",
+                "select_file": "选择 {name}",
+                "selected_remove_description": "此操作将从智能体的知识库中永久移除所选文件。此操作无法撤销。",
+                "selected_remove_shared": "其他智能体也在使用的文件只会从此智能体中移除。",
+                "selected_removed": "已移除 {count} 个文件。 | 已移除 {count} 个文件。",
+                "selected_remove_failed": "无法移除所选文件：{error}"
+            }
+        }
+    }
+}

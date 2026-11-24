@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "select_all": "Velg alle ({count})",
+                "delete_selected": "Slett valgte ({count})",
+                "select_file": "Velg {name}",
+                "selected_remove_description": "Dette vil permanent fjerne de valgte filene fra agentens kunnskapsbase. Denne handlingen kan ikke angres.",
+                "selected_remove_shared": "Filer som andre agenter også bruker, fjernes bare fra denne agenten.",
+                "selected_removed": "{count} fil er fjernet. | {count} filer er fjernet.",
+                "selected_remove_failed": "Kunne ikke fjerne de valgte filene: {error}"
+            }
+        }
+    }
+}

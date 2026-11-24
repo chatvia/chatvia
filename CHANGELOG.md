@@ -5,6 +5,14 @@ All notable changes to ChatVia.ai are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-11-24
+
+### Added
+
+- Knowledge files: the trained files list has a checkbox on every file, a
+  **Select all** box and a **Delete selected** button, to remove several files
+  at once. A file that other agents also use is only removed from this agent.
+
 ## [1.4.0] - 2026-11-07
 
 ### Added

@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "select_all": "تحديد الكل ({count})",
+                "delete_selected": "حذف المحدد ({count})",
+                "select_file": "تحديد {name}",
+                "selected_remove_description": "سيؤدي ذلك إلى إزالة الملفات المحددة نهائياً من قاعدة معرفة وكيلك. لا يمكن التراجع عن هذا الإجراء.",
+                "selected_remove_shared": "الملفات التي يستخدمها وكلاء آخرون تُزال من هذا الوكيل فقط.",
+                "selected_removed": "تمت إزالة {count} ملف. | تمت إزالة {count} ملفات.",
+                "selected_remove_failed": "فشلت إزالة الملفات المحددة: {error}"
+            }
+        }
+    }
+}

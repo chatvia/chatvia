@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "select_all": "Välj alla ({count})",
+                "delete_selected": "Ta bort valda ({count})",
+                "select_file": "Välj {name}",
+                "selected_remove_description": "Det här tar permanent bort de valda filerna från agentens kunskapsbas. Åtgärden kan inte ångras.",
+                "selected_remove_shared": "Filer som andra agenter också använder tas bara bort från den här agenten.",
+                "selected_removed": "{count} fil har tagits bort. | {count} filer har tagits bort.",
+                "selected_remove_failed": "Det gick inte att ta bort de valda filerna: {error}"
+            }
+        }
+    }
+}

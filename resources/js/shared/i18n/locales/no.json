@@ -1409,7 +1409,14 @@
                 "replace_started": "Erstatter {name}. Den trenes på nytt om et øyeblikk.",
                 "replace_failed": "Kunne ikke erstatte filen. Prøv igjen.",
                 "personal_data_title": "Kan inneholde personopplysninger",
-                "personal_data_found": "Fant {kinds} i {count} del. Besøkende kan få det vist: erstatt eller fjern filen hvis de ikke skal. | Fant {kinds} i {count} deler. Besøkende kan få dem vist: erstatt eller fjern filen hvis de ikke skal."
+                "personal_data_found": "Fant {kinds} i {count} del. Besøkende kan få det vist: erstatt eller fjern filen hvis de ikke skal. | Fant {kinds} i {count} deler. Besøkende kan få dem vist: erstatt eller fjern filen hvis de ikke skal.",
+                "select_all": "Velg alle ({count})",
+                "delete_selected": "Slett valgte ({count})",
+                "select_file": "Velg {name}",
+                "selected_remove_description": "Dette vil permanent fjerne de valgte filene fra agentens kunnskapsbase. Denne handlingen kan ikke angres.",
+                "selected_remove_shared": "Filer som andre agenter også bruker, fjernes bare fra denne agenten.",
+                "selected_removed": "{count} fil er fjernet. | {count} filer er fjernet.",
+                "selected_remove_failed": "Kunne ikke fjerne de valgte filene: {error}"
             },
             "text": {
                 "load_failed": "Kunne ikke laste tekstoppføring",

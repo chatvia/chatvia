@@ -1413,7 +1413,14 @@
                 "uploader_description_archive": "فایل ZIP به همراه پوشه‌هایش باز می‌شود و فقط فایل‌های این قالب‌ها نگه داشته می‌شوند.",
                 "archive_uploaded": "{count} فایل از {name} افزوده شد | {count} فایل از {name} افزوده شد",
                 "archive_skipped": "{count} فایل رد شد: {names} | {count} فایل رد شد: {names}",
-                "archive_empty": "فایل پشتیبانی‌شده‌ای در {name} پیدا نشد."
+                "archive_empty": "فایل پشتیبانی‌شده‌ای در {name} پیدا نشد.",
+                "select_all": "انتخاب همه ({count})",
+                "delete_selected": "حذف انتخاب‌شده‌ها ({count})",
+                "select_file": "انتخاب «{name}»",
+                "selected_remove_description": "این عمل فایل‌های انتخاب‌شده را به طور دائمی از پایگاه دانش دستیار شما حذف می‌کند. این عمل قابل بازگشت نیست.",
+                "selected_remove_shared": "فایل‌هایی که دستیارهای دیگر هم از آن‌ها استفاده می‌کنند فقط از این دستیار برداشته می‌شوند.",
+                "selected_removed": "{count} فایل حذف شد. | {count} فایل حذف شد.",
+                "selected_remove_failed": "حذف فایل‌های انتخاب‌شده ناموفق بود: {error}"
             },
             "text": {
                 "load_failed": "بارگذاری متن ناموفق بود",

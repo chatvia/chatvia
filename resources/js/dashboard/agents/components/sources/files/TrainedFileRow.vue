@@ -1,7 +1,8 @@
 <script setup lang="ts">
 /**
- * One file of the agent's knowledge base: name, type, status icon, size,
- * length and date, a progress bar while it trains, and buttons to view its
+ * One file of the agent's knowledge base: a checkbox for bulk removal, name,
+ * type, status icon, size, length and date, a progress bar while it trains,
+ * and buttons to view its
  * AI summary (once trained, if it has one), to replace it with a new version
  * and to remove it.
  * A file holding card numbers, IBANs or similar shows a warning.
@@ -10,6 +11,7 @@ import type { SourceFile } from '@/dashboard/agents/api/fileSources';
 import IngestionProgressBar from '@/dashboard/agents/components/IngestionProgressBar.vue';
 import SourceActionButton from '@/dashboard/agents/components/sources/SourceActionButton.vue';
 import { Badge } from '@/shared/ui/badge';
+import { Checkbox } from '@/shared/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip';
 import { useFileFormatting } from '@/dashboard/agents/composables/sources/files/useFileFormatting';
 import { useDateFormat } from '@/dashboard/composables/useDateFormat';
@@ -19,11 +21,14 @@ import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
     file: SourceFile;
+    /** Ticked for bulk removal. */
+    selected: boolean;
     /** Uploaded files are being trained; row actions wait until that is done. */
     isBusy: boolean;
 }>();
 
 const emit = defineEmits<{
+    toggle: [checked: boolean | 'indeterminate'];
     summary: [file: SourceFile];
     replace: [file: SourceFile];
     remove: [file: SourceFile];
@@ -49,6 +54,13 @@ const personalDataKinds = computed(() => (props.file.personal_data ?? []).map((k
 <template>
     <div class="flex items-center justify-between rounded-lg border p-3">
         <div class="flex min-w-0 flex-1 items-center gap-3">
+            <Checkbox
+                :model-value="selected"
+                :disabled="isBusy"
+                :aria-label="t('agents.sources.files.select_file', { name: file.name })"
+                class="flex-shrink-0"
+                @update:model-value="(checked) => emit('toggle', checked)"
+            />
             <FileText class="text-muted-foreground h-5 w-5 flex-shrink-0" />
             <div class="min-w-0 flex-1">
                 <div class="mb-1 flex items-center gap-2">

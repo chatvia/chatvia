@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "select_all": "Valitse kaikki ({count})",
+                "delete_selected": "Poista valitut ({count})",
+                "select_file": "Valitse {name}",
+                "selected_remove_description": "Tämä poistaa pysyvästi valitut tiedostot agentin tietokannasta. Tätä toimintoa ei voi peruuttaa.",
+                "selected_remove_shared": "Tiedostot, joita myös muut agentit käyttävät, poistetaan vain tältä agentilta.",
+                "selected_removed": "{count} tiedosto poistettiin. | {count} tiedostoa poistettiin.",
+                "selected_remove_failed": "Valittujen tiedostojen poistaminen epäonnistui: {error}"
+            }
+        }
+    }
+}

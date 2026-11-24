@@ -1413,7 +1413,14 @@
                 "replace_started": "Mengganti {name}. File akan dilatih ulang sebentar lagi.",
                 "replace_failed": "File tidak dapat diganti. Silakan coba lagi.",
                 "personal_data_title": "Mungkin berisi data pribadi",
-                "personal_data_found": "Ditemukan {kinds} di {count} bagian. Pengunjung bisa melihatnya: ganti atau hapus file jika tidak boleh. | Ditemukan {kinds} di {count} bagian. Pengunjung bisa melihatnya: ganti atau hapus file jika tidak boleh."
+                "personal_data_found": "Ditemukan {kinds} di {count} bagian. Pengunjung bisa melihatnya: ganti atau hapus file jika tidak boleh. | Ditemukan {kinds} di {count} bagian. Pengunjung bisa melihatnya: ganti atau hapus file jika tidak boleh.",
+                "select_all": "Pilih semua ({count})",
+                "delete_selected": "Hapus yang dipilih ({count})",
+                "select_file": "Pilih {name}",
+                "selected_remove_description": "Tindakan ini akan menghapus file yang dipilih secara permanen dari basis pengetahuan agen Anda. Tindakan ini tidak dapat dibatalkan.",
+                "selected_remove_shared": "File yang juga digunakan agen lain hanya dilepas dari agen ini.",
+                "selected_removed": "{count} file telah dihapus. | {count} file telah dihapus.",
+                "selected_remove_failed": "Gagal menghapus file yang dipilih: {error}"
             },
             "text": {
                 "load_failed": "Gagal memuat entri teks",

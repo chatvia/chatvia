@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "select_all": "すべて選択（{count}）",
+                "delete_selected": "選択した{count}件を削除",
+                "select_file": "{name}を選択",
+                "selected_remove_description": "これにより、選択したファイルがエージェントのナレッジベースから完全に削除されます。この操作は元に戻せません。",
+                "selected_remove_shared": "他のエージェントも使用しているファイルは、このエージェントからのみ削除されます。",
+                "selected_removed": "{count}件のファイルを削除しました。 | {count}件のファイルを削除しました。",
+                "selected_remove_failed": "選択したファイルの削除に失敗しました: {error}"
+            }
+        }
+    }
+}

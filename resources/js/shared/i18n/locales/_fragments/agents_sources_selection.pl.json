@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "select_all": "Zaznacz wszystkie ({count})",
+                "delete_selected": "Usuń wybrane ({count})",
+                "select_file": "Zaznacz {name}",
+                "selected_remove_description": "Spowoduje to trwałe usunięcie wybranych plików z bazy wiedzy agenta. Tej operacji nie można cofnąć.",
+                "selected_remove_shared": "Pliki, z których korzystają też inni agenci, są tylko odłączane od tego agenta.",
+                "selected_removed": "Usunięto {count} plik. | Usunięto pliki: {count}.",
+                "selected_remove_failed": "Nie udało się usunąć wybranych plików: {error}"
+            }
+        }
+    }
+}

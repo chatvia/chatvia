@@ -99,6 +99,7 @@ use App\Http\Controllers\Agent\Source\File\Manage\AgentKnowledgeSourcesStatsCont
 use App\Http\Controllers\Agent\Source\File\Manage\AgentKnowledgeUploadedFilesDeleteController;
 use App\Http\Controllers\Agent\Source\File\Manage\AgentSourceFileController;
 use App\Http\Controllers\Agent\Source\File\Manage\AgentTrainedFileController;
+use App\Http\Controllers\Agent\Source\File\Manage\BulkDestroyAgentSourceFilesController;
 use App\Http\Controllers\Agent\Source\File\Manage\ReplaceAgentSourceFileController;
 use App\Http\Controllers\Agent\Source\File\Pages\AgentKnowledgeFileController;
 use App\Http\Controllers\Agent\Source\File\Pages\AgentKnowledgeMarkdownController;
@@ -263,6 +264,7 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         Route::delete('sources/files/{file}', AgentSourceFileDeleteController::class)->middleware('agent.permission:agent.sources.delete')->name('sources.files.delete');
         Route::post('sources/files/{file}/replace', ReplaceAgentSourceFileController::class)->middleware(['agent.permission:agent.sources.train.files', 'throttle:120,1,knowledge-upload'])->name('sources.files.replace');
         Route::delete('sources/files/uploaded/all', AgentKnowledgeUploadedFilesDeleteController::class)->middleware('agent.permission:agent.sources.delete')->name('sources.uploaded-files');
+        Route::post('sources/files/bulk-destroy', BulkDestroyAgentSourceFilesController::class)->middleware('agent.permission:agent.sources.delete')->name('sources.files.bulk-destroy');
         Route::post('sources/files/process', AgentKnowledgeFilesProcessController::class)->middleware(['agent.permission:agent.sources.train.files', 'throttle:20,1,knowledge-process'])->name('sources.files.process');
         Route::get('sources/files/{file}/summary', AgentFileSummaryController::class)->middleware('agent.permission:agent.sources.train.files')->name('agent.files.summary');
 

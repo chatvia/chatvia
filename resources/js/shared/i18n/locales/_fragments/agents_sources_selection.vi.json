@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "sources": {
+            "files": {
+                "select_all": "Chọn tất cả ({count})",
+                "delete_selected": "Xóa mục đã chọn ({count})",
+                "select_file": "Chọn {name}",
+                "selected_remove_description": "Thao tác này sẽ xóa vĩnh viễn các tệp đã chọn khỏi cơ sở kiến thức của trợ lý AI. Không thể hoàn tác.",
+                "selected_remove_shared": "Các tệp mà trợ lý AI khác cũng dùng chỉ được gỡ khỏi trợ lý AI này.",
+                "selected_removed": "Đã xóa {count} tệp. | Đã xóa {count} tệp.",
+                "selected_remove_failed": "Không thể xóa các tệp đã chọn: {error}"
+            }
+        }
+    }
+}

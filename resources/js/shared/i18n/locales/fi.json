@@ -1413,7 +1413,14 @@
                 "uploader_description_archive": "ZIP-arkisto puretaan kansioineen, ja vain näiden muotojen tiedostot säilytetään.",
                 "archive_uploaded": "{count} tiedosto lisätty arkistosta {name} | {count} tiedostoa lisätty arkistosta {name}",
                 "archive_skipped": "{count} tiedosto ohitettu: {names} | {count} tiedostoa ohitettu: {names}",
-                "archive_empty": "Arkistosta {name} ei löytynyt tuettuja tiedostoja."
+                "archive_empty": "Arkistosta {name} ei löytynyt tuettuja tiedostoja.",
+                "select_all": "Valitse kaikki ({count})",
+                "delete_selected": "Poista valitut ({count})",
+                "select_file": "Valitse {name}",
+                "selected_remove_description": "Tämä poistaa pysyvästi valitut tiedostot agentin tietokannasta. Tätä toimintoa ei voi peruuttaa.",
+                "selected_remove_shared": "Tiedostot, joita myös muut agentit käyttävät, poistetaan vain tältä agentilta.",
+                "selected_removed": "{count} tiedosto poistettiin. | {count} tiedostoa poistettiin.",
+                "selected_remove_failed": "Valittujen tiedostojen poistaminen epäonnistui: {error}"
             },
             "text": {
                 "load_failed": "Tekstimerkinnän lataaminen epäonnistui",

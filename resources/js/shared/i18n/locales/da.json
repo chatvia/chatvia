@@ -1413,7 +1413,14 @@
                 "uploader_description_archive": "Et ZIP-arkiv pakkes ud, mapper inklusive, og kun filer i disse formater beholdes.",
                 "archive_uploaded": "{count} fil tilføjet fra {name} | {count} filer tilføjet fra {name}",
                 "archive_skipped": "{count} fil sprunget over: {names} | {count} filer sprunget over: {names}",
-                "archive_empty": "Der blev ikke fundet understøttede filer i {name}."
+                "archive_empty": "Der blev ikke fundet understøttede filer i {name}.",
+                "select_all": "Vælg alle ({count})",
+                "delete_selected": "Slet valgte ({count})",
+                "select_file": "Vælg {name}",
+                "selected_remove_description": "Dette vil permanent fjerne de valgte filer fra agentens vidensbase. Denne handling kan ikke fortrydes.",
+                "selected_remove_shared": "Filer, som andre agenter også bruger, fjernes kun fra denne agent.",
+                "selected_removed": "{count} fil er blevet fjernet. | {count} filer er blevet fjernet.",
+                "selected_remove_failed": "Det lykkedes ikke at fjerne de valgte filer: {error}"
             },
             "text": {
                 "load_failed": "Det lykkedes ikke at indlæse tekstindgang",

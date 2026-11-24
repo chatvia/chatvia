@@ -27,6 +27,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   for a while the same model can show under two names.
 - Packages are updated to their newest releases.
 
+### Security
+
+- Docker: the image runs PHP 8.5.13, which fixes security issues in PHP 8.5.12.
+- Docker: the base image is updated to fix an open redirect on addresses that
+  start with `/index.php/`, and a missing PHP file is now answered by the web
+  server with a 404 and no longer reaches PHP.
+
 ## [1.4.0] - 2026-11-07
 
 ### Added

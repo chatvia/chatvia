@@ -592,8 +592,12 @@ it('makes the embeddings with the OpenRouter key, with a model from its list', f
         ->assertFormSet(['chat_models' => ['meta-llama/llama-4-maverick'], 'quick_task_model' => null, 'describe_images' => false, 'vision_model' => null])
         ->assertFormFieldHidden('vision_model')
         ->assertSee('None of the recommended models of this provider reads images, so image descriptions are off.')
-        ->assertSee(['OpenRouter makes them with the same key, or pick another service.', 'OpenAI text-embedding-3-small — Good and cheap. The default.', 'BAAI: bge-m3'])
-        ->assertDontSee('Text Embedding 3 Small (batch)')
+        ->assertSee(['OpenRouter makes them with the same key, or pick another service.', 'OpenAI text-embedding-3-small — Good and cheap. The default.'])
+        // The page holds only the chosen model: the list is read when it
+        // opens. It has OpenRouter's own models, without the batch copies.
+        ->tap(fn (Testable $page) => expect($page->instance()->form->getFlatFields()['embedding_model']->getOptions())
+            ->toHaveKey('baai/bge-m3')
+            ->not->toHaveKey('openai/text-embedding-3-small:batch'))
         ->fillForm(['embedding_model' => 'qwen/qwen3-embedding-8b'])
         ->call('complete')
         ->assertHasNoFormErrors();
